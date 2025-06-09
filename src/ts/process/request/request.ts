@@ -1,14 +1,12 @@
 import { Ollama } from 'ollama/dist/browser.mjs';
-import { v4 } from "uuid";
 import { language } from "../../../lang";
-import { fetchNative, globalFetch, textifyReadableStream } from "../../globalApi.svelte";
+import { globalFetch } from "../../globalApi.svelte";
 import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../../model/modellist";
 import { risuChatParser, risuEscape, risuUnescape } from "../../parser.svelte";
 import { pluginProcess, pluginV2 } from "../../plugins/plugins";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type character } from "../../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, type character } from "../../storage/database.svelte";
 import { tokenizeNum } from "../../tokenizer";
 import { sleep } from "../../util";
-import { setInlayAsset, writeInlayImage } from "../files/inlays";
 import type { MultiModal, OpenAIChat } from "../index.svelte";
 import { getTools } from "../mcp/mcp";
 import type { MCPTool, RPCToolCallContent } from "../mcp/mcplib";
@@ -16,12 +14,11 @@ import { NovelAIBadWordIds, stringlizeNAIChat } from "../models/nai";
 import { OobaParams } from "../prompt";
 import { getStopStrings, stringlizeAINChat, unstringlizeAIN, unstringlizeChat } from "../stringlize";
 import { applyChatTemplate } from "../templates/chatTemplate";
-import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema";
 import { runTransformers } from "../transformers";
 import { runTrigger } from "../triggers";
-import { requestOpenAI, requestOpenAILegacyInstruct, requestOpenAIResponseAPI } from "./openAI";
 import { requestClaude } from './antrophic';
 import { requestGoogleCloudVertex } from './google';
+import { requestOpenAI, requestOpenAILegacyInstruct, requestOpenAIResponseAPI } from "./openAI";
 
 export type ToolCall = {
     name: string;

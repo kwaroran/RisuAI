@@ -1,21 +1,15 @@
-import { language } from "src/lang"
-import { applyParameters, setObjectValue, type OpenAIChatExtra, type OpenAIContents, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
-import { getDatabase } from "src/ts/storage/database.svelte"
-import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
-import { strongBan, tokenizeNum } from "src/ts/tokenizer"
-import { getFreeOpenRouterModel } from "src/ts/model/openrouter"
-import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "src/ts/globalApi.svelte"
-import type { MultiModal, OpenAIChatFull } from "../index.svelte"
-import { extractJSON, getOpenAIJSONSchema } from "../templates/jsonSchema"
-import { applyChatTemplate } from "../templates/chatTemplate"
-import { supportsInlayImage } from "../files/inlays"
-import { Capacitor } from "@capacitor/core"
-import { Sha256 } from "@aws-crypto/sha256-js";
-import { HttpRequest } from "@smithy/protocol-http";
-import { SignatureV4 } from "@smithy/signature-v4";
-import { v4 } from "uuid"
-import { sleep } from "src/ts/util"
+import { Sha256 } from "@aws-crypto/sha256-js"
+import { HttpRequest } from "@smithy/protocol-http"
+import { SignatureV4 } from "@smithy/signature-v4"
+import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
+import { LLMFormat } from "src/ts/model/modellist"
 import { registerClaudeObserver } from "src/ts/observer.svelte"
+import { getDatabase } from "src/ts/storage/database.svelte"
+import { sleep } from "src/ts/util"
+import { v4 } from "uuid"
+import type { MultiModal } from "../index.svelte"
+import { extractJSON } from "../templates/jsonSchema"
+import { applyParameters, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 
 export async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
     const formated = arg.formated

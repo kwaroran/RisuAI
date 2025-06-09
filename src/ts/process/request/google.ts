@@ -1,21 +1,12 @@
-import { language } from "src/lang"
-import { applyParameters, setObjectValue, type OpenAIChatExtra, type OpenAIContents, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
-import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
+import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
-import { strongBan, tokenizeNum } from "src/ts/tokenizer"
-import { getFreeOpenRouterModel } from "src/ts/model/openrouter"
-import { addFetchLog, fetchNative, globalFetch, isNodeServer, isTauri, textifyReadableStream } from "src/ts/globalApi.svelte"
-import type { MultiModal, OpenAIChat, OpenAIChatFull } from "../index.svelte"
-import { extractJSON, getGeneralJSONSchema, getOpenAIJSONSchema } from "../templates/jsonSchema"
-import { applyChatTemplate } from "../templates/chatTemplate"
-import { setInlayAsset, supportsInlayImage, writeInlayImage } from "../files/inlays"
-import { Capacitor } from "@capacitor/core"
-import { Sha256 } from "@aws-crypto/sha256-js";
-import { HttpRequest } from "@smithy/protocol-http";
-import { SignatureV4 } from "@smithy/signature-v4";
-import { v4 } from "uuid"
+import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
 import { sleep } from "src/ts/util"
-import { registerClaudeObserver } from "src/ts/observer.svelte"
+import { v4 } from "uuid"
+import { setInlayAsset, writeInlayImage } from "../files/inlays"
+import type { OpenAIChat } from "../index.svelte"
+import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
+import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 
 
 export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
