@@ -236,6 +236,8 @@ export const languageKorean = {
         "v2ShowAlertDesc": "{{value}}로 알림 표시",
         "v2ExtractRegex": "정규식 추출",
         "v2ExtractRegexDesc": "{{value}}에서 정규식  {{regex}} 및 플래그 {{flags}}를 사용하여 텍스트 추출, 결과를 {{result}}로 저장 => {{outputVar}}",
+        "v2RegexTest": "정규식 테스트",
+        "v2RegexTestDesc": "{{value}}에서 정규식 {{regex}} 및 플래그 {{flags}}로 매칭 테스트 => {{outputVar}}",
         "v2GetLastMessage": "마지막 메시지 가져오기",
         "v2GetLastMessageDesc": "마지막 메시지 가져오기 => {{outputVar}}",
         "v2GetMessageAtIndex": "인덱스에서 메시지 가져오기",

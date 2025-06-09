@@ -39,7 +39,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
                                 triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2UpdateChatAt|triggerV2Wait|
                                 triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength|triggerV2IfAdvanced|
-                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize
+                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -719,6 +719,18 @@ export type triggerV2Tokenize = {
     outputVar:string
 }
 
+export type triggerV2RegexTest = {
+    type: 'v2RegexTest',
+    value: string,
+    valueType: 'var'|'value',
+    regex: string,
+    regexType: 'var'|'value',
+    flags: string,
+    flagsType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
 const safeSubset = [
     'v2SetVar',
     'v2If',
@@ -731,6 +743,7 @@ const safeSubset = [
     'v2StopTrigger',
     'v2Random',
     'v2ExtractRegex',
+    'v2RegexTest',
     'v2GetCharAt',
     'v2GetCharCount',
     'v2ToLowerCase',
@@ -1945,6 +1958,19 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 case 'v2Tokenize':{
                     const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                     setVar(effect.outputVar, (await tokenize(value)).toString())
+                    break
+                }
+                case 'v2RegexTest':{
+                    try {
+                        const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                        const regexPattern = effect.regexType === 'value' ? risuChatParser(effect.regex,{chara:char}) : getVar(risuChatParser(effect.regex,{chara:char}))
+                        const flags = effect.flagsType === 'value' ? risuChatParser(effect.flags,{chara:char}) : getVar(risuChatParser(effect.flags,{chara:char}))
+                        const regex = new RegExp(regexPattern, flags)
+                        const result = regex.test(value)
+                        setVar(effect.outputVar, result ? '1' : '0')
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
+                    }
                     break
                 }
             }

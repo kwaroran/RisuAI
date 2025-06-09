@@ -287,6 +287,8 @@ export const languageEnglish = {
         v2ShowAlertDesc: "Show alert with {{value}}",
         v2ExtractRegex: "Extract Regex",
         v2ExtractRegexDesc: "Extract text from {{value}} with regex {{regexType}} {{regex}} and flags {{flagsType}} {{flags}}, then store result as {{resultType}} {{result}} => {{outputVar}}",
+        v2RegexTest: "Regex Test",
+        v2RegexTestDesc: "Test {{value}} with regex {{regex}} and flags {{flags}} => {{outputVar}}",
         v2GetLastMessage: "Get Last Message",
         v2GetLastMessageDesc: "Get Last Message => {{outputVar}}",
         v2GetMessageAtIndex: "Get Message at Index",
