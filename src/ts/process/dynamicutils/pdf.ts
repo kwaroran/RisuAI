@@ -1,4 +1,4 @@
-import pdfjs from 'pdfjs-dist'
+import * as pdfjs from 'pdfjs-dist'
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?worker&url'
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker
