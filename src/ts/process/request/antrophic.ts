@@ -267,6 +267,71 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
         })
     }
 
+    //check for tool calls
+    for(let j=0;j<claudeChat.length;j++){
+        let chat = claudeChat[j]
+        for(let i=0;i<chat.content.length;i++){
+            let content = chat.content[i]
+            if(content.type === 'text'){
+                content.text = content.text.replace(/<tool_call>(.*?)<\/tool_call>/g, (match, p1) => {
+                    try {
+                        const parsed = JSON.parse(p1)
+                        if(parsed?.call && parsed?.response){
+                            const toolUse:Claude3ToolUseBlock = {
+                                type: 'tool_use',
+                                id: parsed.call.id,
+                                name: parsed.call.name,
+                                input: parsed.call.arg
+                            }
+                            const toolResponse:Claude3ToolResponseBlock = {
+                                type: 'tool_result',
+                                tool_use_id: parsed.call.id,
+                                content: parsed.response.map((v:any) => {
+                                    if(v.type === 'text'){
+                                        return {
+                                            type: 'text',
+                                            text: v.text
+                                        }
+                                    }
+                                    if(v.type === 'image'){
+                                        return {
+                                            type: 'image',
+                                            source: {
+                                                type: 'base64',
+                                                media_type: v.mimeType,
+                                                data: v.data
+                                            }
+                                        }
+                                    }
+                                    return {
+                                        type: 'text',
+                                        text: `Unsupported tool response type: ${v.type}`
+                                    }
+                                })
+                            }
+                            claudeChat.splice(j, 0, {
+                                role: 'assistant',
+                                content: [toolUse]
+                            })
+
+                            claudeChat.splice(j+1, 0, {
+                                role: 'user',
+                                content: [toolResponse]
+                            })
+                            j+=2
+                            chat = claudeChat[j]
+                            return ''
+                        }
+                    } catch (error) {
+                        
+                    }
+
+                    return ''
+                })
+            }
+        }
+    }
+
     let finalChat:Claude3ExtendedChat[] = claudeChat
 
     if(aiModel === 'reverse_proxy'){
