@@ -849,6 +849,17 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
                     })
                 }
                 response.content.push(r)
+                if(db.rememberToolUsage){
+                    arg.additionalOutput ??= ''
+                    arg.additionalOutput += `<tool_call>${JSON.stringify({
+                        call: {
+                            id: content.id,
+                            name: content.name,
+                            arg: content.input
+                        },
+                        response: used
+                    })}</tool_call>`
+                }
             }
 
             (messages[messages.length-1] as Claude3Chat).content.push(content)
@@ -889,14 +900,15 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
     }
 
 
+    arg.additionalOutput ??= ""
     if(arg.extractJson && db.jsonSchemaEnabled){
         return {
             type: 'success',
-            result: extractJSON(resText, db.jsonSchema)
+            result: arg.additionalOutput + extractJSON(resText, db.jsonSchema)
         }
     }
     return {
         type: 'success',
-        result: resText
+        result: arg.additionalOutput + resText
     }
 }

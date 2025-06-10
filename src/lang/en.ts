@@ -1138,4 +1138,5 @@ export const languageEnglish = {
     folderRemoveLengthError: "To remove a folder, it must not contain any entries.",
     personaNote: "Persona Note",
     mcpAccessPrompt: "{{tool}} is trying to \"{{action}}\". do you want to allow this?",
+    rememberToolUsage: "Remember tool usage",
 }

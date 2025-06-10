@@ -767,6 +767,17 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                                         content: x[0].text,
                                         tool_call_id: toolCall.id
                                     })
+                                    if(db.rememberToolUsage){
+                                        arg.additionalOutput ??= ''
+                                        arg.additionalOutput += `<tool_call>${JSON.stringify({
+                                            call: {
+                                                id: toolCall.id,
+                                                name: toolCall.function.name,
+                                                arg: toolCall.function.arguments
+                                            },
+                                            response: x
+                                        })}</tool_call>`
+                                    }
                                 }
                                 else{
                                     messages.push({
@@ -791,13 +802,15 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                 return requestHTTPOpenAI(replacerURL, body, headers, arg)
             }
 
+            arg.additionalOutput ??= ''
+
             if(arg.multiGen && dat.choices){
                 if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
 
                     const c = dat.choices.map((v:{
                         message:{content:string}
                     }) => {
-                        const extracted = extractJSON(v.message.content, arg.extractJson)
+                        const extracted = extractJSON( arg.additionalOutput + v.message.content, arg.extractJson)
                         return ["char",extracted]
                     })
 
@@ -810,7 +823,7 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                 return {
                     type: 'multiline',
                     result: dat.choices.map((v) => {
-                        return ["char",v.message.content]
+                        return ["char", arg.additionalOutput + v.message.content]
                     })
                 }
 
@@ -824,19 +837,19 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                         const extracted = extractJSON(parsed, arg.extractJson)
                         return {
                             type: 'success',
-                            result: extracted
+                            result:  arg.additionalOutput + extracted
                         }
                     } catch (error) {
                         console.log(error)
                         return {
                             type: 'success',
-                            result: text
+                            result:  arg.additionalOutput + text
                         }
                     }
                 }
                 return {
                     type: 'success',
-                    result: text
+                    result:  arg.additionalOutput + text
                 }
             }
             if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
@@ -869,7 +882,7 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
             
             return {
                 type: 'success',
-                result: result
+                result:  arg.additionalOutput + result
             }
         } catch (error) {                    
             return {

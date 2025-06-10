@@ -61,6 +61,7 @@ export interface RequestDataArgumentExtended extends requestDataArgument{
     customURL?:string
     mode?:ModelModeExtended
     key?:string
+    additionalOutput?:string
 }
 
 export type requestDataResponse = {
