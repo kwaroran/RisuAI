@@ -379,11 +379,23 @@ Character fields:
                 }
             },
             {
-                name: 'risu-get-information',
-                description: 'Get information about the Risuai RegexScript, Lorebook, and Additional Assets and their usage.',
+                name: 'risu-list-characters',
+                description: 'List all Risuai characters',
                 inputSchema: {
-                    type: 'object'
-                },   
+                    type: 'object',
+                    properties: {
+                        count: {
+                            type: 'integer',
+                            description: 'The number of characters to retrieve. maximum and default is 100.',
+                            default: 100,
+                        },
+                        offset: {
+                            type: 'integer',
+                            description: 'The offset to start retrieving characters from. This is useful for pagination.',
+                        }
+                    },
+                    required: []
+                }
             }
         ];
     }
@@ -417,6 +429,8 @@ Character fields:
                     return await this.getCharacterAdditionalAssets(args.id);
                 case 'risu-delete-character-additional-assets':
                     return await this.deleteCharacterAdditionalAssets(args.id, args.assetName);
+                case 'risu-list-characters':
+                    return await this.listCharacters(args.count, args.offset);
             }
         } catch (error) {
             return [{
@@ -994,4 +1008,29 @@ Character fields:
             text: `Successfully deleted additional asset "${assetName}" from character ${char.name || char.chaId}`
         }];
     }
+
+    async listCharacters(count: number = 100, offset: number = 0): Promise<RPCToolCallContent[]> {
+
+        if(count > 100) {
+            count = 100;
+        }
+        if(count < 1) {
+            count = 1;
+        }
+        if(offset < 0) {
+            offset = 0;
+        }
+
+        const characters = DBState.db.characters.slice(offset, offset + count).map(char => ({
+            id: char.chaId,
+            name: char.name || 'Unnamed',
+            type: char.type,
+        }));
+
+        return [{
+            type: 'text',
+            text: JSON.stringify(characters)
+        }];
+    }
+
 }
