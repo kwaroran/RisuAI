@@ -212,7 +212,7 @@
                 </span>
             </button>
         {/if}
-        {#if DBState.db.translatorType === 'llm'}
+        {#if DBState.db.translatorType === 'llm' && translated}
             <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
                             hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
