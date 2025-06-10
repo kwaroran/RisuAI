@@ -127,7 +127,7 @@ export async function callTool(methodName:string, args:any) {
 
 export async function importMCPModule(){
     const x = await alertInput('Please enter the URL of the MCP module to import:', [
-        ['internal:aiaccess', 'AI Access Client (internal:aiaccess)'],
+        ['internal:aiaccess', 'LLM Call Client (internal:aiaccess)'],
         ['internal:risuai', 'Risu Access Client (internal:risuai)'],
         ['internal:fs', 'File System Client (internal:fs)'],
         ['https://mcp.paypal.com/sse', 'PayPal MCP (https://mcp.paypal.com/sse)'],
