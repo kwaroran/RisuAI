@@ -207,6 +207,10 @@
     {/if}
 {/if}
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.userMemosEnabled} name={language.userMemosEnabled}>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.dynamicAssets} name={language.dynamicAssets}>
         <Help key="dynamicAssets"/>
     </Check>

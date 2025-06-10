@@ -1049,6 +1049,7 @@ export interface Database{
     promptTextInfoInsideChat:boolean
     claudeBatching:boolean
     claude1HourCaching:boolean
+    userMemosEnabled:boolean
 }
 
 interface SeparateParameters{
@@ -1546,6 +1547,7 @@ export interface Chat{
     bindedPersona?:string
     fmIndex?:number
     hypaV3Data?:SerializableHypaV3Data
+    userMemos?: {[chatId: string]: UserMemo[]}
     folderId?:string
     lastDate?:number
 }
@@ -1555,6 +1557,15 @@ export interface ChatFolder{
     name?:string
     color?:string
     folded:boolean
+}
+
+export interface UserMemo {
+    id: string
+    title: string
+    createdAt: string   // ISO string for JSON compatibility
+    updatedAt: string   // (Date becomes string when exported/imported)
+    content: string
+    locked?: boolean
 }
 
 export interface Message{
