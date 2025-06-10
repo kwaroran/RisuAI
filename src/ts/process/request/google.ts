@@ -576,6 +576,7 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                 }
                 else{
                     if(arg.rememberToolUsage){
+                        arg.additionalOutput ??= ''
                         arg.additionalOutput += `<tool_call>${JSON.stringify({
                             call: {
                                 id: call.id,
@@ -590,10 +591,12 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                     let response:any = result[i].text
                     try {
                         //try json parse
-                        response = JSON.parse(response)
+                        response = {
+                            data: JSON.parse(response)
+                        }
                     } catch (error) {
                         response = {
-                            text: response
+                            data: response
                         }
                     }
                     parts.push({
@@ -644,8 +647,10 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         rDatas[rDatas.length-1] = rDatas.join('\n\n')
     }
 
+    arg.additionalOutput ??= ''
+    console.log(arg.additionalOutput + rDatas[rDatas.length-1])
     return {
         type: 'success',
-        result: rDatas[rDatas.length-1]
+        result: arg.additionalOutput + rDatas[rDatas.length-1]
     }
 }
