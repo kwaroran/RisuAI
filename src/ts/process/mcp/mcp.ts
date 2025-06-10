@@ -32,6 +32,16 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                         MCPs[mcp] = new FileSystemClient();
                         break;
                     }
+                    case 'internal:risuai':{
+                        const { RisuAccessClient } = await import('./risuaccess');
+                        MCPs[mcp] = new RisuAccessClient();
+                        break;
+                    }
+                    case 'internal:aiaccess':{
+                        const { AIAccessClient } = await import('./aiaccess');
+                        MCPs[mcp] = new AIAccessClient();
+                        break;
+                    }
                 }
 
                 await MCPs[mcp].checkHandshake();
@@ -142,7 +152,17 @@ export async function importMCPModule(){
             mcp: {
                 url: x
             },
-            id: v4()
+            id: v4(),
+            lorebook: [{
+                comment: "MCP Info",
+                content: `@@mcp\n\n<MCP Info>Name:${meta.serverInfo.name}\nVersion:${meta.serverInfo.version}\nInst:${meta.instructions ?? 'None'}</MCP Info>`,
+                key: '',
+                alwaysActive: true,
+                secondkey: "",
+                insertorder: 0,
+                mode: "normal",
+                selective: false
+            }]
         })
         alertNormal(`MCP module imported successfully!\nName: ${meta.serverInfo.name}`);
 
