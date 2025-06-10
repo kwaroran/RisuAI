@@ -914,7 +914,7 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
                     })
                 }
                 response.content.push(r)
-                if(db.rememberToolUsage){
+                if(arg.rememberToolUsage){
                     arg.additionalOutput ??= ''
                     arg.additionalOutput += `<tool_call>${JSON.stringify({
                         call: {

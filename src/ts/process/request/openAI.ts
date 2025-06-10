@@ -767,7 +767,7 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                                         content: x[0].text,
                                         tool_call_id: toolCall.id
                                     })
-                                    if(db.rememberToolUsage){
+                                    if(arg.rememberToolUsage){
                                         arg.additionalOutput ??= ''
                                         arg.additionalOutput += `<tool_call>${JSON.stringify({
                                             call: {

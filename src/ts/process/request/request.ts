@@ -51,6 +51,7 @@ interface requestDataArgument{
     staticModel?: string
     escape?:boolean
     tools?: MCPTool[]
+    rememberToolUsage?: boolean
 }
 
 export interface RequestDataArgumentExtended extends requestDataArgument{
