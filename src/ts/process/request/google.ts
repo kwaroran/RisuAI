@@ -1,13 +1,13 @@
 import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
-import { simplifySchema, sleep } from "src/ts/util"
+import { replaceAsync, simplifySchema, sleep } from "src/ts/util"
 import { v4 } from "uuid"
 import { setInlayAsset, writeInlayImage } from "../files/inlays"
 import type { OpenAIChat } from "../index.svelte"
 import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
-import { callTool } from "../mcp/mcp"
+import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 type GeminiFunctionCall = {
     id: string;
@@ -132,6 +132,52 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                     text: chat.role + ':' + chat.content
                 }]
             })
+        }
+    }
+
+
+    for(let i=0;i<reformatedChat.length;i++){
+        let chat = reformatedChat[i]
+        for(let j=0;j<chat.parts.length;j++){
+            const part = chat.parts[j]
+            if(part.text){
+                part.text = await replaceAsync(part.text,/<tool_call>(.*?)<\/tool_call>/g, async (match:string, p1:string) => {
+                    const call = await decodeToolCall(p1)
+                    if(call){
+                        const tool = arg?.tools?.find((t) => t.name === call.call.name)
+                        if(tool){
+                            reformatedChat.splice(i, 0, {
+                                role: 'MODEL',
+                                parts: [{
+                                    functionCall: {
+                                        id: call.call.id,
+                                        name: call.call.name,
+                                        args: call.call.arg
+                                    }
+                                }]
+                            })
+                            reformatedChat.splice(i+1, 0, {
+                                role: 'USER',
+                                parts: [{
+                                    functionResponse: {
+                                        id: call.call.id,
+                                        name: call.call.name,
+                                        response: {
+                                            data: call.response.filter((r) => {
+                                                return r.type === 'text'
+                                            }).map((r) => {
+                                                return r.text
+                                            })
+                                        }
+                                    }
+                                }]
+                            })
+                            i+=2
+                            chat = reformatedChat[i]
+                        }
+                    }
+                    return ''
+                })}
         }
     }
 
@@ -577,14 +623,14 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                 else{
                     if(arg.rememberToolUsage){
                         arg.additionalOutput ??= ''
-                        arg.additionalOutput += `<tool_call>${JSON.stringify({
+                        arg.additionalOutput += await encodeToolCall({
                             call: {
                                 id: call.id,
                                 name: call.name,
                                 arg: call.args
                             },
                             response: result
-                        })}</tool_call>`
+                        })
                     }
                 }
                 for(let i=0;i<result.length;i++){

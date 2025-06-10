@@ -371,3 +371,7 @@ html, body{
 .chat-message-container:first-of-type .dyna-icon{
   display: block;
 }
+
+.x-risu-tool-call{
+  @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0
+}

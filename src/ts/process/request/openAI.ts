@@ -1,5 +1,5 @@
 import { language } from "src/lang"
-import { applyParameters, setObjectValue, type OpenAIChatExtra, type OpenAIContents, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
+import { applyParameters, setObjectValue, type OpenAIChatExtra, type OpenAIContents, type OpenAIToolCall, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 import { getDatabase } from "src/ts/storage/database.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { strongBan, tokenizeNum } from "src/ts/tokenizer"
@@ -10,8 +10,8 @@ import { extractJSON, getOpenAIJSONSchema } from "../templates/jsonSchema"
 import { applyChatTemplate } from "../templates/chatTemplate"
 import { supportsInlayImage } from "../files/inlays"
 import { Capacitor } from "@capacitor/core"
-import { simplifySchema } from "src/ts/util"
-import { callTool } from "../mcp/mcp"
+import { replaceAsync, simplifySchema } from "src/ts/util"
+import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 
 interface OAIResponseInputItem {
@@ -71,6 +71,39 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
     const formated = arg.formated
     const db = getDatabase()
     const aiModel = arg.aiModel
+
+    const replaceToolCall = async (text:string) => {
+
+
+        return replaceAsync(text, /<tool_call>(.*?)<\/tool_call>/gms, async (match, p1) => {
+            const call = await decodeToolCall(p1)
+            if(!call){
+                return match
+            }
+            formatedChat.push({
+                role: 'assistant',
+                content: '',
+                tool_calls: [{
+                    id: call.call.id,
+                    type: 'function',
+                    function: {
+                        name: call.call.name,
+                        arguments: JSON.stringify(call.call.arg)
+                    }
+                }]
+            })
+
+            formatedChat.push({
+                role: 'tool',
+                content: call.response.filter(m => m.type === 'text').map(m => m.text).join('\n'),
+                tool_call_id: call.call.id,
+                cachePoint: true
+            })
+
+            return ''
+        })
+    }
+    
     for(let i=0;i<formated.length;i++){
         const m = formated[i]
         if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
@@ -87,12 +120,13 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             }
             contents.push({
                 "type": "text",
-                "text": m.content
+                "text": await replaceToolCall(m.content)
             })
             v.content = contents
             formatedChat.push(v)
         }
         else{
+            m.content = await replaceToolCall(m.content)
             formatedChat.push(m)
         }
     }
@@ -138,7 +172,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
     if(db.newOAIHandle){
         formatedChat = formatedChat.filter(m => {
-            return m.content !== '' || (m.multimodals && m.multimodals.length > 0)
+            return m.content !== '' || (m.multimodals && m.multimodals.length > 0) || m.tool_calls
         })
     }
 
@@ -731,14 +765,7 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
     if(res.ok){
         try {
             if(dat.choices?.[0]?.message?.tool_calls && dat.choices[0].message.tool_calls.length > 0){
-                const toolCalls = dat.choices[0].message.tool_calls as {
-                    id:string,
-                    type:'function',
-                    function:{
-                        name:string,
-                        arguments:string
-                    },
-                }[]
+                const toolCalls = dat.choices[0].message.tool_calls as OpenAIToolCall[]
 
                 const messages = body.messages as OpenAIChatExtra[]
                 messages.push(dat.choices[0].message)
@@ -769,14 +796,14 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                                     })
                                     if(arg.rememberToolUsage){
                                         arg.additionalOutput ??= ''
-                                        arg.additionalOutput += `<tool_call>${JSON.stringify({
+                                        arg.additionalOutput += await encodeToolCall({
                                             call: {
                                                 id: toolCall.id,
                                                 name: toolCall.function.name,
                                                 arg: toolCall.function.arguments
                                             },
                                             response: x
-                                        })}</tool_call>`
+                                        })
                                     }
                                 }
                                 else{

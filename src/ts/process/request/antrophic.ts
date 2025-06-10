@@ -5,12 +5,12 @@ import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalAp
 import { LLMFormat } from "src/ts/model/modellist"
 import { registerClaudeObserver } from "src/ts/observer.svelte"
 import { getDatabase } from "src/ts/storage/database.svelte"
-import { simplifySchema, sleep } from "src/ts/util"
+import { replaceAsync, simplifySchema, sleep } from "src/ts/util"
 import { v4 } from "uuid"
 import type { MultiModal } from "../index.svelte"
 import { extractJSON } from "../templates/jsonSchema"
 import { applyParameters, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
-import { callTool } from "../mcp/mcp"
+import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 interface Claude3TextBlock {
     type: 'text',
@@ -273,9 +273,9 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
         for(let i=0;i<chat.content.length;i++){
             let content = chat.content[i]
             if(content.type === 'text'){
-                content.text = content.text.replace(/<tool_call>(.*?)<\/tool_call>/g, (match, p1) => {
+                content.text = await replaceAsync(content.text,/<tool_call>(.*?)<\/tool_call>/g, async (match:string, p1:string) => {
                     try {
-                        const parsed = JSON.parse(p1)
+                        const parsed = await decodeToolCall(p1)
                         if(parsed?.call && parsed?.response){
                             const toolUse:Claude3ToolUseBlock = {
                                 type: 'tool_use',
@@ -916,14 +916,14 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
                 response.content.push(r)
                 if(arg.rememberToolUsage){
                     arg.additionalOutput ??= ''
-                    arg.additionalOutput += `<tool_call>${JSON.stringify({
+                    arg.additionalOutput += await encodeToolCall({
                         call: {
                             id: content.id,
                             name: content.name,
                             arg: content.input
                         },
                         response: used
-                    })}</tool_call>`
+                    })
                 }
             }
 

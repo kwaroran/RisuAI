@@ -414,6 +414,15 @@ export interface OpenAIImageContents {
 
 export type OpenAIContents = OpenAITextContents|OpenAIImageContents
 
+export interface OpenAIToolCall {
+    id:string,
+    type:'function',
+    function:{
+        name:string,
+        arguments:string
+    },
+}
+
 export interface OpenAIChatExtra {
     role: 'system'|'user'|'assistant'|'function'|'developer'|'tool'
     content: string|OpenAIContents[]
@@ -433,6 +442,7 @@ export interface OpenAIChatExtra {
         strict: boolean
     }
     tool_call_id?: string
+    tool_calls?: OpenAIToolCall[]
 }
 
 export function reformater(formated:OpenAIChat[],modelInfo:LLMModel|LLMFlags[]){
