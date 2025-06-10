@@ -1,5 +1,3 @@
-
-
 export const languageEnglish = {
     formating:{
         'main': "Main Prompt",
@@ -384,11 +382,27 @@ export const languageEnglish = {
         v2IfAdvanced: "If (Advanced)",
         v2IfAdvancedDesc: "If {{source}} {{condition}} {{target}}",
         v2QuickSearchChat: "Quick Search Chat",
-        v2QuickSearchChatDesc: "Search {{value}} {{condition}} at depth {{depth}} => {{outputVar}}",
+        v2QuickSearchChatDesc: "Quick search {{value}} in chat with {{condition}} condition in {{depth}} depth => {{outputVar}}",
         v2StopPromptSending: "Stop Prompt Sending",
         v2StopPromptSendingDesc: "Stop Prompt Sending",
         v2Tokenize: "Tokenize",
-        v2TokenizeDesc: "Tokenize {{value}} and count tokens => {{outputVar}}",
+        v2TokenizeDesc: "Tokenize {{value}} => {{outputVar}}",
+        v2GetAllLorebooks: "Get All Lorebooks",
+        v2GetAllLorebooksDesc: "Get all lorebook prompts as array => {{outputVar}}",
+        v2GetLorebookByName: "Get Lorebook Indices by Name",
+        v2GetLorebookByNameDesc: "Get lorebook indices array by name {{name}} => {{outputVar}}",
+        v2GetLorebookByIndex: "Get Lorebook by Index",
+        v2GetLorebookByIndexDesc: "Get lorebook prompt at index {{index}} => {{outputVar}}",
+        v2CreateLorebook: "Create Lorebook",
+        v2CreateLorebookDesc: "Create lorebook with name {{name}}, key {{key}}, content {{content}}",
+        v2ModifyLorebookByIndex: "Modify Lorebook by Index",
+        v2ModifyLorebookByIndexDesc: "Modify lorebook at index {{index}} with name {{name}}, key {{key}}, content {{content}}",
+        v2DeleteLorebookByIndex: "Delete Lorebook by Index",
+        v2DeleteLorebookByIndexDesc: "Delete lorebook at index {{index}}",
+        v2GetLorebookCountNew: "Get Lorebook Count",
+        v2GetLorebookCountNewDesc: "Get total lorebook count => {{outputVar}}",
+        v2SetLorebookAlwaysActive: "Set Lorebook Always Active",
+        v2SetLorebookAlwaysActiveDesc: "Set lorebook at index {{index}} always active to {{value}}",
     },
 
     confirm: "Confirm",

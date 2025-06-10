@@ -39,7 +39,8 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
                                 triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2UpdateChatAt|triggerV2Wait|
                                 triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength|triggerV2IfAdvanced|
-                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize
+                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2GetAllLorebooks|triggerV2GetLorebookByName|triggerV2GetLorebookByIndex|
+                                triggerV2CreateLorebook|triggerV2ModifyLorebookByIndex|triggerV2DeleteLorebookByIndex|triggerV2GetLorebookCountNew|triggerV2SetLorebookAlwaysActive
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -717,6 +718,77 @@ export type triggerV2Tokenize = {
     value: string
     valueType: "var"|"value"
     outputVar:string
+}
+
+export type triggerV2GetAllLorebooks = {
+    type: 'v2GetAllLorebooks',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetLorebookByName = {
+    type: 'v2GetLorebookByName',
+    name: string,
+    nameType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetLorebookByIndex = {
+    type: 'v2GetLorebookByIndex',
+    index: string,
+    indexType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2CreateLorebook = {
+    type: 'v2CreateLorebook',
+    name: string,
+    nameType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    content: string,
+    contentType: 'var'|'value',
+    insertOrder: string,
+    insertOrderType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2ModifyLorebookByIndex = {
+    type: 'v2ModifyLorebookByIndex',
+    index: string,
+    indexType: 'var'|'value',
+    name: string,
+    nameType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    content: string,
+    contentType: 'var'|'value',
+    insertOrder: string,
+    insertOrderType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2DeleteLorebookByIndex = {
+    type: 'v2DeleteLorebookByIndex',
+    index: string,
+    indexType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2GetLorebookCountNew = {
+    type: 'v2GetLorebookCountNew',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetLorebookAlwaysActive = {
+    type: 'v2SetLorebookAlwaysActive',
+    index: string,
+    indexType: 'var'|'value',
+    value: boolean,
+    indent: number
 }
 
 const safeSubset = [
@@ -1945,6 +2017,129 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 case 'v2Tokenize':{
                     const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                     setVar(effect.outputVar, (await tokenize(value)).toString())
+                    break
+                }
+                case 'v2GetAllLorebooks':{
+                    char.globalLore = char.globalLore ?? []
+                    const allPrompts = char.globalLore
+                        .filter(lore => lore && lore.content !== undefined)
+                        .map(lore => lore.content)
+                    setVar(effect.outputVar, JSON.stringify(allPrompts))
+                    break
+                }
+                case 'v2GetLorebookByName':{
+                    char.globalLore = char.globalLore ?? []
+                    const name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
+                    const regex = new RegExp(name, 'i')
+                    const matchingIndices = char.globalLore
+                        .map((lore, index) => {
+                            if(lore && lore.comment !== undefined && regex.test(lore.comment)){
+                                return index
+                            }
+                            return -1
+                        })
+                        .filter(index => index !== -1)
+                    setVar(effect.outputVar, JSON.stringify(matchingIndices))
+                    break
+                }
+                case 'v2GetLorebookByIndex':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length){
+                        setVar(effect.outputVar, 'null')
+                    } else {
+                        const loreEntry = char.globalLore[index]
+                        if(loreEntry && loreEntry.content !== undefined){
+                            setVar(effect.outputVar, loreEntry.content)
+                        } else {
+                            setVar(effect.outputVar, 'null')
+                        }
+                    }
+                    break
+                }
+                case 'v2CreateLorebook':{
+                    char.globalLore = char.globalLore ?? []
+                    const name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
+                    const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                    const content = effect.contentType === 'value' ? risuChatParser(effect.content,{chara:char}) : getVar(risuChatParser(effect.content,{chara:char}))
+                    const insertOrder = effect.insertOrderType === 'value' ? Number(risuChatParser(effect.insertOrder,{chara:char})) : Number(getVar(risuChatParser(effect.insertOrder,{chara:char})))
+                    
+                    char.globalLore.push({
+                        key: key,
+                        comment: name,
+                        content: content,
+                        mode: 'normal',
+                        insertorder: Number.isNaN(insertOrder) ? 100 : insertOrder,
+                        alwaysActive: false,
+                        secondkey: "",
+                        selective: false
+                    })
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2ModifyLorebookByIndex':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length || !char.globalLore[index]){
+                        break
+                    }
+
+                    const name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
+                    const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                    const content = effect.contentType === 'value' ? risuChatParser(effect.content,{chara:char}) : getVar(risuChatParser(effect.content,{chara:char}))
+                    const insertOrder = effect.insertOrderType === 'value' ? Number(risuChatParser(effect.insertOrder,{chara:char})) : Number(getVar(risuChatParser(effect.insertOrder,{chara:char})))
+                    
+                    if(name) char.globalLore[index].comment = name
+                    if(key) char.globalLore[index].key = key
+                    if(content) char.globalLore[index].content = content
+                    if(!Number.isNaN(insertOrder)) char.globalLore[index].insertorder = insertOrder
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2DeleteLorebookByIndex':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length || !char.globalLore[index]){
+                        break
+                    }
+
+                    char.globalLore.splice(index, 1)
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2GetLorebookCountNew':{
+                    char.globalLore = char.globalLore ?? []
+                    setVar(effect.outputVar, char.globalLore.length.toString())
+                    break
+                }
+                case 'v2SetLorebookAlwaysActive':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length || !char.globalLore[index]){
+                        break
+                    }
+
+                    char.globalLore[index].alwaysActive = effect.value
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
                     break
                 }
             }
