@@ -875,13 +875,13 @@
                     type: 'v2ModifyLorebookByIndex',
                     index: '',
                     indexType: 'value',
-                    name: '',
+                    name: '{{slot}}',
                     nameType: 'value',
-                    key: '',
+                    key: '{{slot}}',
                     keyType: 'value',
-                    content: '',
+                    content: '{{slot}}',
                     contentType: 'value',
-                    insertOrder: '',
+                    insertOrder: '{{slot}}',
                     insertOrderType: 'value',
                     indent: 0
                 }

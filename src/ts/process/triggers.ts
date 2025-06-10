@@ -2089,15 +2089,26 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         break
                     }
 
-                    const name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
-                    const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
-                    const content = effect.contentType === 'value' ? risuChatParser(effect.content,{chara:char}) : getVar(risuChatParser(effect.content,{chara:char}))
-                    const insertOrder = effect.insertOrderType === 'value' ? Number(risuChatParser(effect.insertOrder,{chara:char})) : Number(getVar(risuChatParser(effect.insertOrder,{chara:char})))
+                    const currentLore = char.globalLore[index]
                     
-                    if(name) char.globalLore[index].comment = name
-                    if(key) char.globalLore[index].key = key
-                    if(content) char.globalLore[index].content = content
-                    if(!Number.isNaN(insertOrder)) char.globalLore[index].insertorder = insertOrder
+                    let name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
+                    name = name.replace(/{{slot}}/g, currentLore.comment || '')
+                    char.globalLore[index].comment = name
+                    
+                    let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                    key = key.replace(/{{slot}}/g, currentLore.key || '')
+                    char.globalLore[index].key = key
+                    
+                    let content = effect.contentType === 'value' ? risuChatParser(effect.content,{chara:char}) : getVar(risuChatParser(effect.content,{chara:char}))
+                    content = content.replace(/{{slot}}/g, currentLore.content || '')
+                    char.globalLore[index].content = content
+                    
+                    let insertOrder = effect.insertOrderType === 'value' ? risuChatParser(effect.insertOrder,{chara:char}) : getVar(risuChatParser(effect.insertOrder,{chara:char}))
+                    insertOrder = insertOrder.replace(/{{slot}}/g, (currentLore.insertorder || 100).toString())
+                    const insertOrderNum = Number(insertOrder)
+                    if(!Number.isNaN(insertOrderNum)){
+                        char.globalLore[index].insertorder = insertOrderNum
+                    }
 
                     const selectedCharId = get(selectedCharID)
                     const db = getDatabase()
