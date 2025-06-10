@@ -387,6 +387,8 @@ export const languageEnglish = {
         v2QuickSearchChatDesc: "Search {{value}} {{condition}} at depth {{depth}} => {{outputVar}}",
         v2StopPromptSending: "Stop Prompt Sending",
         v2StopPromptSendingDesc: "Stop Prompt Sending",
+        v2Tokenize: "Tokenize",
+        v2TokenizeDesc: "Tokenize {{value}} and count tokens => {{outputVar}}",
     },
 
     confirm: "Confirm",
@@ -1063,6 +1065,7 @@ export const languageEnglish = {
     bulkEnabling: "Lorebook Bulk Enabling",
     showTranslationLoading: "Show Translation Loading",
     showDeprecatedTriggerV1: "Show Deprecated Trigger V1",
+    showDeprecatedTriggerV2: "Show Deprecated Trigger V2",
     triggerV1Warning: "Trigger V1 is deprecated. it might be removed in the future.",
     copy: "Copy",
     paste: "Paste",
