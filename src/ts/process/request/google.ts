@@ -560,53 +560,61 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             const functionName = call.name
             const functionArgs = call.args
 
-            for(const call of calls){
-                if(call.name === functionName && call.args){
-                    const tool = tools.find((t) => t.name === functionName)
-                    if(tool){
-                        const result = (await callTool(tool.name, functionArgs)).filter((r) => {
-                            return r.type === 'text'
-                        })
-                        if(result.length === 0){
-                            parts.push({
-                                functionResponse: {
-                                    id: call.id,
-                                    name: call.name,
-                                    response: 'No response from tool.'
-                                }
-                            })
+            const tool = tools.find((t) => t.name === functionName)
+            if(tool){
+                const result = (await callTool(tool.name, functionArgs)).filter((r) => {
+                    return r.type === 'text'
+                })
+                if(result.length === 0){
+                    parts.push({
+                        functionResponse: {
+                            id: call.id,
+                            name: call.name,
+                            response: 'No response from tool.'
                         }
-                        for(let i=0;i<result.length;i++){
-                            let response:any = result[i].text
-                            try {
-                                //try json parse
-                                response = JSON.parse(response)
-                            } catch (error) {
-                                response = {
-                                    text: response
-                                }
-                            }
-                            parts.push({
-                                functionResponse: {
-                                    id: call.id,
-                                    name: call.name,
-                                    response
-                                }
-                            })
-                        }
-                    }
-                    else{
-                        parts.push({
-                            functionResponse: {
+                    })
+                }
+                else{
+                    if(arg.rememberToolUsage){
+                        arg.additionalOutput += `<tool_call>${JSON.stringify({
+                            call: {
                                 id: call.id,
                                 name: call.name,
-                                response: `Tool ${call.name} not found.`
-                            }
-                        })
+                                arg: call.args
+                            },
+                            response: result
+                        })}</tool_call>`
                     }
                 }
+                for(let i=0;i<result.length;i++){
+                    let response:any = result[i].text
+                    try {
+                        //try json parse
+                        response = JSON.parse(response)
+                    } catch (error) {
+                        response = {
+                            text: response
+                        }
+                    }
+                    parts.push({
+                        functionResponse: {
+                            id: call.id,
+                            name: call.name,
+                            response
+                        }
+                    })
+                }
             }
-
+            else{
+                parts.push({
+                    functionResponse: {
+                        id: call.id,
+                        name: call.name,
+                        response: `Tool ${call.name} not found.`
+                    }
+                })
+            }
+            
             chat.push({
                 role: 'USER',
                 parts: parts
