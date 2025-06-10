@@ -677,7 +677,7 @@ function decodeStyleRule(rule:CssAtRuleAST){
                 let slt:string = rule.selectors[i]
                 if(slt){
                     let selectors = (slt.split(' ') ?? []).map((v) => {
-                        if(v.startsWith('.')){
+                        if(v.startsWith('.') && !v.startsWith('.x-risu-')){
                             return ".x-risu-" + v.substring(1)
                         }
                         return v

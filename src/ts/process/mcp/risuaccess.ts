@@ -22,7 +22,8 @@ Each script has the following fields:
 - 'disabled': The script is disabled and will not be applied
 - 'in': The regex pattern to match in the input text, without the leading and trailing slashes and flags. should be a valid regex at ECMAScript.
 - 'out': The replacement text for the matched input. can contain $1, $2, etc. to refer to the captured groups in the regex.
-    - Note: if it is 'editdisplay' type, since it can accept markdown and HTML,CSS it can be used for decorating.
+    - Note: if it is 'editdisplay' type, since it can accept markdown and HTML, and also <style> tag which can use CSS, it can be used for decorating.
+    - Note: if CSS is used, class names are recommended to be prefixed with x-risu- to avoid conflicts with other styles.
 - 'flag': The regex flags to use. should be a valid regex flags in string at ECMAScript, like 'g', 'i', 'm', etc. it can be also use multiple flags like 'gi' or 'gm'.
 - 'ableFlag': A boolean value indicating whether the script is enabled or not. if it is false, the script will use default flags.
 - 'comment': A comment or name for the script. This is used to identify the script in the list.
