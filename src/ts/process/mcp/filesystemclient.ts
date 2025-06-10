@@ -9,7 +9,7 @@ export class FileSystemClient extends MCPClientLike {
         super("internal:fs");
         this.serverInfo.serverInfo.name = "File System Access MCP";
         this.serverInfo.serverInfo.version = "1.0.0";
-        this.serverInfo.instructions = "Provides file system access using the File System Access API";
+        this.serverInfo.instructions = "FProvides file system access using the File System Access API";
     }
 
     async checkHandshake() {
