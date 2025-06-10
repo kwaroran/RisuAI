@@ -585,6 +585,7 @@
                     indent: 0,
                     outputVar: ""
                 }
+                break;
             }
             case 'v2PushArrayVar':
                 editTrigger = {
