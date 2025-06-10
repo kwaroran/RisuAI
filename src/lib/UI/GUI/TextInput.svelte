@@ -31,12 +31,13 @@
         disabled={disabled}
         oninput={oninput}
         onchange={onchange}
+        list={list}
     />
 {:else}
 
     <input 
         class={"border border-darkborderc peer focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
-        
+        list={list}
         class:text-sm={size === 'sm'}
         class:text-md={size === 'md'}
         class:text-lg={size === 'lg'}
@@ -87,6 +88,7 @@
         className?: string;
         disabled?: boolean;
         hideText?: boolean;
+        list?: string;
     }
 
     let {
@@ -105,6 +107,7 @@
         className = '',
         disabled = false,
         hideText = false,
+        list = undefined
         
     }: Props = $props();
 </script>

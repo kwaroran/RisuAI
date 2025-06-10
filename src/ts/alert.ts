@@ -13,6 +13,7 @@ export interface alertData{
             |'chatOptions'|'pukmakkurit'|'branches'|'progress',
     msg: string,
     submsg?: string
+    datalist?: [string, string][],
 }
 
 type AlertGenerationInfoStoreData = {
@@ -280,7 +281,7 @@ export async function alertInput(msg:string, datalist?:[string, string][]) {
     alertStoreImported.set({
         'type': 'input',
         'msg': msg,
-        'submsg': datalist ? JSON.stringify(datalist) : ''
+        'datalist': datalist ?? []
     })
 
     while(true){
