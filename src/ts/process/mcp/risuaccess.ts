@@ -361,62 +361,6 @@ Character fields:
                 }
             },
             {
-                name: 'risu-set-character-additional-assets',
-                description: 'Update an additional asset in a Risuai character',
-                inputSchema: {
-                    type: 'object',
-                    properties: {
-                        id: {
-                            type: 'string',
-                            description: 'The ID or name of the Risuai character. This can be a character name or ID. if its blank string, it will use the current character.'
-                        },
-                        assetName: {
-                            type: 'string',
-                            description: 'The name of the asset to update'
-                        },
-                        name: {
-                            type: 'string',
-                            description: 'New asset name'
-                        },
-                        path: {
-                            type: 'string',
-                            description: 'New asset path'
-                        },
-                        ext: {
-                            type: 'string',
-                            description: 'New asset extension'
-                        }
-                    },
-                    required: ['id', 'assetName']
-                }
-            },
-            {
-                name: 'risu-add-character-additional-assets',
-                description: 'Add a new additional asset to a Risuai character',
-                inputSchema: {
-                    type: 'object',
-                    properties: {
-                        id: {
-                            type: 'string',
-                            description: 'The ID or name of the Risuai character. This can be a character name or ID. if its blank string, it will use the current character.'
-                        },
-                        name: {
-                            type: 'string',
-                            description: 'Asset name'
-                        },
-                        path: {
-                            type: 'string',
-                            description: 'Asset path'
-                        },
-                        ext: {
-                            type: 'string',
-                            description: 'Asset extension'
-                        }
-                    },
-                    required: ['id', 'name', 'path', 'ext']
-                }
-            },
-            {
                 name: 'risu-delete-character-additional-assets',
                 description: 'Delete an additional asset from a Risuai character',
                 inputSchema: {
@@ -471,10 +415,6 @@ Character fields:
                     return await this.deleteCharacterRegexScripts(args.id, args.scriptName);
                 case 'risu-get-character-additional-assets':
                     return await this.getCharacterAdditionalAssets(args.id);
-                case 'risu-set-character-additional-assets':
-                    return await this.setCharacterAdditionalAssets(args.id, args.assetName, args.name, args.path, args.ext);
-                case 'risu-add-character-additional-assets':
-                    return await this.addCharacterAdditionalAssets(args.id, args.name, args.path, args.ext);
                 case 'risu-delete-character-additional-assets':
                     return await this.deleteCharacterAdditionalAssets(args.id, args.assetName);
             }
@@ -1007,89 +947,6 @@ Character fields:
         return [{
             type: 'text',
             text: JSON.stringify(assets)
-        }];
-    }
-
-    async setCharacterAdditionalAssets(id: string, assetName: string, name?: string, path?: string, ext?: string): Promise<RPCToolCallContent[]> {
-        if (!(await this.promptAccess('risu-set-character-additional-assets', 'modify additional asset'))) {
-            return [{
-                type: 'text',
-                text: 'Access denied by user.'
-            }];
-        }
-
-        const char:character|groupChat = this.getCharacter(id);
-        if (!char) {
-            return [{
-                type: 'text',
-                text: `Error: Character with ID ${id} not found.`
-            }];
-        }
-        if(char.type === 'group'){
-            return [{
-                type: 'text',
-                text: `Error: The id pointed to a group chat, not a character.`
-            }];
-        }
-
-        if (!char.additionalAssets) {
-            char.additionalAssets = [];
-        }
-
-        const assetIndex = char.additionalAssets.findIndex(asset => {
-            const displayName = asset[0] || 'Unnamed ' + pickHashRand(5515, asset[1] + asset[2]);
-            return displayName === assetName;
-        });
-        if (assetIndex === -1) {
-            return [{
-                type: 'text',
-                text: `Error: Additional asset with name "${assetName}" not found.`
-            }];
-        }
-
-        const asset = char.additionalAssets[assetIndex];
-
-        if (name !== undefined) asset[0] = name;
-        if (path !== undefined) asset[1] = path;
-        if (ext !== undefined) asset[2] = ext;
-
-        return [{
-            type: 'text',
-            text: `Successfully updated additional asset "${assetName}" for character ${char.name || char.chaId}`
-        }];
-    }
-
-    async addCharacterAdditionalAssets(id: string, name: string, path: string, ext: string): Promise<RPCToolCallContent[]> {
-        if (!(await this.promptAccess('risu-add-character-additional-assets', 'add additional asset'))) {
-            return [{
-                type: 'text',
-                text: 'Access denied by user.'
-            }];
-        }
-
-        const char:character|groupChat = this.getCharacter(id);
-        if (!char) {
-            return [{
-                type: 'text',
-                text: `Error: Character with ID ${id} not found.`
-            }];
-        }
-        if(char.type === 'group'){
-            return [{
-                type: 'text',
-                text: `Error: The id pointed to a group chat, not a character.`
-            }];
-        }
-
-        if (!char.additionalAssets) {
-            char.additionalAssets = [];
-        }
-
-        char.additionalAssets.push([name, path, ext]);
-
-        return [{
-            type: 'text',
-            text: `Successfully added additional asset to character ${char.name || char.chaId}. Asset index: ${char.additionalAssets.length - 1}`
         }];
     }
 
