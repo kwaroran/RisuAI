@@ -266,11 +266,11 @@ Character fields:
                             type: 'string',
                             description: 'New comment for the script'
                         },
-                        in: {
+                        regIn: {
                             type: 'string',
                             description: 'New input regex pattern'
                         },
-                        out: {
+                        regOut: {
                             type: 'string',
                             description: 'New output replacement'
                         },
@@ -304,11 +304,11 @@ Character fields:
                             type: 'string',
                             description: 'Comment for the script'
                         },
-                        in: {
+                        regIn: {
                             type: 'string',
                             description: 'Input regex pattern'
                         },
-                        out: {
+                        regOut: {
                             type: 'string',
                             description: 'Output replacement'
                         },
@@ -326,7 +326,7 @@ Character fields:
                             default: true
                         }
                     },
-                    required: ['id', 'comment', 'in', 'out', 'type']
+                    required: ['id', 'comment', 'regIn', 'regOut', 'type']
                 }
             },
             {
@@ -561,8 +561,12 @@ Character fields:
             offset = 0;
         }
 
-        const history = char.chats[char.chatPage].message.slice(offset, offset + count);
-        
+        // To get "newest first", we must reverse the array.
+        const reversedMessages = [...char.chats[char.chatPage].message].reverse();
+    
+        // Now that the array is sorted from newest to oldest, we can slice it
+        const history = reversedMessages.slice(offset, offset + count);
+    
         const ordered =  history.map((entry) => ({
             type: 'text',
             text: `${entry.role === 'char' ? char.name : 'User'}: ${entry.data}`
