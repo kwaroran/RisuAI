@@ -1,5 +1,5 @@
 import { language } from "src/lang"
-import { applyParameters, setObjectValue, type OpenAIChatExtra, type OpenAIContents, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
+import { applyParameters, setObjectValue, type OpenAIChatExtra, type OpenAIContents, type OpenAIToolCall, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 import { getDatabase } from "src/ts/storage/database.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { strongBan, tokenizeNum } from "src/ts/tokenizer"
@@ -10,6 +10,8 @@ import { extractJSON, getOpenAIJSONSchema } from "../templates/jsonSchema"
 import { applyChatTemplate } from "../templates/chatTemplate"
 import { supportsInlayImage } from "../files/inlays"
 import { Capacitor } from "@capacitor/core"
+import { replaceAsync, simplifySchema } from "src/ts/util"
+import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 
 interface OAIResponseInputItem {
@@ -69,6 +71,39 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
     const formated = arg.formated
     const db = getDatabase()
     const aiModel = arg.aiModel
+
+    const replaceToolCall = async (text:string) => {
+
+
+        return replaceAsync(text, /<tool_call>(.*?)<\/tool_call>/gms, async (match, p1) => {
+            const call = await decodeToolCall(p1)
+            if(!call){
+                return match
+            }
+            formatedChat.push({
+                role: 'assistant',
+                content: '',
+                tool_calls: [{
+                    id: call.call.id,
+                    type: 'function',
+                    function: {
+                        name: call.call.name,
+                        arguments: JSON.stringify(call.call.arg)
+                    }
+                }]
+            })
+
+            formatedChat.push({
+                role: 'tool',
+                content: call.response.filter(m => m.type === 'text').map(m => m.text).join('\n'),
+                tool_call_id: call.call.id,
+                cachePoint: true
+            })
+
+            return ''
+        })
+    }
+    
     for(let i=0;i<formated.length;i++){
         const m = formated[i]
         if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
@@ -85,12 +120,13 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             }
             contents.push({
                 "type": "text",
-                "text": m.content
+                "text": await replaceToolCall(m.content)
             })
             v.content = contents
             formatedChat.push(v)
         }
         else{
+            m.content = await replaceToolCall(m.content)
             formatedChat.push(m)
         }
     }
@@ -136,7 +172,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
     if(db.newOAIHandle){
         formatedChat = formatedChat.filter(m => {
-            return m.content !== '' || (m.multimodals && m.multimodals.length > 0)
+            return m.content !== '' || (m.multimodals && m.multimodals.length > 0) || m.tool_calls
         })
     }
 
@@ -334,15 +370,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
     })
 
-    if(arg.tools && arg.tools.length > 0){
-        body.tools = arg.tools.map(tool => {
-            return {
-                name: tool.name,
-                description: tool.description,
-                parameters: tool.inputSchema
-            } as OaiFunctions
-        })
-    }
 
     if(Object.keys(body.logit_bias).length === 0){
         delete body.logit_bias
@@ -396,6 +423,19 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         {},
         arg.mode
     )
+
+    if(arg.tools && arg.tools.length > 0){
+        body.tools = arg.tools.map(tool => {
+            return {
+                type: 'function',
+                function: {
+                    name: tool.name,
+                    description: tool.description,
+                    parameters: simplifySchema(tool.inputSchema),
+                }
+            }
+        })
+    }
 
     if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode){
         const OobaBodyTemplate = db.reverseProxyOobaArgs
@@ -707,24 +747,97 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         }
     }
 
+    return requestHTTPOpenAI(replacerURL, body, headers, arg)
+
+}
+
+export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Record<string,string>, arg:RequestDataArgumentExtended):Promise<requestDataResponse>{
+    
+    const db = getDatabase()
     const res = await globalFetch(replacerURL, {
         body: body,
         headers: headers,
         abortSignal: arg.abortSignal,
-        useRisuToken:throughProxi,
         chatId: arg.chatId
     })
 
     const dat = res.data as any
     if(res.ok){
         try {
+            if(dat.choices?.[0]?.message?.tool_calls && dat.choices[0].message.tool_calls.length > 0){
+                const toolCalls = dat.choices[0].message.tool_calls as OpenAIToolCall[]
+
+                const messages = body.messages as OpenAIChatExtra[]
+                messages.push(dat.choices[0].message)
+
+                for(const toolCall of toolCalls){
+                    if(!toolCall.function || !toolCall.function.name || !toolCall.function.arguments){
+                        continue
+                    }
+                    try {
+                        const functionArgs = JSON.parse(toolCall.function.arguments)
+                        if(arg.tools && arg.tools.length > 0){
+                            const tool = arg.tools.find(t => t.name === toolCall.function.name)
+                            if(!tool){
+                                messages.push({
+                                    role:'tool',
+                                    content: 'No tool found with name: ' + toolCall.function.name,
+                                    tool_call_id: toolCall.id
+                                })
+                            }
+                            else{
+                                const parsed = functionArgs
+                                const x = (await callTool(tool.name, parsed)).filter(m => m.type === 'text')
+                                if(x.length > 0){
+                                    messages.push({
+                                        role: 'tool',
+                                        content: x[0].text,
+                                        tool_call_id: toolCall.id
+                                    })
+                                    if(arg.rememberToolUsage){
+                                        arg.additionalOutput ??= ''
+                                        arg.additionalOutput += await encodeToolCall({
+                                            call: {
+                                                id: toolCall.id,
+                                                name: toolCall.function.name,
+                                                arg: toolCall.function.arguments
+                                            },
+                                            response: x
+                                        })
+                                    }
+                                }
+                                else{
+                                    messages.push({
+                                        role: 'tool',
+                                        content: 'Tool call failed with no text response',
+                                        tool_call_id: toolCall.id
+                                    })
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        messages.push({
+                            role: 'tool',
+                            content: 'Tool call failed with error: ' + error,
+                            tool_call_id: toolCall.id
+                        })
+                    }
+                }
+
+                body.messages = messages
+
+                return requestHTTPOpenAI(replacerURL, body, headers, arg)
+            }
+
+            arg.additionalOutput ??= ''
+
             if(arg.multiGen && dat.choices){
                 if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
 
                     const c = dat.choices.map((v:{
                         message:{content:string}
                     }) => {
-                        const extracted = extractJSON(v.message.content, arg.extractJson)
+                        const extracted = extractJSON( arg.additionalOutput + v.message.content, arg.extractJson)
                         return ["char",extracted]
                     })
 
@@ -737,11 +850,11 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                 return {
                     type: 'multiline',
                     result: dat.choices.map((v) => {
-                        return ["char",v.message.content]
+                        return ["char", arg.additionalOutput + v.message.content]
                     })
                 }
 
-            }
+            }            
 
             if(dat?.choices[0]?.text){
                 let text = dat.choices[0].text as string
@@ -751,19 +864,19 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                         const extracted = extractJSON(parsed, arg.extractJson)
                         return {
                             type: 'success',
-                            result: extracted
+                            result:  arg.additionalOutput + extracted
                         }
                     } catch (error) {
                         console.log(error)
                         return {
                             type: 'success',
-                            result: text
+                            result:  arg.additionalOutput + text
                         }
                     }
                 }
                 return {
                     type: 'success',
-                    result: text
+                    result:  arg.additionalOutput + text
                 }
             }
             if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
@@ -796,7 +909,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             
             return {
                 type: 'success',
-                result: result
+                result:  arg.additionalOutput + result
             }
         } catch (error) {                    
             return {

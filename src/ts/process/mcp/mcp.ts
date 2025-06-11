@@ -4,12 +4,14 @@ import { DBState } from "src/ts/stores.svelte";
 import { getModuleMcps } from "../modules";
 import { alertError, alertInput, alertNormal } from "src/ts/alert";
 import { v4 } from "uuid";
+import type { MCPClientLike } from "./internalmcp";
+import localforage from "localforage";
 
 export type MCPToolWithURL = MCPTool & {
     mcpURL: string;
 };
 
-export const MCPs:Record<string,MCPClient> = {};
+export const MCPs:Record<string,MCPClient|MCPClientLike> = {};
 
 export async function initializeMCPs(additionalMCPs?:string[]) {
     const db = getDatabase()
@@ -23,6 +25,30 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
     }
     for(const mcp of mcpUrls) {
         if(!MCPs[mcp]) {
+
+            if(mcp.startsWith('internal:')) {
+                switch(mcp) {
+                    case 'internal:fs':{
+                        const { FileSystemClient } = await import('./filesystemclient');
+                        MCPs[mcp] = new FileSystemClient();
+                        break;
+                    }
+                    case 'internal:risuai':{
+                        const { RisuAccessClient } = await import('./risuaccess');
+                        MCPs[mcp] = new RisuAccessClient();
+                        break;
+                    }
+                    case 'internal:aiaccess':{
+                        const { AIAccessClient } = await import('./aiaccess');
+                        MCPs[mcp] = new AIAccessClient();
+                        break;
+                    }
+                }
+
+                await MCPs[mcp].checkHandshake();
+                continue;
+            }
+
             const registerRefresh:typeof MCPClient.prototype.registerRefreshToken = (arg) => {
                 DBState.db.authRefreshes.push({
                     url: mcp,
@@ -101,9 +127,23 @@ export async function callTool(methodName:string, args:any) {
 }
 
 export async function importMCPModule(){
-    const x = await alertInput('Please enter the URL of the MCP module to import:')
+    const x = await alertInput('Please enter the URL of the MCP module to import:', [
+        ['internal:aiaccess', 'LLM Call Client (internal:aiaccess)'],
+        ['internal:risuai', 'Risu Access Client (internal:risuai)'],
+        ['internal:fs', 'File System Client (internal:fs)'],
+        ['https://mcp.paypal.com/sse', 'PayPal MCP (https://mcp.paypal.com/sse)'],
+        ['https://mcp.linear.app/sse', 'Linear MCP (https://mcp.linear.app/sse)'],
+        ['https://rag-mcp-2.whatsmcp.workers.dev/sse', 'OneContext MCP (https://rag-mcp-2.whatsmcp.workers.dev/sse)'],
+        ['https://browser.mcp.cloudflare.com/sse', 'Cloudflare Browser MCP (https://browser.mcp.cloudflare.com/sse)'],
+        ['https://mcp.deepwiki.com/mcp', 'DeepWiki MCP (https://mcp.deepwiki.com/mcp)'],
+    ])
 
-    if(!x.startsWith('http')){
+    if(
+        !x.startsWith('http://localhost') &&
+        !x.startsWith('http://127') &&
+        !x.startsWith('https:') &&
+        !x.startsWith('internal:'))
+    {
         alertError('Invalid URL');
         return;
     }
@@ -122,11 +162,60 @@ export async function importMCPModule(){
             mcp: {
                 url: x
             },
-            id: v4()
+            id: v4(),
+            lorebook: [{
+                comment: "MCP Info",
+                content: `@@mcp\n\n<MCP Info>Name:${meta.serverInfo.name}\nVersion:${meta.serverInfo.version}\nInst:${meta.instructions ?? 'None'}</MCP Info>`,
+                key: '',
+                alwaysActive: true,
+                secondkey: "",
+                insertorder: 0,
+                mode: "normal",
+                selective: false
+            }]
         })
         alertNormal(`MCP module imported successfully!\nName: ${meta.serverInfo.name}`);
 
     } catch (error) {
         alertError(error)
     }
+}
+
+export type toolCallData = {
+    call: {
+        id: string,
+        name: string,
+        arg: any
+    },
+    response: RPCToolCallContent[],
+}
+
+const inst = localforage.createInstance({
+    name: 'mcp-tool-calls',
+    storeName: 'mcp-tool-calls'
+});
+
+export async function encodeToolCall(call:toolCallData){
+    call.call.id = call.call.id || v4();
+    await inst.setItem(call.call.id, call)
+    return `<tool_call>${call.call.id}\uf100${call.call.name}</tool_call>\n\n`;
+}
+
+export async function decodeToolCall(text:string):Promise<toolCallData|undefined> {
+    text = text.trim();
+    if(text.startsWith('<tool_call>')){
+        text = text.slice('<tool_call>'.length, 0).trim();
+    }
+    if(text.endsWith('</tool_call>')){
+        text = text.slice(0, -'</tool_call>'.length).trim();
+    }
+    const [callId, callName] = text.split('\uf100');
+    if(!callId) {
+        return undefined;
+    }
+    const call = await inst.getItem<toolCallData>(callId);
+    if(!call) {
+        return undefined;
+    }
+    return call;
 }

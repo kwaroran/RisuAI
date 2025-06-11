@@ -592,11 +592,10 @@ export class MCPClient{
                     })).toString()
                 })
                 if(tokenResponse.status !== 200){
-                    throw new Error("Failed to refresh access token")
+                    const tokenData = await tokenResponse.json()
+                    this.accessToken = tokenData.access_token
+                    return
                 }
-                const tokenData = await tokenResponse.json()
-                this.accessToken = tokenData.access_token
-                return
             }
         }
 

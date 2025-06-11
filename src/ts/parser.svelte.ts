@@ -73,6 +73,9 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
                     if(v.startsWith('hljs')){
                         return v
                     }
+                    if(v.startsWith('x-risu-')){
+                        return v
+                    }
                     return "x-risu-" + v
                 }).join(' ')
             }
@@ -587,9 +590,11 @@ export interface simpleCharacterArgument{
     triggerscript?: triggerscript[]
 }
 
-function parseThoughts(data:string){
+function parseThoughtsAndTools(data:string){
     return data.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (full, txt) => {
         return `<details><summary>${language.cot}</summary>${txt}</details>`
+    }).replace(/<tool_call>(.+?)<\/tool_call>/gms, (full, txt:string) => {
+        return `<div class="x-risu-tool-call">🛠️ ${language.toolCalled.replace('{{tool}}',txt.split('\uf100')?.[1] ?? 'unknown')}</div>\n\n`
     })
 }
 
@@ -623,7 +628,7 @@ export async function ParseMarkdown(
 
     data = await parseInlayAssets(data ?? '')
 
-    data = parseThoughts(data)
+    data = parseThoughtsAndTools(data)
 
     data = encodeStyle(data)
     if(mode === 'normal'){
@@ -672,7 +677,7 @@ function decodeStyleRule(rule:CssAtRuleAST){
                 let slt:string = rule.selectors[i]
                 if(slt){
                     let selectors = (slt.split(' ') ?? []).map((v) => {
-                        if(v.startsWith('.')){
+                        if(v.startsWith('.') && !v.startsWith('.x-risu-')){
                             return ".x-risu-" + v.substring(1)
                         }
                         return v

@@ -1,13 +1,13 @@
 import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
-import { simplifySchema, sleep } from "src/ts/util"
+import { replaceAsync, simplifySchema, sleep } from "src/ts/util"
 import { v4 } from "uuid"
 import { setInlayAsset, writeInlayImage } from "../files/inlays"
 import type { OpenAIChat } from "../index.svelte"
 import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
-import { callTool } from "../mcp/mcp"
+import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 type GeminiFunctionCall = {
     id: string;
@@ -132,6 +132,52 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                     text: chat.role + ':' + chat.content
                 }]
             })
+        }
+    }
+
+
+    for(let i=0;i<reformatedChat.length;i++){
+        let chat = reformatedChat[i]
+        for(let j=0;j<chat.parts.length;j++){
+            const part = chat.parts[j]
+            if(part.text){
+                part.text = await replaceAsync(part.text,/<tool_call>(.*?)<\/tool_call>/g, async (match:string, p1:string) => {
+                    const call = await decodeToolCall(p1)
+                    if(call){
+                        const tool = arg?.tools?.find((t) => t.name === call.call.name)
+                        if(tool){
+                            reformatedChat.splice(i, 0, {
+                                role: 'MODEL',
+                                parts: [{
+                                    functionCall: {
+                                        id: call.call.id,
+                                        name: call.call.name,
+                                        args: call.call.arg
+                                    }
+                                }]
+                            })
+                            reformatedChat.splice(i+1, 0, {
+                                role: 'USER',
+                                parts: [{
+                                    functionResponse: {
+                                        id: call.call.id,
+                                        name: call.call.name,
+                                        response: {
+                                            data: call.response.filter((r) => {
+                                                return r.type === 'text'
+                                            }).map((r) => {
+                                                return r.text
+                                            })
+                                        }
+                                    }
+                                }]
+                            })
+                            i+=2
+                            chat = reformatedChat[i]
+                        }
+                    }
+                    return ''
+                })}
         }
     }
 
@@ -560,53 +606,64 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             const functionName = call.name
             const functionArgs = call.args
 
-            for(const call of calls){
-                if(call.name === functionName && call.args){
-                    const tool = tools.find((t) => t.name === functionName)
-                    if(tool){
-                        const result = (await callTool(tool.name, functionArgs)).filter((r) => {
-                            return r.type === 'text'
-                        })
-                        if(result.length === 0){
-                            parts.push({
-                                functionResponse: {
-                                    id: call.id,
-                                    name: call.name,
-                                    response: 'No response from tool.'
-                                }
-                            })
+            const tool = tools.find((t) => t.name === functionName)
+            if(tool){
+                const result = (await callTool(tool.name, functionArgs)).filter((r) => {
+                    return r.type === 'text'
+                })
+                if(result.length === 0){
+                    parts.push({
+                        functionResponse: {
+                            id: call.id,
+                            name: call.name,
+                            response: 'No response from tool.'
                         }
-                        for(let i=0;i<result.length;i++){
-                            let response:any = result[i].text
-                            try {
-                                //try json parse
-                                response = JSON.parse(response)
-                            } catch (error) {
-                                response = {
-                                    text: response
-                                }
-                            }
-                            parts.push({
-                                functionResponse: {
-                                    id: call.id,
-                                    name: call.name,
-                                    response
-                                }
-                            })
-                        }
-                    }
-                    else{
-                        parts.push({
-                            functionResponse: {
+                    })
+                }
+                else{
+                    if(arg.rememberToolUsage){
+                        arg.additionalOutput ??= ''
+                        arg.additionalOutput += await encodeToolCall({
+                            call: {
                                 id: call.id,
                                 name: call.name,
-                                response: `Tool ${call.name} not found.`
-                            }
+                                arg: call.args
+                            },
+                            response: result
                         })
                     }
                 }
+                for(let i=0;i<result.length;i++){
+                    let response:any = result[i].text
+                    try {
+                        //try json parse
+                        response = {
+                            data: JSON.parse(response)
+                        }
+                    } catch (error) {
+                        response = {
+                            data: response
+                        }
+                    }
+                    parts.push({
+                        functionResponse: {
+                            id: call.id,
+                            name: call.name,
+                            response
+                        }
+                    })
+                }
             }
-
+            else{
+                parts.push({
+                    functionResponse: {
+                        id: call.id,
+                        name: call.name,
+                        response: `Tool ${call.name} not found.`
+                    }
+                })
+            }
+            
             chat.push({
                 role: 'USER',
                 parts: parts
@@ -636,8 +693,10 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         rDatas[rDatas.length-1] = rDatas.join('\n\n')
     }
 
+    arg.additionalOutput ??= ''
+    console.log(arg.additionalOutput + rDatas[rDatas.length-1])
     return {
         type: 'success',
-        result: rDatas[rDatas.length-1]
+        result: arg.additionalOutput + rDatas[rDatas.length-1]
     }
 }

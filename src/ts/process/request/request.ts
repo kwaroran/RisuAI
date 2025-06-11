@@ -51,6 +51,7 @@ interface requestDataArgument{
     staticModel?: string
     escape?:boolean
     tools?: MCPTool[]
+    rememberToolUsage?: boolean
 }
 
 export interface RequestDataArgumentExtended extends requestDataArgument{
@@ -61,6 +62,7 @@ export interface RequestDataArgumentExtended extends requestDataArgument{
     customURL?:string
     mode?:ModelModeExtended
     key?:string
+    additionalOutput?:string
 }
 
 export type requestDataResponse = {
@@ -412,8 +414,17 @@ export interface OpenAIImageContents {
 
 export type OpenAIContents = OpenAITextContents|OpenAIImageContents
 
+export interface OpenAIToolCall {
+    id:string,
+    type:'function',
+    function:{
+        name:string,
+        arguments:string
+    },
+}
+
 export interface OpenAIChatExtra {
-    role: 'system'|'user'|'assistant'|'function'|'developer'
+    role: 'system'|'user'|'assistant'|'function'|'developer'|'tool'
     content: string|OpenAIContents[]
     memo?:string
     name?:string
@@ -430,6 +441,8 @@ export interface OpenAIChatExtra {
         parameters: any
         strict: boolean
     }
+    tool_call_id?: string
+    tool_calls?: OpenAIToolCall[]
 }
 
 export function reformater(formated:OpenAIChat[],modelInfo:LLMModel|LLMFlags[]){
