@@ -505,6 +505,7 @@ export function setDatabase(data:Database){
     data.vertexAccessTokenExpires ??= 0
     data.vertexClientEmail ??= ''
     data.vertexPrivateKey ??= ''
+    data.vertexRegion ??= 'global'
     data.seperateParametersEnabled ??= false
     data.seperateParameters ??= {
         memory: {},
@@ -954,6 +955,7 @@ export interface Database{
     vertexClientEmail: string
     vertexAccessToken: string
     vertexAccessTokenExpires: number
+    vertexRegion: string
     seperateParametersEnabled:boolean
     seperateParameters:{
         memory: SeparateParameters,
