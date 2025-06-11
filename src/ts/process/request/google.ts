@@ -10,13 +10,13 @@ import { applyParameters, type Parameter, type RequestDataArgumentExtended, type
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 type GeminiFunctionCall = {
-    id: string;
+    id?: string;
     name: string;
     args: any
 }
 
 type GeminiFunctionResponse = {
-    id: string;
+    id?: string;
     name: string;
     response: any
 }
@@ -150,7 +150,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                                 role: 'MODEL',
                                 parts: [{
                                     functionCall: {
-                                        id: call.call.id,
+                                        //id: call.call.id,   VertexAI will return unknown parameter error if it is included
                                         name: call.call.name,
                                         args: call.call.arg
                                     }
@@ -160,7 +160,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                                 role: 'USER',
                                 parts: [{
                                     functionResponse: {
-                                        id: call.call.id,
+                                        //id: call.call.id,    VertexAI will return unknown parameter error if it is included
                                         name: call.call.name,
                                         response: {
                                             data: call.response.filter((r) => {
