@@ -1548,7 +1548,7 @@ for(let i=0; i<LLMModels.length; i++){
             recommended: false
             
         })
-    }
+    }    
     if(LLMModels[i].provider === LLMProvider.GoogleCloud){
         LLMModels.push({
             ...LLMModels[i],
@@ -1557,7 +1557,8 @@ for(let i=0; i<LLMModels.length; i++){
             fullName: `${LLMModels[i].fullName ?? LLMModels[i].name} Vertex`,
             flags: [...LLMModels[i].flags],
             recommended: false,
-            provider: LLMProvider.VertexAI
+            provider: LLMProvider.VertexAI,
+            format: LLMFormat.VertexAIGemini
         })
     }
 }
