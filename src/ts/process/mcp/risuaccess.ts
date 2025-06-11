@@ -266,11 +266,11 @@ Character fields:
                             type: 'string',
                             description: 'New comment for the script'
                         },
-                        in: {
+                        regIn: {
                             type: 'string',
                             description: 'New input regex pattern'
                         },
-                        out: {
+                        regOut: {
                             type: 'string',
                             description: 'New output replacement'
                         },
@@ -304,11 +304,11 @@ Character fields:
                             type: 'string',
                             description: 'Comment for the script'
                         },
-                        in: {
+                        regIn: {
                             type: 'string',
                             description: 'Input regex pattern'
                         },
-                        out: {
+                        regOut: {
                             type: 'string',
                             description: 'Output replacement'
                         },
@@ -326,7 +326,7 @@ Character fields:
                             default: true
                         }
                     },
-                    required: ['id', 'comment', 'in', 'out', 'type']
+                    required: ['id', 'comment', 'regIn', 'regOut', 'type']
                 }
             },
             {
