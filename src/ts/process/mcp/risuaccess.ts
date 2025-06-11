@@ -421,9 +421,9 @@ Character fields:
                 case 'risu-get-character-regex-scripts':
                     return await this.getCharacterRegexScripts(args.id);
                 case 'risu-set-character-regex-scripts':
-                    return await this.setCharacterRegexScripts(args.id, args.scriptName, args.comment, args.in, args.out, args.type, args.flag, args.ableFlag);
+                    return await this.setCharacterRegexScripts(args.id, args.scriptName, args.comment, args.regIn, args.regOut, args.type, args.flag, args.ableFlag);
                 case 'risu-add-character-regex-scripts':
-                    return await this.addCharacterRegexScripts(args.id, args.comment, args.in, args.out, args.type, args.flag, args.ableFlag);
+                    return await this.addCharacterRegexScripts(args.id, args.comment, args.regIn, args.regOut, args.type, args.flag, args.ableFlag);
                 case 'risu-delete-character-regex-scripts':
                     return await this.deleteCharacterRegexScripts(args.id, args.scriptName);
                 case 'risu-get-character-additional-assets':
