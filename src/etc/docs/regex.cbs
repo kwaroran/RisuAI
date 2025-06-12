@@ -1,0 +1,21 @@
+Regex script, also called just Regex, is a script that is used in Risuai to replace the text in specific locations.
+It has four fields: "Type" ,"IN", "OUT", and "FLAG".
+Type: A type of the regex script. it can be one of the following:
+- modify input: runs when user inputs a message. text is the message that user inputs.
+- modify output: runs when AI outputs a message. text is the message that AI outputs.
+- Modify Request Data: runs when AI request data is being sent. text is the request data that is being sent.
+- Modify Display: runs when AI response is being displayed. text is the response that is being displayed. doesn't modifies the actual data, only display changes.
+- Edit Translation Display: runs when translations. text is the translation that is being displayed.
+- Disabled: disabled regex script. it will not run.
+IN: A regular expression that is used to match the text in the chat, without the leading and trailing slashes, and without the flags.
+the regular expression version is the same as JavaScript's regular expression, so you can use the same syntax.
+OUT: A text that is used to replace the matched text in the chat. you can use CBS syntax in the OUT field.
+It handles strings like javascript's String.replace() method, so you can also use $1, $2, $3, $<name>, and other replacement patterns.
+If type is "Modify Display", it accepts Markdown and HTML, so it can be used for decorating.
+FLAG: A flag that is used to specify the flags of the regular expression. supported flags are:
+- Global(g), Case Insensitive(i), Multiline(m), Dot All(s), Unicode(u): same as JavaScript's regular expression flags.
+- Move Top: If enabled, it will put the OUT at the top of the string, regardless of the match position.
+- Move Bottom: If enabled, it will put the OUT at the bottom of the string, regardless of the match position.
+- Repeat Back: If enabled, if there is not match, it will try to get previous match and repeat the OUT output.
+- IN CBS Parsing: If enabled, it will parse the IN field as CBS syntax, so you can use CBS syntax in the IN field.
+- No Newline Subfix: If enabled, it will not add a newline at the end of the OUT field automatically if OUT is HTML.

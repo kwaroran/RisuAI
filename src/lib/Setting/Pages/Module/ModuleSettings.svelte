@@ -5,13 +5,14 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, importModule, refreshModules, type RisuModule } from "src/ts/process/modules";
-    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon } from "lucide-svelte";
+    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints } from "lucide-svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
     import { alertCardExport, alertConfirm, alertError } from "src/ts/alert";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import { ShowRealmFrameStore } from "src/ts/stores.svelte";
     import { onDestroy } from "svelte";
+    import { importMCPModule } from "src/ts/process/mcp/mcp";
     let tempModule:RisuModule = $state({
         name: '',
         description: '',
@@ -50,7 +51,10 @@
                     <div class="border-t-1 border-selected"></div>
                 {/if}
 
-                <div class="pl-3 pt-3 text-left flex">
+                <div class="pl-3 pt-3 text-left flex items-center">
+                    {#if rmodule.mcp}
+                        <Waypoints size={18} class="mr-2" />
+                    {/if}
                     <span class="text-lg">{rmodule.name}</span>
                     <div class="flex-grow flex justify-end">
                         <button class={(DBState.db.enabledModules.includes(rmodule.id)) ?
@@ -71,21 +75,30 @@
                         }}>
                             <Globe size={18}/>
                         </button>
-                        <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.download} onclick={async (e) => {
-                            e.stopPropagation()
-                            exportModule(rmodule)
-                        }}>
-                            <Share2Icon size={18}/>
-                        </button>
-                        <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.edit} onclick={async (e) => {
-                            e.stopPropagation()
-                            const index = DBState.db.modules.findIndex((v) => v.id === rmodule.id)
-                            tempModule = rmodule
-                            editModuleIndex = index
-                            mode = 2
-                        }}>
-                            <Edit size={18}/>
-                        </button>
+                        {#if !rmodule.mcp}
+                            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.download} onclick={async (e) => {
+                                e.stopPropagation()
+                                exportModule(rmodule)
+                            }}>
+                                <Share2Icon size={18}/>
+                            </button>
+                            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.edit} onclick={async (e) => {
+                                e.stopPropagation()
+                                const index = DBState.db.modules.findIndex((v) => v.id === rmodule.id)
+                                tempModule = rmodule
+                                editModuleIndex = index
+                                mode = 2
+                            }}>
+                                <Edit size={18}/>
+                            </button>
+                        {:else}
+                            <button class="text-textcolor2 mr-2 cursor-not-allowed">
+                                <Share2Icon size={18}/>
+                            </button>
+                            <button class="text-textcolor2 mr-2 cursor-not-allowed">
+                                <Edit size={18}/>
+                            </button>
+                        {/if}
                         <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.remove} onclick={async (e) => {
                             e.stopPropagation()
                             const d = await alertConfirm(`${language.removeConfirm}` + rmodule.name)
@@ -109,15 +122,28 @@
             {/each}
         {/if}
     </div>
-    <Button className="mt-2" onclick={() => {
-        tempModule = {
-            name: '',
-            description: '',
-            id: v4(),
-        }
-        mode = 1
-    }}>{language.createModule}</Button>
-    <Button className="mt-2" onclick={importModule}>{language.importModule}</Button>
+
+    <div class="flex mr-2 mt-4">
+        <button class="text-textcolor2 hover:text-blue-500 mr-2 cursor-pointer" onclick={async () => {
+            tempModule = {
+                name: '',
+                description: '',
+                id: v4(),
+            }
+        }}>
+            <PlusIcon />
+        </button>
+        <button class="text-textcolor2 hover:text-blue-500 mr-2 cursor-pointer" onclick={async () => {
+            importMCPModule()
+        }}>
+            <Waypoints />
+        </button>
+        <button class="text-textcolor2 hover:text-blue-500 mr-2 cursor-pointer" onclick={async () => {
+            importModule()
+        }}>
+            <HardDriveUpload  />
+        </button>
+    </div>
 {:else if mode === 1}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.createModule}</h2>
     <ModuleMenu bind:currentModule={tempModule}/>

@@ -1,8 +1,7 @@
-import {
-  type ChatCompletionMessageParam,
-  type ChatCompletionRequestNonStreaming,
-  MLCEngine,
-  CreateMLCEngine,
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionRequestNonStreaming,
+  MLCEngine
 } from "@mlc-ai/web-llm";
 
 let engine: MLCEngine = null;
@@ -20,6 +19,8 @@ export async function chatCompletion(
       const initProgressCallback = (progress) => {
         console.log("[WebLLM]", progress);
       };
+
+      const { CreateMLCEngine } = await import("@mlc-ai/web-llm");
 
       engine = await CreateMLCEngine(
         model,

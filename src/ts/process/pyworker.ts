@@ -6,6 +6,7 @@ type InitMessage = {
     type: "init";
     id: string;
     moduleFunctions: string[];
+    code: string;
 }
 
 type FunctionResultMessage = {
@@ -16,7 +17,8 @@ type FunctionResultMessage = {
 
 type PythonMessage = {
     type: 'python';
-    code: string;
+    call: string;
+    id: string;
 }
 
 type PyWorkerMessage = InitMessage | FunctionResultMessage | PythonMessage;
@@ -38,7 +40,7 @@ self.onmessage = async (event:MessageEvent<PyWorkerMessage>) => {
     const { type } = event.data;
     switch(type) {
         case 'init':{
-            const { id, moduleFunctions } = event.data as InitMessage;
+            const { id, moduleFunctions, code } = event.data as InitMessage;
             let md: Record<string, any> = {};
             for(const func of moduleFunctions) {
                 md[func] = (...args: any[]) => {
@@ -63,7 +65,9 @@ self.onmessage = async (event:MessageEvent<PyWorkerMessage>) => {
                     })
                 }
             }
+            py.unregisterJsModule('js')
             py.registerJsModule('risuai', md)
+            py.FS.writeFile('./cd.py', code);
             self.postMessage({
                 type: "init",
                 id,
@@ -82,20 +86,20 @@ self.onmessage = async (event:MessageEvent<PyWorkerMessage>) => {
             break;
         }
         case 'python': {
-            const { code } = event.data as PythonMessage;
+            const { call, id } = event.data as PythonMessage;
             try {
-                const result = await py.runPythonAsync(code);
+                const result = await py.pyimport('cd')?.[call]?.() || null;
                 self.postMessage({
                     type: "pythonResult",
-                    callId: crypto.randomUUID(),
-                    result
+                    result,
+                    id
                 });
             } catch (error) {
                 console.error("Error executing Python code:", error);
                 self.postMessage({
                     type: "pythonResult",
-                    callId: crypto.randomUUID(),
-                    result: error
+                    result: error,
+                    id
                 });
             }
             break;

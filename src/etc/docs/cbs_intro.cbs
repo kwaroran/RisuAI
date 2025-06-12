@@ -1,0 +1,6 @@
+{{// Since we are writing CBS docs in CBS itself, lets use [[]] instead of brackets, so it won't be confused, and lets replace it with brackets when we are done.}}
+CBS, formally known as Curly Braced Syntax (CBS, currently only used as "CBS"), is a syntax that is used to write simple macro scripts for Risuai.
+It can be used almost any textboxes in Risuai, such as character description, lorebook, regex script, trigger script, and other textboxes.
+It can be mixed with plain text, like "[[char]] is a character", or "Hello [[user]]".
+It's syntax is like [[char]], or with arguments like [[random::arg1::arg2::arg3]]. it can also be nested like [[random::[[user]]::[[char]]]].
+It also has a block syntax, starts with [[#block <A>]] and ends with [[/block]] or simplified [[/]].

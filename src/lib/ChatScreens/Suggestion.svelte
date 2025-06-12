@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { requestChatData } from "src/ts/process/request";
+	import { requestChatData } from "src/ts/process/request/request";
     import { doingChat, type OpenAIChat } from "../../ts/process/index.svelte";
     import { setDatabase, type character, type Message, type groupChat, type Database } from "../../ts/storage/database.svelte";
 	import { DBState } from 'src/ts/stores.svelte';

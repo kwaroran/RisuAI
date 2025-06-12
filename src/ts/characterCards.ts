@@ -636,6 +636,7 @@ function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:s
         additionalText: '',
         loreExt: loreExt,
         loreSettings: loresettings,
+        chatFolders: []
         
     }
 }
@@ -956,6 +957,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         ccAssets: ccAssets,
         lowLevelAccess: risuext?.lowLevelAccess ?? false,
         defaultVariables: data?.extensions?.risuai?.defaultVariables ?? '',
+        chatFolders: []
     }
 
     if(card.spec === 'chara_card_v3'){

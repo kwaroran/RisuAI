@@ -2,13 +2,13 @@ import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterA
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
-import { ReloadGUIPointer, selectedCharID } from "../stores.svelte";
+import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
 import type { OpenAIChat } from "./index.svelte";
-import { requestChatData } from "./request";
+import { requestChatData } from "./request/request";
 import { v4 } from "uuid";
 import { getModuleLorebooks, getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
@@ -37,7 +37,7 @@ interface LuaScriptingEngineState extends BasicScriptingEngineState {
 }
 
 interface PythonScriptingEngineState extends BasicScriptingEngineState {
-    
+    pyodide?: PyodideContext
     type: 'py';
 }
 
@@ -84,13 +84,16 @@ export async function runScripted(code:string, arg:{
                 ScriptingEngineState.code = code
                 ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true})
                 const luaEngine = ScriptingEngineState.engine
-                declareAPI = (name: string, func: Function) => {
+                declareAPI = (name:string, func:Function) => {
                     luaEngine.global.set(name, func)
                 }
             }
             if(ScriptingEngineState.type === 'py'){
-
-                
+                ScriptingEngineState.pyodide?.close()
+                ScriptingEngineState.pyodide = new PyodideContext()
+                declareAPI = (name:string, func:Function) => {
+                    ScriptingEngineState.pyodide?.declareAPI(name, func as any)
+                }
             }
             declareAPI('getChatVar', (id:string,key:string) => {
                 return ScriptingEngineState.getVar(key)
@@ -154,7 +157,7 @@ export async function runScripted(code:string, arg:{
                 }
                 const message = ScriptingEngineState.chat.message?.at(index)
                 if(message){
-                    message.data = value
+                    message.data = value ?? ''
                 }
             })
             declareAPI('setChatRole', (id:string, index:number, value:string) => {
@@ -183,14 +186,14 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.push({role: roleData, data: value})
+                ScriptingEngineState.chat.message.push({role: roleData, data: value ?? ''})
             })
             declareAPI('insertChat', (id:string, index:number, role:string, value:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
                 let roleData:'user'|'char' = role === 'user' ? 'user' : 'char'
-                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value})
+                ScriptingEngineState.chat.message.splice(index, 0, {role: roleData, data: value ?? ''})
             })
 
             declareAPI('getTokens', async (id:string, value:string) => {
@@ -238,6 +241,16 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
+            })
+
+            declareAPI('reloadChat', (id: string, index: number) => {
+                if(!ScriptingSafeIds.has(id)){
+                    return
+                }
+                ReloadChatPointer.update((v) => {
+                    v[index] = (v[index] ?? 0) + 1
+                    return v
+                })
             })
 
             //Low Level Access
@@ -658,8 +671,50 @@ export async function runScripted(code:string, arg:{
                 })
             })
 
+            declareAPI('getCharacterLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return ''
+                }
+
+                const db = getDatabase()
+                const selchar = db.characters[get(selectedCharID)]
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'char') {
+                        const messageData = chat.message[pointer].data
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return selchar.firstMessage
+            })
+
+            declareAPI('getUserLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return null
+                }
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'user') {
+                        const messageData = chat.message[pointer].data
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return null
+            })
+
             if(ScriptingEngineState.type === 'lua'){
                 await ScriptingEngineState.engine?.doString(luaCodeWarper(code))
+            }
+            if(ScriptingEngineState.type === 'py'){
+                await ScriptingEngineState.pyodide?.init(code)
             }
             ScriptingEngineState.code = code
         }
@@ -730,6 +785,38 @@ export async function runScripted(code:string, arg:{
                 }
             } catch (error) {
                 console.error(error)
+            }
+        }
+        if(ScriptingEngineState.type === 'py'){
+            switch(mode){
+                case 'input':{
+                    res = await ScriptingEngineState.pyodide?.python(`onInput('${accessKey}')`)
+                    break
+                }
+                case 'output':{
+                    res = await ScriptingEngineState.pyodide?.python(`onOutput('${accessKey}')`)
+                    break
+                }
+                case 'start':{
+                    res = await ScriptingEngineState.pyodide?.python(`onStart('${accessKey}')`)
+                    break
+                }
+                case 'onButtonClick':{
+                    res = await ScriptingEngineState.pyodide?.python(`onButtonClick('${accessKey}', '${data}')`)
+                    break
+                }
+                case 'editRequest':
+                case 'editDisplay':
+                case 'editInput':
+                case 'editOutput':{
+                    res = await ScriptingEngineState.pyodide?.python(`callListenMain('${mode}', '${accessKey}', '${JSON.stringify(data)}')`)
+                    res = JSON.parse(res)
+                    break
+                }
+                default:{
+                    res = await ScriptingEngineState.pyodide?.python(`${mode}('${accessKey}')`)
+                    break
+                }
             }
         }
         ScriptingSafeIds.delete(accessKey)
@@ -1017,4 +1104,94 @@ export async function runLuaButtonTrigger(char:character|groupChat|simpleCharact
         throw(error)
     }
     return runResult   
+}
+
+class PyodideContext{
+    worker: Worker;
+    apis: Record<string, (...args:any[]) => any> = {};
+    inited: boolean = false;
+    constructor(){
+        this.worker = new Worker(new URL('./pyworker.ts', import.meta.url), {
+            type: 'module'
+        })
+        this.worker.onmessage = (event:MessageEvent) => {
+            if(event.data.type === 'call'){
+                const { function: func, args, callId } = event.data;
+                if(this.apis[func]){
+                    this.apis[func](...args).then((result) => {
+                        this.worker.postMessage({
+                            type: 'functionResult',
+                            callId: callId,
+                            result: result
+                        });
+                    }).catch((error) => {
+                        this.worker.postMessage({
+                            type: 'error',
+                            error: error.message,
+                            id: callId
+                        });
+                    });
+                } else {
+                    this.worker.postMessage({
+                        type: 'error',
+                        error: `Function ${func} not found`,
+                        id: callId
+                    });
+                }
+            }
+        }
+    }
+    async declareAPI(name:string, func:(...args:any[]) => any){
+        this.apis[name] = func;
+    }
+    async init(code:string){
+        if(this.inited){
+            return;
+        }
+        const id = crypto.randomUUID();
+        return new Promise<void>((resolve, reject) => {
+            this.worker.onmessage = (event:MessageEvent) => {
+                if(event.data.id !== id){
+                    return
+                }
+
+                if(event.data.type === 'init'){
+                    this.inited = true;
+                    resolve();
+                } else if(event.data.type === 'error'){
+                    reject(new Error(event.data.error));
+                }
+            };
+            this.worker.postMessage({
+                type: 'init',
+                code: code,
+                id: id,
+                moduleFunctions: Object.keys(this.apis)
+            });
+        });
+    }
+    async python(call:string){
+        const id = crypto.randomUUID();
+        return new Promise<any>((resolve, reject) => {
+            this.worker.onmessage = (event:MessageEvent) => {
+                if(event.data.id !== id){
+                    return
+                }
+
+                if(event.data.type === 'python'){
+                    resolve(event.data.call);
+                } else if(event.data.type === 'error'){
+                    reject(new Error(event.data.error));
+                }
+            };
+            this.worker.postMessage({
+                type: 'python',
+                call: call,
+                id: id
+            });
+        });
+    }
+    async close(){
+        this.worker.terminate();
+    }
 }

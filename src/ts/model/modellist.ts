@@ -1,4 +1,4 @@
-import type { Parameter } from "../process/request"
+import type { Parameter } from "../process/request/request"
 import { getDatabase } from "../storage/database.svelte"
 
 export enum LLMFlags{
@@ -1109,6 +1109,16 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.GoogleCloud,
         recommended: true
     },
+        {
+        name: "Gemini Pro 2.5 Preview (06/05)",
+        id: 'gemini-2.5-pro-preview-06-05',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
     {
         name: "Gemini Flash 2.5 Preview (04/17)",
         id: 'gemini-2.5-flash-preview-04-17',
@@ -1538,7 +1548,7 @@ for(let i=0; i<LLMModels.length; i++){
             recommended: false
             
         })
-    }
+    }    
     if(LLMModels[i].provider === LLMProvider.GoogleCloud){
         LLMModels.push({
             ...LLMModels[i],
@@ -1547,7 +1557,8 @@ for(let i=0; i<LLMModels.length; i++){
             fullName: `${LLMModels[i].fullName ?? LLMModels[i].name} Vertex`,
             flags: [...LLMModels[i].flags],
             recommended: false,
-            provider: LLMProvider.VertexAI
+            provider: LLMProvider.VertexAI,
+            format: LLMFormat.VertexAIGemini
         })
     }
 }

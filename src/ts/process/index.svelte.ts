@@ -7,7 +7,7 @@ import { language } from "../../lang";
 import { alertError, alertToast } from "../alert";
 import { loadLoreBookV3Prompt } from "./lorebook.svelte";
 import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation, parseToggleSyntax } from "../util";
-import { requestChatData } from "./request";
+import { requestChatData } from "./request/request";
 import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull, risuChatParser } from "./scripts";
 import { exampleMessage } from "./exampleMessages";
@@ -57,6 +57,14 @@ export interface OpenAIChatFull extends OpenAIChat{
         name: string
         arguments:string
     }
+    tool_calls?:{
+        function: {
+            name: string
+            arguments:string
+        }
+        id:string
+        type:'function'
+    }[]
 }
 
 export interface requestTokenPart{
@@ -1390,7 +1398,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         chatId: generationId,
         imageResponse: DBState.db.outputImageModal,
         previewBody: arg.previewPrompt,
-        escape: nowChatroom.type === 'character' && nowChatroom.escapeOutput
+        escape: nowChatroom.type === 'character' && nowChatroom.escapeOutput,
+        rememberToolUsage: DBState.db.rememberToolUsage,
     }, 'model', abortSignal)
 
     console.log(req)
@@ -1431,6 +1440,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 time: Date.now(),
                 generationInfo,
                 promptInfo,
+                chatId: generationId,
             })
         }
         DBState.db.characters[selectedChar].chats[selectedChat].isStreaming = true
@@ -1512,6 +1522,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     time: Date.now(),
                     generationInfo,
                     promptInfo,
+                    chatId: generationId,
                 }       
                 if(inlayResult.promise){
                     const p = await inlayResult.promise
@@ -1526,6 +1537,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     time: Date.now(),
                     generationInfo,
                     promptInfo,
+                    chatId: generationId,
                 })
                 const ind = DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1
                 if(inlayResult.promise){
