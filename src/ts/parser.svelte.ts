@@ -601,7 +601,7 @@ function parseThoughtsAndTools(data:string){
 export async function ParseMarkdown(
     data:string,
     charArg:(character|simpleCharacterArgument | groupChat | string) = null,
-    mode:'normal'|'back'|'pretranslate' = 'normal',
+    mode:'normal'|'back'|'pretranslate'|'notrim' = 'normal',
     chatID=-1,
     cbsConditions:CbsConditions = {}
 ) {
@@ -631,11 +631,19 @@ export async function ParseMarkdown(
     data = parseThoughtsAndTools(data)
 
     data = encodeStyle(data)
-    if(mode === 'normal'){
+    if(mode === 'normal' || mode === 'notrim'){
         data = await renderHighlightableMarkdown(data)
+
+        if(mode === 'notrim'){
+            return data
+        }
     }
+    return trimMarkdown(data)
+}
+
+export function trimMarkdown(data:string){
     return decodeStyle(DOMPurify.sanitize(data, {
-        ADD_TAGS: ["iframe", "style", "risu-style", "x-em",],
+        ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
     }))
 }
