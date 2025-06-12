@@ -88,10 +88,11 @@ export class MCPClient{
         abortController?:AbortController
     }[] = []
     customTransport?: {
-        send: (message:JsonRPC) => void,
-        addListener: (callback:(message:JsonRPC) => void) => void,
-        removeListener: (callback:(message:JsonRPC) => void) => void
+        send: (message:JsonRPC) => void|Promise<void>,
+        addListener: (callback:(message:JsonRPC) => void|Promise<void>) => void,
+        removeListener: (callback:(message:JsonRPC) => void|Promise<void>) => void
     }
+    onDestroy: (() => void) | null = null
     serverInfo: {
         protocolVersion: string,
         capabilities: {
@@ -254,8 +255,8 @@ export class MCPClient{
         }
 
         if(this.customTransport){
-            return new Promise<RPCRequestResult>((resolve) => {
-                this.customTransport.send(body as JsonRPC)
+            return new Promise<RPCRequestResult>(async (resolve) => {
+                await this.customTransport.send(body as JsonRPC)
                 const func = (message:JsonRPC) => {
                     if(message.id === body.id){
                         resolve({
@@ -845,6 +846,7 @@ export class MCPClient{
         }
         this.sseIdDone.clear()
         this.sses = []
+        this.onDestroy?.()
     }
 
     ping(){
