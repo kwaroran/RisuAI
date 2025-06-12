@@ -99,10 +99,26 @@
         <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.google.accessToken}/>
     {/if}
     {#if modelInfo.provider === LLMProvider.VertexAI || subModelInfo.provider === LLMProvider.VertexAI}
+        <span class="text-textcolor">Project ID</span>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.google.projectId}/>
         <span class="text-textcolor">Vertex Client Email</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexClientEmail}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.vertexClientEmail}/>
         <span class="text-textcolor">Vertex Private Key</span>
         <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey}/>
+        <span class="text-textcolor">Region</span>
+        <SelectInput value={DBState.db.vertexRegion} onchange={(e) => {
+            DBState.db.vertexRegion = e.currentTarget.value
+        }}>
+            <OptionInput value={'global'}>
+                global
+            </OptionInput>
+            <OptionInput value={'us-central1'}>
+                us-central1
+            </OptionInput>
+            <OptionInput value={'us-west1'}>
+                us-west1
+            </OptionInput>
+        </SelectInput>    
     {/if}
     {#if modelInfo.provider === LLMProvider.AI21 || subModelInfo.provider === LLMProvider.AI21}
         <span class="text-textcolor">AI21 {language.apiKey}</span>

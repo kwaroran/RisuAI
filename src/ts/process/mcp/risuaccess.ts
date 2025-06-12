@@ -266,11 +266,11 @@ Character fields:
                             type: 'string',
                             description: 'New comment for the script'
                         },
-                        in: {
+                        regIn: {
                             type: 'string',
                             description: 'New input regex pattern'
                         },
-                        out: {
+                        regOut: {
                             type: 'string',
                             description: 'New output replacement'
                         },
@@ -304,11 +304,11 @@ Character fields:
                             type: 'string',
                             description: 'Comment for the script'
                         },
-                        in: {
+                        regIn: {
                             type: 'string',
                             description: 'Input regex pattern'
                         },
-                        out: {
+                        regOut: {
                             type: 'string',
                             description: 'Output replacement'
                         },
@@ -326,7 +326,7 @@ Character fields:
                             default: true
                         }
                     },
-                    required: ['id', 'comment', 'in', 'out', 'type']
+                    required: ['id', 'comment', 'regIn', 'regOut', 'type']
                 }
             },
             {
@@ -421,9 +421,9 @@ Character fields:
                 case 'risu-get-character-regex-scripts':
                     return await this.getCharacterRegexScripts(args.id);
                 case 'risu-set-character-regex-scripts':
-                    return await this.setCharacterRegexScripts(args.id, args.scriptName, args.comment, args.in, args.out, args.type, args.flag, args.ableFlag);
+                    return await this.setCharacterRegexScripts(args.id, args.scriptName, args.comment, args.regIn, args.regOut, args.type, args.flag, args.ableFlag);
                 case 'risu-add-character-regex-scripts':
-                    return await this.addCharacterRegexScripts(args.id, args.comment, args.in, args.out, args.type, args.flag, args.ableFlag);
+                    return await this.addCharacterRegexScripts(args.id, args.comment, args.regIn, args.regOut, args.type, args.flag, args.ableFlag);
                 case 'risu-delete-character-regex-scripts':
                     return await this.deleteCharacterRegexScripts(args.id, args.scriptName);
                 case 'risu-get-character-additional-assets':
@@ -561,8 +561,12 @@ Character fields:
             offset = 0;
         }
 
-        const history = char.chats[char.chatPage].message.slice(offset, offset + count);
-        
+        // To get "newest first", we must reverse the array.
+        const reversedMessages = [...char.chats[char.chatPage].message].reverse();
+    
+        // Now that the array is sorted from newest to oldest, we can slice it
+        const history = reversedMessages.slice(offset, offset + count);
+    
         const ordered =  history.map((entry) => ({
             type: 'text',
             text: `${entry.role === 'char' ? char.name : 'User'}: ${entry.data}`
