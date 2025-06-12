@@ -43,6 +43,11 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                         MCPs[mcp] = new AIAccessClient();
                         break;
                     }
+                    case 'internal:googlesearch': {
+                        const { GoogleSearchClient } = await import('./googlesearchclient');
+                        MCPs[mcp] = new GoogleSearchClient();
+                        break;
+                    }
                 }
 
                 await MCPs[mcp].checkHandshake();
