@@ -87,6 +87,11 @@ export class MCPClient{
         stream:ReadableStream,
         abortController?:AbortController
     }[] = []
+    customTransport?: {
+        send: (message:JsonRPC) => void,
+        addListener: (callback:(message:JsonRPC) => void) => void,
+        removeListener: (callback:(message:JsonRPC) => void) => void
+    }
     serverInfo: {
         protocolVersion: string,
         capabilities: {
@@ -246,6 +251,26 @@ export class MCPClient{
             else if(!params){
                 delete body.params
             }
+        }
+
+        if(this.customTransport){
+            return new Promise<RPCRequestResult>((resolve) => {
+                this.customTransport.send(body as JsonRPC)
+                const func = (message:JsonRPC) => {
+                    if(message.id === body.id){
+                        resolve({
+                            rpc: message,
+                            http: {
+                                status: 200,
+                                headers: {}
+                            }
+                        })
+                        this.customTransport.removeListener(func)
+                        return
+                    }
+                }
+                this.customTransport.addListener(func)
+            })
         }
 
         try {
