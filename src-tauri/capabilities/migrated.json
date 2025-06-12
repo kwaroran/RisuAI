@@ -96,6 +96,11 @@
           "name": "docker",
           "cmd": "docker",
           "args": true
+        },
+        {
+          "name": "uvx",
+          "cmd": "uvx",
+          "args": true
         }
       ]
     },

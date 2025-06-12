@@ -7,6 +7,7 @@ import { v4 } from "uuid";
 import type { MCPClientLike } from "./internalmcp";
 import localforage from "localforage";
 import { isTauri } from "src/ts/globalApi.svelte";
+import { sleep } from "src/ts/util";
 
 export type MCPToolWithURL = MCPTool & {
     mcpURL: string;
@@ -73,10 +74,16 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                         const cmd = Command.create(command, args, {
                             env: env
                         })
+                        let gotPong = false;
+                        let pingIds: string[] = [];
                         cmd.stdout.on('data', ((line) => {
                             console.log('MCP JSON:', line);
                             try {
                                 const data = JSON.parse(line);
+                                if(pingIds.includes(data.id)){
+                                    gotPong = true
+                                    return
+                                }
                                 for(const listener of listeners) {
                                     listener(data);
                                 }
@@ -104,6 +111,22 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                             child.kill();
                             for(const listener of listeners) {
                                 client.customTransport?.removeListener(listener);
+                            }
+                        }
+
+                        //ping-pong before handshake, ensure MCP is ready
+                        for(let i=0;i<10;i++){
+                            const pingId = v4();
+                            pingIds.push(pingId);
+                            console.log('Sending ping to MCP:', pingId);
+                            await child.write(JSON.stringify({
+                                jsonrpc: "2.0",
+                                id: pingId,
+                                method: "ping"
+                            }))
+                            await sleep(3000)
+                            if(gotPong){
+                                break;
                             }
                         }
 
