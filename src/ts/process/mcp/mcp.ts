@@ -124,10 +124,14 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                                 id: pingId,
                                 method: "ping"
                             }))
-                            await sleep(3000)
+                            await sleep(1000)
                             if(gotPong){
                                 break;
                             }
+                        }
+
+                        if(!gotPong){
+                            throw new Error('MCP did not respond');
                         }
 
                         await client.checkHandshake();
