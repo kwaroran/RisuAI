@@ -80,6 +80,7 @@ export async function runScripted(code:string, arg:{
             let declareAPI:(name: string, func:Function) => void
 
             if(ScriptingEngineState.type === 'lua'){
+                console.log('Creating new Lua engine for mode:', mode)
                 ScriptingEngineState.engine?.global.close()
                 ScriptingEngineState.code = code
                 ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true})
@@ -89,6 +90,7 @@ export async function runScripted(code:string, arg:{
                 }
             }
             if(ScriptingEngineState.type === 'py'){
+                console.log('Creating new Pyodide context for mode:', mode)
                 ScriptingEngineState.pyodide?.close()
                 ScriptingEngineState.pyodide = new PyodideContext()
                 declareAPI = (name:string, func:Function) => {
@@ -216,6 +218,10 @@ export async function runScripted(code:string, arg:{
                     }
                 }))
                 return data
+            })
+
+            declareAPI('cbs', (value) => {
+                return risuChatParser(value, { chara: getCurrentCharacter() })
             })
             
             declareAPI('setFullChatMain', (id:string, value:string) => {
@@ -710,6 +716,46 @@ export async function runScripted(code:string, arg:{
                 return null
             })
 
+            declareAPI('getCharacterLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return ''
+                }
+
+                const db = getDatabase()
+                const selchar = db.characters[get(selectedCharID)]
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'char') {
+                        const messageData = chat.message[pointer].data
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return selchar.firstMessage
+            })
+
+            declareAPI('getUserLastMessage', (id: string) => {
+                const chat = ScriptingEngineState.chat
+                if (!chat) {
+                    return null
+                }
+
+                let pointer = chat.message.length - 1
+                while (pointer >= 0) {
+                    if (chat.message[pointer].role === 'user') {
+                        const messageData = chat.message[pointer].data
+                        return messageData
+                    }
+                    pointer--
+                }
+
+                return null
+            })
+
+            console.log('Running Lua code:', code)
             if(ScriptingEngineState.type === 'lua'){
                 await ScriptingEngineState.engine?.doString(luaCodeWarper(code))
             }

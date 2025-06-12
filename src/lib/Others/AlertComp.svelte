@@ -174,7 +174,7 @@
                             <option
                                 value={item[0]}
                                 label={item[1] ? item[1] : item[0]}
-                            ></option>
+                            >{item[1] ? item[1] : item[0]}</option>
                         {/each}
                     </datalist>
                 {/if}

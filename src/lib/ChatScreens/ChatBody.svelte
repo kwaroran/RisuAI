@@ -3,7 +3,7 @@
     import { DBState } from 'src/ts/stores.svelte'
     import { sleep } from "src/ts/util"
     import { alertError } from "../../ts/alert"
-    import { ParseMarkdown, postTranslationParse, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
+    import { ParseMarkdown, postTranslationParse, trimMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
     import { getLLMCache, translateHTML } from "../../ts/translator/translator"
     
     interface Props {
@@ -49,8 +49,9 @@
         }
     }
 
-    const markParsing = async (data: string, charArg: string | simpleCharacterArgument, mode: "normal" | "back", chatID: number, translateText?:boolean, tries?:number) => {
+    const markParsing = async (data: string, charArg: string | simpleCharacterArgument, chatID: number, translateText?:boolean, tries?:number) => {
         let lastParsedQueue = ''
+        let mode = 'notrim' as const
         try {
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
                 lastParsedQueue = ''
@@ -137,18 +138,19 @@
                 alertError(`Error while parsing chat message: ${translateText}, ${error.message}, ${error.stack}`)
                 return data
             }
-            return await markParsing(data, charArg, mode, chatID, translateText, (tries ?? 0) + 1)
+            return await markParsing(data, charArg, chatID, translateText, (tries ?? 0) + 1)
         }
         finally{
+            //since trimMarkdown is fast, we don't need to cache it
             lastParsed = lastParsedQueue
         }
     }
 
-    let markParsingResult = $derived.by(() => markParsing(msgDisplay, character, 'normal', idx, translated))
+    let markParsingResult = $derived.by(() => markParsing(msgDisplay, character, idx, translated))
 </script>
 
 {#await markParsingResult}
-    {@html lastParsed}
+    {@html trimMarkdown(lastParsed)}
 {:then md}
-    {@html md}
+    {@html trimMarkdown(md)}
 {/await}

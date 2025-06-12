@@ -1,11 +1,13 @@
 import { getDatabase } from "src/ts/storage/database.svelte";
-import { MCPClient, type MCPTool, type RPCToolCallContent } from "./mcplib";
+import { MCPClient, type JsonRPC, type MCPTool, type RPCToolCallContent } from "./mcplib";
 import { DBState } from "src/ts/stores.svelte";
 import { getModuleMcps } from "../modules";
 import { alertError, alertInput, alertNormal } from "src/ts/alert";
 import { v4 } from "uuid";
 import type { MCPClientLike } from "./internalmcp";
 import localforage from "localforage";
+import { isTauri } from "src/ts/globalApi.svelte";
+import { sleep } from "src/ts/util";
 
 export type MCPToolWithURL = MCPTool & {
     mcpURL: string;
@@ -25,6 +27,8 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
     }
     for(const mcp of mcpUrls) {
         if(!MCPs[mcp]) {
+
+            let mcpUrl = mcp;
 
             if(mcp.startsWith('internal:')) {
                 switch(mcp) {
@@ -49,6 +53,100 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                 continue;
             }
 
+            if(mcp.startsWith('stdio:')){
+                const MCPJSON = mcp.slice('stdio:'.length);
+                try {
+                    const MCPData = JSON.parse(MCPJSON);
+                    if(MCPData.url) {
+                        mcpUrl = MCPData.url;
+                    }
+                    else if(MCPData.command && MCPData.args) {
+                        const command = MCPData.command as string;
+                        const args: string[] = Array.isArray(MCPData.args) ? MCPData.args : [MCPData.args];
+                        const env: Record<string, string> = MCPData.env || {};
+
+                        if(!isTauri){
+                            throw new Error('stdio MCPs are only supported in Local Version');
+                        }
+
+                        const { Command } = await import('@tauri-apps/plugin-shell');
+                        const listeners = new Set<(message: JsonRPC) => void | Promise<void>>();
+                        const cmd = Command.create(command, args, {
+                            env: env
+                        })
+                        let gotPong = false;
+                        let pingIds: string[] = [];
+                        cmd.stdout.on('data', ((line) => {
+                            console.log('MCP JSON:', line);
+                            try {
+                                const data = JSON.parse(line);
+                                if(pingIds.includes(data.id)){
+                                    gotPong = true
+                                    return
+                                }
+                                for(const listener of listeners) {
+                                    listener(data);
+                                }
+                            } catch (error) {
+                                console.error('Failed to parse MCP JSON:', error);
+                            }
+                        }))
+                        const child = await cmd.spawn();
+
+                        const client = new MCPClient(mcp);
+                        client.customTransport = {
+                            send: async (data) => {
+                                console.log('Sending data to MCP:', data);
+                                await child.write(JSON.stringify(data))
+                            },
+                            addListener: (callback) => {
+                                listeners.add(callback);
+                            },
+                            removeListener: (callback) => {
+                                listeners.delete(callback);
+                            },
+                        }
+
+                        client.onDestroy = () => {
+                            child.kill();
+                            for(const listener of listeners) {
+                                client.customTransport?.removeListener(listener);
+                            }
+                        }
+
+                        //ping-pong before handshake, ensure MCP is ready
+                        for(let i=0;i<10;i++){
+                            const pingId = v4();
+                            pingIds.push(pingId);
+                            console.log('Sending ping to MCP:', pingId);
+                            await child.write(JSON.stringify({
+                                jsonrpc: "2.0",
+                                id: pingId,
+                                method: "ping"
+                            }))
+                            await sleep(1000)
+                            if(gotPong){
+                                break;
+                            }
+                        }
+
+                        if(!gotPong){
+                            throw new Error('MCP did not respond');
+                        }
+
+                        await client.checkHandshake();
+                        MCPs[mcp] = client;
+                        continue
+                    }
+                    else {
+                        throw new Error('MCP JSON does not contain a valid URL');
+                    }
+                }                   
+                catch (error) {
+                    throw new Error(`Failed to parse MCP JSON: ${error}`);
+                }
+            }
+
             const registerRefresh:typeof MCPClient.prototype.registerRefreshToken = (arg) => {
                 DBState.db.authRefreshes.push({
                     url: mcp,
@@ -60,7 +158,7 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                 return DBState.db.authRefreshes.find(refresh => refresh.url === mcp);
             }
 
-            const mcpClient = new MCPClient(mcp);
+            const mcpClient = new MCPClient(mcpUrl);
             mcpClient.registerRefreshToken = registerRefresh;
             mcpClient.getRefreshToken = getRefresh;
             await mcpClient.checkHandshake()
@@ -142,8 +240,9 @@ export async function importMCPModule(){
         !x.startsWith('http://localhost') &&
         !x.startsWith('http://127') &&
         !x.startsWith('https:') &&
-        !x.startsWith('internal:'))
-    {
+        !x.startsWith('internal:') &&
+        !x.startsWith('stdio:')
+    ){
         alertError('Invalid URL');
         return;
     }
