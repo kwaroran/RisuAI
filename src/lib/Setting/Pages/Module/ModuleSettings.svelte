@@ -130,6 +130,7 @@
                 description: '',
                 id: v4(),
             }
+            mode = 1
         }}>
             <PlusIcon />
         </button>
