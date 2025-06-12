@@ -1,6 +1,8 @@
 import { MCPClientLike } from "./internalmcp";
 import type { MCPTool, RPCToolCallContent } from "./mcplib";
 import { fetchNative } from "../../globalApi.svelte";
+import { alertInput } from "../../alert";
+import localforage from "localforage";
 
 interface WebSearchArgs {
     query: string;
@@ -23,10 +25,19 @@ interface ImageSearchArgs {
     safe?: "active" | "off";
 }
 
+interface GoogleSearchCredentials {
+    apiKey: string;
+    searchEngineId: string;
+}
+
 export class GoogleSearchClient extends MCPClientLike {
     private initialized: boolean = false;
-    private readonly API_KEY = "";
-    private readonly SEARCH_ENGINE_ID = "";
+    private API_KEY = "";
+    private SEARCH_ENGINE_ID = "";
+    private credentialsStorage = localforage.createInstance({
+        name: 'google-search-credentials',
+        storeName: 'credentials'
+    });
 
     constructor() {
         super("internal:googlesearch");
@@ -37,9 +48,40 @@ export class GoogleSearchClient extends MCPClientLike {
 
     async checkHandshake() {
         if (!this.initialized) {
+            await this.initializeCredentials();
             this.initialized = true;
         }
         return this.serverInfo;
+    }
+
+    private async initializeCredentials(): Promise<void> {
+        const storedCredentials = await this.credentialsStorage.getItem<GoogleSearchCredentials>('google-search-creds');
+        
+        if (storedCredentials && storedCredentials.apiKey && storedCredentials.searchEngineId) {
+            this.API_KEY = storedCredentials.apiKey;
+            this.SEARCH_ENGINE_ID = storedCredentials.searchEngineId;
+            return;
+        }
+
+        const apiKey = await alertInput('Please enter your Google Custom Search API Key:');
+        if (!apiKey || apiKey.trim() === '') {
+            throw new Error('Google Custom Search API Key is required');
+        }
+
+        const searchEngineId = await alertInput('Please enter your Google Custom Search Engine ID:');
+        if (!searchEngineId || searchEngineId.trim() === '') {
+            throw new Error('Google Custom Search Engine ID is required');
+        }
+
+        const credentials: GoogleSearchCredentials = {
+            apiKey: apiKey.trim(),
+            searchEngineId: searchEngineId.trim()
+        };
+
+        await this.credentialsStorage.setItem('google-search-creds', credentials);
+        
+        this.API_KEY = credentials.apiKey;
+        this.SEARCH_ENGINE_ID = credentials.searchEngineId;
     }
 
     async getToolList(): Promise<MCPTool[]> {
@@ -240,5 +282,7 @@ export class GoogleSearchClient extends MCPClientLike {
 
     destroy() {
         this.initialized = false;
+        this.API_KEY = "";
+        this.SEARCH_ENGINE_ID = "";
     }
 }
