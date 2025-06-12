@@ -160,7 +160,7 @@
                     })
                 }}>OK</Button>
             {:else if $alertStore.type === 'input'}
-                <TextInput value="" id="alert-input" autocomplete="off" marginTop />
+                <TextInput value="" id="alert-input" autocomplete="off" marginTop list="alert-input-list" />
                 <Button className="mt-4" onclick={() => {
                     alertStore.set({
                         type: 'none',
@@ -168,6 +168,16 @@
                         msg: document.querySelector('#alert-input')?.value
                     })
                 }}>OK</Button>
+                {#if $alertStore.datalist}
+                    <datalist id="alert-input-list">
+                        {#each $alertStore.datalist as item}
+                            <option
+                                value={item[0]}
+                                label={item[1] ? item[1] : item[0]}
+                            ></option>
+                        {/each}
+                    </datalist>
+                {/if}
             {:else if $alertStore.type === 'login'}
                 <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
                     <iframe src={hubURL + '/hub/login'} title="login" class="w-full h-full">

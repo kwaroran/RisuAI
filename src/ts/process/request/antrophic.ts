@@ -5,12 +5,12 @@ import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalAp
 import { LLMFormat } from "src/ts/model/modellist"
 import { registerClaudeObserver } from "src/ts/observer.svelte"
 import { getDatabase } from "src/ts/storage/database.svelte"
-import { simplifySchema, sleep } from "src/ts/util"
+import { replaceAsync, simplifySchema, sleep } from "src/ts/util"
 import { v4 } from "uuid"
 import type { MultiModal } from "../index.svelte"
 import { extractJSON } from "../templates/jsonSchema"
 import { applyParameters, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
-import { callTool } from "../mcp/mcp"
+import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 interface Claude3TextBlock {
     type: 'text',
@@ -265,6 +265,71 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
                 text: 'Start'
             }]
         })
+    }
+
+    //check for tool calls
+    for(let j=0;j<claudeChat.length;j++){
+        let chat = claudeChat[j]
+        for(let i=0;i<chat.content.length;i++){
+            let content = chat.content[i]
+            if(content.type === 'text'){
+                content.text = await replaceAsync(content.text,/<tool_call>(.*?)<\/tool_call>/g, async (match:string, p1:string) => {
+                    try {
+                        const parsed = await decodeToolCall(p1)
+                        if(parsed?.call && parsed?.response){
+                            const toolUse:Claude3ToolUseBlock = {
+                                type: 'tool_use',
+                                id: parsed.call.id,
+                                name: parsed.call.name,
+                                input: parsed.call.arg
+                            }
+                            const toolResponse:Claude3ToolResponseBlock = {
+                                type: 'tool_result',
+                                tool_use_id: parsed.call.id,
+                                content: parsed.response.map((v:any) => {
+                                    if(v.type === 'text'){
+                                        return {
+                                            type: 'text',
+                                            text: v.text
+                                        }
+                                    }
+                                    if(v.type === 'image'){
+                                        return {
+                                            type: 'image',
+                                            source: {
+                                                type: 'base64',
+                                                media_type: v.mimeType,
+                                                data: v.data
+                                            }
+                                        }
+                                    }
+                                    return {
+                                        type: 'text',
+                                        text: `Unsupported tool response type: ${v.type}`
+                                    }
+                                })
+                            }
+                            claudeChat.splice(j, 0, {
+                                role: 'assistant',
+                                content: [toolUse]
+                            })
+
+                            claudeChat.splice(j+1, 0, {
+                                role: 'user',
+                                content: [toolResponse]
+                            })
+                            j+=2
+                            chat = claudeChat[j]
+                            return ''
+                        }
+                    } catch (error) {
+                        
+                    }
+
+                    return ''
+                })
+            }
+        }
     }
 
     let finalChat:Claude3ExtendedChat[] = claudeChat
@@ -849,6 +914,17 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
                     })
                 }
                 response.content.push(r)
+                if(arg.rememberToolUsage){
+                    arg.additionalOutput ??= ''
+                    arg.additionalOutput += await encodeToolCall({
+                        call: {
+                            id: content.id,
+                            name: content.name,
+                            arg: content.input
+                        },
+                        response: used
+                    })
+                }
             }
 
             (messages[messages.length-1] as Claude3Chat).content.push(content)
@@ -889,14 +965,15 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
     }
 
 
+    arg.additionalOutput ??= ""
     if(arg.extractJson && db.jsonSchemaEnabled){
         return {
             type: 'success',
-            result: extractJSON(resText, db.jsonSchema)
+            result: arg.additionalOutput + extractJSON(resText, db.jsonSchema)
         }
     }
     return {
         type: 'success',
-        result: resText
+        result: arg.additionalOutput + resText
     }
 }

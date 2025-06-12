@@ -1,22 +1,22 @@
 import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
-import { simplifySchema, sleep } from "src/ts/util"
+import { replaceAsync, simplifySchema, sleep } from "src/ts/util"
 import { v4 } from "uuid"
 import { setInlayAsset, writeInlayImage } from "../files/inlays"
 import type { OpenAIChat } from "../index.svelte"
 import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
-import { callTool } from "../mcp/mcp"
+import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 
 type GeminiFunctionCall = {
-    id: string;
+    id?: string;
     name: string;
     args: any
 }
 
 type GeminiFunctionResponse = {
-    id: string;
+    id?: string;
     name: string;
     response: any
 }
@@ -135,6 +135,52 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         }
     }
 
+
+    for(let i=0;i<reformatedChat.length;i++){
+        let chat = reformatedChat[i]
+        for(let j=0;j<chat.parts.length;j++){
+            const part = chat.parts[j]
+            if(part.text){
+                part.text = await replaceAsync(part.text,/<tool_call>(.*?)<\/tool_call>/g, async (match:string, p1:string) => {
+                    const call = await decodeToolCall(p1)
+                    if(call){
+                        const tool = arg?.tools?.find((t) => t.name === call.call.name)
+                        if(tool){
+                            reformatedChat.splice(i, 0, {
+                                role: 'MODEL',
+                                parts: [{
+                                    functionCall: {
+                                        //id: call.call.id,   VertexAI will return unknown parameter error if it is included
+                                        name: call.call.name,
+                                        args: call.call.arg
+                                    }
+                                }]
+                            })
+                            reformatedChat.splice(i+1, 0, {
+                                role: 'USER',
+                                parts: [{
+                                    functionResponse: {
+                                        //id: call.call.id,    VertexAI will return unknown parameter error if it is included
+                                        name: call.call.name,
+                                        response: {
+                                            data: call.response.filter((r) => {
+                                                return r.type === 'text'
+                                            }).map((r) => {
+                                                return r.text
+                                            })
+                                        }
+                                    }
+                                }]
+                            })
+                            i+=2
+                            chat = reformatedChat[i]
+                        }
+                    }
+                    return ''
+                })}
+        }
+    }
+
     const uncensoredCatagory = [
         {
             "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
@@ -221,36 +267,61 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
             'TEXT', 'IMAGE'
         ]
         arg.useStreaming = false
-    }
+    }    let headers:{[key:string]:string} = {}
 
-    let headers:{[key:string]:string} = {}
-
-    const PROJECT_ID=db.google.projectId
-    const REGION="us-central1"
-    console.log(arg.modelInfo)
-
+    const PROJECT_ID = db.google.projectId
+    const REGION = db.vertexRegion
+    console.log(arg.modelInfo);
 
     async function generateToken(email:string,key:string){
-        key = key.replace('-----BEGIN PRIVATE KEY-----','').replace('-----END PRIVATE KEY-----','').replace(/\n/g, '').replace(/\r/g, '').trim()
-      
+        // Input validation
+        if (!email.includes("gserviceaccount.com")) {
+            throw new Error("Invalid Vertex project id. Must include gserviceaccount.com");
+        }
+        if (!key.includes("-----BEGIN PRIVATE KEY-----") ||
+            !key.includes("-----END PRIVATE KEY-----")) {
+            throw new Error("Invalid Vertex private key. Must include proper key markers.");
+        }
+
+        function str2ab(privateKey:string):ArrayBuffer {
+            const binaryString = atob(privateKey.replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\\n/g, ""));
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function base64url(source: Uint8Array | ArrayBuffer): string {
+            const bytes = source instanceof ArrayBuffer ? new Uint8Array(source) : source;
+            let encodedSource = btoa(String.fromCharCode.apply(null, [...bytes]))
+                .replace(/=+$/, "")
+                .replace(/\+/g, "-")
+                .replace(/\//g, "_");
+            return encodedSource;
+        }
+
         const time = Math.floor(Date.now() / 1000);
     
-        const header = Buffer.from(JSON.stringify({
+        const header = {
             alg: "RS256",
             typ: "JWT",
-        }))
+        };
 
-        const set = Buffer.from(JSON.stringify({
+        const claimSet = {
             iss: email,
             iat: time,
             exp: time + 3600,
             scope: "https://www.googleapis.com/auth/cloud-platform",
             aud: "https://oauth2.googleapis.com/token",
-        })).toString('base64url');
+        };
+
+        const encodedHeader = base64url(new TextEncoder().encode(JSON.stringify(header)));
+        const encodedClaimSet = base64url(new TextEncoder().encode(JSON.stringify(claimSet)));
     
         const cryptokey = await crypto.subtle.importKey(
             "pkcs8",
-            this.str2ab(key),
+            str2ab(key),
             {
                 name: "RSASSA-PKCS1-v1_5",
                 hash: { name: "SHA-256" },
@@ -259,13 +330,13 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
             ["sign"]
         );
     
-        const signature = Buffer.from(await crypto.subtle.sign(
+        const signature = await crypto.subtle.sign(
             "RSASSA-PKCS1-v1_5",
             cryptokey,
-            Buffer.from(`${header}.${set}`)
-        )).toString('base64url');
-      
-        const jwt = `${header}.${set}.${signature}`;
+            new TextEncoder().encode(`${encodedHeader}.${encodedClaimSet}`)
+        );
+
+        const jwt = `${encodedHeader}.${encodedClaimSet}.${base64url(new Uint8Array(signature))}`;
 
         const response = await fetch("https://oauth2.googleapis.com/token", {
             method: "POST",
@@ -275,20 +346,33 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
             },
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            let errorText;
+            try {
+                errorText = JSON.stringify(await response.json());
+            } catch {
+                errorText = response.status.toString();
+            }
+            throw new Error(`Failed to refresh google access token: ${errorText}`);
+        }
 
+        const data = await response.json();
         const token = data.access_token;
+
+        if (!token) {
+            throw new Error("No google access token in the response");
+        }
 
         const db2 = getDatabase()
         db2.vertexAccessToken = token
         db2.vertexAccessTokenExpires = Date.now() + 3500 * 1000
         setDatabase(db2)
         return token;
-    }
-
+    }    
+    
     if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         if(db.vertexAccessTokenExpires < Date.now()){
-            headers['Authorization'] = "Bearer " + generateToken(db.vertexClientEmail, db.vertexPrivateKey)
+            headers['Authorization'] = "Bearer " + await generateToken(db.vertexClientEmail, db.vertexPrivateKey)
         }
         else{
             headers['Authorization'] = "Bearer " + db.vertexAccessToken
@@ -300,8 +384,8 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         body.generation_config.response_mime_type = "application/json"
         body.generation_config.response_schema = getGeneralJSONSchema(arg.schema, ['$schema','additionalProperties'])
         console.log(body.generation_config.response_schema)
-    }
-
+    }    
+    
     let url = ''
     
     if(arg.customURL){
@@ -310,7 +394,16 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         url = u.toString()
     }
     else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
-        url =`https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${arg.modelInfo.internalID}:streamGenerateContent`
+        // VertexAI global endpoint with streaming or non-streaming
+        const endpoint = arg.useStreaming ? 'streamGenerateContent' : 'generateContent'
+        url = REGION === 'global' ?
+            `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}` :
+            `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}`
+        
+        // VertexAI api will return error if functionDeclarations is empty
+        if(body.tools?.functionDeclarations?.length === 0){
+            body.tools = undefined
+        }
     }
     else if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${db.google.accessToken}`
@@ -364,7 +457,7 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         return requestGoogle(url, body, headers, arg)
     }
 
-    if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
+    if((arg.modelInfo.format === LLMFormat.GoogleCloud || arg.modelInfo.format === LLMFormat.VertexAIGemini) && arg.useStreaming){
         headers['Content-Type'] = 'application/json'
 
         if(arg.previewBody){
@@ -560,53 +653,64 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             const functionName = call.name
             const functionArgs = call.args
 
-            for(const call of calls){
-                if(call.name === functionName && call.args){
-                    const tool = tools.find((t) => t.name === functionName)
-                    if(tool){
-                        const result = (await callTool(tool.name, functionArgs)).filter((r) => {
-                            return r.type === 'text'
-                        })
-                        if(result.length === 0){
-                            parts.push({
-                                functionResponse: {
-                                    id: call.id,
-                                    name: call.name,
-                                    response: 'No response from tool.'
-                                }
-                            })
+            const tool = tools.find((t) => t.name === functionName)
+            if(tool){
+                const result = (await callTool(tool.name, functionArgs)).filter((r) => {
+                    return r.type === 'text'
+                })
+                if(result.length === 0){
+                    parts.push({
+                        functionResponse: {
+                            id: call.id,
+                            name: call.name,
+                            response: 'No response from tool.'
                         }
-                        for(let i=0;i<result.length;i++){
-                            let response:any = result[i].text
-                            try {
-                                //try json parse
-                                response = JSON.parse(response)
-                            } catch (error) {
-                                response = {
-                                    text: response
-                                }
-                            }
-                            parts.push({
-                                functionResponse: {
-                                    id: call.id,
-                                    name: call.name,
-                                    response
-                                }
-                            })
-                        }
-                    }
-                    else{
-                        parts.push({
-                            functionResponse: {
+                    })
+                }
+                else{
+                    if(arg.rememberToolUsage){
+                        arg.additionalOutput ??= ''
+                        arg.additionalOutput += await encodeToolCall({
+                            call: {
                                 id: call.id,
                                 name: call.name,
-                                response: `Tool ${call.name} not found.`
-                            }
+                                arg: call.args
+                            },
+                            response: result
                         })
                     }
                 }
+                for(let i=0;i<result.length;i++){
+                    let response:any = result[i].text
+                    try {
+                        //try json parse
+                        response = {
+                            data: JSON.parse(response)
+                        }
+                    } catch (error) {
+                        response = {
+                            data: response
+                        }
+                    }
+                    parts.push({
+                        functionResponse: {
+                            id: call.id,
+                            name: call.name,
+                            response
+                        }
+                    })
+                }
             }
-
+            else{
+                parts.push({
+                    functionResponse: {
+                        id: call.id,
+                        name: call.name,
+                        response: `Tool ${call.name} not found.`
+                    }
+                })
+            }
+            
             chat.push({
                 role: 'USER',
                 parts: parts
@@ -636,8 +740,10 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         rDatas[rDatas.length-1] = rDatas.join('\n\n')
     }
 
+    arg.additionalOutput ??= ''
+    console.log(arg.additionalOutput + rDatas[rDatas.length-1])
     return {
         type: 'success',
-        result: rDatas[rDatas.length-1]
+        result: arg.additionalOutput + rDatas[rDatas.length-1]
     }
 }

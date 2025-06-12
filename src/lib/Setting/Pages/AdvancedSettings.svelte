@@ -237,6 +237,10 @@
         <Help key="experimental" />
     </Check>
 </div>
+
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.rememberToolUsage} name={language.rememberToolUsage}></Check>
+</div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.useTokenizerCaching} name={language.useTokenizerCaching}>
     </Check>
@@ -490,15 +494,4 @@
     }}
 >
 Show Statistics
-</Button>
-
-<Button
-    className="mt-4"
-    onclick={async () => {
-        const testURL = 'https://mcp.paypal.com/sse'
-        const mcp = new MCPClient(testURL)
-        console.log(await mcp.getToolList())
-    }}
->
-MCP Test
 </Button>
