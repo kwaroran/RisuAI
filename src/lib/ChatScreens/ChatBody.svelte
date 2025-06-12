@@ -142,7 +142,7 @@
         }
         finally{
             //since trimMarkdown is fast, we don't need to cache it
-            lastParsed = trimMarkdown(lastParsedQueue)
+            lastParsed = lastParsedQueue
         }
     }
 
@@ -150,7 +150,7 @@
 </script>
 
 {#await markParsingResult}
-    {@html lastParsed}
+    {@html trimMarkdown(lastParsed)}
 {:then md}
-    {@html md}
+    {@html trimMarkdown(md)}
 {/await}
