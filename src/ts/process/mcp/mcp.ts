@@ -74,6 +74,7 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                             env: env
                         })
                         cmd.stdout.on('data', ((line) => {
+                            console.log('MCP JSON:', line);
                             try {
                                 const data = JSON.parse(line);
                                 for(const listener of listeners) {
@@ -87,8 +88,9 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
 
                         const client = new MCPClient(mcp);
                         client.customTransport = {
-                            send: (data) => {
-                                child.write(JSON.stringify(data))
+                            send: async (data) => {
+                                console.log('Sending data to MCP:', data);
+                                await child.write(JSON.stringify(data))
                             },
                             addListener: (callback) => {
                                 listeners.add(callback);
@@ -211,9 +213,9 @@ export async function importMCPModule(){
         !x.startsWith('http://localhost') &&
         !x.startsWith('http://127') &&
         !x.startsWith('https:') &&
-        !x.startsWith('internal:'))
+        !x.startsWith('internal:') &&
         !x.startsWith('stdio:')
-    {
+    ){
         alertError('Invalid URL');
         return;
     }
