@@ -98,9 +98,8 @@ export function resetScriptCache(){
 
 export async function processScriptFull(char:character|groupChat|simpleCharacterArgument, data:string, mode:ScriptMode, chatID = -1, cbsConditions:CbsConditions = {}){
     let db = getDatabase()
-    const originalData = data
     let emoChanged = false
-    data = await runLuaEditTrigger(char, mode, data)
+    data = await runLuaEditTrigger(char, mode, data, { index:chatID })
 
     if(mode === 'editdisplay'){
         const currentChar = getCurrentCharacter()
