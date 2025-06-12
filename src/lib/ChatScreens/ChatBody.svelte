@@ -141,6 +141,7 @@
             return await markParsing(data, charArg, chatID, translateText, (tries ?? 0) + 1)
         }
         finally{
+            //since trimMarkdown is fast, we don't need to cache it
             lastParsed = trimMarkdown(lastParsedQueue)
         }
     }
