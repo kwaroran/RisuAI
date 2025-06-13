@@ -112,10 +112,8 @@
     ]
 
     const deprecatedEffectV2Types = [
-        //Basic If (deprecated)
+        //Deprecated
         'v2If',
-
-        //Lorebook (deprecated)
         'v2ModifyLorebook',
         'v2GetLorebook',
         'v2GetLorebookCount',
@@ -129,7 +127,7 @@
         'v2SendAIprompt',
         'v2RunLLM',
         'v2CheckSimilarity',
-        'v2RunImgGen',
+        'v2ImgGen',
 
     ]
 
