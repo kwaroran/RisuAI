@@ -336,7 +336,7 @@ export const languageKorean = {
         "v2SetRequestStateRoleDesc": "{{index}}에 있는 리퀘스트 데이터 역할을 {{value}}로 설정",
         "v2GetRequestStateLength": "리퀘스트 데이터 길이 가져오기",
         "v2GetRequestStateLengthDesc": "리퀘스트 데이터 길이 가져오기 => {{outputVar}}",
-        "v2IfAdvanced": "만약 ~이라면 (고급)",
+        "v2IfAdvanced": "만약 ~이라면",
         "v2IfAdvancedDesc": "만약 {{source}} {{condition}} {{target}} 이라면",
         "v2QuickSearchChat": "빠른 채팅 검색",
         "v2QuickSearchChatDesc": "{{value}}를 {{depth}} 깊이에서 {{condition}} 방식으로 검색 => {{outputVar}}",

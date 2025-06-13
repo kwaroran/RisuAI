@@ -385,7 +385,7 @@ export const languageEnglish = {
         v2SetRequestStateRoleDesc: "Set Request Data Role at {{index}} to {{value}}",
         v2GetRequestStateLength: "Get Request Data Length",
         v2GetRequestStateLengthDesc: "Get Request Data Length => {{outputVar}}",
-        v2IfAdvanced: "If (Advanced)",
+        v2IfAdvanced: "If",
         v2IfAdvancedDesc: "If {{source}} {{condition}} {{target}}",
         v2QuickSearchChat: "Quick Search Chat",
         v2QuickSearchChatDesc: "Quick search {{value}} in chat with {{condition}} condition in {{depth}} depth => {{outputVar}}",
