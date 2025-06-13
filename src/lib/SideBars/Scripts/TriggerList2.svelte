@@ -1654,7 +1654,7 @@
                 <div class="flex-1 flex-col flex overflow-y-auto">
                     <div class="flex items-center gap-2 mb-4">
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
-                            menuMode = 0
+                            menuMode = menuMode === 2 ? 1 : 0
                         }}>
                             <ArrowLeftIcon />
                         </button>
