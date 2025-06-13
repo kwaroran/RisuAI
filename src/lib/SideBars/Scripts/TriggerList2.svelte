@@ -72,6 +72,7 @@
         'v2SetLorebookAlwaysActive',
 
         //String
+        'v2RegexTest',
         'v2ExtractRegex',
         'v2GetCharAt',
         'v2GetCharCount',
@@ -849,6 +850,20 @@
             case 'v2GetAllLorebooks':{
                 editTrigger = {
                     type: 'v2GetAllLorebooks',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2RegexTest':{
+                editTrigger = {
+                    type: 'v2RegexTest',
+                    value: '',
+                    valueType: 'value',
+                    regex: '',
+                    regexType: 'value',
+                    flags: '',
+                    flagsType: 'value',
                     outputVar: '',
                     indent: 0
                 }
@@ -2340,6 +2355,29 @@
                     {:else if editTrigger.type === 'v2UpdateChatAt'}
                         <span class="block text-textcolor">{language.index}</span>
                         <TextInput bind:value={editTrigger.index} />
+                    {:else if editTrigger.type === 'v2RegexTest'}
+                        <span>{language.input}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                        <span>Regex: IN</span>
+                        <SelectInput bind:value={editTrigger.regexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.regex} />
+
+                        <span>Regex: FLAG</span>
+                        <SelectInput bind:value={editTrigger.flagsType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.flags} />
+
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}
