@@ -10,6 +10,7 @@
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList, type triggerV2IfAdvanced } from "src/ts/process/triggers";
     import { onDestroy, onMount } from "svelte";
+    import { DBState } from "src/ts/stores.svelte";
 
     interface Props {
         value?: triggerscript[];
@@ -28,7 +29,6 @@
 
         //Control
         'v2SetVar',
-        'v2If',
         'v2IfAdvanced',
         'v2LoopNTimes',
         'v2Loop',
@@ -61,13 +61,15 @@
         'v2ShowAlert',
         'v2GetAlertInput',
 
-        //Lorebook
-        'v2ModifyLorebook',
-        'v2GetLorebook',
-        'v2GetLorebookCount',
-        'v2GetLorebookEntry',
-        'v2SetLorebookActivation',
-        'v2GetLorebookIndexViaName',
+        //Lorebook V2
+        'v2GetAllLorebooks',
+        'v2GetLorebookByName',
+        'v2GetLorebookByIndex',
+        'v2CreateLorebook',
+        'v2ModifyLorebookByIndex',
+        'v2DeleteLorebookByIndex',
+        'v2GetLorebookCountNew',
+        'v2SetLorebookAlwaysActive',
 
         //String
         'v2ExtractRegex',
@@ -102,8 +104,21 @@
         'v2UpdateGUI',
         'v2UpdateChatAt',
         'v2Wait',
-        "v2StopPromptSending",
+        'v2StopPromptSending',
         'v2Tokenize'
+    ]
+
+    const deprecatedEffectV2Types = [
+        //Basic If (deprecated)
+        'v2If',
+
+        //Lorebook (deprecated)
+        'v2ModifyLorebook',
+        'v2GetLorebook',
+        'v2GetLorebookCount',
+        'v2GetLorebookEntry',
+        'v2SetLorebookActivation',
+        'v2GetLorebookIndexViaName',
     ]
 
 
@@ -111,7 +126,7 @@
         'v2SendAIprompt',
         'v2RunLLM',
         'v2CheckSimilarity',
-        'v2RunImgGen'
+        'v2RunImgGen',
 
     ]
 
@@ -580,6 +595,7 @@
                     indent: 0,
                     outputVar: ""
                 }
+                break;
             }
             case 'v2PushArrayVar':
                 editTrigger = {
@@ -810,6 +826,93 @@
                     depth: '3',
                     depthType: 'value',
                     outputVar: ''
+                }
+                break;
+            }
+            case 'v2GetAllLorebooks':{
+                editTrigger = {
+                    type: 'v2GetAllLorebooks',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetLorebookByName':{
+                editTrigger = {
+                    type: 'v2GetLorebookByName',
+                    name: '',
+                    nameType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetLorebookByIndex':{
+                editTrigger = {
+                    type: 'v2GetLorebookByIndex',
+                    index: '',
+                    indexType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2CreateLorebook':{
+                editTrigger = {
+                    type: 'v2CreateLorebook',
+                    name: '',
+                    nameType: 'value',
+                    key: '',
+                    keyType: 'value',
+                    content: '',
+                    contentType: 'value',
+                    insertOrder: '100',
+                    insertOrderType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2ModifyLorebookByIndex':{
+                editTrigger = {
+                    type: 'v2ModifyLorebookByIndex',
+                    index: '',
+                    indexType: 'value',
+                    name: '{{slot}}',
+                    nameType: 'value',
+                    key: '{{slot}}',
+                    keyType: 'value',
+                    content: '{{slot}}',
+                    contentType: 'value',
+                    insertOrder: '{{slot}}',
+                    insertOrderType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2DeleteLorebookByIndex':{
+                editTrigger = {
+                    type: 'v2DeleteLorebookByIndex',
+                    index: '',
+                    indexType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetLorebookCountNew':{
+                editTrigger = {
+                    type: 'v2GetLorebookCountNew',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2SetLorebookAlwaysActive':{
+                editTrigger = {
+                    type: 'v2SetLorebookAlwaysActive',
+                    index: '',
+                    indexType: 'value',
+                    value: true,
+                    indent: 0
                 }
                 break;
             }
@@ -1077,6 +1180,10 @@
 
         const txt = (language.triggerDesc[type + 'Desc'] as string || type).replace(/{{(.+?)}}/g, (match, p1) => {
             const d = effect[p1]
+            
+            if(typeof d === 'boolean'){
+                return `<span class="text-blue-500">${d ? 'true' : 'false'}</span>`
+            }
             
             if(p1.endsWith('Type')){
                 return `<span class="text-blue-500">${d || 'null' }</span>`
@@ -1386,16 +1493,23 @@
                             <ArrowLeftIcon />
                         </button>
                     </div>
-                    {#each effectV2Types.filter((e) => {
-
+                    {#each (DBState.db.showDeprecatedTriggerV2 ? [...effectV2Types, ...deprecatedEffectV2Types] : effectV2Types).filter((e) => {
                         return checkSupported(e)
                     }) as type}
-                        <button class="p-2 hover:bg-selected" onclick={(e) => {
+                        <button class="p-2 hover:bg-selected" class:opacity-60={deprecatedEffectV2Types.includes(type)} onclick={(e) => {
                             e.stopPropagation()
                             makeDefaultEditType(type)
                             menuMode = 2
-                        }}>{language.triggerDesc[type]}</button>
+                        }}>
+                            {language.triggerDesc[type]}{deprecatedEffectV2Types.includes(type) ? ' (Deprecated)' : ''}
+                        </button>
                     {/each}
+                    
+                    <div class="p-4 border-t border-darkborderc">
+                        <div class="text-textcolor2 text-xs">
+                            <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
+                        </div>
+                    </div>
                 </div>
             {:else if menuMode === 2 || menuMode === 3}
                 <div class="flex-1 flex-col flex overflow-y-auto">
@@ -1649,7 +1763,7 @@
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
 
-                    {:else if editTrigger.type === 'v2GetLorebookCount'}
+                    {:else if editTrigger.type === 'v2GetLorebookCountNew'}
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
 
@@ -1670,7 +1784,7 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.index} />
-                        <CheckInput bind:check={addElse} name={language.value} className="mt-4" />
+                        <CheckInput bind:check={editTrigger.value} name={language.alwaysActive} className="mt-4" />
                     {:else if editTrigger.type === 'v2GetLorebookIndexViaName'}
                         <span class="block text-textcolor">{language.name}</span>
                         <SelectInput bind:value={editTrigger.nameType}>
@@ -2104,6 +2218,98 @@
 
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetAllLorebooks'}
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetLorebookByName'}
+                        <span class="block text-textcolor">{language.name}</span>
+                        <SelectInput bind:value={editTrigger.nameType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.name} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetLorebookByIndex'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2CreateLorebook'}
+                        <span class="block text-textcolor">{language.name}</span>
+                        <SelectInput bind:value={editTrigger.nameType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.name} />
+                        <span class="block text-textcolor">{language.activationKeys}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                        <span class="block text-textcolor">{language.prompt}</span>
+                        <SelectInput bind:value={editTrigger.contentType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextAreaInput bind:value={editTrigger.content} />
+                        <span class="block text-textcolor">{language.insertOrder}</span>
+                        <SelectInput bind:value={editTrigger.insertOrderType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.insertOrder} />
+                    {:else if editTrigger.type === 'v2ModifyLorebookByIndex'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                        <span class="block text-textcolor">{language.name}</span>
+                        <SelectInput bind:value={editTrigger.nameType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.name} />
+                        <span class="block text-textcolor">{language.activationKeys}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                        <span class="block text-textcolor">{language.prompt}</span>
+                        <SelectInput bind:value={editTrigger.contentType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextAreaInput bind:value={editTrigger.content} />
+                        <span class="block text-textcolor">{language.insertOrder}</span>
+                        <SelectInput bind:value={editTrigger.insertOrderType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.insertOrder} />
+                    {:else if editTrigger.type === 'v2DeleteLorebookByIndex'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                    {:else if editTrigger.type === 'v2SetLorebookAlwaysActive'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                        <CheckInput bind:check={editTrigger.value} name={language.alwaysActive} className="mt-4" />
                     {:else if editTrigger.type === 'v2UpdateChatAt'}
                         <span class="block text-textcolor">{language.index}</span>
                         <TextInput bind:value={editTrigger.index} />

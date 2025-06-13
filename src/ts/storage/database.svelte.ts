@@ -537,6 +537,7 @@ export function setDatabase(data:Database){
         )
     }
     data.hypaV3PresetId ??= 0
+    data.showDeprecatedTriggerV2 ??= false
     data.returnCSSError ??= true
     data.useExperimentalGoogleTranslator ??= false
     if(data.antiClaudeOverload){ //migration
@@ -991,6 +992,7 @@ export interface Database{
     bulkEnabling:boolean
     showTranslationLoading: boolean
     showDeprecatedTriggerV1:boolean
+    showDeprecatedTriggerV2:boolean
     returnCSSError:boolean
     useExperimentalGoogleTranslator:boolean
     thinkingTokens: number
