@@ -1027,4 +1027,17 @@ export const languageKorean = {
     "claudeBatching": "Claude 배칭",
     "folderNameInput": "새 폴더 이름을 입력해주세요",
     "folderRemoveLengthError": "폴더를 제거하려면 폴더가 비어 있어야 합니다.",
+    "triggerCategories": {
+        "Special": "특수",
+        "Control": "제어",
+        "Chat": "채팅",
+        "Low Level": "저수준",
+        "Alert": "알림",
+        "Lorebook V2": "로어북",
+        "String": "문자열",
+        "Character": "캐릭터",
+        "Array": "배열",
+        "Others": "기타",
+        "Deprecated": "비권장"
+    }
 }

@@ -11,6 +11,7 @@
     import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList, type triggerV2IfAdvanced } from "src/ts/process/triggers";
     import { onDestroy, onMount } from "svelte";
     import { DBState } from "src/ts/stores.svelte";
+    import { DynamicGUI } from "src/ts/stores.svelte";
 
     interface Props {
         value?: triggerscript[];
@@ -111,6 +112,23 @@
         'v2Tokenize'
     ]
 
+    const effectCategories = {
+        'Special': ['v2GetDisplayState', 'v2SetDisplayState', 'v2GetRequestState', 'v2SetRequestState', 'v2GetRequestStateRole', 'v2SetRequestStateRole', 'v2GetRequestStateLength'],
+        'Control': ['v2SetVar', 'v2IfAdvanced', 'v2LoopNTimes', 'v2Loop', 'v2BreakLoop', 'v2RunTrigger', 'v2ConsoleLog', 'v2StopTrigger'],
+        'Chat': ['v2CutChat', 'v2ModifyChat', 'v2SystemPrompt', 'v2Impersonate', 'v2Command', 'v2GetLastMessage', 'v2GetLastUserMessage', 'v2GetLastCharMessage', 'v2GetMessageAtIndex', 'v2GetMessageCount', 'v2GetFirstMessage', 'v2QuickSearchChat'],
+        'Low Level': ['v2SendAIprompt', 'v2ImgGen', 'v2CheckSimilarity', 'v2RunLLM'],
+        'Alert': ['v2ShowAlert', 'v2GetAlertInput'],
+        'Lorebook V2': ['v2GetAllLorebooks', 'v2GetLorebookByName', 'v2GetLorebookByIndex', 'v2CreateLorebook', 'v2ModifyLorebookByIndex', 'v2DeleteLorebookByIndex', 'v2GetLorebookCountNew', 'v2SetLorebookAlwaysActive'],
+        'String': ['v2RegexTest', 'v2ExtractRegex', 'v2GetCharAt', 'v2GetCharCount', 'v2ToLowerCase', 'v2ToUpperCase', 'v2SetCharAt', 'v2SplitString', 'v2ConcatString'],
+        'Character': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc'],
+        'Array': ['v2MakeArrayVar', 'v2GetArrayVarLength', 'v2GetArrayVar', 'v2SetArrayVar', 'v2PushArrayVar', 'v2PopArrayVar', 'v2ShiftArrayVar', 'v2UnshiftArrayVar', 'v2SpliceArrayVar', 'v2SliceArrayVar', 'v2GetIndexOfValueInArrayVar', 'v2RemoveIndexFromArrayVar'],
+        'Others': ['v2Random', 'v2UpdateGUI', 'v2UpdateChatAt', 'v2Wait', 'v2StopPromptSending', 'v2Tokenize']
+    }
+
+    const deprecatedCategories = {
+        'Deprecated': ['v2If', 'v2ModifyLorebook', 'v2GetLorebook', 'v2GetLorebookCount', 'v2GetLorebookEntry', 'v2SetLorebookActivation', 'v2GetLorebookIndexViaName']
+    }
+
     const deprecatedEffectV2Types = [
         //Deprecated
         'v2If',
@@ -155,6 +173,7 @@
     let menu0ScrollPosition = $state(0)
     let effectElements = $state<HTMLButtonElement[]>([])
     let guideLineKey = $state(0)
+    let selectedCategory = $state('Control')
 
     type VirtualClipboard = {
         type: 'trigger',
@@ -178,6 +197,33 @@
             if(menu0Container) {
                 menu0ScrollPosition = menu0Container.scrollTop
             }
+        }
+    })
+
+    const getFilteredTriggers = () => {
+        const allCategories = DBState.db.showDeprecatedTriggerV2 
+            ? { ...effectCategories, ...deprecatedCategories }
+            : effectCategories
+        
+        const categoryTriggers = allCategories[selectedCategory] || []
+        return categoryTriggers.filter(checkSupported)
+    }
+
+    const getAvailableCategories = () => {
+        const allCategories = DBState.db.showDeprecatedTriggerV2 
+            ? { ...effectCategories, ...deprecatedCategories }
+            : effectCategories
+        
+        return Object.keys(allCategories).filter(category => {
+            const categoryTriggers = allCategories[category] || []
+            return categoryTriggers.some(checkSupported)
+        })
+    }
+
+    $effect(() => {
+        const availableCategories = getAvailableCategories()
+        if (availableCategories.length > 0 && !availableCategories.includes(selectedCategory)) {
+            selectedCategory = availableCategories[0]
         }
     })
 
@@ -1515,32 +1561,95 @@
                     </div>
                 </div>
             {:else if menuMode === 1}
-                <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
-                    <div class="p-4 border-b border-darkborderc">
-                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
-                            menuMode = 0
-                        }}>
-                            <ArrowLeftIcon />
-                        </button>
-                    </div>
-                    {#each (DBState.db.showDeprecatedTriggerV2 ? [...effectV2Types, ...deprecatedEffectV2Types] : effectV2Types).filter((e) => {
-                        return checkSupported(e)
-                    }) as type}
-                        <button class="p-2 hover:bg-selected" class:opacity-60={deprecatedEffectV2Types.includes(type)} onclick={(e) => {
-                            e.stopPropagation()
-                            makeDefaultEditType(type)
-                            menuMode = 2
-                        }}>
-                            {language.triggerDesc[type]}{deprecatedEffectV2Types.includes(type) ? ' (Deprecated)' : ''}
-                        </button>
-                    {/each}
-                    
-                    <div class="p-4 border-t border-darkborderc">
-                        <div class="text-textcolor2 text-xs">
-                            <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
+                {#if !$DynamicGUI}
+                    <div class="flex-1 bg-darkbg flex overflow-y-auto">
+                        <div class="w-48 border-r border-darkborderc flex flex-col">
+                            <div class="p-4 border-b border-darkborderc flex items-center min-h-16">
+                                <button class="border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                                    menuMode = 0
+                                }}>
+                                    <ArrowLeftIcon />
+                                </button>
+                            </div>
+                            <div class="flex-1 overflow-y-auto">
+                                {#each getAvailableCategories() as category}
+                                    <button 
+                                        class="w-full p-3 text-left hover:bg-selected transition-colors"
+                                        class:bg-selected={selectedCategory === category}
+                                        class:text-textcolor={selectedCategory === category}
+                                        class:text-textcolor2={selectedCategory !== category}
+                                        onclick={() => {
+                                            selectedCategory = category
+                                        }}
+                                    >
+                                        {language.triggerCategories[category] || category}
+                                        {#if category === 'Deprecated'}
+                                            <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
+                                        {/if}
+                                    </button>
+                                {/each}
+                            </div>
+                            <div class="p-4 border-t border-darkborderc">
+                                <div class="text-textcolor2 text-xs">
+                                    <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col overflow-y-auto">
+                            <div class="p-4 border-b border-darkborderc flex items-center min-h-16">
+                                <h3 class="text-lg font-medium text-textcolor">{language.triggerCategories[selectedCategory] || selectedCategory}</h3>
+                            </div>
+                            <div class="flex-1 overflow-y-auto">
+                                {#each getFilteredTriggers() as type}
+                                    <button 
+                                        class="w-full p-3 text-left hover:bg-selected transition-colors" 
+                                        class:opacity-60={deprecatedEffectV2Types.includes(type)} 
+                                        onclick={(e) => {
+                                            e.stopPropagation()
+                                            makeDefaultEditType(type)
+                                            menuMode = 2
+                                        }}
+                                    >
+                                        <div class="text-textcolor2">
+                                            {language.triggerDesc[type]}
+                                            {#if deprecatedEffectV2Types.includes(type)}
+                                                <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
+                                            {/if}
+                                        </div>
+                                    </button>
+                                {/each}
+                            </div>
                         </div>
                     </div>
-                </div>
+                {:else}
+                    <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
+                        <div class="p-4 border-b border-darkborderc">
+                            <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                                menuMode = 0
+                            }}>
+                                <ArrowLeftIcon />
+                            </button>
+                        </div>
+                        {#each (DBState.db.showDeprecatedTriggerV2 ? [...effectV2Types, ...deprecatedEffectV2Types] : effectV2Types).filter((e) => {
+                            return checkSupported(e)
+                        }) as type}
+                            <button class="p-2 hover:bg-selected" class:opacity-60={deprecatedEffectV2Types.includes(type)} onclick={(e) => {
+                                e.stopPropagation()
+                                makeDefaultEditType(type)
+                                menuMode = 2
+                            }}>
+                                {language.triggerDesc[type]}{deprecatedEffectV2Types.includes(type) ? ' (Deprecated)' : ''}
+                            </button>
+                        {/each}
+                        
+                        <div class="p-4 border-t border-darkborderc">
+                            <div class="text-textcolor2 text-xs">
+                                <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
+                            </div>
+                        </div>
+                    </div>
+                {/if}
             {:else if menuMode === 2 || menuMode === 3}
                 <div class="flex-1 flex-col flex overflow-y-auto">
                     <div class="flex items-center gap-2 mb-4">

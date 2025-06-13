@@ -1163,4 +1163,17 @@ export const languageEnglish = {
     mcpAccessPrompt: "{{tool}} is trying to \"{{action}}\". do you want to allow this?",
     rememberToolUsage: "Remember tool usage",
     toolCalled: "Tool '{{tool}}' Called",
+    triggerCategories: {
+        "Special": "Special",
+        "Control": "Control",
+        "Chat": "Chat",
+        "Low Level": "Low Level",
+        "Alert": "Alert",
+        "Lorebook V2": "Lorebook V2",
+        "String": "String",
+        "Character": "Character",
+        "Array": "Array",
+        "Others": "Others",
+        "Deprecated": "Deprecated"
+    }
 }
