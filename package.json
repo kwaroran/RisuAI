@@ -67,6 +67,7 @@
     "lodash": "^4.17.21",
     "lucide-svelte": "^0.292.0",
     "markdown-it": "^14.1.0",
+    "minisearch": "^7.1.2",
     "ml-distance": "^4.0.1",
     "mnemonist": "^0.40.3",
     "mobile-drag-drop": "3.0.0-rc.0",

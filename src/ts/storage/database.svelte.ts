@@ -1,320 +1,320 @@
 import { get, writable } from 'svelte/store';
-import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
-import type { RisuPlugin } from '../plugins/plugins';
-import type {triggerscript as triggerscriptMain} from '../process/triggers';
-import { downloadFile, saveAsset as saveImageGlobal } from '../globalApi.svelte';
-import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 import { alertError, alertNormal, alertSelect } from '../alert';
-import type { NAISettings } from '../process/models/nai';
-import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
+import { downloadFile, saveAsset as saveImageGlobal } from '../globalApi.svelte';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
-import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
-import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
+import type { RisuPlugin } from '../plugins/plugins';
+import { createHypaV3Preset, type HypaV3Preset, type HypaV3Settings } from '../process/memory/hypav3';
+import type { NAISettings } from '../process/models/nai';
+import type { PromptItem, PromptSettings } from '../process/prompt';
+import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
+import type { triggerscript as triggerscriptMain } from '../process/triggers';
+import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
+import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
 
 export let appVer = "163.1.1"
 export let webAppSubVer = ''
 
 
-export function setDatabase(data:Database){
-    if(checkNullish(data.characters)){
+export function setDatabase(data: Database) {
+    if (checkNullish(data.characters)) {
         data.characters = []
     }
-    if(checkNullish(data.apiType)){
+    if (checkNullish(data.apiType)) {
         data.apiType = 'gpt35_0301'
     }
-    if(checkNullish(data.openAIKey)){
+    if (checkNullish(data.openAIKey)) {
         data.openAIKey = ''
     }
-    if(checkNullish(data.mainPrompt)){
+    if (checkNullish(data.mainPrompt)) {
         data.mainPrompt = defaultMainPrompt
     }
-    if(checkNullish(data.jailbreak)){
+    if (checkNullish(data.jailbreak)) {
         data.jailbreak = defaultJailbreak
     }
-    if(checkNullish(data.globalNote)){
+    if (checkNullish(data.globalNote)) {
         data.globalNote = ``
     }
-    if(checkNullish(data.temperature)){
+    if (checkNullish(data.temperature)) {
         data.temperature = 80
     }
-    if(checkNullish(data.maxContext)){
+    if (checkNullish(data.maxContext)) {
         data.maxContext = 4000
     }
-    if(checkNullish(data.maxResponse)){
+    if (checkNullish(data.maxResponse)) {
         data.maxResponse = 500
     }
-    if(checkNullish(data.frequencyPenalty)){
+    if (checkNullish(data.frequencyPenalty)) {
         data.frequencyPenalty = 70
     }
-    if(checkNullish(data.PresensePenalty)){
+    if (checkNullish(data.PresensePenalty)) {
         data.PresensePenalty = 70
     }
-    if(checkNullish(data.aiModel)){
+    if (checkNullish(data.aiModel)) {
         data.aiModel = 'gpt35_0301'
     }
-    if(checkNullish(data.jailbreakToggle)){
+    if (checkNullish(data.jailbreakToggle)) {
         data.jailbreakToggle = false
     }
-    if(checkNullish(data.formatingOrder)){
-        data.formatingOrder = ['main','description', 'personaPrompt','chats','lastChat','jailbreak','lorebook', 'globalNote', 'authorNote']
+    if (checkNullish(data.formatingOrder)) {
+        data.formatingOrder = ['main', 'description', 'personaPrompt', 'chats', 'lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote']
     }
-    if(checkNullish(data.loreBookDepth)){
+    if (checkNullish(data.loreBookDepth)) {
         data.loreBookDepth = 5
     }
-    if(checkNullish(data.loreBookToken)){
+    if (checkNullish(data.loreBookToken)) {
         data.loreBookToken = 800
     }
-    if(checkNullish(data.username)){
+    if (checkNullish(data.username)) {
         data.username = 'User'
     }
-    if(checkNullish(data.userIcon)){
+    if (checkNullish(data.userIcon)) {
         data.userIcon = ''
     }
-    if (checkNullish(data.userNote)){
+    if (checkNullish(data.userNote)) {
         data.userNote = ''
     }
-    if(checkNullish(data.additionalPrompt)){
+    if (checkNullish(data.additionalPrompt)) {
         data.additionalPrompt = 'The assistant must act as {{char}}. user is {{user}}.'
     }
-    if(checkNullish(data.descriptionPrefix)){
+    if (checkNullish(data.descriptionPrefix)) {
         data.descriptionPrefix = 'description of {{char}}: '
     }
-    if(checkNullish(data.forceReplaceUrl)){
+    if (checkNullish(data.forceReplaceUrl)) {
         data.forceReplaceUrl = ''
     }
-    if(checkNullish(data.forceReplaceUrl2)){
+    if (checkNullish(data.forceReplaceUrl2)) {
         data.forceReplaceUrl2 = ''
     }
-    if(checkNullish(data.language)){
+    if (checkNullish(data.language)) {
         data.language = 'en'
     }
-    if(checkNullish(data.swipe)){
+    if (checkNullish(data.swipe)) {
         data.swipe = true
     }
-    if(checkNullish(data.translator)){
+    if (checkNullish(data.translator)) {
         data.translator = ''
     }
-    if(checkNullish(data.translatorMaxResponse)){
+    if (checkNullish(data.translatorMaxResponse)) {
         data.translatorMaxResponse = 1000
     }
-    if(checkNullish(data.currentPluginProvider)){
+    if (checkNullish(data.currentPluginProvider)) {
         data.currentPluginProvider = ''
     }
-    if(checkNullish(data.plugins)){
+    if (checkNullish(data.plugins)) {
         data.plugins = []
     }
-    if(checkNullish(data.zoomsize)){
+    if (checkNullish(data.zoomsize)) {
         data.zoomsize = 100
     }
-    if(checkNullish(data.lastup)){
+    if (checkNullish(data.lastup)) {
         data.lastup = ''
     }
-    if(checkNullish(data.customBackground)){
+    if (checkNullish(data.customBackground)) {
         data.customBackground = ''
     }
-    if(checkNullish(data.textgenWebUIStreamURL)){
+    if (checkNullish(data.textgenWebUIStreamURL)) {
         data.textgenWebUIStreamURL = 'wss://localhost/api/'
     }
-    if(checkNullish(data.textgenWebUIBlockingURL)){
+    if (checkNullish(data.textgenWebUIBlockingURL)) {
         data.textgenWebUIBlockingURL = 'https://localhost/api/'
     }
-    if(checkNullish(data.autoTranslate)){
+    if (checkNullish(data.autoTranslate)) {
         data.autoTranslate = false
     }
-    if(checkNullish(data.fullScreen)){
+    if (checkNullish(data.fullScreen)) {
         data.fullScreen = false
     }
-    if(checkNullish(data.playMessage)){
+    if (checkNullish(data.playMessage)) {
         data.playMessage = false
     }
-    if(checkNullish(data.iconsize)){
+    if (checkNullish(data.iconsize)) {
         data.iconsize = 100
     }
-    if(checkNullish(data.theme)){
+    if (checkNullish(data.theme)) {
         data.theme = ''
     }
-    if(checkNullish(data.subModel)){
+    if (checkNullish(data.subModel)) {
         data.subModel = 'gpt35_0301'
     }
-    if(checkNullish(data.timeOut)){
+    if (checkNullish(data.timeOut)) {
         data.timeOut = 120
     }
-    if(checkNullish(data.waifuWidth)){
+    if (checkNullish(data.waifuWidth)) {
         data.waifuWidth = 100
     }
-    if(checkNullish(data.waifuWidth2)){
+    if (checkNullish(data.waifuWidth2)) {
         data.waifuWidth2 = 100
     }
-    if(checkNullish(data.emotionPrompt)){
+    if (checkNullish(data.emotionPrompt)) {
         data.emotionPrompt = ""
     }
-    if(checkNullish(data.requester)){
+    if (checkNullish(data.requester)) {
         data.requester = "new"
     }
-    if(checkNullish(data.proxyKey)){
+    if (checkNullish(data.proxyKey)) {
         data.proxyKey = ""
     }
-    if(checkNullish(data.botPresets)){
+    if (checkNullish(data.botPresets)) {
         let defaultPreset = presetTemplate
         defaultPreset.name = "Default"
         data.botPresets = [defaultPreset]
     }
-    if(checkNullish(data.botPresetsId)){
+    if (checkNullish(data.botPresetsId)) {
         data.botPresetsId = 0
     }
-    if(checkNullish(data.sdProvider)){
+    if (checkNullish(data.sdProvider)) {
         data.sdProvider = ''
     }
-    if(checkNullish(data.runpodKey)){
+    if (checkNullish(data.runpodKey)) {
         data.runpodKey = ''
     }
-    if(checkNullish(data.webUiUrl)){
+    if (checkNullish(data.webUiUrl)) {
         data.webUiUrl = 'http://127.0.0.1:7860/'
     }
-    if(checkNullish(data.sdSteps)){
+    if (checkNullish(data.sdSteps)) {
         data.sdSteps = 30
     }
-    if(checkNullish(data.sdCFG)){
+    if (checkNullish(data.sdCFG)) {
         data.sdCFG = 7
     }
-    if(checkNullish(data.NAIImgUrl)){
+    if (checkNullish(data.NAIImgUrl)) {
         data.NAIImgUrl = 'https://image.novelai.net/ai/generate-image'
     }
-    if(checkNullish(data.NAIApiKey)){
+    if (checkNullish(data.NAIApiKey)) {
         data.NAIApiKey = ''
     }
-    if(checkNullish(data.NAIImgModel)){
+    if (checkNullish(data.NAIImgModel)) {
         data.NAIImgModel = 'nai-diffusion-3'
     }
-    if(checkNullish(data.NAII2I)){
+    if (checkNullish(data.NAII2I)) {
         data.NAII2I = false
     }
-    if(checkNullish(data.NAIREF)){
+    if (checkNullish(data.NAIREF)) {
         data.NAIREF = false
     }
-    if(checkNullish(data.textTheme)){
+    if (checkNullish(data.textTheme)) {
         data.textTheme = "standard"
     }
-    if(checkNullish(data.emotionPrompt2)){
+    if (checkNullish(data.emotionPrompt2)) {
         data.emotionPrompt2 = ""
     }
-    if(checkNullish(data.requestRetrys)){
+    if (checkNullish(data.requestRetrys)) {
         data.requestRetrys = 2
     }
-    if(checkNullish(data.useSayNothing)){
+    if (checkNullish(data.useSayNothing)) {
         data.useSayNothing = true
     }
-    if(checkNullish(data.bias)){
+    if (checkNullish(data.bias)) {
         data.bias = []
     }
-    if(checkNullish(data.requestmet)){
+    if (checkNullish(data.requestmet)) {
         data.requestmet = 'normal'
     }
-    if(checkNullish(data.requestproxy)){
+    if (checkNullish(data.requestproxy)) {
         data.requestproxy = ''
     }
-    if(checkNullish(data.showUnrecommended)){
+    if (checkNullish(data.showUnrecommended)) {
         data.showUnrecommended = false
     }
-    if(checkNullish(data.elevenLabKey)){
+    if (checkNullish(data.elevenLabKey)) {
         data.elevenLabKey = ''
     }
-    if(checkNullish(data.voicevoxUrl)){
+    if (checkNullish(data.voicevoxUrl)) {
         data.voicevoxUrl = ''
     }
-    if(checkNullish(data.supaMemoryPrompt)){
+    if (checkNullish(data.supaMemoryPrompt)) {
         data.supaMemoryPrompt = ''
     }
-    if(checkNullish(data.showMemoryLimit)){
+    if (checkNullish(data.showMemoryLimit)) {
         data.showMemoryLimit = false
     }
-    if(checkNullish(data.supaMemoryKey)){
+    if (checkNullish(data.supaMemoryKey)) {
         data.supaMemoryKey = ""
     }
-    if(checkNullish(data.hypaMemoryKey)){
+    if (checkNullish(data.hypaMemoryKey)) {
         data.hypaMemoryKey = ""
     }
-    if(checkNullish(data.supaModelType)){
+    if (checkNullish(data.supaModelType)) {
         data.supaModelType = "none"
     }
-    if(checkNullish(data.askRemoval)){
+    if (checkNullish(data.askRemoval)) {
         data.askRemoval = true
     }
-    if(checkNullish(data.sdConfig)){
+    if (checkNullish(data.sdConfig)) {
         data.sdConfig = {
-            width:512,
-            height:512,
-            sampler_name:"Euler a",
-            script_name:"",
-            denoising_strength:0.7,
-            enable_hr:false,
-            hr_scale:1.25,
-            hr_upscaler:"Latent"
+            width: 512,
+            height: 512,
+            sampler_name: "Euler a",
+            script_name: "",
+            denoising_strength: 0.7,
+            enable_hr: false,
+            hr_scale: 1.25,
+            hr_upscaler: "Latent"
         }
     }
-    if(checkNullish(data.NAIImgConfig)){
+    if (checkNullish(data.NAIImgConfig)) {
         data.NAIImgConfig = {
-            width:512,
-            height:768,
-            sampler:"k_dpmpp_sde",
-            noise_schedule:"native",
-            steps:28,
-            scale:5,
+            width: 512,
+            height: 768,
+            sampler: "k_dpmpp_sde",
+            noise_schedule: "native",
+            steps: 28,
+            scale: 5,
             cfg_rescale: 0,
-            sm:true,
-            sm_dyn:false,
-            noise:0.0,
-            strength:0.6,
-            image:"",
-            base64image:"",
-            InfoExtracted:1,
+            sm: true,
+            sm_dyn: false,
+            noise: 0.0,
+            strength: 0.6,
+            image: "",
+            base64image: "",
+            InfoExtracted: 1,
             //add 4
-            autoSmea:false,
-            legacy_uc:false,
-            use_coords:false,
-            v4_prompt:{
-                caption:{
-                    base_caption:'',
-                    char_captions:[]
+            autoSmea: false,
+            legacy_uc: false,
+            use_coords: false,
+            v4_prompt: {
+                caption: {
+                    base_caption: '',
+                    char_captions: []
                 },
-                use_coords:false,
-                use_order:true
+                use_coords: false,
+                use_order: true
             },
-            v4_negative_prompt:{
-                caption:{
-                    base_caption:'',
-                    char_captions:[]
+            v4_negative_prompt: {
+                caption: {
+                    base_caption: '',
+                    char_captions: []
                 },
-                legacy_uc:false,
+                legacy_uc: false,
             },
             variety_plus: false,
             decrisp: false,
         }
     }
     //add NAI v4 (사용중인 사람용 추가 DB Init)
-    if(checkNullish(data.NAIImgConfig.v4_prompt)){
+    if (checkNullish(data.NAIImgConfig.v4_prompt)) {
         data.NAIImgConfig.autoSmea = false;
         data.NAIImgConfig.use_coords = false;
         data.NAIImgConfig.legacy_uc = false;
         data.NAIImgConfig.v4_prompt = {
-            caption:{
-                base_caption:"",
-                char_captions:[]
+            caption: {
+                base_caption: "",
+                char_captions: []
             },
-            use_coords:false,
-            use_order:true
+            use_coords: false,
+            use_order: true
         };
         data.NAIImgConfig.v4_negative_prompt = {
-            caption:{
-                base_caption:"",
-                char_captions:[]
+            caption: {
+                base_caption: "",
+                char_captions: []
             },
-            legacy_uc:false,
+            legacy_uc: false,
         };
     }
-    if(checkNullish(data.customTextTheme)){
+    if (checkNullish(data.customTextTheme)) {
         data.customTextTheme = {
             FontColorStandard: "#f8f8f2",
             FontColorBold: "#f8f8f2",
@@ -324,27 +324,27 @@ export function setDatabase(data:Database){
             FontColorQuote2: '#FFB86C'
         }
     }
-    if(checkNullish(data.hordeConfig)){
+    if (checkNullish(data.hordeConfig)) {
         data.hordeConfig = {
             apiKey: "",
             model: "",
             softPrompt: ""
         }
     }
-    if(checkNullish(data.novelai)){
+    if (checkNullish(data.novelai)) {
         data.novelai = {
             token: "",
             model: "clio-v1",
         }
     }
-    if(checkNullish(data.loreBook)){
+    if (checkNullish(data.loreBook)) {
         data.loreBookPage = 0
         data.loreBook = [{
             name: "My First LoreBook",
             data: []
         }]
     }
-    if(checkNullish(data.loreBookPage) || data.loreBook.length < data.loreBookPage){
+    if (checkNullish(data.loreBookPage) || data.loreBook.length < data.loreBookPage) {
         data.loreBookPage = 0
     }
     data.globalscript ??= []
@@ -354,8 +354,8 @@ export function setDatabase(data:Database){
     data.OAIPrediction ??= ''
     data.autoSuggestClean ??= true
     data.imageCompression ??= true
-    if(!data.formatingOrder.includes('personaPrompt')){
-        data.formatingOrder.splice(data.formatingOrder.indexOf('main'),0,'personaPrompt')
+    if (!data.formatingOrder.includes('personaPrompt')) {
+        data.formatingOrder.splice(data.formatingOrder.indexOf('main'), 0, 'personaPrompt')
     }
     data.selectedPersona ??= 0
     data.personaPrompt ??= ''
@@ -385,13 +385,13 @@ export function setDatabase(data:Database){
     data.translatorType ??= 'google'
     data.htmlTranslation ??= false
     data.deeplOptions ??= {
-        key:'',
+        key: '',
         freeApi: false
     }
     data.deeplXOptions ??= {
-        url:'',
-        token:''
-    } 
+        url: '',
+        token: ''
+    }
     data.NAIadventure ??= false
     data.NAIappendName ??= true
     data.NAIsettings.cfg_scale ??= 1
@@ -410,7 +410,7 @@ export function setDatabase(data:Database){
         mode: 'instruct'
     }
     data.top_p ??= 1
-    if(typeof(data.top_p) !== 'number'){
+    if (typeof (data.top_p) !== 'number') {
         //idk why type changes, but it does so this is a fix
         data.top_p = 1
     }
@@ -495,7 +495,7 @@ export function setDatabase(data:Database){
         imports: 0
     }
     data.customQuotes ??= false
-    data.customQuotesData ??= ['“','”','‘','’']
+    data.customQuotesData ??= ['“', '”', '‘', '’']
     data.groupOtherBotRole ??= 'user'
     data.customGUI ??= ''
     data.customAPIFormat ??= LLMFormat.OpenAICompatible
@@ -537,16 +537,28 @@ export function setDatabase(data:Database){
         )
     }
     data.hypaV3PresetId ??= 0
+    data.ulariPresets ??= data.hypaV3Presets.map(preset => (
+        createUlariPreset(preset.name || "Default", preset.settings || {})
+    ))
+    if (data.ulariPresets.length > 0) {
+        data.ulariPresets = data.ulariPresets.map((preset, i) =>
+            createUlariPreset(
+                preset.name || `Preset ${i + 1}`,
+                preset.settings || {}
+            )
+        )
+    }
+    data.ulariPresetId ??= 0
     data.returnCSSError ??= true
     data.useExperimentalGoogleTranslator ??= false
-    if(data.antiClaudeOverload){ //migration
+    if (data.antiClaudeOverload) { //migration
         data.antiClaudeOverload = false
         data.antiServerOverloads = true
     }
     data.hypaCustomSettings = {
         url: data.hypaCustomSettings?.url ?? "",
         key: data.hypaCustomSettings?.key ?? "",
-        model: data.hypaCustomSettings?.model ?? ""     
+        model: data.hypaCustomSettings?.model ?? ""
     }
     data.doNotChangeSeperateModels ??= false
     data.modelTools ??= []
@@ -569,7 +581,7 @@ export function setDatabase(data:Database){
     data.authRefreshes ??= []
     data.rememberToolUsage ??= true
     //@ts-ignore
-    if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
+    if (!globalThis.__NODE__ && !window.__TAURI_INTERNALS__) {
         //this is intended to forcely reduce the size of the database in web
         data.promptInfoInsideChat = false
     }
@@ -577,88 +589,88 @@ export function setDatabase(data:Database){
     setDatabaseLite(data)
 }
 
-export function setDatabaseLite(data:Database){
+export function setDatabaseLite(data: Database) {
     DBState.db = data
 }
 
-interface getDatabaseOptions{
-    snapshot?:boolean
+interface getDatabaseOptions {
+    snapshot?: boolean
 }
 
-export function getDatabase(options:getDatabaseOptions = {}):Database{
-    if(options.snapshot){
+export function getDatabase(options: getDatabaseOptions = {}): Database {
+    if (options.snapshot) {
         return $state.snapshot(DBState.db) as Database
     }
     return DBState.db as Database
 }
 
-export function getCurrentCharacter(options:getDatabaseOptions = {}):character|groupChat{
+export function getCurrentCharacter(options: getDatabaseOptions = {}): character | groupChat {
     const db = getDatabase(options)
-    if(!db.characters){
+    if (!db.characters) {
         db.characters = []
     }
     const char = db.characters?.[get(selectedCharID)]
     return char
 }
 
-export function setCurrentCharacter(char:character|groupChat){
-    if(!DBState.db.characters){
+export function setCurrentCharacter(char: character | groupChat) {
+    if (!DBState.db.characters) {
         DBState.db.characters = []
     }
     DBState.db.characters[get(selectedCharID)] = char
 }
 
-export function getCharacterByIndex(index:number,options:getDatabaseOptions = {}):character|groupChat{
+export function getCharacterByIndex(index: number, options: getDatabaseOptions = {}): character | groupChat {
     const db = getDatabase(options)
-    if(!db.characters){
+    if (!db.characters) {
         db.characters = []
     }
     const char = db.characters?.[index]
     return char
 }
 
-export function setCharacterByIndex(index:number,char:character|groupChat){
-    if(!DBState.db.characters){
+export function setCharacterByIndex(index: number, char: character | groupChat) {
+    if (!DBState.db.characters) {
         DBState.db.characters = []
     }
     DBState.db.characters[index] = char
 }
 
-export function getCurrentChat(){
+export function getCurrentChat() {
     const char = getCurrentCharacter()
     return char?.chats[char.chatPage]
 }
 
-export function setCurrentChat(chat:Chat){
+export function setCurrentChat(chat: Chat) {
     const char = getCurrentCharacter()
     char.chats[char.chatPage] = chat
     setCurrentCharacter(char)
 }
 
-export interface Database{
-    characters: (character|groupChat)[],
+export interface Database {
+    characters: (character | groupChat)[],
     apiType: string
-    forceReplaceUrl2:string
+    forceReplaceUrl2: string
     openAIKey: string
-    proxyKey:string
+    proxyKey: string
     mainPrompt: string
     jailbreak: string
-    globalNote:string
+    globalNote: string
     temperature: number
-    askRemoval:boolean
+    askRemoval: boolean
     maxContext: number
     maxResponse: number
     frequencyPenalty: number
     PresensePenalty: number
     formatingOrder: FormatingOrderItem[]
     aiModel: string
-    jailbreakToggle:boolean
+    jailbreakToggle: boolean
     loreBookDepth: number
     loreBookToken: number,
     cipherChat: boolean,
     loreBook: {
-        name:string
-        data:loreBook[]
+        name: string
+        data: loreBook[]
     }[]
     loreBookPage: number
     supaMemoryPrompt: string
@@ -680,235 +692,235 @@ export interface Database{
         oaiFixLetters?: boolean
     }
     currentPluginProvider: string
-    zoomsize:number
-    lastup:string
-    customBackground:string
-    textgenWebUIStreamURL:string
-    textgenWebUIBlockingURL:string
+    zoomsize: number
+    lastup: string
+    customBackground: string
+    textgenWebUIStreamURL: string
+    textgenWebUIBlockingURL: string
     autoTranslate: boolean
-    fullScreen:boolean
-    playMessage:boolean
-    iconsize:number
+    fullScreen: boolean
+    playMessage: boolean
+    iconsize: number
     theme: string
-    subModel:string
-    timeOut:number
+    subModel: string
+    timeOut: number
     emotionPrompt: string,
-    requester:string
-    formatversion:number
-    waifuWidth:number
-    waifuWidth2:number
-    botPresets:botPreset[]
-    botPresetsId:number
+    requester: string
+    formatversion: number
+    waifuWidth: number
+    waifuWidth2: number
+    botPresets: botPreset[]
+    botPresetsId: number
     sdProvider: string
-    webUiUrl:string
-    sdSteps:number
-    sdCFG:number
-    sdConfig:sdConfig
-    NAIImgUrl:string
-    NAIApiKey:string
-    NAIImgModel:string
-    NAII2I:boolean
-    NAIREF:boolean
-    NAIImgConfig:NAIImgConfig
-    ttsAutoSpeech?:boolean
-    runpodKey:string
-    promptPreprocess:boolean
+    webUiUrl: string
+    sdSteps: number
+    sdCFG: number
+    sdConfig: sdConfig
+    NAIImgUrl: string
+    NAIApiKey: string
+    NAIImgModel: string
+    NAII2I: boolean
+    NAIREF: boolean
+    NAIImgConfig: NAIImgConfig
+    ttsAutoSpeech?: boolean
+    runpodKey: string
+    promptPreprocess: boolean
     bias: [string, number][]
-    swipe:boolean
-    instantRemove:boolean
+    swipe: boolean
+    instantRemove: boolean
     textTheme: string
     customTextTheme: {
         FontColorStandard: string,
-        FontColorBold : string,
-        FontColorItalic : string,
-        FontColorItalicBold : string,
-        FontColorQuote1 : string,
-        FontColorQuote2 : string
+        FontColorBold: string,
+        FontColorItalic: string,
+        FontColorItalicBold: string,
+        FontColorQuote1: string,
+        FontColorQuote2: string
     }
-    requestRetrys:number
-    emotionPrompt2:string
-    useSayNothing:boolean
+    requestRetrys: number
+    emotionPrompt2: string
+    useSayNothing: boolean
     didFirstSetup: boolean
     requestmet: string
     requestproxy: string
-    showUnrecommended:boolean
-    elevenLabKey:string
-    voicevoxUrl:string
-    useExperimental:boolean
-    showMemoryLimit:boolean
-    roundIcons:boolean
-    useStreaming:boolean
-    palmAPI:string,
-    supaMemoryKey:string
-    hypaMemoryKey:string
-    supaModelType:string
-    textScreenColor?:string
-    textBorder?:boolean
-    textScreenRounded?:boolean
-    textScreenBorder?:string
-    characterOrder:(string|folder)[]
-    hordeConfig:hordeConfig,
-    toggleConfirmRecommendedPreset:boolean,
-    novelai:{
-        token:string,
-        model:string
+    showUnrecommended: boolean
+    elevenLabKey: string
+    voicevoxUrl: string
+    useExperimental: boolean
+    showMemoryLimit: boolean
+    roundIcons: boolean
+    useStreaming: boolean
+    palmAPI: string,
+    supaMemoryKey: string
+    hypaMemoryKey: string
+    supaModelType: string
+    textScreenColor?: string
+    textBorder?: boolean
+    textScreenRounded?: boolean
+    textScreenBorder?: string
+    characterOrder: (string | folder)[]
+    hordeConfig: hordeConfig,
+    toggleConfirmRecommendedPreset: boolean,
+    novelai: {
+        token: string,
+        model: string
     }
     globalscript: customscript[],
-    sendWithEnter:boolean
-    fixedChatTextarea:boolean
+    sendWithEnter: boolean
+    fixedChatTextarea: boolean
     clickToEdit: boolean
-    koboldURL:string
-    advancedBotSettings:boolean
-    useAutoSuggestions:boolean
-    autoSuggestPrompt:string
-    autoSuggestPrefix:string
-    autoSuggestClean:boolean
-    claudeAPIKey:string,
-    useChatCopy:boolean,
-    novellistAPI:string,
-    useAutoTranslateInput:boolean
-    imageCompression:boolean
-    account?:{
-        token:string
-        id:string,
+    koboldURL: string
+    advancedBotSettings: boolean
+    useAutoSuggestions: boolean
+    autoSuggestPrompt: string
+    autoSuggestPrefix: string
+    autoSuggestClean: boolean
+    claudeAPIKey: string,
+    useChatCopy: boolean,
+    novellistAPI: string,
+    useAutoTranslateInput: boolean
+    imageCompression: boolean
+    account?: {
+        token: string
+        id: string,
         data: {
-            refresh_token?:string,
-            access_token?:string
+            refresh_token?: string,
+            access_token?: string
             expires_in?: number
         }
-        useSync?:boolean
-        kei?:boolean
+        useSync?: boolean
+        kei?: boolean
     },
     classicMaxWidth: boolean,
-    useChatSticker:boolean,
-    useAdditionalAssetsPreview:boolean,
-    usePlainFetch:boolean
-    hypaMemory:boolean
-    hypav2:boolean
-    memoryAlgorithmType:string // To enable new memory module/algorithms 
-    proxyRequestModel:string
-    ooba:OobaSettings
+    useChatSticker: boolean,
+    useAdditionalAssetsPreview: boolean,
+    usePlainFetch: boolean
+    hypaMemory: boolean
+    hypav2: boolean
+    memoryAlgorithmType: string // To enable new memory module/algorithms 
+    proxyRequestModel: string
+    ooba: OobaSettings
     ainconfig: AINsettings
-    personaPrompt:string
-    openrouterRequestModel:string
-    openrouterKey:string
-    openrouterMiddleOut:boolean
-    openrouterFallback:boolean
-    selectedPersona:number
-    personas:{
-        personaPrompt:string
-        name:string
-        icon:string
-        largePortrait?:boolean
-        id?:string
-        note?:string
+    personaPrompt: string
+    openrouterRequestModel: string
+    openrouterKey: string
+    openrouterMiddleOut: boolean
+    openrouterFallback: boolean
+    selectedPersona: number
+    personas: {
+        personaPrompt: string
+        name: string
+        icon: string
+        largePortrait?: boolean
+        id?: string
+        note?: string
     }[]
-    personaNote:boolean
-    assetWidth:number
-    animationSpeed:number
-    botSettingAtStart:false
-    NAIsettings:NAISettings
-    hideRealm:boolean
-    colorScheme:ColorScheme
-    colorSchemeName:string
-    promptTemplate?:PromptItem[]
-    forceProxyAsOpenAI?:boolean
-    hypaModel:HypaModel
-    saveTime?:number
-    mancerHeader:string
-    emotionProcesser:'submodel'|'embedding',
-    showMenuChatList?:boolean,
-    translatorType:'google'|'deepl'|'none'|'llm'|'deeplX'|'bergamot',
-    translatorInputLanguage?:string
-    htmlTranslation?:boolean,
-    NAIadventure?:boolean,
-    NAIappendName?:boolean,
-    deeplOptions:{
-        key:string,
-        freeApi:boolean
+    personaNote: boolean
+    assetWidth: number
+    animationSpeed: number
+    botSettingAtStart: false
+    NAIsettings: NAISettings
+    hideRealm: boolean
+    colorScheme: ColorScheme
+    colorSchemeName: string
+    promptTemplate?: PromptItem[]
+    forceProxyAsOpenAI?: boolean
+    hypaModel: HypaModel
+    saveTime?: number
+    mancerHeader: string
+    emotionProcesser: 'submodel' | 'embedding',
+    showMenuChatList?: boolean,
+    translatorType: 'google' | 'deepl' | 'none' | 'llm' | 'deeplX' | 'bergamot',
+    translatorInputLanguage?: string
+    htmlTranslation?: boolean,
+    NAIadventure?: boolean,
+    NAIappendName?: boolean,
+    deeplOptions: {
+        key: string,
+        freeApi: boolean
     }
-    deeplXOptions:{
-        url:string,
-        token:string    
+    deeplXOptions: {
+        url: string,
+        token: string
     }
-    localStopStrings?:string[]
-    autofillRequestUrl:boolean
-    customProxyRequestModel:string
-    generationSeed:number
-    newOAIHandle:boolean
+    localStopStrings?: string[]
+    autofillRequestUrl: boolean
+    customProxyRequestModel: string
+    generationSeed: number
+    newOAIHandle: boolean
     putUserOpen: boolean
-    inlayImage:boolean
-    gptVisionQuality:string
-    reverseProxyOobaMode:boolean
+    inlayImage: boolean
+    gptVisionQuality: string
+    reverseProxyOobaMode: boolean
     reverseProxyOobaArgs: OobaChatCompletionRequestParams
-    tpo?:boolean
-    automark?:boolean
-    huggingfaceKey:string
-    fishSpeechKey:string
-    allowAllExtentionFiles?:boolean
-    translatorPrompt:string
-    translatorMaxResponse:number
+    tpo?: boolean
+    automark?: boolean
+    huggingfaceKey: string
+    fishSpeechKey: string
+    allowAllExtentionFiles?: boolean
+    translatorPrompt: string
+    translatorMaxResponse: number
     top_p: number,
     google: {
         accessToken: string
         projectId: string
     }
-    mistralKey?:string
-    chainOfThought?:boolean
-    genTime:number
+    mistralKey?: string
+    chainOfThought?: boolean
+    genTime: number
     promptSettings: PromptSettings
-    keiServerURL:string
+    keiServerURL: string
     statistics: {
         newYear2024?: {
             messages: number
             chats: number
         }
     },
-    top_k:number
-    repetition_penalty:number
-    min_p:number
-    top_a:number
-    claudeAws:boolean
-    lastPatchNoteCheckVersion?:string,
-    removePunctuationHypa?:boolean
-    memoryLimitThickness?:number
+    top_k: number
+    repetition_penalty: number
+    min_p: number
+    top_a: number
+    claudeAws: boolean
+    lastPatchNoteCheckVersion?: string,
+    removePunctuationHypa?: boolean
+    memoryLimitThickness?: number
     modules: RisuModule[]
     enabledModules: string[]
-    sideMenuRerollButton?:boolean
-    requestInfoInsideChat?:boolean
-    additionalParams:[string, string][]
-    heightMode:string
-    useAdvancedEditor:boolean
-    noWaitForTranslate:boolean
-    antiClaudeOverload:boolean
-    maxSupaChunkSize:number
-    ollamaURL:string
-    ollamaModel:string
-    autoContinueChat:boolean
-    autoContinueMinTokens:number
-    removeIncompleteResponse:boolean
-    customTokenizer:string
-    instructChatTemplate:string
-    JinjaTemplate:string
-    openrouterProvider:string
-    useInstructPrompt:boolean
-    hanuraiTokens:number
-    hanuraiSplit:boolean
-    hanuraiEnable:boolean
-    textAreaSize:number
-    sideBarSize:number
-    textAreaTextSize:number
-    combineTranslation:boolean
-    dynamicAssets:boolean
-    dynamicAssetsEditDisplay:boolean
-    customPromptTemplateToggle:string
-    globalChatVariables:{[key:string]:string}
-    templateDefaultVariables:string
-    hypaAllocatedTokens:number
-    hypaChunkSize:number
-    cohereAPIKey:string
-    goCharacterOnImport:boolean
-    dallEQuality:string
+    sideMenuRerollButton?: boolean
+    requestInfoInsideChat?: boolean
+    additionalParams: [string, string][]
+    heightMode: string
+    useAdvancedEditor: boolean
+    noWaitForTranslate: boolean
+    antiClaudeOverload: boolean
+    maxSupaChunkSize: number
+    ollamaURL: string
+    ollamaModel: string
+    autoContinueChat: boolean
+    autoContinueMinTokens: number
+    removeIncompleteResponse: boolean
+    customTokenizer: string
+    instructChatTemplate: string
+    JinjaTemplate: string
+    openrouterProvider: string
+    useInstructPrompt: boolean
+    hanuraiTokens: number
+    hanuraiSplit: boolean
+    hanuraiEnable: boolean
+    textAreaSize: number
+    sideBarSize: number
+    textAreaTextSize: number
+    combineTranslation: boolean
+    dynamicAssets: boolean
+    dynamicAssetsEditDisplay: boolean
+    customPromptTemplateToggle: string
+    globalChatVariables: { [key: string]: string }
+    templateDefaultVariables: string
+    hypaAllocatedTokens: number
+    hypaChunkSize: number
+    cohereAPIKey: string
+    goCharacterOnImport: boolean
+    dallEQuality: string
     font: string
     customFont: string
     lineHeight: number
@@ -930,75 +942,78 @@ export interface Database{
     falLoraScale: number
     moduleIntergration: string
     customCSS: string
-    betaMobileGUI:boolean
-    jsonSchemaEnabled:boolean
-    jsonSchema:string
-    strictJsonSchema:boolean
-    extractJson:string
-    ai21Key:string
+    betaMobileGUI: boolean
+    jsonSchemaEnabled: boolean
+    jsonSchema: string
+    strictJsonSchema: boolean
+    extractJson: string
+    ai21Key: string
     statics: {
         messages: number
         imports: number
     }
-    customQuotes:boolean
-    customQuotesData?:[string, string, string, string]
-    groupTemplate?:string
-    groupOtherBotRole?:string
-    customGUI:string
-    guiHTML:string
-    logShare:boolean
-    OAIPrediction:string
-    customAPIFormat:LLMFormat
-    systemContentReplacement:string
-    systemRoleReplacement:'user'|'assistant'
+    customQuotes: boolean
+    customQuotesData?: [string, string, string, string]
+    groupTemplate?: string
+    groupOtherBotRole?: string
+    customGUI: string
+    guiHTML: string
+    logShare: boolean
+    OAIPrediction: string
+    customAPIFormat: LLMFormat
+    systemContentReplacement: string
+    systemRoleReplacement: 'user' | 'assistant'
     vertexPrivateKey: string
     vertexClientEmail: string
     vertexAccessToken: string
     vertexAccessTokenExpires: number
     vertexRegion: string
-    seperateParametersEnabled:boolean
-    seperateParameters:{
+    seperateParametersEnabled: boolean
+    seperateParameters: {
         memory: SeparateParameters,
         emotion: SeparateParameters,
         translate: SeparateParameters,
         otherAx: SeparateParameters
     }
-    translateBeforeHTMLFormatting:boolean
-    autoTranslateCachedOnly:boolean
-    lightningRealmImport:boolean
+    translateBeforeHTMLFormatting: boolean
+    autoTranslateCachedOnly: boolean
+    lightningRealmImport: boolean
     notification: boolean
     customFlags: LLMFlags[]
     enableCustomFlags: boolean
     googleClaudeTokenizing: boolean
     presetChain: string
-    legacyMediaFindings?:boolean
-    geminiStream?:boolean
-    assetMaxDifference:number
-    menuSideBar:boolean
+    legacyMediaFindings?: boolean
+    geminiStream?: boolean
+    assetMaxDifference: number
+    menuSideBar: boolean
     pluginV2: RisuPlugin[]
-    showSavingIcon:boolean
+    showSavingIcon: boolean
     presetRegex: customscript[]
-    banCharacterset:string[]
-    showPromptComparison:boolean
-    checkCorruption:boolean
-    hypaV3:boolean
+    banCharacterset: string[]
+    showPromptComparison: boolean
+    checkCorruption: boolean
+    hypaV3: boolean
     hypaV3Settings: HypaV3Settings // legacy
     hypaV3Presets: HypaV3Preset[]
+    ulariPresets: UlariPreset[]
     hypaV3PresetId: number
-    OaiCompAPIKeys: {[key:string]:string}
-    inlayErrorResponse:boolean
-    reasoningEffort:number
-    bulkEnabling:boolean
+    ulariPresetId: number
+    useUlariMemory: boolean
+    OaiCompAPIKeys: { [key: string]: string }
+    inlayErrorResponse: boolean
+    reasoningEffort: number
+    bulkEnabling: boolean
     showTranslationLoading: boolean
-    showDeprecatedTriggerV1:boolean
-    returnCSSError:boolean
-    useExperimentalGoogleTranslator:boolean
+    showDeprecatedTriggerV1: boolean
+    returnCSSError: boolean
+    useExperimentalGoogleTranslator: boolean
     thinkingTokens: number
     antiServerOverloads: boolean
     hypaCustomSettings: {
         url: string,
         key: string,
-        model: string,       
+        model: string,
     },
     localActivationInGlobalLorebook: boolean
     showFolderName: boolean
@@ -1006,17 +1021,17 @@ export interface Database{
     chatCompression: boolean
     claudeRetrivalCaching: boolean
     outputImageModal: boolean
-    playMessageOnTranslateEnd:boolean
-    seperateModelsForAxModels:boolean
-    seperateModels:{
+    playMessageOnTranslateEnd: boolean
+    seperateModelsForAxModels: boolean
+    seperateModels: {
         memory: string
         emotion: string
         translate: string
         otherAx: string
     }
-    doNotChangeSeperateModels:boolean
+    doNotChangeSeperateModels: boolean
     modelTools: string[]
-    hotkeys:Hotkey[]
+    hotkeys: Hotkey[]
     fallbackModels: {
         memory: string[],
         emotion: string[],
@@ -1037,85 +1052,85 @@ export interface Database{
         params: string
         flags: LLMFlags[]
     }[]
-    igpPrompt:string
-    useTokenizerCaching:boolean
-    showMenuHypaMemoryModal:boolean
-    authRefreshes:{
-        url:string
-        tokenUrl:string
-        refreshToken:string
-        clientId:string
-        clientSecret:string
+    igpPrompt: string
+    useTokenizerCaching: boolean
+    showMenuHypaMemoryModal: boolean
+    authRefreshes: {
+        url: string
+        tokenUrl: string
+        refreshToken: string
+        clientId: string
+        clientSecret: string
     }[]
-    promptInfoInsideChat:boolean
-    promptTextInfoInsideChat:boolean
-    claudeBatching:boolean
-    claude1HourCaching:boolean
-    rememberToolUsage:boolean
+    promptInfoInsideChat: boolean
+    promptTextInfoInsideChat: boolean
+    claudeBatching: boolean
+    claude1HourCaching: boolean
+    rememberToolUsage: boolean
 }
 
-interface SeparateParameters{
-    temperature?:number
-    top_k?:number
-    repetition_penalty?:number
-    min_p?:number
-    top_a?:number
-    top_p?:number
-    frequency_penalty?:number
-    presence_penalty?:number
-    reasoning_effort?:number
-    thinking_tokens?:number
-    outputImageModal?:boolean
+interface SeparateParameters {
+    temperature?: number
+    top_k?: number
+    repetition_penalty?: number
+    min_p?: number
+    top_a?: number
+    top_p?: number
+    frequency_penalty?: number
+    presence_penalty?: number
+    reasoning_effort?: number
+    thinking_tokens?: number
+    outputImageModal?: boolean
 }
 
-type OutputModal = 'image'|'audio'|'video'
+type OutputModal = 'image' | 'audio' | 'video'
 
-export interface customscript{
+export interface customscript {
     comment: string;
-    in:string
-    out:string
-    type:string
-    flag?:string
-    ableFlag?:boolean
+    in: string
+    out: string
+    type: string
+    flag?: string
+    ableFlag?: boolean
 
 }
 
 export type triggerscript = triggerscriptMain
 
-export interface loreBook{
-    key:string
-    secondkey:string
+export interface loreBook {
+    key: string
+    secondkey: string
     insertorder: number
     comment: string
     content: string
-    mode: 'multiple'|'constant'|'normal'|'child'|'folder',
+    mode: 'multiple' | 'constant' | 'normal' | 'child' | 'folder',
     alwaysActive: boolean
-    selective:boolean
-    extentions?:{
-        risu_case_sensitive:boolean
+    selective: boolean
+    extentions?: {
+        risu_case_sensitive: boolean
     }
-    activationPercent?:number
-    loreCache?:{
-        key:string
-        data:string[]
+    activationPercent?: number
+    loreCache?: {
+        key: string
+        data: string[]
     },
-    useRegex?:boolean
-    bookVersion?:number
-    id?:string
-    folder?:string
+    useRegex?: boolean
+    bookVersion?: number
+    id?: string
+    folder?: string
 }
 
-export interface character{
-    type?:"character"
-    name:string
-    image?:string
-    firstMessage:string
-    desc:string
-    notes:string
-    chats:Chat[]
+export interface character {
+    type?: "character"
+    name: string
+    image?: string
+    firstMessage: string
+    desc: string
+    notes: string
+    chats: Chat[]
     chatFolders: ChatFolder[]
     chatPage: number
-    viewScreen: 'emotion'|'none'|'imggen'|'vn',
+    viewScreen: 'emotion' | 'none' | 'imggen' | 'vn',
     bias: [string, number][]
     emotionImages: [string, string][]
     globalLore: loreBook[]
@@ -1130,197 +1145,197 @@ export interface character{
     customscript: customscript[]
     triggerscript: triggerscript[]
     utilityBot: boolean
-    exampleMessage:string
-    removedQuotes?:boolean
-    creatorNotes:string
-    systemPrompt:string
-    postHistoryInstructions:string
-    alternateGreetings:string[]
-    tags:string[]
-    creator:string
+    exampleMessage: string
+    removedQuotes?: boolean
+    creatorNotes: string
+    systemPrompt: string
+    postHistoryInstructions: string
+    alternateGreetings: string[]
+    tags: string[]
+    creator: string
     characterVersion: string
-    personality:string
-    scenario:string
-    firstMsgIndex:number
-    loreSettings?:loreSettings
-    loreExt?:any
+    personality: string
+    scenario: string
+    firstMsgIndex: number
+    loreSettings?: loreSettings
+    loreExt?: any
     additionalData?: {
-        tag?:string[]
-        creator?:string
-        character_version?:string
+        tag?: string[]
+        creator?: string
+        character_version?: string
     }
-    ttsMode?:string
-    ttsSpeech?:string
-    voicevoxConfig?:{
+    ttsMode?: string
+    ttsSpeech?: string
+    voicevoxConfig?: {
         speaker?: string
         SPEED_SCALE?: number
         PITCH_SCALE?: number
         INTONATION_SCALE?: number
         VOLUME_SCALE?: number
     }
-    naittsConfig?:{
+    naittsConfig?: {
         customvoice?: boolean
         voice?: string
         version?: string
     }
-    gptSoVitsConfig?:{
-        url?:string
-        use_auto_path?:boolean
-        ref_audio_path?:string
-        use_long_audio?:boolean
+    gptSoVitsConfig?: {
+        url?: string
+        use_auto_path?: boolean
+        ref_audio_path?: string
+        use_long_audio?: boolean
         ref_audio_data?: {
-            fileName:string
-            assetId:string
+            fileName: string
+            assetId: string
         }
-        volume?:number
+        volume?: number
         text_lang?: "auto" | "auto_yue" | "en" | "zh" | "ja" | "yue" | "ko" | "all_zh" | "all_ja" | "all_yue" | "all_ko"
-        text?:string
-        use_prompt?:boolean
-        prompt?:string | null
+        text?: string
+        use_prompt?: boolean
+        prompt?: string | null
         prompt_lang?: "auto" | "auto_yue" | "en" | "zh" | "ja" | "yue" | "ko" | "all_zh" | "all_ja" | "all_yue" | "all_ko"
-        top_p?:number
-        temperature?:number
-        speed?:number
-        top_k?:number
+        top_p?: number
+        temperature?: number
+        speed?: number
+        top_k?: number
         text_split_method?: "cut0" | "cut1" | "cut2" | "cut3" | "cut4" | "cut5"
     }
-    fishSpeechConfig?:{
+    fishSpeechConfig?: {
         model?: {
-            _id:string
-            title:string
-            description:string
+            _id: string
+            title: string
+            description: string
         },
-        chunk_length:number,
-        normalize:boolean,
+        chunk_length: number,
+        normalize: boolean,
 
     }
-    supaMemory?:boolean
-    additionalAssets?:[string, string, string][]
-    ttsReadOnlyQuoted?:boolean
-    replaceGlobalNote:string
-    backgroundHTML?:string
-    reloadKeys?:number
-    backgroundCSS?:string
-    license?:string
-    private?:boolean
-    additionalText:string
-    oaiVoice?:string
-    virtualscript?:string
-    scriptstate?:{[key:string]:string|number|boolean}
+    supaMemory?: boolean
+    additionalAssets?: [string, string, string][]
+    ttsReadOnlyQuoted?: boolean
+    replaceGlobalNote: string
+    backgroundHTML?: string
+    reloadKeys?: number
+    backgroundCSS?: string
+    license?: string
+    private?: boolean
+    additionalText: string
+    oaiVoice?: string
+    virtualscript?: string
+    scriptstate?: { [key: string]: string | number | boolean }
     depth_prompt?: { depth: number, prompt: string }
-    extentions?:{[key:string]:any}
-    largePortrait?:boolean
-    lorePlus?:boolean
-    inlayViewScreen?:boolean
+    extentions?: { [key: string]: any }
+    largePortrait?: boolean
+    lorePlus?: boolean
+    inlayViewScreen?: boolean
     hfTTS?: {
         model: string
         language: string
     },
     vits?: OnnxModelFiles
-    realmId?:string
-    imported?:boolean
-    trashTime?:number
-    nickname?:string
-    source?:string[]
-    group_only_greetings?:string[]
-    creation_date?:number
-    modification_date?:number
+    realmId?: string
+    imported?: boolean
+    trashTime?: number
+    nickname?: string
+    source?: string[]
+    group_only_greetings?: string[]
+    creation_date?: number
+    modification_date?: number
     ccAssets?: Array<{
         type: string
         uri: string
         name: string
         ext: string
     }>
-    defaultVariables?:string
-    lowLevelAccess?:boolean
-    hideChatIcon?:boolean
-    lastInteraction?:number
-    translatorNote?:string
-    doNotChangeSeperateModels?:boolean
-    escapeOutput?:boolean
+    defaultVariables?: string
+    lowLevelAccess?: boolean
+    hideChatIcon?: boolean
+    lastInteraction?: number
+    translatorNote?: string
+    doNotChangeSeperateModels?: boolean
+    escapeOutput?: boolean
 }
 
 
-export interface loreSettings{
+export interface loreSettings {
     tokenBudget: number
-    scanDepth:number
+    scanDepth: number
     recursiveScanning: boolean
     fullWordMatching?: boolean
 }
 
 
-export interface groupChat{ 
+export interface groupChat {
     type: 'group'
-    image?:string
-    firstMessage:string
-    chats:Chat[]
+    image?: string
+    firstMessage: string
+    chats: Chat[]
     chatFolders: ChatFolder[]
     chatPage: number
-    name:string
-    viewScreen: 'single'|'multiple'|'none'|'emp',
-    characters:string[]
-    characterTalks:number[]
-    characterActive:boolean[]
+    name: string
+    viewScreen: 'single' | 'multiple' | 'none' | 'emp',
+    characters: string[]
+    characterTalks: number[]
+    characterActive: boolean[]
     globalLore: loreBook[]
     autoMode: boolean
-    useCharacterLore :boolean
+    useCharacterLore: boolean
     emotionImages: [string, string][]
     customscript: customscript[],
     chaId: string
     alternateGreetings?: string[]
-    creatorNotes?:string,
-    removedQuotes?:boolean
-    firstMsgIndex?:number,
-    loreSettings?:loreSettings
-    supaMemory?:boolean
-    ttsMode?:string
-    suggestMessages?:string[]
-    orderByOrder?:boolean
-    backgroundHTML?:string,
-    reloadKeys?:number
-    backgroundCSS?:string
-    oneAtTime?:boolean
-    virtualscript?:string
-    lorePlus?:boolean
-    trashTime?:number
-    nickname?:string
-    defaultVariables?:string
-    lowLevelAccess?:boolean
-    hideChatIcon?:boolean
-    lastInteraction?:number
+    creatorNotes?: string,
+    removedQuotes?: boolean
+    firstMsgIndex?: number,
+    loreSettings?: loreSettings
+    supaMemory?: boolean
+    ttsMode?: string
+    suggestMessages?: string[]
+    orderByOrder?: boolean
+    backgroundHTML?: string,
+    reloadKeys?: number
+    backgroundCSS?: string
+    oneAtTime?: boolean
+    virtualscript?: string
+    lorePlus?: boolean
+    trashTime?: number
+    nickname?: string
+    defaultVariables?: string
+    lowLevelAccess?: boolean
+    hideChatIcon?: boolean
+    lastInteraction?: number
 
     //lazy hack for typechecking
-    voicevoxConfig?:any
-    ttsSpeech?:string
-    naittsConfig?:any
-    oaiVoice?:string
+    voicevoxConfig?: any
+    ttsSpeech?: string
+    naittsConfig?: any
+    oaiVoice?: string
     hfTTS?: any
     vits?: OnnxModelFiles
-    gptSoVitsConfig?:any
-    fishSpeechConfig?:any
-    ttsReadOnlyQuoted?:boolean
-    exampleMessage?:string
-    systemPrompt?:string
-    replaceGlobalNote?:string
-    additionalText?:string
-    personality?:string
-    scenario?:string
-    translatorNote?:string
+    gptSoVitsConfig?: any
+    fishSpeechConfig?: any
+    ttsReadOnlyQuoted?: boolean
+    exampleMessage?: string
+    systemPrompt?: string
+    replaceGlobalNote?: string
+    additionalText?: string
+    personality?: string
+    scenario?: string
+    translatorNote?: string
     additionalData?: any
     depth_prompt?: { depth: number, prompt: string }
-    additionalAssets?:[string, string, string][]
-    utilityBot?:boolean
-    license?:string
-    realmId:string
+    additionalAssets?: [string, string, string][]
+    utilityBot?: boolean
+    license?: string
+    realmId: string
 }
 
-export interface botPreset{
-    name?:string
+export interface botPreset {
+    name?: string
     apiType?: string
     openAIKey?: string
     mainPrompt: string
     jailbreak: string
-    globalNote:string
+    globalNote: string
     temperature: number
     maxContext: number
     maxResponse: number
@@ -1328,17 +1343,17 @@ export interface botPreset{
     PresensePenalty: number
     formatingOrder: FormatingOrderItem[]
     aiModel?: string
-    subModel?:string
-    currentPluginProvider?:string
-    textgenWebUIStreamURL?:string
-    textgenWebUIBlockingURL?:string
-    forceReplaceUrl?:string
-    forceReplaceUrl2?:string
+    subModel?: string
+    currentPluginProvider?: string
+    textgenWebUIStreamURL?: string
+    textgenWebUIBlockingURL?: string
+    forceReplaceUrl?: string
+    forceReplaceUrl2?: string
     promptPreprocess: boolean,
     bias: [string, number][]
-    proxyRequestModel?:string
-    openrouterRequestModel?:string
-    proxyKey?:string
+    proxyRequestModel?: string
+    openrouterRequestModel?: string
+    proxyKey?: string
     ooba: OobaSettings
     ainconfig: AINsettings
     koboldURL?: string
@@ -1346,7 +1361,7 @@ export interface botPreset{
     autoSuggestPrompt?: string
     autoSuggestPrefix?: string
     autoSuggestClean?: boolean
-    promptTemplate?:PromptItem[]
+    promptTemplate?: PromptItem[]
     NAIadventure?: boolean
     NAIappendName?: boolean
     localStopStrings?: string[]
@@ -1354,49 +1369,49 @@ export interface botPreset{
     reverseProxyOobaArgs?: OobaChatCompletionRequestParams
     top_p?: number
     promptSettings?: PromptSettings
-    repetition_penalty?:number
-    min_p?:number
-    top_a?:number
-    openrouterProvider?:string
-    useInstructPrompt?:boolean
-    customPromptTemplateToggle?:string
-    templateDefaultVariables?:string
-    moduleIntergration?:string
-    top_k?:number
-    instructChatTemplate?:string
-    JinjaTemplate?:string
-    jsonSchemaEnabled?:boolean
-    jsonSchema?:string
-    strictJsonSchema?:boolean
-    extractJson?:string
-    groupTemplate?:string
-    groupOtherBotRole?:string
-    seperateParametersEnabled?:boolean
-    seperateParameters?:{
+    repetition_penalty?: number
+    min_p?: number
+    top_a?: number
+    openrouterProvider?: string
+    useInstructPrompt?: boolean
+    customPromptTemplateToggle?: string
+    templateDefaultVariables?: string
+    moduleIntergration?: string
+    top_k?: number
+    instructChatTemplate?: string
+    JinjaTemplate?: string
+    jsonSchemaEnabled?: boolean
+    jsonSchema?: string
+    strictJsonSchema?: boolean
+    extractJson?: string
+    groupTemplate?: string
+    groupOtherBotRole?: string
+    seperateParametersEnabled?: boolean
+    seperateParameters?: {
         memory: SeparateParameters,
         emotion: SeparateParameters,
         translate: SeparateParameters,
         otherAx: SeparateParameters
     }
-    customAPIFormat?:LLMFormat
+    customAPIFormat?: LLMFormat
     systemContentReplacement?: string
-    systemRoleReplacement?: 'user'|'assistant'
+    systemRoleReplacement?: 'user' | 'assistant'
     openAIPrediction?: string
     enableCustomFlags?: boolean
     customFlags?: LLMFlags[]
-    image?:string
-    regex?:customscript[]
-    reasonEffort?:number
-    thinkingTokens?:number
-    outputImageModal?:boolean
-    seperateModelsForAxModels?:boolean
-    seperateModels?:{
+    image?: string
+    regex?: customscript[]
+    reasonEffort?: number
+    thinkingTokens?: number
+    outputImageModal?: boolean
+    seperateModelsForAxModels?: boolean
+    seperateModels?: {
         memory: string
         emotion: string
         translate: string
         otherAx: string
     }
-    modelTools?:string[]
+    modelTools?: string[]
     fallbackModels?: {
         memory: string[],
         emotion: string[],
@@ -1408,88 +1423,88 @@ export interface botPreset{
 }
 
 
-interface hordeConfig{
-    apiKey:string
-    model:string
-    softPrompt:string
+interface hordeConfig {
+    apiKey: string
+    model: string
+    softPrompt: string
 }
 
-export interface folder{
-    name:string
-    data:string[]
-    color:string
-    id:string
-    imgFile?:string
-    img?:string
+export interface folder {
+    name: string
+    data: string[]
+    color: string
+    id: string
+    imgFile?: string
+    img?: string
 }
 
 
-interface sdConfig{
-    width:number
-    height:number
-    sampler_name:string
-    script_name:string
-    denoising_strength:number
-    enable_hr:boolean
+interface sdConfig {
+    width: number
+    height: number
+    sampler_name: string
+    script_name: string
+    denoising_strength: number
+    enable_hr: boolean
     hr_scale: number
-    hr_upscaler:string
+    hr_upscaler: string
 }
 
-export interface NAIImgConfig{
-    width:number,
-    height:number,
-    sampler:string,
-    noise_schedule:string,
-    steps:number,
-    scale:number,
-    cfg_rescale:number,
-    sm:boolean,
-    sm_dyn:boolean,
-    noise:number,
-    strength:number,
-    image:string,
-    base64image:string,
-    InfoExtracted:number,
+export interface NAIImgConfig {
+    width: number,
+    height: number,
+    sampler: string,
+    noise_schedule: string,
+    steps: number,
+    scale: number,
+    cfg_rescale: number,
+    sm: boolean,
+    sm_dyn: boolean,
+    noise: number,
+    strength: number,
+    image: string,
+    base64image: string,
+    InfoExtracted: number,
     //add 4
-    autoSmea:boolean,
-    use_coords:boolean,
+    autoSmea: boolean,
+    use_coords: boolean,
     legacy_uc: boolean,
-    v4_prompt:NAIImgConfigV4Prompt,
-    v4_negative_prompt:NAIImgConfigV4NegativePrompt,
+    v4_prompt: NAIImgConfigV4Prompt,
+    v4_negative_prompt: NAIImgConfigV4NegativePrompt,
     //add vibe
-    reference_image_multiple?:string[],
-    reference_strength_multiple?:number[],
-    vibe_data?:NAIVibeData,
-    vibe_model_selection?:string
+    reference_image_multiple?: string[],
+    reference_strength_multiple?: number[],
+    vibe_data?: NAIVibeData,
+    vibe_model_selection?: string
     //add variety+ and decrisp options
-    variety_plus:boolean,
-    decrisp:boolean,
+    variety_plus: boolean,
+    decrisp: boolean,
 }
 
 //add 4
-interface NAIImgConfigV4Prompt{
+interface NAIImgConfigV4Prompt {
     caption: NAIImgConfigV4Caption,
     use_coords: boolean,
     use_order: boolean
 }
 //add 4
-interface NAIImgConfigV4NegativePrompt{
+interface NAIImgConfigV4NegativePrompt {
     caption: NAIImgConfigV4Caption,
     legacy_uc: boolean
 }
 //add 4
-interface NAIImgConfigV4Caption{
+interface NAIImgConfigV4Caption {
     base_caption: string,
     char_captions: NAIImgConfigV4CharCaption[]
 }
 //add 4
-interface NAIImgConfigV4CharCaption{
+interface NAIImgConfigV4CharCaption {
     char_caption: string,
     centers:
-        {
-            x: number,
-            y: number
-        }[]
+    {
+        x: number,
+        y: number
+    }[]
 }
 
 // NAI Vibe Data interfaces
@@ -1521,58 +1536,58 @@ interface NAIVibeEncoding {
     };
 }
 
-interface ComfyConfig{
-    workflow:string,
+interface ComfyConfig {
+    workflow: string,
     posNodeID: string,
-    posInputName:string,
+    posInputName: string,
     negNodeID: string,
-    negInputName:string,
+    negInputName: string,
     timeout: number
 }
 
-export type FormatingOrderItem = 'main'|'jailbreak'|'chats'|'lorebook'|'globalNote'|'authorNote'|'lastChat'|'description'|'postEverything'|'personaPrompt'
+export type FormatingOrderItem = 'main' | 'jailbreak' | 'chats' | 'lorebook' | 'globalNote' | 'authorNote' | 'lastChat' | 'description' | 'postEverything' | 'personaPrompt'
 
-export interface Chat{
+export interface Chat {
     message: Message[]
-    note:string
-    name:string
+    note: string
+    name: string
     localLore: loreBook[]
-    sdData?:string
-    supaMemoryData?:string
-    hypaV2Data?:SerializableHypaV2Data
-    lastMemory?:string
-    suggestMessages?:string[]
-    isStreaming?:boolean
-    scriptstate?:{[key:string]:string|number|boolean}
-    modules?:string[]
-    id?:string
-    bindedPersona?:string
-    fmIndex?:number
-    hypaV3Data?:SerializableHypaV3Data
-    folderId?:string
-    lastDate?:number
+    sdData?: string
+    supaMemoryData?: string
+    hypaV2Data?: SerializableHypaV2Data
+    lastMemory?: string
+    suggestMessages?: string[]
+    isStreaming?: boolean
+    scriptstate?: { [key: string]: string | number | boolean }
+    modules?: string[]
+    id?: string
+    bindedPersona?: string
+    fmIndex?: number
+    hypaV3Data?: SerializableHypaV3Data
+    folderId?: string
+    lastDate?: number
 }
 
-export interface ChatFolder{
-    id:string
-    name?:string
-    color?:string
-    folded:boolean
+export interface ChatFolder {
+    id: string
+    name?: string
+    color?: string
+    folded: boolean
 }
 
-export interface Message{
-    role: 'user'|'char'
+export interface Message {
+    role: 'user' | 'char'
     data: string
     saying?: string
-    chatId?:string
+    chatId?: string
     time?: number
     generationInfo?: MessageGenerationInfo
     promptInfo?: MessagePresetInfo
-    name?:string
-    otherUser?:boolean
+    name?: string
+    otherUser?: boolean
 }
 
-export interface MessageGenerationInfo{
+export interface MessageGenerationInfo {
     model?: string
     generationId?: string
     inputTokens?: number
@@ -1580,25 +1595,25 @@ export interface MessageGenerationInfo{
     maxContext?: number
 }
 
-export interface MessagePresetInfo{
+export interface MessagePresetInfo {
     promptName?: string,
-    promptToggles?: {key: string, value: string}[],
+    promptToggles?: { key: string, value: string }[],
     promptText?: OpenAIChat[],
 }
 
-interface AINsettings{
+interface AINsettings {
     top_p: number,
     rep_pen: number,
     top_a: number,
-    rep_pen_slope:number,
+    rep_pen_slope: number,
     rep_pen_range: number,
-    typical_p:number
-    badwords:string
-    stoptokens:string
-    top_k:number
+    typical_p: number
+    badwords: string
+    stoptokens: string
+    top_k: number
 }
 
-export interface OobaSettings{
+export interface OobaSettings {
     max_new_tokens: number,
     do_sample: boolean,
     temperature: number,
@@ -1622,20 +1637,20 @@ export interface OobaSettings{
     tfs: number,
     epsilon_cutoff: number,
     eta_cutoff: number,
-    formating:{
-        header:string,
-        systemPrefix:string,
-        userPrefix:string,
-        assistantPrefix:string
-        seperator:string
-        useName:boolean
+    formating: {
+        header: string,
+        systemPrefix: string,
+        userPrefix: string,
+        assistantPrefix: string
+        seperator: string
+        useName: boolean
     }
 }
 
 
 export const saveImage = saveImageGlobal
 
-export const defaultAIN:AINsettings = {
+export const defaultAIN: AINsettings = {
     top_p: 0.7,
     rep_pen: 1.0625,
     top_a: 0.08,
@@ -1647,7 +1662,7 @@ export const defaultAIN:AINsettings = {
     top_k: 140
 }
 
-export const defaultOoba:OobaSettings = {
+export const defaultOoba: OobaSettings = {
     max_new_tokens: 180,
     do_sample: true,
     temperature: 0.7,
@@ -1671,18 +1686,18 @@ export const defaultOoba:OobaSettings = {
     tfs: 1,
     epsilon_cutoff: 0,
     eta_cutoff: 0,
-    formating:{
+    formating: {
         header: "Below is an instruction that describes a task. Write a response that appropriately completes the request.",
         systemPrefix: "### Instruction:",
         userPrefix: "### Input:",
         assistantPrefix: "### Response:",
-        seperator:"",
-        useName:false,
+        seperator: "",
+        useName: false,
     }
 }
 
 
-export const presetTemplate:botPreset = {
+export const presetTemplate: botPreset = {
     name: "New Preset",
     apiType: "gpt35_0301",
     openAIKey: "",
@@ -1694,7 +1709,7 @@ export const presetTemplate:botPreset = {
     maxResponse: 300,
     frequencyPenalty: 70,
     PresensePenalty: 70,
-    formatingOrder: ['main', 'description', 'personaPrompt','chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
+    formatingOrder: ['main', 'description', 'personaPrompt', 'chats', 'lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
     aiModel: "gpt35_0301",
     subModel: "gpt35_0301",
     currentPluginProvider: "",
@@ -1714,7 +1729,7 @@ export const presetTemplate:botPreset = {
     useInstructPrompt: false,
 }
 
-const defaultSdData:[string,string][] = [
+const defaultSdData: [string, string][] = [
     ["always", "solo, 1girl"],
     ['negative', ''],
     ["|character\'s appearance", ''],
@@ -1724,18 +1739,18 @@ const defaultSdData:[string,string][] = [
     ['current location', ''],
 ]
 
-export const defaultSdDataFunc = () =>{
+export const defaultSdDataFunc = () => {
     return safeStructuredClone(defaultSdData)
 }
 
-export function saveCurrentPreset(){
+export function saveCurrentPreset() {
     let db = getDatabase()
     let pres = db.botPresets
     pres[db.botPresetsId] = {
         name: pres[db.botPresetsId].name,
         apiType: db.apiType,
         openAIKey: db.openAIKey,
-        mainPrompt:db.mainPrompt,
+        mainPrompt: db.mainPrompt,
         jailbreak: db.jailbreak,
         globalNote: db.globalNote,
         temperature: db.temperature,
@@ -1780,10 +1795,10 @@ export function saveCurrentPreset(){
         top_k: db.top_k,
         instructChatTemplate: db.instructChatTemplate,
         JinjaTemplate: db.JinjaTemplate ?? '',
-        jsonSchemaEnabled:db.jsonSchemaEnabled??false,
-        jsonSchema:db.jsonSchema ?? '',
-        strictJsonSchema:db.strictJsonSchema ?? true,
-        extractJson:db.extractJson ?? '',
+        jsonSchemaEnabled: db.jsonSchemaEnabled ?? false,
+        jsonSchema: db.jsonSchema ?? '',
+        strictJsonSchema: db.strictJsonSchema ?? true,
+        extractJson: db.extractJson ?? '',
         groupOtherBotRole: db.groupOtherBotRole ?? 'user',
         groupTemplate: db.groupTemplate ?? '',
         seperateParametersEnabled: db.seperateParametersEnabled ?? false,
@@ -1809,7 +1824,7 @@ export function saveCurrentPreset(){
     setDatabase(db)
 }
 
-export function copyPreset(id:number){
+export function copyPreset(id: number) {
     saveCurrentPreset()
     let db = getDatabase()
     let pres = db.botPresets
@@ -1819,8 +1834,8 @@ export function copyPreset(id:number){
     setDatabase(db)
 }
 
-export function changeToPreset(id =0, savecurrent = true){
-    if(savecurrent){
+export function changeToPreset(id = 0, savecurrent = true) {
+    if (savecurrent) {
         saveCurrentPreset()
     }
     let db = getDatabase()
@@ -1831,7 +1846,7 @@ export function changeToPreset(id =0, savecurrent = true){
     setDatabase(db)
 }
 
-export function setPreset(db:Database, newPres: botPreset){
+export function setPreset(db: Database, newPres: botPreset) {
     db.apiType = newPres.apiType ?? db.apiType
     db.mainPrompt = newPres.mainPrompt ?? db.mainPrompt
     db.jailbreak = newPres.jailbreak ?? db.jailbreak
@@ -1916,7 +1931,7 @@ export function setPreset(db:Database, newPres: botPreset){
     db.reasoningEffort = newPres.reasonEffort ?? 0
     db.thinkingTokens = newPres.thinkingTokens ?? null
     db.outputImageModal = newPres.outputImageModal ?? false
-    if(!db.doNotChangeSeperateModels){
+    if (!db.doNotChangeSeperateModels) {
         db.seperateModelsForAxModels = newPres.seperateModelsForAxModels ?? false
         db.seperateModels = safeStructuredClone(newPres.seperateModels) ?? {
             memory: '',
@@ -1925,7 +1940,7 @@ export function setPreset(db:Database, newPres: botPreset){
             otherAx: ''
         }
     }
-    if(!db.doNotChangeFallbackModels){
+    if (!db.doNotChangeFallbackModels) {
         db.fallbackModels = safeStructuredClone(newPres.fallbackModels) ?? {
             memory: [],
             emotion: [],
@@ -1940,21 +1955,22 @@ export function setPreset(db:Database, newPres: botPreset){
     return db
 }
 
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
 import * as fflate from "fflate";
-import type { OnnxModelFiles } from '../process/transformers';
-import type { RisuModule } from '../process/modules';
+import { decode as decodeMsgpack, encode as encodeMsgpack } from "msgpackr";
+import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';
+import { LLMFlags, LLMFormat, LLMTokenizer } from '../model/modellist';
+import type { OpenAIChat } from '../process/index.svelte';
+import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV2Data } from '../process/memory/hypav2';
+import type { SerializableHypaV3Data } from '../process/memory/hypav3';
+import { createUlariPreset, type UlariPreset } from '../process/memory/ulari';
+import type { RisuModule } from '../process/modules';
+import type { Parameter } from '../process/request/request';
+import type { OnnxModelFiles } from '../process/transformers';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
-import { LLMFlags, LLMFormat, LLMTokenizer } from '../model/modellist';
-import type { Parameter } from '../process/request/request';
-import type { HypaModel } from '../process/memory/hypamemory';
-import type { SerializableHypaV3Data } from '../process/memory/hypav3';
-import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';
-import type { OpenAIChat } from '../process/index.svelte';
 
-export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
+export async function downloadPreset(id: number, type: 'json' | 'risupreset' | 'return' = 'json') {
     saveCurrentPreset()
     let db = getDatabase()
     let pres = safeStructuredClone(db.botPresets[id])
@@ -1963,13 +1979,13 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
     pres.forceReplaceUrl = ''
     pres.forceReplaceUrl2 = ''
     pres.proxyKey = ''
-    pres.textgenWebUIStreamURL=  ''
-    pres.textgenWebUIBlockingURL=  ''
+    pres.textgenWebUIStreamURL = ''
+    pres.textgenWebUIBlockingURL = ''
 
-    if(type === 'json'){
+    if (type === 'json') {
         downloadFile(pres.name + "_preset.json", Buffer.from(JSON.stringify(pres, null, 2)))
     }
-    else if(type === 'risupreset' || type === 'return'){
+    else if (type === 'risupreset' || type === 'return') {
         const buf = fflate.compressSync(encodeMsgpack({
             presetVersion: 2,
             type: 'preset',
@@ -1981,10 +1997,10 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
 
         const buf2 = await encodeRPack(buf)
 
-        if(type === 'risupreset'){
+        if (type === 'risupreset') {
             downloadFile(pres.name + "_preset.risup", buf2)
         }
-        else{
+        else {
             return {
                 data: pres,
                 buf: buf2
@@ -2003,34 +2019,34 @@ export async function downloadPreset(id:number, type:'json'|'risupreset'|'return
 }
 
 
-export async function importPreset(f:{
-    name:string
-    data:Uint8Array
-}|null = null){
-    if(!f){
+export async function importPreset(f: {
+    name: string
+    data: Uint8Array
+} | null = null) {
+    if (!f) {
         f = await selectSingleFile(["json", "preset", "risupreset", "risup"])
     }
-    if(!f){
+    if (!f) {
         return
     }
-    let pre:any
-    if(f.name.endsWith('.risupreset') || f.name.endsWith('.risup')){
+    let pre: any
+    if (f.name.endsWith('.risupreset') || f.name.endsWith('.risup')) {
         let data = f.data
-        if(f.name.endsWith('.risup')){
+        if (f.name.endsWith('.risup')) {
             data = await decodeRPack(data)
         }
         const decoded = await decodeMsgpack(fflate.decompressSync(data))
         console.log(decoded)
-        if((decoded.presetVersion === 0 || decoded.presetVersion === 2) && decoded.type === 'preset'){
-            pre = {...presetTemplate,...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.preset ?? decoded.pres, 'risupreset')))}
+        if ((decoded.presetVersion === 0 || decoded.presetVersion === 2) && decoded.type === 'preset') {
+            pre = { ...presetTemplate, ...decodeMsgpack(Buffer.from(await decryptBuffer(decoded.preset ?? decoded.pres, 'risupreset'))) }
         }
     }
-    else{
-        pre = {...presetTemplate,...(JSON.parse(Buffer.from(f.data).toString('utf-8')))}
+    else {
+        pre = { ...presetTemplate, ...(JSON.parse(Buffer.from(f.data).toString('utf-8'))) }
         console.log(pre)
     }
     let db = getDatabase()
-    if(pre.presetVersion && pre.presetVersion >= 3){
+    if (pre.presetVersion && pre.presetVersion >= 3) {
         //NAI preset
         const pr = safeStructuredClone(prebuiltPresets.NAI2)
         pr.temperature = pre.parameters.temperature * 100
@@ -2055,27 +2071,27 @@ export async function importPreset(f:{
         return
     }
 
-    if(Array.isArray(pre?.prompt_order?.[0]?.order) && Array.isArray(pre?.prompts)){
+    if (Array.isArray(pre?.prompt_order?.[0]?.order) && Array.isArray(pre?.prompts)) {
         //ST preset
         const pr = safeStructuredClone(presetTemplate)
         pr.promptTemplate = []
 
-        function findPrompt(identifier:number){
-            return pre.prompts.find((p:any) => p.identifier === identifier)
+        function findPrompt(identifier: number) {
+            return pre.prompts.find((p: any) => p.identifier === identifier)
         }
         pr.temperature = (pre.temperature ?? 0.8) * 100
         pr.frequencyPenalty = (pre.frequency_penalty ?? 0.7) * 100
         pr.PresensePenalty = (pre.presence_penalty * 0.7) * 100
         pr.top_p = pre.top_p ?? 1
 
-        for(const prompt of pre?.prompt_order?.[0]?.order){
-            if(!prompt?.enabled){
+        for (const prompt of pre?.prompt_order?.[0]?.order) {
+            if (!prompt?.enabled) {
                 continue
             }
             const p = findPrompt(prompt?.identifier ?? '')
-            if(p){
-                switch(p.identifier){
-                    case 'main':{
+            if (p) {
+                switch (p.identifier) {
+                    case 'main': {
                         pr.promptTemplate.push({
                             type: 'plain',
                             type2: 'main',
@@ -2085,7 +2101,7 @@ export async function importPreset(f:{
                         break
                     }
                     case 'jailbreak':
-                    case 'nsfw':{
+                    case 'nsfw': {
                         pr.promptTemplate.push({
                             type: 'jailbreak',
                             type2: 'normal',
@@ -2096,10 +2112,10 @@ export async function importPreset(f:{
                     }
                     case 'dialogueExamples':
                     case 'charPersonality':
-                    case 'scenario':{
+                    case 'scenario': {
                         break //ignore
                     }
-                    case 'chatHistory':{
+                    case 'chatHistory': {
                         pr.promptTemplate.push({
                             type: 'chat',
                             rangeEnd: 'end',
@@ -2107,28 +2123,28 @@ export async function importPreset(f:{
                         })
                         break
                     }
-                    case 'worldInfoBefore':{
+                    case 'worldInfoBefore': {
                         pr.promptTemplate.push({
                             type: 'lorebook'
                         })
                         break
                     }
-                    case 'worldInfoAfter':{
+                    case 'worldInfoAfter': {
                         break
                     }
-                    case 'charDescription':{
+                    case 'charDescription': {
                         pr.promptTemplate.push({
                             type: 'description'
                         })
                         break
                     }
-                    case 'personaDescription':{
+                    case 'personaDescription': {
                         pr.promptTemplate.push({
                             type: 'persona'
                         })
                         break
                     }
-                    default:{
+                    default: {
                         console.log(p)
                         pr.promptTemplate.push({
                             type: 'plain',
@@ -2139,12 +2155,12 @@ export async function importPreset(f:{
                     }
                 }
             }
-            else{
+            else {
                 console.log("Prompt not found", prompt)
 
             }
         }
-        if(pre?.assistant_prefill){
+        if (pre?.assistant_prefill) {
             pr.promptTemplate.push({
                 type: 'postEverything'
             })

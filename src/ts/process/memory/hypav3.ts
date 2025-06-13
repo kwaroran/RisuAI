@@ -8,11 +8,11 @@ import {
   getDatabase,
 } from "src/ts/storage/database.svelte";
 import { type OpenAIChat } from "../index.svelte";
-import { requestChatData } from "../request/request";
-import { chatCompletion, unloadEngine } from "../webllm";
-import { parseChatML } from "src/ts/parser.svelte";
+import { unloadEngine } from "../webllm";
 import { hypaV3ProgressStore } from "src/ts/stores.svelte";
 import { type ChatTokenizer } from "src/ts/tokenizer";
+import { wrapWithXml } from "./utils";
+import { cleanOrphanedSummary, summarize, toMemoryData as toHypaV3Data, toSerializableMemoryData as toSerializableHypaV3Data } from "./core";
 
 export interface HypaV3Preset {
   name: string;
@@ -39,7 +39,7 @@ export interface HypaV3Settings {
   embeddingMaxConcurrent: number;
 }
 
-interface HypaV3Data {
+export interface HypaV3Data {
   summaries: Summary[];
   lastSelectedSummaries?: number[]; // legacy
   metrics?: {
@@ -375,7 +375,7 @@ async function hypaMemoryV3MainExp(
     };
 
     const summarizationTasks = toSummarizeArray.map(
-      (item) => () => summarize(item)
+      (item) => () => summarize(item, settings)
     );
 
     // Start of performance measurement: summarize
@@ -1115,7 +1115,7 @@ async function hypaMemoryV3Main(
       );
 
       try {
-        const summarizeResult = await summarize(toSummarize);
+        const summarizeResult = await summarize(toSummarize, settings);
 
         data.summaries.push({
           text: summarizeResult,
@@ -1348,7 +1348,7 @@ async function hypaMemoryV3Main(
         );
 
         try {
-          const summarizeResult = await summarize(recentChats);
+          const summarizeResult = await summarize(recentChats, settings);
 
           queries.push(summarizeResult);
         } catch (error) {
@@ -1595,137 +1595,6 @@ async function hypaMemoryV3Main(
     chats: newChats,
     memory: toSerializableHypaV3Data(data),
   };
-}
-
-function toHypaV3Data(serialData: SerializableHypaV3Data): HypaV3Data {
-  // Remove legacy property
-  const { lastSelectedSummaries, ...restData } = serialData;
-
-  return {
-    ...restData,
-    summaries: serialData.summaries.map((summary) => ({
-      ...summary,
-      // Convert null back to undefined (JSON serialization converts undefined to null)
-      chatMemos: new Set(
-        summary.chatMemos.map((memo) => (memo === null ? undefined : memo))
-      ),
-    })),
-  };
-}
-
-function toSerializableHypaV3Data(data: HypaV3Data): SerializableHypaV3Data {
-  return {
-    ...data,
-    summaries: data.summaries.map((summary) => ({
-      ...summary,
-      chatMemos: [...summary.chatMemos],
-    })),
-  };
-}
-
-function cleanOrphanedSummary(chats: OpenAIChat[], data: HypaV3Data): void {
-  // Collect all memos from current chats
-  const currentChatMemos = new Set(chats.map((chat) => chat.memo));
-  const originalLength = data.summaries.length;
-
-  // Filter summaries - keep only those whose chatMemos are subset of current chat memos
-  data.summaries = data.summaries.filter((summary) => {
-    return isSubset(summary.chatMemos, currentChatMemos);
-  });
-
-  const removedCount = originalLength - data.summaries.length;
-
-  if (removedCount > 0) {
-    console.log(logPrefix, `Cleaned ${removedCount} orphaned summaries.`);
-  }
-}
-
-function isSubset(subset: Set<string>, superset: Set<string>): boolean {
-  for (const elem of subset) {
-    if (!superset.has(elem)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function wrapWithXml(tag: string, content: string): string {
-  return `<${tag}>\n${content}\n</${tag}>`;
-}
-
-export async function summarize(oaiMessages: OpenAIChat[]): Promise<string> {
-  const db = getDatabase();
-  const settings = getCurrentHypaV3Preset().settings;
-
-  const strMessages = oaiMessages
-    .map((chat) => `${chat.role}: ${chat.content}`)
-    .join("\n");
-
-  const summarizationPrompt =
-    settings.summarizationPrompt.trim() === ""
-      ? "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output.]"
-      : settings.summarizationPrompt;
-
-  const formated: OpenAIChat[] = parseChatML(
-    summarizationPrompt.replaceAll("{{slot}}", strMessages)
-  ) ?? [
-    {
-      role: "user",
-      content: strMessages,
-    },
-    {
-      role: "system",
-      content: summarizationPrompt,
-    },
-  ];
-
-  // API
-  if (settings.summarizationModel === "subModel") {
-    console.log(logPrefix, `Using ax model ${db.subModel} for summarization.`);
-
-    const response = await requestChatData(
-      {
-        formated,
-        bias: {},
-        useStreaming: false,
-        noMultiGen: true,
-      },
-      "memory"
-    );
-
-    if (response.type === "streaming" || response.type === "multiline") {
-      throw new Error("Unexpected response type");
-    }
-
-    if (response.type === "fail") {
-      throw new Error(response.result);
-    }
-
-    if (!response.result || response.result.trim().length === 0) {
-      throw new Error("Empty summary returned");
-    }
-
-    return response.result.trim();
-  }
-
-  // Local
-  const content = await chatCompletion(formated, settings.summarizationModel, {
-    max_tokens: 8192,
-    temperature: 0,
-    extra_body: {
-      enable_thinking: false,
-    },
-  });
-
-  if (!content || content.trim().length === 0) {
-    throw new Error("Empty summary returned");
-  }
-
-  // Remove think content
-  const thinkRegex = /<think>[\s\S]*?<\/think>/g;
-
-  return content.replace(thinkRegex, "").trim();
 }
 
 export function getCurrentHypaV3Preset(): HypaV3Preset {

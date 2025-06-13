@@ -62,7 +62,8 @@ export const LanguageVietnamese = {
         "additionalAssets": "Nội dung bổ sung để hiển thị trong cuộc trò chuyện của bạn.\n\n - sử dụng `{{raw::<asset name>}}` để dùng làm đường dẫn.\n - sử dụng `{{img::<asset name>}}` để sử dụng làm hình ảnh\n - sử dụng `{{video::<asset name>}}` để sử dụng làm video\n - sử dụng `{{audio::<asset name>}}` để sử dụng làm âm thanh\n    - nên đặt HTML nền",
         "superMemory": "SuperMemory giúp nhân vật của bạn ghi nhớ nhiều hơn bằng cách cung cấp dữ liệu tóm tắt cho AI.\n\nMô hình SuperMemory là mô hình tóm tắt văn bản đó. davinci được khuyến nghị và các mô hình phụ trợ không được khuyến nghị trừ khi đó là mô hình chưa được lọc với hơn 2000 mã thông báo có kỹ năng tóm tắt tuyệt vời.\n\nLời nhắc SuperMemory quyết định lời nhắc nào sẽ được gửi để tóm tắt. nếu bạn để trống, nó sẽ sử dụng lời nhắc mặc định. nên để trống.\n\nSau khi thiết lập xong, bạn có thể sử dụng nó trong cài đặt của một nhân vật.",
         "replaceGlobalNote": "Nếu nó không trống, nó sẽ thay thế ghi chú chung hiện tại bằng ghi chú này.",
-        "backgroundHTML": "Dữ liệu Markdown/HTML sẽ được đưa vào nền màn hình trò chuyện.\n\n bạn cũng có thể sử dụng tài sản bổ sung. ví dụ: bạn có thể sử dụng `{{audio::<asset name}}` cho nhạc nền.\n\n Ngoài ra, bạn có thể sử dụng những thứ này với các nội dung bổ sung:\n - `{{bg::<asset name>}}`: thêm nền làm nội dung"
+        "backgroundHTML": "Dữ liệu Markdown/HTML sẽ được đưa vào nền màn hình trò chuyện.\n\n bạn cũng có thể sử dụng tài sản bổ sung. ví dụ: bạn có thể sử dụng `{{audio::<asset name}}` cho nhạc nền.\n\n Ngoài ra, bạn có thể sử dụng những thứ này với các nội dung bổ sung:\n - `{{bg::<asset name>}}`: thêm nền làm nội dung",
+        "hybridSearchWeightsRatioDesc": "Càng về bên trái, việc tìm kiếm vectơ được ưu tiên và càng về bên phải, việc tìm kiếm từ khóa được ưu tiên. (Mặc định là vectơ 6:4 từ khóa)"
     },
     "setup": {
         "chooseProvider": "Chọn nhà cung cấp AI",
@@ -385,6 +386,7 @@ export const LanguageVietnamese = {
     "customInnerFormat": "Định dạng bên trong tùy chỉnh",
     "innerFormat": "Định dạng bên trong",
     "HypaMemory": "HypaBộ nhớ",
+    "UlariMemory": "UlariBộ nhớ",
     "ToggleHypaMemory": "Chuyển đổi HypaMemory",
     "resetPromptTemplateConfirm": "Bạn có thực sự muốn đặt lại mẫu lời nhắc không?",
     "emotionMethod": "Phương pháp cảm xúc",
@@ -414,6 +416,22 @@ export const LanguageVietnamese = {
     useAdvancedEditor: "Sử dụng trình biên tập nâng cao",
     "hypaV3Settings": {
         "descriptionLabel": "HypaMemory V3 là hệ thống bộ nhớ dài hạn sử dụng cả tóm tắt và tìm kiếm vector.",
+        "supaMemoryPromptPlaceHolder": "Để trống để sử dụng giá trị mặc định",
+        "maxMemoryTokensRatioLabel": "Tỷ lệ Token Bộ nhớ Tối đa (Ước tính)",
+        "maxMemoryTokensRatioError": "Không thể tính toán Tỷ lệ Token Bộ nhớ Tối đa",
+        "memoryTokensRatioLabel": "Tỷ lệ Token Bộ nhớ",
+        "extraSummarizationRatioLabel": "Tỷ lệ Tóm tắt Bổ sung",
+        "maxChatsPerSummaryLabel": "Số Tin nhắn Tối đa cho mỗi Tóm tắt",
+        "recentMemoryRatioLabel": "Tỷ lệ Bộ nhớ Gần đây",
+        "similarMemoryRatioLabel": "Tỷ lệ Bộ nhớ Tương tự",
+        "randomMemoryRatioLabel": "Tỷ lệ Bộ nhớ Ngẫu nhiên",
+        "enableSimilarityCorrectionLabel": "Bật Hiệu chỉnh Độ tương tự",
+        "preserveOrphanedMemoryLabel": "Giữ Bộ nhớ Mồ côi",
+        "applyRegexScriptWhenRerollingLabel": "Áp dụng Script Regex khi Tạo lại",
+        "doNotSummarizeUserMessageLabel": "Không Tóm tắt Tin nhắn Người dùng",
+    },
+    "ulariSettings": {
+        "descriptionLabel": "UlariMemory là một hệ thống bộ nhớ dài hạn kết hợp sử dụng tìm kiếm vectơ và tìm kiếm từ khóa để tóm tắt.",
         "supaMemoryPromptPlaceHolder": "Để trống để sử dụng giá trị mặc định",
         "maxMemoryTokensRatioLabel": "Tỷ lệ Token Bộ nhớ Tối đa (Ước tính)",
         "maxMemoryTokensRatioError": "Không thể tính toán Tỷ lệ Token Bộ nhớ Tối đa",

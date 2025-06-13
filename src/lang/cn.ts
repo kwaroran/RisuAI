@@ -128,7 +128,8 @@ export const languageChinese = {
         "systemRoleReplacement": "若模型不支持系统角色，将使用此角色替换系统角色。",
         "summarizationPrompt": "用于摘要的提示词。留空将使用默认提示。你还可以使用带有 {{slot}} 的 ChatML 格式来处理聊天数据。",
         "translatorPrompt": "用于翻译的提示词。留空将使用默认提示。你还可以使用带有 {{slot}} 的 ChatML 格式表示目标语言：用 {{slot::content}} 表示内容，用 {{slot::tnote}} 表示翻译注释。",
-        "translateBeforeHTMLFormatting": "激活后，将在正则脚本和 HTML 格式化之前翻译文本。这可能减少 Token 数，但可能破坏格式。"
+        "translateBeforeHTMLFormatting": "激活后，将在正则脚本和 HTML 格式化之前翻译文本。这可能减少 Token 数，但可能破坏格式。",
+        "hybridSearchWeightsRatioDesc": "越往左，优先搜索向量；越往右，优先搜索关键词。（默认为向量 6：关键词 4）"
     },
     "setup": {
         "chooseProvider": "选择 AI 提供者",
@@ -507,6 +508,7 @@ export const languageChinese = {
     "customInnerFormat": "自定义内部格式",
     "innerFormat": "内部格式",
     "HypaMemory": "HypaMemory",
+    "UlariMemory": "UlariMemory",
     "ToggleHypaMemory": "激活 HypaMemory",
     "resetPromptTemplateConfirm": "你真的确定要重置提示词模板吗？",
     "emotionMethod": "情绪检测方式",
@@ -776,6 +778,22 @@ export const languageChinese = {
     "loading": "加载中",
     "hypaV3Settings": {
         "descriptionLabel": "HypaMemory V3 是一个使用总结和向量搜索的长期记忆系统。",
+        "supaMemoryPromptPlaceHolder": "留空以使用默认值",
+        "maxMemoryTokensRatioLabel": "最大记忆令牌比率（估计）",
+        "maxMemoryTokensRatioError": "无法计算最大记忆令牌比率",
+        "memoryTokensRatioLabel": "记忆令牌比率",
+        "extraSummarizationRatioLabel": "额外总结比率",
+        "maxChatsPerSummaryLabel": "每个总结的最大消息数",
+        "recentMemoryRatioLabel": "最近记忆比率",
+        "similarMemoryRatioLabel": "相似记忆比率",
+        "randomMemoryRatioLabel": "随机记忆比率",
+        "enableSimilarityCorrectionLabel": "启用相似度校正",
+        "preserveOrphanedMemoryLabel": "保留孤立记忆",
+        "applyRegexScriptWhenRerollingLabel": "重新生成时应用正则脚本",
+        "doNotSummarizeUserMessageLabel": "不要总结用户消息",
+    },
+    "ulariSettings": {
+        "descriptionLabel": "UlariMemory 是一种混合长期记忆系统，在总结的基础上使用向量搜索和关键字搜索。",
         "supaMemoryPromptPlaceHolder": "留空以使用默认值",
         "maxMemoryTokensRatioLabel": "最大记忆令牌比率（估计）",
         "maxMemoryTokensRatioError": "无法计算最大记忆令牌比率",

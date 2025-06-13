@@ -133,6 +133,7 @@ export const languageSpanish = {
         triggerLLMPrompt: "Un prompt que se enviará al modelo. Puedes usar múltiples turnos y roles usando `@@role usuario`, `@@role sistema`, `@@role asistente`. Por ejemplo, \n\`\`\`\n@@role sistema\nresponde como hola\n@@role asistente\nhola\n@@role usuario\nhola\n\`\`\`",
         legacyTranslation: "Si está habilitado, usará el método de traducción antiguo, que preprocesa Markdown y citas antes de las traducciones en lugar de postprocesar después de las traducciones.",
         luaHelp: "Puedes usar scripts Lua como script de activación. Puedes definir funciones onInput, onOutput, onStart. onInput se llama cuando el usuario envía un mensaje, onOutput se llama cuando el personaje envía un mensaje, onStart se llama cuando comienza el chat. Para más información, consulta la documentación.",
+        hybridSearchWeightsRatioDesc: "Cuanto más a la izquierda, se prioriza la búsqueda de vectores, y cuanto más a la derecha, se prioriza la búsqueda de palabras clave. (Por defecto, vector 6:4 palabra clave)."
     },
     setup: {
         chooseProvider: "Elige Proveedor de IA",
@@ -469,6 +470,7 @@ export const languageSpanish = {
     customInnerFormat: "Formato Interno Personalizado",
     innerFormat: "Formato Interno",
     HypaMemory: "HypaMemoria",
+    UlariMemory: "UlariMemoria",
     ToggleHypaMemory: "Alternar HypaMemoria",
     resetPromptTemplateConfirm: "¿Realmente deseas restablecer la plantilla de prompt?",
     emotionMethod: "Método de Emoción",
@@ -685,6 +687,22 @@ export const languageSpanish = {
     useLegacyGUI: "Usar Interfaz Legacy",
     "hypaV3Settings": {
         "descriptionLabel": "HypaMemory V3 es un sistema de memoria a largo plazo que utiliza tanto resúmenes como búsqueda vectorial.",
+        "supaMemoryPromptPlaceHolder": "Dejar en blanco para usar el valor predeterminado",
+        "maxMemoryTokensRatioLabel": "Ratio Máximo de Tokens de Memoria (Estimado)",
+        "maxMemoryTokensRatioError": "No se puede calcular el ratio máximo de tokens de memoria",
+        "memoryTokensRatioLabel": "Ratio de Tokens de Memoria",
+        "extraSummarizationRatioLabel": "Ratio de Resumen Adicional",
+        "maxChatsPerSummaryLabel": "Mensajes Máximos por Resumen",
+        "recentMemoryRatioLabel": "Ratio de Memoria Reciente",
+        "similarMemoryRatioLabel": "Ratio de Memoria Similar",
+        "randomMemoryRatioLabel": "Ratio de Memoria Aleatoria",
+        "enableSimilarityCorrectionLabel": "Activar Corrección de Similitud",
+        "preserveOrphanedMemoryLabel": "Preservar Memoria Huérfana",
+        "applyRegexScriptWhenRerollingLabel": "Aplicar Script Regex al Regenerar",
+        "doNotSummarizeUserMessageLabel": "No Resumir Mensajes del Usuario",
+    },
+    "ulariSettings": {
+        "descriptionLabel": "UlariMemory es un sistema híbrido de memoria a largo plazo que utiliza búsqueda vectorial y búsqueda de palabras clave además de resumen.",
         "supaMemoryPromptPlaceHolder": "Dejar en blanco para usar el valor predeterminado",
         "maxMemoryTokensRatioLabel": "Ratio Máximo de Tokens de Memoria (Estimado)",
         "maxMemoryTokensRatioError": "No se puede calcular el ratio máximo de tokens de memoria",

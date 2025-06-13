@@ -47,7 +47,7 @@
                 </Arcodion>
             </div>
         {:else if toggle.type === 'select'}
-            <div class="w-full flex gap-2 mt-2 items-center" class:justify-end={$MobileGUI} >
+            <div class="flex items-center w-full gap-2 mt-2" class:justify-end={$MobileGUI} >
                 <span>{toggle.value}</span>
                 <SelectInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]}>
                     {#each toggle.options as option, i}
@@ -56,22 +56,22 @@
                 </SelectInput>
             </div>
         {:else if toggle.type === 'text'}
-            <div class="w-full flex gap-2 mt-2 items-center" class:justify-end={$MobileGUI}>
+            <div class="flex items-center w-full gap-2 mt-2" class:justify-end={$MobileGUI}>
                 <span>{toggle.value}</span>
                 <TextInput className="w-32" bind:value={DBState.db.globalChatVariables[`toggle_${toggle.key}`]} />
             </div>
         {:else if toggle.type === 'divider'}
             <!-- Prevent multiple dividers appearing in a row -->
             {#if index === 0 || items[index - 1]?.type !== 'divider' || items[index - 1]?.value !== toggle.value}
-                <div class="w-full min-h-5 flex gap-2 mt-2 items-center" class:justify-end={!reverse}>
+                <div class="flex items-center w-full gap-2 mt-2 min-h-5" class:justify-end={!reverse}>
                     {#if toggle.value}
                         <span class="shrink-0">{toggle.value}</span>
                     {/if}
-                    <hr class="border-t border-darkborderc m-0 flex-grow" />
+                    <hr class="flex-grow m-0 border-t border-darkborderc" />
                 </div>
             {/if}
         {:else}
-            <div class="w-full flex mt-2 items-center" class:justify-end={$MobileGUI}>
+            <div class="flex items-center w-full mt-2" class:justify-end={$MobileGUI}>
                 <CheckInput check={DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1'} reverse={reverse} name={toggle.value} onChange={() => {
                     DBState.db.globalChatVariables[`toggle_${toggle.key}`] = DBState.db.globalChatVariables[`toggle_${toggle.key}`] === '1' ? '0' : '1'
                 }} />
@@ -81,25 +81,40 @@
 {/snippet}
 
 {#if !noContainer && groupedToggles.length > 4}
-    <div class="h-48 border-darkborderc p-2 border rounded flex flex-col items-start mt-2 overflow-y-auto">
-        <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
+    <div class="flex flex-col items-start h-48 p-2 mt-2 overflow-y-auto border rounded border-darkborderc">
+        <div class="flex items-center w-full mt-2" class:justify-end={$MobileGUI}>
             <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse />
         </div>
         {@render toggles(groupedToggles, true)}
-        {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypaV3}
-            <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
-                <CheckInput bind:check={chara.supaMemory} reverse name={DBState.db.hypaV3 ? language.ToggleHypaMemory : DBState.db.hanuraiEnable ? language.hanuraiMemory : DBState.db.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+        {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypaV3 || DBState.db.useUlariMemory}
+            <div class="flex items-center w-full mt-2" class:justify-end={$MobileGUI}>
+                <CheckInput 
+                    bind:check={chara.supaMemory} 
+                    reverse 
+                    name={DBState.db.hypaV3 || DBState.db.useUlariMemory || DBState.db.hypaMemory
+                        ? language.ToggleHypaMemory
+                        : DBState.db.hanuraiEnable 
+                            ? language.hanuraiMemory
+                            : language.ToggleSuperMemory}
+                />
             </div>
         {/if}
     </div>
 {:else}
-    <div class="flex mt-2 items-center">
+    <div class="flex items-center mt-2">
         <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle}/>
     </div>
     {@render toggles(groupedToggles)}
-    {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypaV3}
-        <div class="flex mt-2 items-center">
-            <CheckInput bind:check={chara.supaMemory} name={DBState.db.hypaV3 ? language.ToggleHypaMemory : DBState.db.hanuraiEnable ? language.hanuraiMemory : DBState.db.hypaMemory ? language.ToggleHypaMemory : language.ToggleSuperMemory}/>
+    {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypaV3 || DBState.db.useUlariMemory}
+        <div class="flex items-center mt-2">
+            <CheckInput
+                bind:check={chara.supaMemory}
+                name={DBState.db.hypaV3 || DBState.db.useUlariMemory || DBState.db.hypaMemory
+                    ? language.ToggleHypaMemory
+                    : DBState.db.hanuraiEnable 
+                        ? language.hanuraiMemory
+                        : language.ToggleSuperMemory}
+            />
         </div>
     {/if}
 {/if}

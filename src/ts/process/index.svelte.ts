@@ -32,6 +32,7 @@ import { getModelInfo, LLMFlags } from "../model/modellist";
 import { hypaMemoryV3 } from "./memory/hypav3";
 import { getModuleAssets, getModuleToggles } from "./modules";
 import { getFileSrc, readImage } from "../globalApi.svelte";
+import { runUlariEngine } from "./memory/ulari";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -914,7 +915,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
     
-    if(nowChatroom.supaMemory && (DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypav2 || DBState.db.hypaV3)){
+    if(nowChatroom.supaMemory && (DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypav2 || DBState.db.hypaV3 || DBState.db.useUlariMemory)){
         chatProcessStage.set(2)
         if(DBState.db.hanuraiEnable){
             const hn = await hanuraiMemory(chats, {
@@ -964,6 +965,28 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             currentChat.hypaV3Data = sp.memory ?? currentChat.hypaV3Data
             DBState.db.characters[selectedChar].chats[selectedChat].hypaV3Data = currentChat.hypaV3Data
     
+            currentChat = DBState.db.characters[selectedChar].chats[selectedChat];
+            console.log("[Expected to be updated] chat's HypaV3Data: ", currentChat.hypaV3Data)
+        }
+        else if(DBState.db.useUlariMemory) {
+            console.log("Current chat's hypaV3 Data: ", currentChat.hypaV3Data)
+            const sp = await runUlariEngine(chats, currentTokens, maxContextTokens, currentChat, nowChatroom, tokenizer)
+            if (sp.error) {
+                // Save new summary
+                if (sp.memory) {
+                    // compatibility with hypa v3
+                    currentChat.hypaV3Data = sp.memory
+                    DBState.db.characters[selectedChar].chats[selectedChat].hypaV3Data = currentChat.hypaV3Data
+                }
+                console.log(sp)
+                throwError(sp.error)
+                return false
+            }
+            chats = sp.chats
+            currentTokens = sp.currentTokens
+            currentChat.hypaV3Data = sp.memory ?? currentChat.hypaV3Data
+            DBState.db.characters[selectedChar].chats[selectedChat].hypaV3Data = currentChat.hypaV3Data
+
             currentChat = DBState.db.characters[selectedChar].chats[selectedChat];
             console.log("[Expected to be updated] chat's HypaV3Data: ", currentChat.hypaV3Data)
         }

@@ -433,7 +433,7 @@
             <PlaygroundMenu />
         {/if}
     {:else}
-        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  onscroll={(e) => {
+        <div class="relative flex flex-col-reverse w-full h-full overflow-y-auto default-chat-screen"  onscroll={(e) => {
             //@ts-ignore  
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > loadPages){
@@ -452,7 +452,7 @@
                 {/if}
 
                 {#if !DBState.db.useAdvancedEditor}
-                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
+                <textarea class="flex-grow max-w-full min-w-0 p-2 ml-4 overflow-x-hidden overflow-y-hidden text-xl transition-colors bg-transparent border border-r-0 rounded-md rounded-r-none outline-none resize-none peer text-input-area focus:border-textcolor text-textcolor input-text border-darkborderc"
                           bind:value={messageInput}
                           bind:this={inputEle}
                           onkeydown={(e) => {
@@ -521,7 +521,7 @@
                 {#if $doingChat || doingChatInputTranslate}
                     <button
                             aria-labelledby="cancel"
-                            class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 hover:bg-blue-500 transition-colors" onclick={abortChat}
+                            class="flex items-center justify-center p-3 text-gray-100 transition-colors peer-focus:border-textcolor border-y border-darkborderc hover:bg-blue-500" onclick={abortChat}
                             style:height={inputHeight}
                     >
                         <div class="loadmove chat-process-stage-{$chatProcessStage}" class:autoload={autoMode}></div>
@@ -529,7 +529,7 @@
                 {:else}
                     <button
                             onclick={send}
-                            class="flex justify-center border-y border-darkborderc items-center text-gray-100 p-3 peer-focus:border-textcolor hover:bg-blue-500 transition-colors button-icon-send"
+                            class="flex items-center justify-center p-3 text-gray-100 transition-colors border-y border-darkborderc peer-focus:border-textcolor hover:bg-blue-500 button-icon-send"
                             style:height={inputHeight}
                     >
                         <Send />
@@ -541,7 +541,7 @@
                             openMenu = !openMenu
                             e.stopPropagation()
                         }}
-                            class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
+                            class="flex items-center justify-center p-3 mr-2 text-gray-100 transition-colors border-r peer-focus:border-textcolor border-y border-darkborderc rounded-r-md hover:bg-blue-500"
                             style:height={inputHeight}
                     >
                         <MenuIcon />
@@ -554,7 +554,7 @@
                         })
                         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
                     }}
-                         class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-gray-100 p-3 rounded-r-md hover:bg-blue-500 transition-colors"
+                         class="flex items-center justify-center p-3 mr-2 text-gray-100 transition-colors border-r peer-focus:border-textcolor border-y border-darkborderc rounded-r-md hover:bg-blue-500"
                          style:height={inputHeight}
                     >
                         <Plus />
@@ -563,10 +563,10 @@
             </div>
             {#if DBState.db.useAutoTranslateInput && !DBState.db.useAdvancedEditor && DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
                 <div class="flex items-center mt-2 mb-2">
-                    <label for='messageInputTranslate' class="text-textcolor ml-4">
+                    <label for='messageInputTranslate' class="ml-4 text-textcolor">
                         <LanguagesIcon />
                     </label>
-                    <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                    <textarea id = 'messageInputTranslate' class="flex-grow max-w-full min-w-0 p-2 ml-4 mr-2 overflow-x-hidden overflow-y-hidden text-xl bg-transparent rounded-md resize-none text-textcolor input-text border-darkbutton focus:bg-selected"
                               bind:value={messageInputTranslate}
                               bind:this={inputTranslateEle}
                               onkeydown={(e) => {
@@ -589,27 +589,27 @@
             {/if}
 
             {#if fileInput.length > 0}
-                <div class="flex items-center ml-4 flex-wrap p-2 m-2 border-darkborderc border rounded-md">
+                <div class="flex flex-wrap items-center p-2 m-2 ml-4 border rounded-md border-darkborderc">
                     {#each fileInput as file, i}
                         {#await getInlayAsset(file) then inlayAsset}
                             <div class="relative">
                                 {#if inlayAsset.type === 'image'}
-                                    <img src={inlayAsset.data} alt="Inlay" class="max-w-48 max-h-48 border border-darkborderc">
+                                    <img src={inlayAsset.data} alt="Inlay" class="border max-w-48 max-h-48 border-darkborderc">
                                 {:else if inlayAsset.type === 'video'}
-                                    <video controls class="max-w-48 max-h-48 border border-darkborderc">
+                                    <video controls class="border max-w-48 max-h-48 border-darkborderc">
                                         <source src={inlayAsset.data} type="video/mp4" />
                                         <track kind="captions" />
                                         Your browser does not support the video tag.
                                     </video>
                                 {:else if inlayAsset.type === 'audio'}
-                                    <audio controls class="max-w-48 max-h-24 border border-darkborderc">
+                                    <audio controls class="border max-w-48 max-h-24 border-darkborderc">
                                         <source src={inlayAsset.data} type="audio/mpeg" />
                                         Your browser does not support the audio tag.
                                     </audio>
                                 {:else}
                                     <div class="max-w-24 max-h-24">{file}</div>
                                 {/if}
-                                <button class="absolute -right-1 -top-1 p-1 bg-darkbg text-textcolor rounded-md transition-colors hover:text-draculared focus:text-draculared" onclick={() => {
+                                <button class="absolute p-1 transition-colors rounded-md -right-1 -top-1 bg-darkbg text-textcolor hover:text-draculared focus:text-draculared" onclick={() => {
                                     fileInput.splice(i, 1)
                                     updateInputSizeAll()
                                 }}>
@@ -623,7 +623,7 @@
             {/if}
 
             {#if toggleStickers}
-                <div class="ml-4 flex flex-wrap">
+                <div class="flex flex-wrap ml-4">
                     <AssetInput currentCharacter={currentCharacter} onSelect={(additionalAsset)=>{
                         let fileType = 'img'
                         if(additionalAsset.length > 2 && additionalAsset[2]) {
@@ -649,7 +649,7 @@
 
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message?.[0]?.data?.startsWith(coldStorageHeader)  }
                 {#await preLoadChat($selectedCharID, DBState.db.characters[$selectedCharID].chatPage)}
-                    <div class="w-full flex justify-center text-textcolor2 italic mb-12">
+                    <div class="flex justify-center w-full mb-12 italic text-textcolor2">
                         {language.loadingChatData}
                     </div>
                 {:then a}
@@ -728,7 +728,7 @@
                     e.stopPropagation()
                 }}>
                     {#if DBState.db.characters[$selectedCharID].type === 'group'}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={runAutoMode}>
+                        <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={runAutoMode}>
                             <DicesIcon />
                             <span class="ml-2">{language.autoMode}</span>
                         </div>
@@ -737,7 +737,7 @@
                     
                     <!-- svelte-ignore block_empty -->
                     {#if DBState.db.characters[$selectedCharID].ttsMode === 'webspeech' || DBState.db.characters[$selectedCharID].ttsMode === 'elevenlab'}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                        <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={() => {
                             stopTTS()
                         }}>
                             <MicOffIcon />
@@ -745,7 +745,7 @@
                         </div>
                     {/if}
 
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors"
+                    <div class="flex items-center transition-colors cursor-pointer hover:text-green-500"
                         class:text-textcolor2={(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length < 2) || (DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1].role !== 'char')}
                         onclick={() => {
                             if((DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length < 2) || (DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1].role !== 'char')){
@@ -760,7 +760,7 @@
 
 
                     {#if DBState.db.showMenuChatList}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                        <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={() => {
                             openChatList = true
                             openMenu = false
                         }}>
@@ -770,8 +770,8 @@
                     {/if}
 
                     {#if DBState.db.showMenuHypaMemoryModal}
-                        {#if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2) || DBState.db.hypaV3}
-                            <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                        {#if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2) || DBState.db.hypaV3 || DBState.db.useUlariMemory}
+                            <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={() => {
                                 if (DBState.db.hypav2) {
                                     DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].hypaV2Data ??= {
                                         lastMainChunkID: 0,
@@ -779,7 +779,7 @@
                                         chunks: [],
                                     }
                                     showHypaV2Alert();
-                                } else if (DBState.db.hypaV3) {
+                                } else if (DBState.db.hypaV3 || DBState.db.useUlariMemory) {
                                     $hypaV3ModalOpen = true
                                 }
 
@@ -803,14 +803,14 @@
                         
                     {/if}
             
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                    <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={() => {
                         screenShot()
                     }}>
                         <CameraIcon />
                         <span class="ml-2">{language.screenshot}</span>
                     </div>
 
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={async () => {
+                    <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={async () => {
                         const res = await postChatFile(messageInput)
                         if(res?.type === 'asset'){
                             fileInput.push(res.data)
@@ -835,7 +835,7 @@
                     </div>
 
 
-                    <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                    <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={() => {
                         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules ??= []
                         openModuleList = true
                         openMenu = false
@@ -845,7 +845,7 @@
                     </div>
 
                     {#if DBState.db.sideMenuRerollButton}
-                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={reroll}>
+                        <div class="flex items-center transition-colors cursor-pointer hover:text-green-500" onclick={reroll}>
                             <RefreshCcwIcon />
                             <span class="ml-2">{language.reroll}</span>
                         </div>

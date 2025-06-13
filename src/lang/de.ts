@@ -91,7 +91,8 @@ export const languageGerman = {
         replaceGlobalNote: "Sofern dieses Feld ausgefüllt ist, wird es die aktuelle globale Notiz ersetzen",
         backgroundHTML: "Ein Markdown/HTML-Datenblock, der im Backend der Chat-Ausgabe hinzugefügt wird.\n\n Sie können auch zusätzliche Assets verwenden. Zum Beispiel können Sie `{{audio::<Asset-Name}}` für Hintergrundmusik verwenden."
             + "\n\n Zusätzlich können Sie dies mit weiteren Assets verwenden:"
-            + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen"
+            + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen",
+        hybridSearchWeightsRatioDesc: "Je weiter links, desto höher die Priorität für die Suche nach Vektoren und je weiter rechts, desto höher die Priorität für die Suche nach Schlüsselwörtern. (Standardmäßig wird das Schlüsselwort „Vektor 6:4“ verwendet.)"
     },
     setup: {
         chooseProvider: "Wählen Sie Ihren AI-Anbieter aus",
@@ -414,6 +415,7 @@ export const languageGerman = {
     customInnerFormat: "Benutzerdefiniertes Inner-Format",
     innerFormat: "Inner-Format",
     HypaMemory: "HypaMemory",
+    UlariMemory: "UlariMemory",
     ToggleHypaMemory: "HypaMemory umschalten",
     resetAnweisungsTemplateConfirm: "Möchten Sie die Anweisungs-Vorlage wirklich zurücksetzen?",
     emotionMethod: "Emotionsmethode",
@@ -453,6 +455,9 @@ export const languageGerman = {
         "preserveOrphanedMemoryLabel": "Verwaiste Erinnerungen bewahren",
         "applyRegexScriptWhenRerollingLabel": "Regex-Skript beim Neugenerieren anwenden",
         "doNotSummarizeUserMessageLabel": "Benutzernachrichten nicht zusammenfassen",
+    },
+    "ulariSettings": {
+        "descriptionLabel": "UlariMemory ist ein hybrides Langzeitgedächtnissystem, das zusätzlich zur Zusammenfassung eine Vektorsuche und eine Stichwortsuche verwendet."
     },
     "hypaV3Modal": {
         "titleLabel": "HypaV3",

@@ -20,6 +20,7 @@
     import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "lucide-svelte";
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
+    import { createUlariPreset } from "src/ts/process/memory/ulari";
 
     $effect.pre(() => {
         DBState.db.NAIImgConfig ??= {
@@ -134,29 +135,29 @@
     // if(DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc === undefined) DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc = false;
 
 </script>
-<h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
+<h2 class="mt-2 mb-2 text-2xl font-bold">{language.otherBots}</h2>
 
 
 {#if submenu !== -1}
-    <div class="flex w-full rounded-md border border-darkborderc mb-4">
+    <div class="flex w-full mb-4 border rounded-md border-darkborderc">
         <button onclick={() => {
             submenu = 0
-        }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
+        }} class="flex-1 p-2 border-r border-darkborderc" class:bg-darkbutton={submenu === 0}>
             <span>{language.longTermMemory}</span>
         </button>
         <button onclick={() => {
             submenu = 1
-        }} class="p2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 1}>
+        }} class="flex-1 border-r p2 border-darkborderc" class:bg-darkbutton={submenu === 1}>
             <span>TTS</span>
         </button>
         <button onclick={() => {
             submenu = 2
-        }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
+        }} class="flex-1 p-2 border-r border-darkborderc" class:bg-darkbutton={submenu === 2}>
             <span>{language.emotionImage}</span>
         </button>
         <button onclick={() => {
             submenu = 3
-        }} class="p-2 flex-1" class:bg-darkbutton={submenu === 3}>
+        }} class="flex-1 p-2" class:bg-darkbutton={submenu === 3}>
             <span>{language.imageGeneration}</span>
         </button>
     </div>
@@ -164,7 +165,7 @@
 
 {#if submenu === 3 || submenu === -1}
     <Arcodion name={language.imageGeneration} styled disabled={submenu !== -1}>
-        <span class="text-textcolor mt-2">{language.imageGeneration} {language.provider} <Help key="sdProvider"/></span>
+        <span class="mt-2 text-textcolor">{language.imageGeneration} {language.provider} <Help key="sdProvider"/></span>
         <SelectInput className="mt-2 mb-4" bind:value={DBState.db.sdProvider}>
             <OptionInput value="" >None</OptionInput>
             <OptionInput value="webui" >Stable Diffusion WebUI</OptionInput>
@@ -181,12 +182,12 @@
         </SelectInput>
 
         {#if DBState.db.sdProvider === 'webui'}
-        <span class="text-draculared text-xs mb-2">You must use WebUI with --api flag</span>
-            <span class="text-draculared text-xs mb-2">You must use WebUI without agpl license or use unmodified version with agpl license to observe the contents of the agpl license.</span>
+        <span class="mb-2 text-xs text-draculared">You must use WebUI with --api flag</span>
+            <span class="mb-2 text-xs text-draculared">You must use WebUI without agpl license or use unmodified version with agpl license to observe the contents of the agpl license.</span>
             {#if !isTauri}
-                <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
+                <span class="mb-2 text-xs text-draculared">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
             {/if}
-            <span class="text-textcolor mt-2">WebUI {language.providerURL}</span>
+            <span class="mt-2 text-textcolor">WebUI {language.providerURL}</span>
             <TextInput size="sm" marginBottom placeholder="https://..." bind:value={DBState.db.webUiUrl}/>
             <span class="text-textcolor">Steps</span>
             <NumberInput size="sm" marginBottom min={0} max={100} bind:value={DBState.db.sdSteps}/>
@@ -215,7 +216,7 @@
         {/if}
 
         {#if DBState.db.sdProvider === 'novelai'}
-            <span class="text-textcolor mt-2">Novel AI {language.providerURL}</span>
+            <span class="mt-2 text-textcolor">Novel AI {language.providerURL}</span>
             <TextInput size="sm" marginBottom placeholder="https://image.novelai.net" bind:value={DBState.db.NAIImgUrl}/>
             <span class="text-textcolor">API Key</span>
             <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={DBState.db.NAIApiKey}/>
@@ -310,8 +311,8 @@
             
             {#if DBState.db.NAII2I}
             
-                <span class="text-textcolor mt-4">Base image</span>
-                <span class="text-textcolor2 text-xs mb-2 block">Leave blank to use the character's default image.</span>
+                <span class="mt-4 text-textcolor">Base image</span>
+                <span class="block mb-2 text-xs text-textcolor2">Leave blank to use the character's default image.</span>
                 <div class="relative">
                     <button onclick={async () => {
                         const img = await selectSingleFile([
@@ -328,16 +329,16 @@
                         DBState.db.NAIImgConfig.image = saveId
                     }}>
                         {#if !DBState.db.NAIImgConfig.image || DBState.db.NAIImgConfig.image === ''}
-                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                            <div class="flex items-center justify-center w-20 h-20 rounded-md shadow-lg cursor-pointer bg-textcolor2 hover:text-green-500">
                                 <span class="text-sm">Upload<br />Image</span>
                             </div>
                         {:else}
                             {#await getCharImage(DBState.db.NAIImgConfig.image, 'plain')}
-                                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                                <div class="flex items-center justify-center w-20 h-20 rounded-md shadow-lg cursor-pointer bg-textcolor2 hover:text-green-500">
                                     <span class="text-sm">Uploading<br />Image..</span>
                                 </div>
                             {:then im}
-                                <img src={im} class="rounded-md h-40 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" alt="Base Preview"/>
+                                <img src={im} class="h-40 rounded-md shadow-lg cursor-pointer bg-textcolor2 hover:text-green-500" alt="Base Preview"/>
                             {/await}
                         {/if}
                     </button>
@@ -348,22 +349,22 @@
                                 DBState.db.NAIImgConfig.image = undefined;
                                 DBState.db.NAIImgConfig.base64image = undefined;
                             }}
-                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                            class="absolute px-2 py-1 font-bold text-white bg-red-500 rounded top-2 right-2 hover:bg-red-700"
                         >
                             Delete
                         </button>
                     {/if}
                 </div>
 
-                <span class="text-textcolor mt-4">Strength</span>
+                <span class="mt-4 text-textcolor">Strength</span>
                 <SliderInput min={0} max={0.99} step={0.01} fixed={2} bind:value={DBState.db.NAIImgConfig.strength}/>
-                <span class="text-textcolor mt-4">Noise</span>
+                <span class="mt-4 text-textcolor">Noise</span>
                 <SliderInput min={0} max={0.99} step={0.01} fixed={2} bind:value={DBState.db.NAIImgConfig.noise}/>
 
 
             {/if}
 
-            <span class="text-textcolor mt-4">Vibe</span>
+            <span class="mt-4 text-textcolor">Vibe</span>
             <div class="relative">
             <button onclick={async () => {
                 const file = await selectSingleFile(['naiv4vibe'])
@@ -412,11 +413,11 @@
                 }
             }}>
                 {#if !DBState.db.NAIImgConfig.vibe_data || !DBState.db.NAIImgConfig.vibe_data.thumbnail}
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                    <div class="flex items-center justify-center w-20 h-20 rounded-md shadow-lg cursor-pointer bg-textcolor2 hover:text-green-500">
                         <span class="text-sm">Upload<br />Vibe</span>
                     </div>
                 {:else}
-                    <img src={DBState.db.NAIImgConfig.vibe_data.thumbnail} alt="Vibe Preview" class="rounded-md h-40 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
+                    <img src={DBState.db.NAIImgConfig.vibe_data.thumbnail} alt="Vibe Preview" class="h-40 rounded-md shadow-lg cursor-pointer bg-textcolor2 hover:text-green-500" />
                 {/if}
             </button>
 
@@ -426,7 +427,7 @@
                         DBState.db.NAIImgConfig.vibe_data = undefined;
                         DBState.db.NAIImgConfig.vibe_model_selection = undefined;
                     }}
-                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                    class="absolute px-2 py-1 font-bold text-white bg-red-500 rounded top-2 right-2 hover:bg-red-700"
                 >
                     Delete
                 </button>
@@ -436,7 +437,7 @@
 
             {#if DBState.db.NAIImgConfig.vibe_data}
 
-                <span class="text-textcolor mt-4">Vibe Model</span>
+                <span class="mt-4 text-textcolor">Vibe Model</span>
                 <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.vibe_model_selection} onchange={(e) => {
                     // When vibe model changes, set InfoExtracted to the first value
                     if (DBState.db.NAIImgConfig.vibe_data?.encodings &&
@@ -476,7 +477,7 @@
             <span class="text-textcolor">OpenAI API Key</span>
             <TextInput size="sm" marginBottom placeholder="sk-..." bind:value={DBState.db.openAIKey}/>
 
-            <span class="text-textcolor mt-4">Dall-E Quality</span>
+            <span class="mt-4 text-textcolor">Dall-E Quality</span>
             <SelectInput className="mt-2 mb-4" bind:value={DBState.db.dallEQuality}>
                 <OptionInput value="standard" >Standard</OptionInput>
                 <OptionInput value="hd" >HD</OptionInput>
@@ -522,7 +523,7 @@
         {/if}
 
         {#if DBState.db.sdProvider === 'comfyui'}
-            <span class="text-textcolor mt-2">ComfyUI {language.providerURL}</span>
+            <span class="mt-2 text-textcolor">ComfyUI {language.providerURL}</span>
             <TextInput size="sm" marginBottom placeholder="http://127.0.0.1:8188" bind:value={DBState.db.comfyUiUrl}/>
 
             <span class="text-textcolor">Workflow <Help key="comfyWorkflow" /></span>
@@ -533,11 +534,11 @@
         {/if}
 
         {#if DBState.db.sdProvider === 'comfy'}
-            <span class="text-draculared text-xs mb-2">The first image generated by the prompt will be selected. </span>
+            <span class="mb-2 text-xs text-draculared">The first image generated by the prompt will be selected. </span>
             {#if !isTauri}
-                <span class="text-draculared text-xs mb-2">"Please run comfyUI with --enable-cors-header."</span>
+                <span class="mb-2 text-xs text-draculared">"Please run comfyUI with --enable-cors-header."</span>
             {/if}
-            <span class="text-textcolor mt-2">ComfyUI {language.providerURL}</span>
+            <span class="mt-2 text-textcolor">ComfyUI {language.providerURL}</span>
             <TextInput size="sm" marginBottom placeholder="http://127.0.0.1:8188" bind:value={DBState.db.comfyUiUrl}/>
             <span class="text-textcolor">Workflow</span>
             <TextInput size="sm" marginBottom placeholder="valid ComfyUI API json (Enable Dev mode Options in ComfyUI)" bind:value={DBState.db.comfyConfig.workflow}/>
@@ -558,12 +559,12 @@
             <span class="text-textcolor">Fal.ai API Key</span>
             <TextInput size="sm" marginBottom placeholder="..." bind:value={DBState.db.falToken}/>
 
-            <span class="text-textcolor mt-4">Width</span>
+            <span class="mt-4 text-textcolor">Width</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.sdConfig.width}/>
-            <span class="text-textcolor mt-4">Height</span>
+            <span class="mt-4 text-textcolor">Height</span>
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.sdConfig.height}/>
 
-            <span class="text-textcolor mt-4">Model</span>
+            <span class="mt-4 text-textcolor">Model</span>
             <SelectInput className="mt-2" bind:value={DBState.db.falModel}>
                 <OptionInput value="fal-ai/flux/dev" >Flux[Dev]</OptionInput>
                 <OptionInput value="fal-ai/flux-lora" >Flux[Dev] with Lora</OptionInput>
@@ -572,10 +573,10 @@
             </SelectInput>
 
             {#if DBState.db.falModel === 'fal-ai/flux-lora'}
-                <span class="text-textcolor mt-4">Lora Model URL <Help key="urllora" /></span>
+                <span class="mt-4 text-textcolor">Lora Model URL <Help key="urllora" /></span>
                 <TextInput size="sm" marginBottom bind:value={DBState.db.falLora}/>
 
-                <span class="text-textcolor mt-4">Lora Weight</span>
+                <span class="mt-4 text-textcolor">Lora Weight</span>
                 <SliderInput fixed={2} min={0}  max={2} step={0.01} bind:value={DBState.db.falLoraScale}/>
             {/if}
 
@@ -586,19 +587,19 @@
 
 {#if submenu === 1 || submenu === -1}
 <Arcodion name="TTS" styled disabled={submenu !== -1}>
-    <span class="text-textcolor mt-2">Auto Speech</span>
+    <span class="mt-2 text-textcolor">Auto Speech</span>
     <CheckInput bind:check={DBState.db.ttsAutoSpeech}/>
 
-    <span class="text-textcolor mt-2">ElevenLabs API key</span>
+    <span class="mt-2 text-textcolor">ElevenLabs API key</span>
     <TextInput size="sm" marginBottom bind:value={DBState.db.elevenLabKey}/>
 
-    <span class="text-textcolor mt-2">VOICEVOX URL</span>
+    <span class="mt-2 text-textcolor">VOICEVOX URL</span>
     <TextInput size="sm" marginBottom bind:value={DBState.db.voicevoxUrl}/>
 
     <span class="text-textcolor">OpenAI Key</span>
     <TextInput size="sm" marginBottom bind:value={DBState.db.openAIKey}/>
 
-    <span class="text-textcolor mt-2">NovelAI API key</span>
+    <span class="mt-2 text-textcolor">NovelAI API key</span>
     <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={DBState.db.NAIApiKey}/>
 
     <span class="text-textcolor">Huggingface Key</span>
@@ -612,7 +613,7 @@
 
 {#if submenu === 2 || submenu === -1}
 <Arcodion name={language.emotionImage} styled disabled={submenu !== -1}>
-    <span class="text-textcolor mt-2">{language.emotionMethod}</span>
+    <span class="mt-2 text-textcolor">{language.emotionMethod}</span>
 
     <SelectInput className="mt-2 mb-4" bind:value={DBState.db.emotionProcesser}>
         <OptionInput value="submodel" >Ax. Model</OptionInput>
@@ -623,13 +624,14 @@
 
 {#if submenu === 0 || submenu === -1}
     <Arcodion name={language.longTermMemory} styled disabled={submenu !== -1}>
-        <span class="text-textcolor mt-4">{language.type}</span>
+        <span class="mt-4 text-textcolor">{language.type}</span>
 
         <SelectInput value={
             DBState.db.hypaV3 ? 'hypaV3' :
             DBState.db.hypav2 ? 'hypaV2' :
             DBState.db.supaModelType !== 'none' ? 'supaMemory' :
-            DBState.db.hanuraiEnable ? 'hanuraiMemory' : 'none'
+            DBState.db.hanuraiEnable ? 'hanuraiMemory' : 
+            DBState.db.useUlariMemory ? 'ulariMemory' : 'none'
         } onchange={(v) => {
             //@ts-ignore
             const value = v.target.value
@@ -639,24 +641,35 @@
                 DBState.db.hypav2 = false
                 DBState.db.hanuraiEnable = false
                 DBState.db.hypaV3 = false
+                DBState.db.useUlariMemory = false
             } else if (value === 'hanuraiMemory'){
                 DBState.db.supaModelType = 'none'
                 DBState.db.memoryAlgorithmType = 'hanuraiMemory'
                 DBState.db.hypav2 = false
                 DBState.db.hanuraiEnable = true
                 DBState.db.hypaV3 = false
+                DBState.db.useUlariMemory = false
             } else if (value === 'hypaV2') {
                 DBState.db.supaModelType = 'distilbart'
                 DBState.db.memoryAlgorithmType = 'hypaMemoryV2'
                 DBState.db.hypav2= true
                 DBState.db.hanuraiEnable = false
                 DBState.db.hypaV3 = false
+                DBState.db.useUlariMemory = false
             } else if (value === 'hypaV3') {
                 DBState.db.memoryAlgorithmType = 'hypaMemoryV3'
                 DBState.db.supaModelType = 'none'
                 DBState.db.hanuraiEnable = false
                 DBState.db.hypav2 = false
                 DBState.db.hypaV3 = true
+                DBState.db.useUlariMemory = false
+            } else if (value === 'ulariMemory') {
+                DBState.db.memoryAlgorithmType = 'ulariMemory'
+                DBState.db.supaModelType = 'none'
+                DBState.db.hypav2 = false
+                DBState.db.hanuraiEnable = false
+                DBState.db.hypaV3 = false  
+                DBState.db.useUlariMemory = true
             } else {
                 DBState.db.supaModelType = 'none'
                 DBState.db.memoryAlgorithmType = 'none'
@@ -670,18 +683,19 @@
             <OptionInput value="hypaV2" >{language.HypaMemory} V2</OptionInput>
             <OptionInput value="hanuraiMemory" >{language.hanuraiMemory}</OptionInput>
             <OptionInput value="hypaV3" >{language.HypaMemory} V3</OptionInput>
+            <OptionInput value="ulariMemory">{language.UlariMemory}</OptionInput>
         </SelectInput>
 
         {#if DBState.db.hanuraiEnable}
-            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hanuraiDesc}</span>
+            <span class="max-w-full mb-2 text-sm break-words text-textcolor2 text-wrap">{language.hanuraiDesc}</span>
             <span>Chunk Size</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hanuraiTokens} min={100} />
             <div class="flex">
                 <Check bind:check={DBState.db.hanuraiSplit} name="Text Spliting"/>
             </div>
         {:else if DBState.db.hypav2}
-            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hypaV2Desc}</span>
-            <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
+            <span class="max-w-full mb-2 text-sm break-words text-textcolor2 text-wrap">{language.hypaV2Desc}</span>
+            <span class="mt-4 text-textcolor">{language.SuperMemory} {language.model}</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.supaModelType}>
                 <OptionInput value="distilbart">distilbart-cnn-6-6 (Free/Local)</OptionInput>
                 <OptionInput value="instruct35">OpenAI 3.5 Turbo Instruct</OptionInput>
@@ -698,18 +712,18 @@
             <span class="text-textcolor">{language.hypaAllocatedTokens}</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hypaAllocatedTokens} min={100} />
         {:else if DBState.db.hypaV3}
-            <span class="max-w-full mb-6 text-sm text-wrap break-words text-textcolor2">{language.hypaV3Settings.descriptionLabel}</span>
+            <span class="max-w-full mb-6 text-sm break-words text-wrap text-textcolor2">{language.hypaV3Settings.descriptionLabel}</span>
             <span class="text-textcolor">Preset</span>
             <select class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200 text-md px-4 py-2 mb-1"}
                 bind:value={DBState.db.hypaV3PresetId}
             >
                 {#each DBState.db.hypaV3Presets as preset, i}
-                    <option class="bg-darkbg appearance-none" value={i}>{preset.name}</option>
+                    <option class="appearance-none bg-darkbg" value={i}>{preset.name}</option>
                 {/each}
             </select>
 
             <div class="flex items-center mb-8">
-                <button class="mr-2 text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={() => {
                     const newPreset = createHypaV3Preset()
                     const presets = DBState.db.hypaV3Presets
 
@@ -720,7 +734,7 @@
                     <PlusIcon size={24}/>
                 </button>
 
-                <button class="mr-2 text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async () => {
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async () => {
                     const presets = DBState.db.hypaV3Presets
 
                     if(presets.length === 0){
@@ -740,7 +754,7 @@
                     <PencilIcon size={24}/>
                 </button>
 
-                <button class="mr-2 text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async (e) => {
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async (e) => {
                     const presets = DBState.db.hypaV3Presets
 
                     if(presets.length <= 1){
@@ -761,9 +775,9 @@
                     <TrashIcon size={24}/>
                 </button>
 
-                <div class="ml-2 mr-4 w-px h-full bg-darkborderc"></div>
+                <div class="w-px h-full ml-2 mr-4 bg-darkborderc"></div>
 
-                <button class="mr-2 text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async() => {
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async() => {
                     try {
                         const presets = DBState.db.hypaV3Presets
                         
@@ -789,7 +803,7 @@
                     <DownloadIcon size={24}/>
                 </button>
 
-                <button class="mr-2 text-textcolor2 hover:text-green-500 cursor-pointer" onclick={async() => {
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async() => {
                     try {
                         const bytesImport = (await selectSingleFile(['json'])).data
 
@@ -883,9 +897,197 @@
             {/if}
 
             <div class="mb-8"></div>
-        {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false)}
-            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>
-            <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
+        {:else if DBState.db.useUlariMemory}
+            <span class="max-w-full mb-6 text-sm break-words text-wrap text-textcolor2">{language.ulariSettings.descriptionLabel}</span>
+            <span class="text-textcolor">Preset</span>
+            <select class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200 text-md px-4 py-2 mb-1"}
+                bind:value={DBState.db.ulariPresetId}
+            >
+                {#each DBState.db.ulariPresets as preset, i}
+                    <option class="appearance-none bg-darkbg" value={i}>{preset.name}</option>
+                {/each}
+            </select>
+
+            <div class="flex items-center mb-8">
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={() => {
+                    const newPreset = createUlariPreset()
+                    const presets = DBState.db.ulariPresets
+
+                    presets.push(newPreset)
+                    DBState.db.ulariPresets = presets
+                    DBState.db.ulariPresetId = DBState.db.ulariPresets.length - 1
+                }}>
+                    <PlusIcon size={24}/>
+                </button>
+
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async () => {
+                    const presets = DBState.db.ulariPresets
+
+                    if(presets.length === 0){
+                        alertError("There must be least one preset.")
+                        return
+                    }
+
+                    const id = DBState.db.ulariPresetId
+                    const preset = presets[id]
+                    const newName = await alertInput(`Enter new name for ${preset.name}`)
+
+                    if (!newName || newName.trim().length === 0) return
+
+                    preset.name = newName
+                    DBState.db.ulariPresets = presets
+                }}>
+                    <PencilIcon size={24}/>
+                </button>
+
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async (e) => {
+                    const presets = DBState.db.ulariPresets
+
+                    if(presets.length <= 1){
+                        alertError("There must be least one preset.")
+                        return
+                    }
+
+                    const id = DBState.db.ulariPresetId
+                    const preset = presets[id]
+                    const confirmed = await alertConfirm(`${language.removeConfirm}${preset.name}`)
+
+                    if (!confirmed) return
+
+                    DBState.db.ulariPresetId = 0
+                    presets.splice(id, 1)
+                    DBState.db.ulariPresets = presets
+                }}>
+                    <TrashIcon size={24}/>
+                </button>
+
+                <div class="w-px h-full ml-2 mr-4 bg-darkborderc"></div>
+
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async() => {
+                    try {
+                        const presets = DBState.db.ulariPresets
+                        
+                        if(presets.length === 0){
+                            alertError("There must be least one preset.")
+                            return
+                        }
+
+                        const id = DBState.db.ulariPresetId
+                        const preset = presets[id]
+                        const bytesExport = Buffer.from(JSON.stringify({
+                            type: 'risu',
+                            ver: 1,
+                            data: preset
+                        }), 'utf-8')
+                        
+                        await downloadFile(`ulari_export_${preset.name}.json`, bytesExport)
+                        alertNormal(language.successExport)
+                    } catch (error) {
+                        alertError(`${error}`)
+                    }
+                }}>
+                    <DownloadIcon size={24}/>
+                </button>
+
+                <button class="mr-2 cursor-pointer text-textcolor2 hover:text-green-500" onclick={async() => {
+                    try {
+                        const bytesImport = (await selectSingleFile(['json'])).data
+
+                        if(!bytesImport) return
+
+                        const objImport = JSON.parse(Buffer.from(bytesImport).toString('utf-8'))
+
+                        if(objImport.type !== 'risu' || !objImport.data) return
+
+                        const newPreset = createUlariPreset(
+                            objImport.data.name || "Imported Preset",
+                            objImport.data.settings || {}
+                        );
+                        const presets = DBState.db.ulariPresets
+                        
+                        presets.push(newPreset)
+                        DBState.db.ulariPresets = presets
+                        DBState.db.ulariPresetId = DBState.db.ulariPresets.length - 1
+
+                        alertNormal(language.successImport)
+                    } catch (error) {
+                        alertError(`${error}`)
+                    }
+                }}>
+                    <HardDriveUploadIcon size={24}/>
+                </button>
+            </div>
+
+            {#if DBState.db.ulariPresets?.[DBState.db.ulariPresetId]?.settings}
+                {@const settings = DBState.db.ulariPresets[DBState.db.ulariPresetId].settings}
+
+                <span class="text-textcolor">{language.SuperMemory} {language.model}</span>
+                <SelectInput className="mb-4" bind:value={settings.summarizationModel}>
+                    <OptionInput value="subModel">{language.submodel}</OptionInput>
+                    {#if "gpu" in navigator}
+                        <OptionInput value="Qwen3-1.7B-q4f32_1-MLC">Qwen3 1.7B (GPU)</OptionInput>
+                        <OptionInput value="Qwen3-4B-q4f32_1-MLC">Qwen3 4B (GPU)</OptionInput>
+                        <OptionInput value="Qwen3-8B-q4f32_1-MLC">Qwen3 8B (GPU)</OptionInput>
+                    {/if}
+                </SelectInput>
+                <span class="text-textcolor">{language.summarizationPrompt} <Help key="summarizationPrompt"/></span>
+                <div class="mb-4">
+                    <TextAreaInput size="sm" placeholder={language.ulariSettings.supaMemoryPromptPlaceHolder} bind:value={settings.summarizationPrompt} />
+                </div>
+                {#await getMaxMemoryRatio() then maxMemoryRatio}
+                <span class="text-textcolor">{language.ulariSettings.maxMemoryTokensRatioLabel}</span>
+                <NumberInput marginBottom disabled size="sm" value={maxMemoryRatio} />
+                {:catch error}
+                <span class="mb-4 text-red-400">{language.ulariSettings.maxMemoryTokensRatioError}</span>
+                {/await}
+                <span class="text-textcolor">{language.ulariSettings.memoryTokensRatioLabel}</span>
+                <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={settings.memoryTokensRatio} />
+                <span class="text-textcolor">{language.ulariSettings.extraSummarizationRatioLabel}</span>
+                <SliderInput marginBottom min={0} max={1 - settings.memoryTokensRatio} step={0.01} fixed={2} bind:value={settings.extraSummarizationRatio} />
+                <span class="text-textcolor">{language.ulariSettings.maxChatsPerSummaryLabel}</span>
+                <NumberInput marginBottom size="sm" min={1} bind:value={settings.maxChatsPerSummary} />
+                <span class="text-textcolor">{language.ulariSettings.recentMemoryRatioLabel}</span>
+                <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={settings.recentMemoryRatio} />
+                <span class="text-textcolor">{language.ulariSettings.similarMemoryRatioLabel}</span>
+                <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={settings.similarMemoryRatio} />
+                <span class="text-textcolor">{language.ulariSettings.hybridSearchWeightsRatioLabel} <Help key="hybridSearchWeightsRatioDesc" /></span>
+                <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={settings.hybridSearchWeightsRatio} />
+                <span class="text-textcolor">{language.ulariSettings.randomMemoryRatioLabel}</span>
+                <NumberInput marginBottom disabled size="sm" value={parseFloat((1 - settings.recentMemoryRatio - settings.similarMemoryRatio).toFixed(2))} />
+                <div class="mb-2">
+                    <Check name={language.ulariSettings.preserveOrphanedMemoryLabel} bind:check={settings.preserveOrphanedMemory} />
+                </div>
+                <div class="mb-2">
+                    <Check name={language.ulariSettings.applyRegexScriptWhenRerollingLabel} bind:check={settings.processRegexScript} />
+                </div>
+                <div class="mb-2">
+                    <Check name={language.ulariSettings.doNotSummarizeUserMessageLabel} bind:check={settings.doNotSummarizeUserMessage} />
+                </div>
+                <Arcodion name="Advanced Settings" styled>
+                    <div class="mb-2">
+                        <Check name="Use Experimental Implementation" bind:check={settings.useExperimentalImpl} />
+                    </div>
+                    {#if settings.useExperimentalImpl}
+                        <span class="text-textcolor">Summarization Requests Per Minute</span>
+                        <NumberInput marginBottom size="sm" min={1} bind:value={settings.summarizationRequestsPerMinute} />
+                        <span class="text-textcolor">Summarization Max Concurrent</span>
+                        <NumberInput marginBottom size="sm" min={1} max={10} bind:value={settings.summarizationMaxConcurrent} />
+                        <span class="text-textcolor">Embedding Requests Per Minute</span>
+                        <NumberInput marginBottom size="sm" min={1} bind:value={settings.embeddingRequestsPerMinute} />
+                        <span class="text-textcolor">Embedding Max Concurrent</span>
+                        <NumberInput marginBottom size="sm" min={1} max={10} bind:value={settings.embeddingMaxConcurrent} />
+                    {:else}
+                        <div class="mb-2">
+                            <Check name={language.ulariSettings.enableSimilarityCorrectionLabel} bind:check={settings.enableSimilarityCorrection} />
+                        </div>
+                    {/if}
+                </Arcodion>
+            {/if}
+
+            <div class="mb-8"></div>
+        {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false && DBState.db.useUlariMemory === false)}
+            <span class="max-w-full mb-2 text-sm break-words text-textcolor2 text-wrap">{language.supaDesc}</span>
+            <span class="mt-4 text-textcolor">{language.SuperMemory} {language.model}</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.supaModelType}>
                 <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
                 <OptionInput value="instruct35" >OpenAI 3.5 Turbo Instruct</OptionInput>
