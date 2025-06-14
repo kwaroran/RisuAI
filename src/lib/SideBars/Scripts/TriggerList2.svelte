@@ -11,7 +11,6 @@
     import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList, type triggerV2IfAdvanced } from "src/ts/process/triggers";
     import { onDestroy, onMount } from "svelte";
     import { DBState } from "src/ts/stores.svelte";
-    import { DynamicGUI } from "src/ts/stores.svelte";
 
     interface Props {
         value?: triggerscript[];
@@ -1577,95 +1576,79 @@
                     </div>
                 </div>
             {:else if menuMode === 1}
-                {#if !$DynamicGUI}
-                    <div class="flex-1 bg-darkbg flex overflow-y-auto">
-                        <div class="w-48 border-r border-darkborderc flex flex-col">
-                            <div class="p-4 border-b border-darkborderc flex items-center min-h-16">
-                                <button class="border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
-                                    menuMode = 0
-                                }}>
-                                    <ArrowLeftIcon />
-                                </button>
-                            </div>
-                            <div class="flex-1 overflow-y-auto">
-                                {#each getAvailableCategories() as category}
-                                    <button 
-                                        class="w-full p-3 text-left hover:bg-selected transition-colors"
-                                        class:bg-selected={selectedCategory === category}
-                                        class:text-textcolor={selectedCategory === category}
-                                        class:text-textcolor2={selectedCategory !== category}
-                                        onclick={() => {
-                                            selectedCategory = category
-                                        }}
-                                    >
-                                        {language.triggerCategories[category] || category}
-                                        {#if category === 'Deprecated'}
-                                            <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
-                                        {/if}
-                                    </button>
-                                {/each}
-                            </div>
-                            <div class="p-4 border-t border-darkborderc">
-                                <div class="text-textcolor2 text-xs">
-                                    <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex-1 flex flex-col overflow-y-auto">
-                            <div class="p-4 border-b border-darkborderc flex items-center min-h-16">
-                                <h3 class="text-lg font-medium text-textcolor">{language.triggerCategories[selectedCategory] || selectedCategory}</h3>
-                            </div>
-                            <div class="flex-1 overflow-y-auto">
-                                {#each getFilteredTriggers() as type}
-                                    <button 
-                                        class="w-full p-3 text-left hover:bg-selected transition-colors" 
-                                        class:opacity-60={deprecatedEffectV2Types.includes(type)} 
-                                        onclick={(e) => {
-                                            e.stopPropagation()
-                                            makeDefaultEditType(type)
-                                            menuMode = 2
-                                        }}
-                                    >
-                                        <div class="text-textcolor2">
-                                            {language.triggerDesc[type]}
-                                            {#if deprecatedEffectV2Types.includes(type)}
-                                                <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
-                                            {/if}
-                                        </div>
-                                    </button>
-                                {/each}
-                            </div>
-                        </div>
-                    </div>
-                {:else}
-                    <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
-                        <div class="p-4 border-b border-darkborderc">
-                            <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                <div class="flex-1 bg-darkbg flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible">
+                    <div class="w-full md:w-48 border-b md:border-b-0 md:border-r border-darkborderc flex flex-col">
+                        <div class="p-4 border-b border-darkborderc flex items-center min-h-16">
+                            <button class="border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
                                 menuMode = 0
                             }}>
                                 <ArrowLeftIcon />
                             </button>
+                            <h3 class="ml-4 text-lg font-medium text-textcolor md:hidden">{language.triggerCategories[selectedCategory] || selectedCategory}</h3>
                         </div>
-                        {#each (DBState.db.showDeprecatedTriggerV2 ? [...effectV2Types, ...deprecatedEffectV2Types] : effectV2Types).filter((e) => {
-                            return checkSupported(e)
-                        }) as type}
-                            <button class="p-2 hover:bg-selected" class:opacity-60={deprecatedEffectV2Types.includes(type)} onclick={(e) => {
-                                e.stopPropagation()
-                                makeDefaultEditType(type)
-                                menuMode = 2
-                            }}>
-                                {language.triggerDesc[type]}{deprecatedEffectV2Types.includes(type) ? ' (Deprecated)' : ''}
-                            </button>
-                        {/each}
-                        
-                        <div class="p-4 border-t border-darkborderc">
+                        <div class="hidden md:flex md:flex-1 md:flex-col md:overflow-y-auto">
+                            {#each getAvailableCategories() as category}
+                                <button 
+                                    class="w-full p-3 text-left hover:bg-selected transition-colors"
+                                    class:bg-selected={selectedCategory === category}
+                                    class:text-textcolor={selectedCategory === category}
+                                    class:text-textcolor2={selectedCategory !== category}
+                                    onclick={() => {
+                                        selectedCategory = category
+                                    }}
+                                >
+                                    {language.triggerCategories[category] || category}
+                                    {#if category === 'Deprecated'}
+                                        <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
+                                    {/if}
+                                </button>
+                            {/each}
+                        </div>
+                        <div class="p-4 border-b border-darkborderc md:hidden">
+                            <SelectInput bind:value={selectedCategory}>
+                                {#each getAvailableCategories() as category}
+                                    <OptionInput value={category}>{language.triggerCategories[category] || category}</OptionInput>
+                                {/each}
+                            </SelectInput>
+                        </div>
+                        <div class="hidden md:block p-4 border-t border-darkborderc">
                             <div class="text-textcolor2 text-xs">
                                 <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
                             </div>
                         </div>
                     </div>
-                {/if}
+                    
+                    <div class="flex-1 flex flex-col overflow-y-auto">
+                        <div class="hidden md:flex p-4 border-b border-darkborderc items-center min-h-16">
+                            <h3 class="text-lg font-medium text-textcolor">{language.triggerCategories[selectedCategory] || selectedCategory}</h3>
+                        </div>
+                        <div class="flex-1 overflow-y-auto">
+                            {#each getFilteredTriggers() as type}
+                                <button 
+                                    class="w-full p-3 text-left hover:bg-selected transition-colors" 
+                                    class:opacity-60={deprecatedEffectV2Types.includes(type)} 
+                                    onclick={(e) => {
+                                        e.stopPropagation()
+                                        makeDefaultEditType(type)
+                                        menuMode = 2
+                                    }}
+                                >
+                                    <div class="text-textcolor2">
+                                        {language.triggerDesc[type]}
+                                        {#if deprecatedEffectV2Types.includes(type)}
+                                            <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
+                                        {/if}
+                                    </div>
+                                </button>
+                            {/each}
+                        </div>
+                        <div class="md:hidden p-4 border-t border-darkborderc">
+                            <div class="text-textcolor2 text-xs">
+                                <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {:else if menuMode === 2 || menuMode === 3}
                 <div class="flex-1 flex-col flex overflow-y-auto">
                     <div class="flex items-center gap-2 mb-4">
