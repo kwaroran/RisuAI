@@ -174,7 +174,7 @@
     let effectElements = $state<HTMLButtonElement[]>([])
     let guideLineKey = $state(0)
     let selectedCategory = $state('Control')
-    let resizeObserver: ResizeObserver | null = null
+
 
     type VirtualClipboard = {
         type: 'trigger',
@@ -194,14 +194,18 @@
                     menu0Container.scrollTop = menu0ScrollPosition
                 }, 0)
             }
-            setTimeout(() => {
-                setupResizeObserver()
-            }, 100)
         } else if(menuMode === 1 || menuMode === 2 || menuMode === 3) {
             if(menu0Container) {
                 menu0ScrollPosition = menu0Container.scrollTop
             }
-            cleanupResizeObserver()
+        }
+    })
+
+    $effect(() => {
+        if(menuMode === 0 && selectedIndex > 0) {
+            setTimeout(() => updateGuideLines(), 10)
+            setTimeout(() => updateGuideLines(), 30)
+            setTimeout(() => updateGuideLines(), 50)
         }
     })
 
@@ -1294,30 +1298,7 @@
         guideLineKey += 1
     }
 
-    const setupResizeObserver = () => {
-        if (resizeObserver) {
-            resizeObserver.disconnect()
-        }
-        
-        if (typeof ResizeObserver !== 'undefined') {
-            resizeObserver = new ResizeObserver((entries) => {
-                updateGuideLines()
-            })
-            
-            effectElements.forEach(element => {
-                if (element) {
-                    resizeObserver?.observe(element)
-                }
-            })
-        }
-    }
 
-    const cleanupResizeObserver = () => {
-        if (resizeObserver) {
-            resizeObserver.disconnect()
-            resizeObserver = null
-        }
-    }
 
     onMount(() => {
         window.addEventListener('keydown', handleKeydown);
@@ -1327,7 +1308,6 @@
     onDestroy(() => {
         window.removeEventListener('keydown', handleKeydown);
         window.removeEventListener('resize', updateGuideLines);
-        cleanupResizeObserver();
     })
 </script>
 
@@ -1536,20 +1516,26 @@
                                     {@const endIndex = value[selectedIndex].effect.findIndex((e, idx) => 
                                         idx > i && e.type === 'v2EndIndent' && (e as triggerEffectV2).indent === blockIndent + 1
                                     )}
-                                    {#if endIndex !== -1 && effectElements[i] && effectElements[endIndex]}
-                                        {@const startRect = effectElements[i].getBoundingClientRect()}
-                                        {@const endRect = effectElements[endIndex].getBoundingClientRect()}
+                                    {#if endIndex !== -1 && effectElements[i] && effectElements[endIndex] && menu0Container}
+                                        {@const startElement = effectElements[i]}
+                                        {@const endElement = effectElements[endIndex]}
+                                        {@const startRect = startElement.getBoundingClientRect()}
+                                        {@const endRect = endElement.getBoundingClientRect()}
                                         {@const containerRect = menu0Container.getBoundingClientRect()}
-                                        {@const startTop = startRect.bottom - containerRect.top + menu0Container.scrollTop}
-                                        {@const endTop = endRect.top - containerRect.top + menu0Container.scrollTop + endRect.height * 0.5}
-                                        <div 
-                                            class="absolute w-px bg-gray-600 opacity-40"
-                                            style="left: {0.5 + blockIndent * 1}rem; top: {startTop}px; height: {endTop - startTop}px;"
-                                        ></div>
-                                        <div 
-                                            class="absolute h-px bg-gray-600 opacity-40"
-                                            style="left: {0.5 + blockIndent * 1}rem; top: {endTop}px; width: 0.5rem;"
-                                        ></div>
+                                        {#if startRect.width > 0 && endRect.width > 0 && startRect.height > 0 && endRect.height > 0}
+                                            {@const startTop = startRect.bottom - containerRect.top + menu0Container.scrollTop}
+                                            {@const endTop = endRect.top - containerRect.top + menu0Container.scrollTop + endRect.height * 0.5}
+                                            {#if endTop > startTop}
+                                                <div 
+                                                    class="absolute w-px bg-gray-600 opacity-40"
+                                                    style="left: {0.5 + blockIndent * 1}rem; top: {startTop}px; height: {endTop - startTop}px;"
+                                                ></div>
+                                                <div 
+                                                    class="absolute h-px bg-gray-600 opacity-40"
+                                                    style="left: {0.5 + blockIndent * 1}rem; top: {endTop}px; width: 0.5rem;"
+                                                ></div>
+                                            {/if}
+                                        {/if}
                                     {/if}
                                 {/if}
                             {/each}
