@@ -47,6 +47,11 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                         MCPs[mcp] = new AIAccessClient();
                         break;
                     }
+                    case 'internal:googlesearch': {
+                        const { GoogleSearchClient } = await import('./googlesearchclient');
+                        MCPs[mcp] = new GoogleSearchClient();
+                        break;
+                    }
                 }
 
                 await MCPs[mcp].checkHandshake();
@@ -229,6 +234,7 @@ export async function importMCPModule(){
         ['internal:aiaccess', 'LLM Call Client (internal:aiaccess)'],
         ['internal:risuai', 'Risu Access Client (internal:risuai)'],
         ['internal:fs', 'File System Client (internal:fs)'],
+        ['internal:googlesearch', 'Google Search Client (internal:googlesearch)'],
         ['https://mcp.paypal.com/sse', 'PayPal MCP (https://mcp.paypal.com/sse)'],
         ['https://mcp.linear.app/sse', 'Linear MCP (https://mcp.linear.app/sse)'],
         ['https://rag-mcp-2.whatsmcp.workers.dev/sse', 'OneContext MCP (https://rag-mcp-2.whatsmcp.workers.dev/sse)'],
