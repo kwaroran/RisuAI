@@ -174,6 +174,7 @@
     let effectElements = $state<HTMLButtonElement[]>([])
     let guideLineKey = $state(0)
     let selectedCategory = $state('Control')
+    let resizeObserver: ResizeObserver | null = null
 
     type VirtualClipboard = {
         type: 'trigger',
@@ -193,10 +194,14 @@
                     menu0Container.scrollTop = menu0ScrollPosition
                 }, 0)
             }
+            setTimeout(() => {
+                setupResizeObserver()
+            }, 100)
         } else if(menuMode === 1 || menuMode === 2 || menuMode === 3) {
             if(menu0Container) {
                 menu0ScrollPosition = menu0Container.scrollTop
             }
+            cleanupResizeObserver()
         }
     })
 
@@ -1289,6 +1294,31 @@
         guideLineKey += 1
     }
 
+    const setupResizeObserver = () => {
+        if (resizeObserver) {
+            resizeObserver.disconnect()
+        }
+        
+        if (typeof ResizeObserver !== 'undefined') {
+            resizeObserver = new ResizeObserver((entries) => {
+                updateGuideLines()
+            })
+            
+            effectElements.forEach(element => {
+                if (element) {
+                    resizeObserver?.observe(element)
+                }
+            })
+        }
+    }
+
+    const cleanupResizeObserver = () => {
+        if (resizeObserver) {
+            resizeObserver.disconnect()
+            resizeObserver = null
+        }
+    }
+
     onMount(() => {
         window.addEventListener('keydown', handleKeydown);
         window.addEventListener('resize', updateGuideLines);
@@ -1297,6 +1327,7 @@
     onDestroy(() => {
         window.removeEventListener('keydown', handleKeydown);
         window.removeEventListener('resize', updateGuideLines);
+        cleanupResizeObserver();
     })
 </script>
 
@@ -1539,7 +1570,6 @@
                                     selectedEffectIndex = i
                                 }}
                                 oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
-                                onresize={updateGuideLines}
                             >
                                 {#if effect.type === 'v2EndIndent'}
                                     <div class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</div>
