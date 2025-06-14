@@ -10,6 +10,7 @@
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList, type triggerV2IfAdvanced } from "src/ts/process/triggers";
     import { onDestroy, onMount } from "svelte";
+    import { DBState } from "src/ts/stores.svelte";
 
     interface Props {
         value?: triggerscript[];
@@ -28,7 +29,6 @@
 
         //Control
         'v2SetVar',
-        'v2If',
         'v2IfAdvanced',
         'v2LoopNTimes',
         'v2Loop',
@@ -61,15 +61,18 @@
         'v2ShowAlert',
         'v2GetAlertInput',
 
-        //Lorebook
-        'v2ModifyLorebook',
-        'v2GetLorebook',
-        'v2GetLorebookCount',
-        'v2GetLorebookEntry',
-        'v2SetLorebookActivation',
-        'v2GetLorebookIndexViaName',
+        //Lorebook V2
+        'v2GetAllLorebooks',
+        'v2GetLorebookByName',
+        'v2GetLorebookByIndex',
+        'v2CreateLorebook',
+        'v2ModifyLorebookByIndex',
+        'v2DeleteLorebookByIndex',
+        'v2GetLorebookCountNew',
+        'v2SetLorebookAlwaysActive',
 
         //String
+        'v2RegexTest',
         'v2ExtractRegex',
         'v2GetCharAt',
         'v2GetCharCount',
@@ -82,6 +85,8 @@
         //Character
         'v2GetCharacterDesc',
         'v2SetCharacterDesc',
+        'v2GetPersonaDesc',
+        'v2SetPersonaDesc',
 
         //Array
         'v2MakeArrayVar',
@@ -102,8 +107,36 @@
         'v2UpdateGUI',
         'v2UpdateChatAt',
         'v2Wait',
-        "v2StopPromptSending",
+        'v2StopPromptSending',
         'v2Tokenize'
+    ]
+
+    const effectCategories = {
+        'Special': ['v2GetDisplayState', 'v2SetDisplayState', 'v2GetRequestState', 'v2SetRequestState', 'v2GetRequestStateRole', 'v2SetRequestStateRole', 'v2GetRequestStateLength'],
+        'Control': ['v2SetVar', 'v2IfAdvanced', 'v2LoopNTimes', 'v2Loop', 'v2BreakLoop', 'v2RunTrigger', 'v2ConsoleLog', 'v2StopTrigger'],
+        'Chat': ['v2CutChat', 'v2ModifyChat', 'v2SystemPrompt', 'v2Impersonate', 'v2Command', 'v2GetLastMessage', 'v2GetLastUserMessage', 'v2GetLastCharMessage', 'v2GetMessageAtIndex', 'v2GetMessageCount', 'v2GetFirstMessage', 'v2QuickSearchChat'],
+        'Low Level': ['v2SendAIprompt', 'v2ImgGen', 'v2CheckSimilarity', 'v2RunLLM'],
+        'Alert': ['v2ShowAlert', 'v2GetAlertInput'],
+        'Lorebook V2': ['v2GetAllLorebooks', 'v2GetLorebookByName', 'v2GetLorebookByIndex', 'v2CreateLorebook', 'v2ModifyLorebookByIndex', 'v2DeleteLorebookByIndex', 'v2GetLorebookCountNew', 'v2SetLorebookAlwaysActive'],
+        'String': ['v2RegexTest', 'v2ExtractRegex', 'v2GetCharAt', 'v2GetCharCount', 'v2ToLowerCase', 'v2ToUpperCase', 'v2SetCharAt', 'v2SplitString', 'v2ConcatString'],
+        'Character': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc'],
+        'Array': ['v2MakeArrayVar', 'v2GetArrayVarLength', 'v2GetArrayVar', 'v2SetArrayVar', 'v2PushArrayVar', 'v2PopArrayVar', 'v2ShiftArrayVar', 'v2UnshiftArrayVar', 'v2SpliceArrayVar', 'v2SliceArrayVar', 'v2GetIndexOfValueInArrayVar', 'v2RemoveIndexFromArrayVar'],
+        'Others': ['v2Random', 'v2UpdateGUI', 'v2UpdateChatAt', 'v2Wait', 'v2StopPromptSending', 'v2Tokenize']
+    }
+
+    const deprecatedCategories = {
+        'Deprecated': ['v2If', 'v2ModifyLorebook', 'v2GetLorebook', 'v2GetLorebookCount', 'v2GetLorebookEntry', 'v2SetLorebookActivation', 'v2GetLorebookIndexViaName']
+    }
+
+    const deprecatedEffectV2Types = [
+        //Deprecated
+        'v2If',
+        'v2ModifyLorebook',
+        'v2GetLorebook',
+        'v2GetLorebookCount',
+        'v2GetLorebookEntry',
+        'v2SetLorebookActivation',
+        'v2GetLorebookIndexViaName',
     ]
 
 
@@ -111,7 +144,7 @@
         'v2SendAIprompt',
         'v2RunLLM',
         'v2CheckSimilarity',
-        'v2RunImgGen'
+        'v2ImgGen',
 
     ]
 
@@ -137,6 +170,10 @@
     let contextMenuLoc = $state({x: 0, y: 0, style: ''})
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
+    let effectElements = $state<HTMLButtonElement[]>([])
+    let guideLineKey = $state(0)
+    let selectedCategory = $state('Control')
+
 
     type VirtualClipboard = {
         type: 'trigger',
@@ -160,6 +197,41 @@
             if(menu0Container) {
                 menu0ScrollPosition = menu0Container.scrollTop
             }
+        }
+    })
+
+    $effect(() => {
+        if(menuMode === 0 && selectedIndex > 0) {
+            setTimeout(() => updateGuideLines(), 10)
+            setTimeout(() => updateGuideLines(), 30)
+            setTimeout(() => updateGuideLines(), 50)
+        }
+    })
+
+    const getFilteredTriggers = () => {
+        const allCategories = DBState.db.showDeprecatedTriggerV2 
+            ? { ...effectCategories, ...deprecatedCategories }
+            : effectCategories
+        
+        const categoryTriggers = allCategories[selectedCategory] || []
+        return categoryTriggers.filter(checkSupported)
+    }
+
+    const getAvailableCategories = () => {
+        const allCategories = DBState.db.showDeprecatedTriggerV2 
+            ? { ...effectCategories, ...deprecatedCategories }
+            : effectCategories
+        
+        return Object.keys(allCategories).filter(category => {
+            const categoryTriggers = allCategories[category] || []
+            return categoryTriggers.some(checkSupported)
+        })
+    }
+
+    $effect(() => {
+        const availableCategories = getAvailableCategories()
+        if (availableCategories.length > 0 && !availableCategories.includes(selectedCategory)) {
+            selectedCategory = availableCategories[0]
         }
     })
 
@@ -534,6 +606,21 @@
                     indent: 0
                 }
                 break;
+            case 'v2GetPersonaDesc':
+                editTrigger = {
+                    type: 'v2GetPersonaDesc',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            case 'v2SetPersonaDesc':
+                editTrigger = {
+                    type: 'v2SetPersonaDesc',
+                    value: '',
+                    valueType: 'value',
+                    indent: 0
+                }
+                break;
             case 'v2MakeArrayVar':
                 editTrigger = {
                     type: 'v2MakeArrayVar',
@@ -578,6 +665,7 @@
                     indent: 0,
                     outputVar: ""
                 }
+                break;
             }
             case 'v2PushArrayVar':
                 editTrigger = {
@@ -811,6 +899,107 @@
                 }
                 break;
             }
+            case 'v2GetAllLorebooks':{
+                editTrigger = {
+                    type: 'v2GetAllLorebooks',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2RegexTest':{
+                editTrigger = {
+                    type: 'v2RegexTest',
+                    value: '',
+                    valueType: 'value',
+                    regex: '',
+                    regexType: 'value',
+                    flags: '',
+                    flagsType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetLorebookByName':{
+                editTrigger = {
+                    type: 'v2GetLorebookByName',
+                    name: '',
+                    nameType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetLorebookByIndex':{
+                editTrigger = {
+                    type: 'v2GetLorebookByIndex',
+                    index: '',
+                    indexType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2CreateLorebook':{
+                editTrigger = {
+                    type: 'v2CreateLorebook',
+                    name: '',
+                    nameType: 'value',
+                    key: '',
+                    keyType: 'value',
+                    content: '',
+                    contentType: 'value',
+                    insertOrder: '100',
+                    insertOrderType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2ModifyLorebookByIndex':{
+                editTrigger = {
+                    type: 'v2ModifyLorebookByIndex',
+                    index: '',
+                    indexType: 'value',
+                    name: '{{slot}}',
+                    nameType: 'value',
+                    key: '{{slot}}',
+                    keyType: 'value',
+                    content: '{{slot}}',
+                    contentType: 'value',
+                    insertOrder: '{{slot}}',
+                    insertOrderType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2DeleteLorebookByIndex':{
+                editTrigger = {
+                    type: 'v2DeleteLorebookByIndex',
+                    index: '',
+                    indexType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetLorebookCountNew':{
+                editTrigger = {
+                    type: 'v2GetLorebookCountNew',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2SetLorebookAlwaysActive':{
+                editTrigger = {
+                    type: 'v2SetLorebookAlwaysActive',
+                    index: '',
+                    indexType: 'value',
+                    value: true,
+                    indent: 0
+                }
+                break;
+            }
         }
     }
 
@@ -891,6 +1080,38 @@
         selectedIndex -= 1
         if(selectedIndex < 1){
             selectedIndex = 1
+        }
+    }
+
+    const moveTrigger = (fromIndex: number, toIndex: number) => {
+        if (fromIndex === toIndex || fromIndex === 0 || toIndex === 0) return;
+        if (fromIndex < 0 || toIndex < 0 || fromIndex >= value.length || toIndex > value.length) return;
+        if (!value[fromIndex]) return;
+        
+        let triggers = [...value];
+        const movedItem = triggers.splice(fromIndex, 1)[0];
+        if (!movedItem) return;
+        
+        triggers.splice(toIndex, 0, movedItem);
+        
+        if (selectedIndex === fromIndex) {
+            selectedIndex = toIndex;
+        } else if (fromIndex < selectedIndex && toIndex >= selectedIndex) {
+            selectedIndex = selectedIndex - 1;
+        } else if (fromIndex > selectedIndex && toIndex <= selectedIndex) {
+            selectedIndex = selectedIndex + 1;
+        }
+        
+        value = triggers;
+    }
+
+    const handleTriggerDrop = (targetIndex: number, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const data = e.dataTransfer?.getData('text');
+        if (data === 'trigger') {
+            const sourceIndex = parseInt(e.dataTransfer?.getData('triggerIndex') || '0');
+            moveTrigger(sourceIndex, targetIndex);
         }
     }
 
@@ -1044,6 +1265,10 @@
         const txt = (language.triggerDesc[type + 'Desc'] as string || type).replace(/{{(.+?)}}/g, (match, p1) => {
             const d = effect[p1]
             
+            if(typeof d === 'boolean'){
+                return `<span class="text-blue-500">${d ? 'true' : 'false'}</span>`
+            }
+            
             if(p1.endsWith('Type')){
                 return `<span class="text-blue-500">${d || 'null' }</span>`
             }
@@ -1068,12 +1293,20 @@
         return `<div class="text-purple-500" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</div>`
     }
     
+    const updateGuideLines = () => {
+        guideLineKey += 1
+    }
+
+
+
     onMount(() => {
         window.addEventListener('keydown', handleKeydown);
+        window.addEventListener('resize', updateGuideLines);
     })
 
     onDestroy(() => {
         window.removeEventListener('keydown', handleKeydown);
+        window.removeEventListener('resize', updateGuideLines);
     })
 </script>
 
@@ -1101,7 +1334,7 @@
         contextMenu = false
     }}>
         {#if contextMenu}
-            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md" style={contextMenuLoc.style}>
+            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md z-50" style={contextMenuLoc.style}>
                 {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent' && selectMode === 1}
                     <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
                         menuMode = 3
@@ -1156,19 +1389,70 @@
                             {#if i === 0}
                                 <!-- Header, skip the first trigger -->
                             {:else}
+                                <div class="w-full h-1 min-h-1 transition-colors duration-200 hover:bg-gray-600" 
+                                    role="listitem"
+                                    ondragover={(e) => {
+                                        e.preventDefault()
+                                        e.currentTarget.classList.add('bg-gray-600')
+                                    }} 
+                                    ondragleave={(e) => {
+                                        e.currentTarget.classList.remove('bg-gray-600')
+                                    }} 
+                                    ondrop={(e) => {
+                                        e.currentTarget.classList.remove('bg-gray-600')
+                                        handleTriggerDrop(i, e)
+                                    }}>
+                                </div>
+                                
                                 <button
-                                    class="p-2 text-start text-textcolor2 hover:text-textcolor"
+                                    class="p-2 text-start text-textcolor2 hover:text-textcolor hover:cursor-grab active:cursor-grabbing trigger-item"
                                     class:bg-darkbg={selectedIndex === i}
+                                    draggable="true"
+                                    ondragstart={(e) => {
+                                        e.dataTransfer?.setData('text', 'trigger')
+                                        e.dataTransfer?.setData('triggerIndex', i.toString())
+                                        
+                                        const dragElement = document.createElement('div')
+                                        dragElement.textContent = trigger?.comment || 'Unnamed Trigger'
+                                        dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+                                        document.body.appendChild(dragElement)
+                                        e.dataTransfer?.setDragImage(dragElement, 10, 10)
+                                        
+                                        setTimeout(() => {
+                                            document.body.removeChild(dragElement)
+                                        }, 0)
+                                    }}
+                                    ondragover={(e) => {
+                                        e.preventDefault()
+                                    }}
+                                    ondrop={(e) => {
+                                        handleTriggerDrop(i, e)
+                                    }}
                                     onclick={() => {
                                         selectMode = 0
                                         selectedIndex = i
                                     }}
                                     oncontextmenu={(e) => handleContextMenu(e, 0, i)}
                                 >
-                                    {trigger.comment || 'Unnamed Trigger'}
+                                    {trigger?.comment || 'Unnamed Trigger'}
                                 </button>
                             {/if}
                         {/each}
+                        
+                        <div class="w-full h-1 min-h-1 transition-colors duration-200 hover:bg-gray-600" 
+                            role="listitem"
+                            ondragover={(e) => {
+                                e.preventDefault()
+                                e.currentTarget.classList.add('bg-gray-600')
+                            }} 
+                            ondragleave={(e) => {
+                                e.currentTarget.classList.remove('bg-gray-600')
+                            }} 
+                            ondrop={(e) => {
+                                e.currentTarget.classList.remove('bg-gray-600')
+                                handleTriggerDrop(value.length, e)
+                            }}>
+                        </div>
                     </div>
                     <div>
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
@@ -1193,13 +1477,15 @@
                     }}>
                         <div class="p-2 flex flex-col">
                             <span class="block text-textcolor2">{language.name}</span>
-                            <TextInput value={value[selectedIndex].comment} onchange={(e) => {
+                            <TextInput value={value[selectedIndex]?.comment || ''} onchange={(e) => {
+                                if (!value[selectedIndex]) return;
                                 const comment = e.currentTarget.value
                                 const prev = value[selectedIndex].comment
                                 for(let i = 1; i < value.length; i++){
+                                    if (!value[i] || !value[i].effect) continue;
                                     for(let j = 0; j < value[i].effect.length; j++){
                                         const effect = value[i].effect[j]
-                                        if(effect.type === 'v2RunTrigger' && effect.target === prev){
+                                        if(effect && effect.type === 'v2RunTrigger' && effect.target === prev){
                                             effect.target = comment
                                         }
                                     }
@@ -1209,22 +1495,56 @@
                         </div>
                         <div class="p-2 flex flex-col">
                             <span class="block text-textcolor2">{language.triggerOn}</span>
-                            <SelectInput bind:value={value[selectedIndex].type}>
-                                <OptionInput value="start">{language.triggerStart}</OptionInput>
-                                <OptionInput value="output">{language.triggerOutput}</OptionInput>
-                                <OptionInput value="input">{language.triggerInput}</OptionInput>
-                                <OptionInput value="manual">{language.triggerManual}</OptionInput>
-                                <OptionInput value="display">{language.editDisplay}</OptionInput>
-                                <OptionInput value="request">{language.editProcess}</OptionInput>
-
-                            </SelectInput>
+                            {#if value[selectedIndex]}
+                                <SelectInput bind:value={value[selectedIndex].type}>
+                                    <OptionInput value="start">{language.triggerStart}</OptionInput>
+                                    <OptionInput value="output">{language.triggerOutput}</OptionInput>
+                                    <OptionInput value="input">{language.triggerInput}</OptionInput>
+                                    <OptionInput value="manual">{language.triggerManual}</OptionInput>
+                                    <OptionInput value="display">{language.editDisplay}</OptionInput>
+                                    <OptionInput value="request">{language.editProcess}</OptionInput>
+                                </SelectInput>
+                            {/if}
                         </div>
                     </div>
-                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto" bind:this={menu0Container}>
+                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto relative" bind:this={menu0Container}>
+                        {#key guideLineKey}
+                            {#each value[selectedIndex].effect as effect, i}
+                                {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
+                                    {@const blockIndent = (effect as triggerEffectV2).indent}
+                                    {@const endIndex = value[selectedIndex].effect.findIndex((e, idx) => 
+                                        idx > i && e.type === 'v2EndIndent' && (e as triggerEffectV2).indent === blockIndent + 1
+                                    )}
+                                    {#if endIndex !== -1 && effectElements[i] && effectElements[endIndex] && menu0Container}
+                                        {@const startElement = effectElements[i]}
+                                        {@const endElement = effectElements[endIndex]}
+                                        {@const startRect = startElement.getBoundingClientRect()}
+                                        {@const endRect = endElement.getBoundingClientRect()}
+                                        {@const containerRect = menu0Container.getBoundingClientRect()}
+                                        {#if startRect.width > 0 && endRect.width > 0 && startRect.height > 0 && endRect.height > 0}
+                                            {@const startTop = startRect.bottom - containerRect.top + menu0Container.scrollTop}
+                                            {@const endTop = endRect.top - containerRect.top + menu0Container.scrollTop + endRect.height * 0.5}
+                                            {#if endTop > startTop}
+                                                <div 
+                                                    class="absolute w-px bg-gray-600 opacity-40"
+                                                    style="left: {0.5 + blockIndent * 1}rem; top: {startTop}px; height: {endTop - startTop}px;"
+                                                ></div>
+                                                <div 
+                                                    class="absolute h-px bg-gray-600 opacity-40"
+                                                    style="left: {0.5 + blockIndent * 1}rem; top: {endTop}px; width: 0.5rem;"
+                                                ></div>
+                                            {/if}
+                                        {/if}
+                                    {/if}
+                                {/if}
+                            {/each}
+                        {/key}
+                        
                         {#each value[selectedIndex].effect as effect, i}
-                            <button class="p-2 w-full text-start text-purple-500"
+                            <button class="p-2 w-full text-start text-purple-500 relative"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
                                 class:bg-selected={selectedEffectIndex === i}
+                                bind:this={effectElements[i]}
                                 onclick={() => {
                                     if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
                                         menuMode = 1
@@ -1256,30 +1576,84 @@
                     </div>
                 </div>
             {:else if menuMode === 1}
-                <div class="flex-1 bg-darkbg flex-col flex overflow-y-auto">
-                    <div class="p-4 border-b border-darkborderc">
-                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
-                            menuMode = 0
-                        }}>
-                            <ArrowLeftIcon />
-                        </button>
+                <div class="flex-1 bg-darkbg flex flex-col md:flex-row overflow-y-auto md:overflow-y-visible">
+                    <div class="w-full md:w-48 border-b md:border-b-0 md:border-r border-darkborderc flex flex-col">
+                        <div class="p-4 border-b border-darkborderc flex items-center min-h-16">
+                            <button class="border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                                menuMode = 0
+                            }}>
+                                <ArrowLeftIcon />
+                            </button>
+                            <h3 class="ml-4 text-lg font-medium text-textcolor md:hidden">{language.triggerCategories[selectedCategory] || selectedCategory}</h3>
+                        </div>
+                        <div class="hidden md:flex md:flex-1 md:flex-col md:overflow-y-auto">
+                            {#each getAvailableCategories() as category}
+                                <button 
+                                    class="w-full p-3 text-left hover:bg-selected transition-colors"
+                                    class:bg-selected={selectedCategory === category}
+                                    class:text-textcolor={selectedCategory === category}
+                                    class:text-textcolor2={selectedCategory !== category}
+                                    onclick={() => {
+                                        selectedCategory = category
+                                    }}
+                                >
+                                    {language.triggerCategories[category] || category}
+                                    {#if category === 'Deprecated'}
+                                        <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
+                                    {/if}
+                                </button>
+                            {/each}
+                        </div>
+                        <div class="p-4 border-b border-darkborderc md:hidden">
+                            <SelectInput bind:value={selectedCategory}>
+                                {#each getAvailableCategories() as category}
+                                    <OptionInput value={category}>{language.triggerCategories[category] || category}</OptionInput>
+                                {/each}
+                            </SelectInput>
+                        </div>
+                        <div class="hidden md:block p-4 border-t border-darkborderc">
+                            <div class="text-textcolor2 text-xs">
+                                <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
+                            </div>
+                        </div>
                     </div>
-                    {#each effectV2Types.filter((e) => {
-
-                        return checkSupported(e)
-                    }) as type}
-                        <button class="p-2 hover:bg-selected" onclick={(e) => {
-                            e.stopPropagation()
-                            makeDefaultEditType(type)
-                            menuMode = 2
-                        }}>{language.triggerDesc[type]}</button>
-                    {/each}
+                    
+                    <div class="flex-1 flex flex-col overflow-y-auto">
+                        <div class="hidden md:flex p-4 border-b border-darkborderc items-center min-h-16">
+                            <h3 class="text-lg font-medium text-textcolor">{language.triggerCategories[selectedCategory] || selectedCategory}</h3>
+                        </div>
+                        <div class="flex-1 overflow-y-auto">
+                            {#each getFilteredTriggers() as type}
+                                <button 
+                                    class="w-full p-3 text-left hover:bg-selected transition-colors" 
+                                    class:opacity-60={deprecatedEffectV2Types.includes(type)} 
+                                    onclick={(e) => {
+                                        e.stopPropagation()
+                                        makeDefaultEditType(type)
+                                        menuMode = 2
+                                    }}
+                                >
+                                    <div class="text-textcolor2">
+                                        {language.triggerDesc[type]}
+                                        {#if deprecatedEffectV2Types.includes(type)}
+                                            <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
+                                        {/if}
+                                    </div>
+                                </button>
+                            {/each}
+                        </div>
+                        <div class="md:hidden p-4 border-t border-darkborderc">
+                            <div class="text-textcolor2 text-xs">
+                                <CheckInput bind:check={DBState.db.showDeprecatedTriggerV2} name={language.showDeprecatedTriggerV2} grayText />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             {:else if menuMode === 2 || menuMode === 3}
                 <div class="flex-1 flex-col flex overflow-y-auto">
                     <div class="flex items-center gap-2 mb-4">
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
-                            menuMode = 0
+                            menuMode = menuMode === 2 ? 1 : 0
                         }}>
                             <ArrowLeftIcon />
                         </button>
@@ -1527,7 +1901,7 @@
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
 
-                    {:else if editTrigger.type === 'v2GetLorebookCount'}
+                    {:else if editTrigger.type === 'v2GetLorebookCountNew'}
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
 
@@ -1548,7 +1922,7 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.index} />
-                        <CheckInput bind:check={addElse} name={language.value} className="mt-4" />
+                        <CheckInput bind:check={editTrigger.value} name={language.alwaysActive} className="mt-4" />
                     {:else if editTrigger.type === 'v2GetLorebookIndexViaName'}
                         <span class="block text-textcolor">{language.name}</span>
                         <SelectInput bind:value={editTrigger.nameType}>
@@ -1687,7 +2061,17 @@
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight  bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2GetPersonaDesc'}
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2SetPersonaDesc'}
+                        <span>{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextAreaInput highlight  bind:value={editTrigger.value} />
                     {:else if editTrigger.type === 'v2ExtractRegex'}
                         <span>{language.input}</span>
                         <SelectInput bind:value={editTrigger.valueType}>
@@ -1982,9 +2366,124 @@
 
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetAllLorebooks'}
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetLorebookByName'}
+                        <span class="block text-textcolor">{language.name}</span>
+                        <SelectInput bind:value={editTrigger.nameType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.name} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetLorebookByIndex'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2CreateLorebook'}
+                        <span class="block text-textcolor">{language.name}</span>
+                        <SelectInput bind:value={editTrigger.nameType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.name} />
+                        <span class="block text-textcolor">{language.activationKeys}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                        <span class="block text-textcolor">{language.prompt}</span>
+                        <SelectInput bind:value={editTrigger.contentType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextAreaInput bind:value={editTrigger.content} />
+                        <span class="block text-textcolor">{language.insertOrder}</span>
+                        <SelectInput bind:value={editTrigger.insertOrderType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.insertOrder} />
+                    {:else if editTrigger.type === 'v2ModifyLorebookByIndex'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                        <span class="block text-textcolor">{language.name}</span>
+                        <SelectInput bind:value={editTrigger.nameType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.name} />
+                        <span class="block text-textcolor">{language.activationKeys}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                        <span class="block text-textcolor">{language.prompt}</span>
+                        <SelectInput bind:value={editTrigger.contentType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextAreaInput bind:value={editTrigger.content} />
+                        <span class="block text-textcolor">{language.insertOrder}</span>
+                        <SelectInput bind:value={editTrigger.insertOrderType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.insertOrder} />
+                    {:else if editTrigger.type === 'v2DeleteLorebookByIndex'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                    {:else if editTrigger.type === 'v2SetLorebookAlwaysActive'}
+                        <span class="block text-textcolor">{language.index}</span>
+                        <SelectInput bind:value={editTrigger.indexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.index} />
+                        <CheckInput bind:check={editTrigger.value} name={language.alwaysActive} className="mt-4" />
                     {:else if editTrigger.type === 'v2UpdateChatAt'}
                         <span class="block text-textcolor">{language.index}</span>
                         <TextInput bind:value={editTrigger.index} />
+                    {:else if editTrigger.type === 'v2RegexTest'}
+                        <span>{language.input}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                        <span>Regex: IN</span>
+                        <SelectInput bind:value={editTrigger.regexType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.regex} />
+
+                        <span>Regex: FLAG</span>
+                        <SelectInput bind:value={editTrigger.flagsType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.flags} />
+
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}
