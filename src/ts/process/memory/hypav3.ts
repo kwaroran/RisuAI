@@ -90,7 +90,7 @@ export const MODAL_DISPLAYMODE = {
   All: "All",
   Range: "Range",
   Recent: "Recent",
-  Metrics: "Metrics",
+  Selected: "Selected",
 } as const;
 
 export type ModalDisplayMode =
