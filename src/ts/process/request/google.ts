@@ -485,15 +485,21 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
             `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}`
         
         // VertexAI api will return error if functionDeclarations is empty
-        if(body.tools?.functionDeclarations?.length === 0){
-            body.tools = undefined
-        }
+        // moved out of if statement as LLMFormat.GoogleCloud requests also need this removed
+        //if(body.tools?.functionDeclarations?.length === 0){
+        //    body.tools = undefined
+        //}
     }
     else if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${db.google.accessToken}`
     }
     else{
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
+    }
+
+    // GoogleAI api will also return an error if functionDeclarations is empty
+    if(body.tools?.functionDeclarations?.length === 0){
+        body.tools = undefined
     }
 
     if(arg.previewBody){
