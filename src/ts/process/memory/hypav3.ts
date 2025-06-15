@@ -1,6 +1,10 @@
 import { type memoryVector, HypaProcesser, similarity } from "./hypamemory";
 import { TaskRateLimiter } from "./taskRateLimiter";
-import { type EmbeddingText, HypaProcessorV2 } from "./hypamemoryv2";
+import {
+  type EmbeddingText,
+  type EmbeddingResult,
+  HypaProcessorV2,
+} from "./hypamemoryv2";
 import {
   type Chat,
   type character,
@@ -48,6 +52,12 @@ interface HypaV3Data {
     lastSimilarSummaries: number[];
     lastRandomSummaries: number[];
   };
+  modalSettings?: {
+    displayMode: ModalDisplayMode;
+    displayRangeFrom: number;
+    displayRangeTo: number;
+    displayRecentCount: number;
+  };
 }
 
 export interface SerializableHypaV3Data {
@@ -75,6 +85,16 @@ interface SummaryChunk {
   text: string;
   summary: Summary;
 }
+
+export const MODAL_DISPLAYMODE = {
+  All: "All",
+  Range: "Range",
+  Recent: "Recent",
+  Selected: "Selected",
+} as const;
+
+export type ModalDisplayMode =
+  (typeof MODAL_DISPLAYMODE)[keyof typeof MODAL_DISPLAYMODE];
 
 export interface HypaV3Result {
   currentTokens: number;
@@ -585,13 +605,14 @@ async function hypaMemoryV3MainExp(
 
     // Dynamically generate embedding texts
     const ebdTexts: EmbeddingText<Summary>[] = unusedSummaries.flatMap(
-      (summary) => {
+      (summary, summaryIndex) => {
         const splitted = summary.text
           .split("\n\n")
           .filter((e) => e.trim().length > 0);
 
-        return splitted.map((e) => ({
-          content: e.trim(),
+        return splitted.map((chunk, chunkIndex) => ({
+          id: `${summaryIndex}-${chunkIndex}`,
+          content: chunk.trim(),
           metadata: summary,
         }));
       }
@@ -648,13 +669,25 @@ async function hypaMemoryV3MainExp(
     const recentChats = chats
       .slice(-minChatsForSimilarity)
       .filter((chat) => chat.content.trim().length > 0);
-    const queries: string[] = recentChats.flatMap((chat) => {
-      return chat.content.split("\n\n").filter((e) => e.trim().length > 0);
-    });
+
+    const queries = recentChats
+      .map((chat, index) => {
+        const subQueries = chat.content
+          .split("\n\n")
+          .filter((e) => e.trim().length > 0);
+        const weight =
+          (index + 1) /
+          ((recentChats.length * (recentChats.length + 1)) / 2) /
+          subQueries.length;
+
+        return subQueries.map((content) => ({
+          content,
+          weight,
+        }));
+      })
+      .flat();
 
     if (queries.length > 0) {
-      const scoredSummaries = new Map<Summary, number>();
-
       try {
         // Start of performance measurement: similarity search
         console.log(
@@ -663,8 +696,33 @@ async function hypaMemoryV3MainExp(
         const searchStartTime = performance.now();
 
         const batchScoredResults = await processor.similaritySearchScoredBatch(
-          queries
+          queries.map((query) => query.content)
         );
+
+        /*
+        // Hybrid search may be implemented in the future
+        await keywordEngine.addDocuments(
+          Array.from(processor.vectors.values())
+        );
+
+        const batchkeywordResults = [];
+        for (const query of queries) {
+          batchkeywordResults.push(await keywordEngine.search(query));
+        }
+
+        const batchHybridResults = [];
+        for (let i = 0; i < queries.length; i++) {
+          const [semanticResults] = batchScoredResults[i];
+          const keywordResults = batchkeywordResults[i];
+
+          batchHybridResults.push(
+            simpleRRF<EmbeddingResult<Summary>>([
+              semanticResults,
+              keywordResults,
+            ])
+          );
+        }
+        */
 
         const searchEndTime = performance.now();
         console.debug(
@@ -674,16 +732,40 @@ async function hypaMemoryV3MainExp(
         );
         // End of performance measurement: similarity search
 
-        for (const scoredResults of batchScoredResults) {
-          for (const [ebdResult, similarity] of scoredResults) {
-            const summary = ebdResult.metadata;
+        const rankedChunks = simpleCC<EmbeddingResult<Summary>>(
+          batchScoredResults,
+          (listIndex) => queries[listIndex].weight
+        );
 
-            scoredSummaries.set(
-              summary,
-              (scoredSummaries.get(summary) || 0) + similarity
+        const rankedSummaries = childToParentRRF<
+          EmbeddingResult<Summary>,
+          Summary
+        >(rankedChunks, (chunk) => chunk.metadata);
+
+        while (rankedSummaries.length > 0) {
+          const summary = rankedSummaries.shift();
+          const summaryTokens = await tokenizer.tokenizeChat({
+            role: "system",
+            content: summary.text + summarySeparator,
+          });
+
+          if (
+            summaryTokens + consumedSimilarMemoryTokens >
+            reservedSimilarMemoryTokens
+          ) {
+            console.log(
+              logPrefix,
+              "Stopping similar memory selection:",
+              `\nconsumedSimilarMemoryTokens(${consumedSimilarMemoryTokens}) + summaryTokens(${summaryTokens}) > reservedSimilarMemoryTokens(${reservedSimilarMemoryTokens})`
             );
+            break;
           }
+
+          selectedSimilarSummaries.push(summary);
+          consumedSimilarMemoryTokens += summaryTokens;
         }
+
+        selectedSummaries.push(...selectedSimilarSummaries);
       } catch (error) {
         return {
           currentTokens,
@@ -699,61 +781,6 @@ async function hypaMemoryV3MainExp(
           subMsg: "",
         });
       }
-
-      // Normalize scores
-      if (scoredSummaries.size > 0) {
-        const maxScore = Math.max(...scoredSummaries.values());
-
-        for (const [summary, score] of scoredSummaries.entries()) {
-          scoredSummaries.set(summary, score / maxScore);
-        }
-      }
-
-      // Sort in descending order
-      const scoredArray = [...scoredSummaries.entries()].sort(
-        ([, scoreA], [, scoreB]) => scoreB - scoreA
-      );
-
-      while (scoredArray.length > 0) {
-        const [summary] = scoredArray.shift();
-        const summaryTokens = await tokenizer.tokenizeChat({
-          role: "system",
-          content: summary.text + summarySeparator,
-        });
-
-        /*
-        console.log(
-          logPrefix,
-          "Trying to add similar summary:",
-          "\nSummary Tokens:",
-          summaryTokens,
-          "\nConsumed Similar Memory Tokens:",
-          consumedSimilarMemoryTokens,
-          "\nReserved Tokens:",
-          reservedSimilarMemoryTokens,
-          "\nWould exceed:",
-          summaryTokens + consumedSimilarMemoryTokens >
-            reservedSimilarMemoryTokens
-        );
-        */
-
-        if (
-          summaryTokens + consumedSimilarMemoryTokens >
-          reservedSimilarMemoryTokens
-        ) {
-          console.log(
-            logPrefix,
-            "Stopping similar memory selection:",
-            `\nconsumedSimilarMemoryTokens(${consumedSimilarMemoryTokens}) + summaryTokens(${summaryTokens}) > reservedSimilarMemoryTokens(${reservedSimilarMemoryTokens})`
-          );
-          break;
-        }
-
-        selectedSimilarSummaries.push(summary);
-        consumedSimilarMemoryTokens += summaryTokens;
-      }
-
-      selectedSummaries.push(...selectedSimilarSummaries);
     }
 
     console.log(
@@ -1326,7 +1353,6 @@ async function hypaMemoryV3Main(
       };
     }
 
-    const scoredSummaries = new Map<Summary, number>();
     const recentChats = chats
       .slice(-minChatsForSimilarity)
       .filter((chat) => chat.content.trim().length > 0);
@@ -1364,18 +1390,51 @@ async function hypaMemoryV3Main(
       }
 
       try {
-        for (const query of queries) {
+        const scoredLists: [SummaryChunk, number][][] = [];
+
+        for (let i = 0; i < queries.length; i++) {
+          const query = queries[i];
           const scoredChunks = await processor.similaritySearchScoredEx(query);
 
-          for (const [chunk, similarity] of scoredChunks) {
-            const summary = chunk.summary;
-
-            scoredSummaries.set(
-              summary,
-              (scoredSummaries.get(summary) || 0) + similarity
-            );
-          }
+          scoredLists.push(scoredChunks);
         }
+
+        const rankedChunks = simpleCC<SummaryChunk>(
+          scoredLists,
+          (listIndex, totalLists) => {
+            return (listIndex + 1) / ((totalLists * (totalLists + 1)) / 2);
+          }
+        );
+
+        const rankedSummaries = childToParentRRF<SummaryChunk, Summary>(
+          rankedChunks,
+          (chunk) => chunk.summary
+        );
+
+        while (rankedSummaries.length > 0) {
+          const summary = rankedSummaries.shift();
+          const summaryTokens = await tokenizer.tokenizeChat({
+            role: "system",
+            content: summary.text + summarySeparator,
+          });
+
+          if (
+            summaryTokens + consumedSimilarMemoryTokens >
+            reservedSimilarMemoryTokens
+          ) {
+            console.log(
+              logPrefix,
+              "Stopping similar memory selection:",
+              `\nconsumedSimilarMemoryTokens(${consumedSimilarMemoryTokens}) + summaryTokens(${summaryTokens}) > reservedSimilarMemoryTokens(${reservedSimilarMemoryTokens})`
+            );
+            break;
+          }
+
+          selectedSimilarSummaries.push(summary);
+          consumedSimilarMemoryTokens += summaryTokens;
+        }
+
+        selectedSummaries.push(...selectedSimilarSummaries);
       } catch (error) {
         return {
           currentTokens,
@@ -1385,52 +1444,6 @@ async function hypaMemoryV3Main(
         };
       }
     }
-
-    // Sort in descending order
-    const scoredArray = [...scoredSummaries.entries()].sort(
-      ([, scoreA], [, scoreB]) => scoreB - scoreA
-    );
-
-    while (scoredArray.length > 0) {
-      const [summary] = scoredArray.shift();
-      const summaryTokens = await tokenizer.tokenizeChat({
-        role: "system",
-        content: summary.text + summarySeparator,
-      });
-
-      /*
-      console.log(
-        logPrefix,
-        "Trying to add similar summary:",
-        "\nSummary Tokens:",
-        summaryTokens,
-        "\nConsumed Similar Memory Tokens:",
-        consumedSimilarMemoryTokens,
-        "\nReserved Tokens:",
-        reservedSimilarMemoryTokens,
-        "\nWould exceed:",
-        summaryTokens + consumedSimilarMemoryTokens >
-          reservedSimilarMemoryTokens
-      );
-      */
-
-      if (
-        summaryTokens + consumedSimilarMemoryTokens >
-        reservedSimilarMemoryTokens
-      ) {
-        console.log(
-          logPrefix,
-          "Stopping similar memory selection:",
-          `\nconsumedSimilarMemoryTokens(${consumedSimilarMemoryTokens}) + summaryTokens(${summaryTokens}) > reservedSimilarMemoryTokens(${reservedSimilarMemoryTokens})`
-        );
-        break;
-      }
-
-      selectedSimilarSummaries.push(summary);
-      consumedSimilarMemoryTokens += summaryTokens;
-    }
-
-    selectedSummaries.push(...selectedSimilarSummaries);
 
     console.log(
       logPrefix,
@@ -1781,6 +1794,92 @@ export function createHypaV3Preset(
   };
 }
 
+function simpleCC<T>(
+  scoredLists: [T, number][][],
+  weightFunc?: (listIndex: number, totalLists: number) => number
+): T[] {
+  const scores = new Map<T, number>();
+
+  for (let listIndex = 0; listIndex < scoredLists.length; listIndex++) {
+    const list = scoredLists[listIndex];
+    const weight = weightFunc
+      ? weightFunc(listIndex, scoredLists.length)
+      : 1 / scoredLists.length;
+
+    for (const [item, score] of list) {
+      scores.set(item, (scores.get(item) || 0) + score * weight);
+    }
+  }
+
+  return Array.from(scores.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([item]) => item);
+}
+
+function simpleRRF<T>(rankedLists: T[][], k: number = 60): T[] {
+  const scores = new Map<T, number>();
+
+  for (let listIndex = 0; listIndex < rankedLists.length; listIndex++) {
+    const list = rankedLists[listIndex];
+
+    for (let itemIndex = 0; itemIndex < list.length; itemIndex++) {
+      const item = list[itemIndex];
+      const rank = itemIndex + 1;
+      const rrfTerm = 1 / (k + rank);
+
+      scores.set(item, (scores.get(item) || 0) + rrfTerm);
+    }
+  }
+
+  return Array.from(scores.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([item]) => item);
+}
+
+function childToParentRRF<C, P>(
+  rankedChildren: C[],
+  parentFunc: (child: C) => P,
+  k: number = 60
+): P[] {
+  const scores = new Map<P, number>();
+
+  for (let childIndex = 0; childIndex < rankedChildren.length; childIndex++) {
+    const child = rankedChildren[childIndex];
+    const parent = parentFunc(child);
+    const rank = childIndex + 1;
+    const rrfTerm = 1 / (k + rank);
+
+    scores.set(parent, (scores.get(parent) || 0) + rrfTerm);
+  }
+
+  return Array.from(scores.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([parent]) => parent);
+}
+
+function normalizeScores<T>(scoredList: [T, number][]): [T, number][] {
+  if (scoredList.length === 0) {
+    return [];
+  }
+
+  const scores = scoredList.map(([, score]) => score);
+  const minScore = Math.min(...scores);
+  const maxScore = Math.max(...scores);
+
+  if (minScore === maxScore) {
+    if (minScore === 0) {
+      return scoredList.map(([item]) => [item, 0]);
+    }
+
+    return scoredList.map(([item]) => [item, 1]);
+  }
+
+  return scoredList.map(([item, score]) => {
+    const normalizedScore = (score - minScore) / (maxScore - minScore);
+    return [item, normalizedScore];
+  });
+}
+
 interface SummaryChunkVector {
   chunk: SummaryChunk;
   vector: memoryVector;
@@ -1828,7 +1927,7 @@ class HypaProcesserEx extends HypaProcesser {
         chunk: scv.chunk,
         similarity: similarity(queryVector, scv.vector.embedding),
       }))
-      .sort((a, b) => (a.similarity > b.similarity ? -1 : 0))
+      .sort((a, b) => b.similarity - a.similarity)
       .map((result) => [result.chunk, result.similarity]);
   }
 }
