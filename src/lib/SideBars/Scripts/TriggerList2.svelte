@@ -1625,7 +1625,7 @@
                         <div class="flex-1 overflow-y-auto">
                             {#each getFilteredTriggers() as type}
                                 <button 
-                                    class="w-full p-3 text-left hover:bg-selected transition-colors" 
+                                    class="w-full p-3 text-left hover:bg-selected transition-colors text-textcolor2 hover:text-textcolor" 
                                     class:opacity-60={deprecatedEffectV2Types.includes(type)} 
                                     onclick={(e) => {
                                         e.stopPropagation()
@@ -1633,7 +1633,7 @@
                                         menuMode = 2
                                     }}
                                 >
-                                    <div class="text-textcolor2">
+                                    <div>
                                         {language.triggerDesc[type]}
                                         {#if deprecatedEffectV2Types.includes(type)}
                                             <span class="text-xs opacity-60 ml-1">(Deprecated)</span>
