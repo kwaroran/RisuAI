@@ -274,6 +274,22 @@
                     <span class="text-purple-500 justify-self-end">{JSON.stringify(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx]).length} Bytes</span>
                     <span class="text-yellow-500">Time</span>
                     <span class="text-yellow-500 justify-self-end">{(new Date(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].time ?? 0)).toLocaleString()}</span>
+                    {#if $alertGenerationInfoStore.genInfo.stageTiming}
+                        {@const stage1 = parseFloat(((($alertGenerationInfoStore.genInfo.stageTiming.stage1 ?? 0) / 1000).toFixed(1)))}
+                        {@const stage2 = parseFloat(((($alertGenerationInfoStore.genInfo.stageTiming.stage2 ?? 0) / 1000).toFixed(1)))}
+                        {@const stage3 = parseFloat(((($alertGenerationInfoStore.genInfo.stageTiming.stage3 ?? 0) / 1000).toFixed(1)))}
+                        {@const stage4 = parseFloat(((($alertGenerationInfoStore.genInfo.stageTiming.stage4 ?? 0) / 1000).toFixed(1)))}
+                        {@const totalRounded = (stage1 + stage2 + stage3 + stage4).toFixed(1)}
+                        <span class="text-gray-400">Timing</span>
+                        <span class="text-gray-400 justify-self-end">
+                            <span style="color: #60a5fa;">{stage1}</span> + 
+                            <span style="color: #db2777;">{stage2}</span> + 
+                            <span style="color: #34d399;">{stage3}</span> + 
+                            <span style="color: #8b5cf6;">{stage4}</span> = 
+                            <span class="text-white font-bold">{totalRounded}s</span>
+                        </span>
+                    {/if}
+
                     <span class="text-green-500">Tokens</span>
                     {#await tokenize(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].data)}
                         <span class="text-green-500 justify-self-end">Loading</span>
