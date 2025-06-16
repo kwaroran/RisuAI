@@ -134,7 +134,7 @@ export async function alertLogin(){
 }
 
 export async function alertSelect(msg:string[], display?:string){
-    const message = display ? `${display}||${msg.join('||')}` : msg.join('||')
+    const message = display !== undefined ? `__DISPLAY__${display}||${msg.join('||')}` : msg.join('||')
     alertStoreImported.set({
         'type': 'select',
         'msg': message
