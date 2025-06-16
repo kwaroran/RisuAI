@@ -60,6 +60,7 @@
         //Alert
         'v2ShowAlert',
         'v2GetAlertInput',
+        'v2GetAlertSelect',
 
         //Lorebook V2
         'v2GetAllLorebooks',
@@ -116,7 +117,7 @@
         'Control': ['v2SetVar', 'v2IfAdvanced', 'v2LoopNTimes', 'v2Loop', 'v2BreakLoop', 'v2RunTrigger', 'v2ConsoleLog', 'v2StopTrigger'],
         'Chat': ['v2CutChat', 'v2ModifyChat', 'v2SystemPrompt', 'v2Impersonate', 'v2Command', 'v2GetLastMessage', 'v2GetLastUserMessage', 'v2GetLastCharMessage', 'v2GetMessageAtIndex', 'v2GetMessageCount', 'v2GetFirstMessage', 'v2QuickSearchChat'],
         'Low Level': ['v2SendAIprompt', 'v2ImgGen', 'v2CheckSimilarity', 'v2RunLLM'],
-        'Alert': ['v2ShowAlert', 'v2GetAlertInput'],
+        'Alert': ['v2ShowAlert', 'v2GetAlertInput', 'v2GetAlertSelect'],
         'Lorebook V2': ['v2GetAllLorebooks', 'v2GetLorebookByName', 'v2GetLorebookByIndex', 'v2CreateLorebook', 'v2ModifyLorebookByIndex', 'v2DeleteLorebookByIndex', 'v2GetLorebookCountNew', 'v2SetLorebookAlwaysActive'],
         'String': ['v2RegexTest', 'v2ExtractRegex', 'v2GetCharAt', 'v2GetCharCount', 'v2ToLowerCase', 'v2ToUpperCase', 'v2SetCharAt', 'v2SplitString', 'v2ConcatString'],
         'Character': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc'],
@@ -785,6 +786,18 @@
                     indent: 0,
                     display: '',
                     displayType: 'value'
+                }
+                break;
+            }
+            case 'v2GetAlertSelect':{
+                editTrigger = {
+                    type: 'v2GetAlertSelect',
+                    display: '',
+                    displayType: 'value',
+                    value: '',
+                    valueType: 'value',
+                    outputVar: '',
+                    indent: 0
                 }
                 break;
             }
@@ -1751,7 +1764,7 @@
                         <TextInput bind:value={editTrigger.source} />
 
                     {:else if editTrigger.type === 'v2ShowAlert'}
-                        <span>{language.value}</span>
+                        <span>{language.alertContent}</span>
                         <SelectInput bind:value={editTrigger.valueType}>
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
@@ -2255,12 +2268,29 @@
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
                     {:else if editTrigger.type === 'v2GetAlertInput'}
-                        <span class="block text-textcolor">{language.value}</span>
+                        <span class="block text-textcolor">{language.alertContent}</span>
                         <SelectInput bind:value={editTrigger.displayType}>
                             <OptionInput value="value">{language.value}</OptionInput>
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.display} />
+
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetAlertSelect'}
+                        <span class="block text-textcolor">{language.alertContent}</span>
+                        <SelectInput bind:value={editTrigger.displayType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.display} />
+
+                        <span class="block text-textcolor">{language.options}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
 
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
