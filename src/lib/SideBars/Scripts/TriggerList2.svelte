@@ -88,6 +88,8 @@
         'v2SetCharacterDesc',
         'v2GetPersonaDesc',
         'v2SetPersonaDesc',
+        'v2GetReplaceGlobalNote',
+        'v2SetReplaceGlobalNote',
 
         //Array
         'v2MakeArrayVar',
@@ -120,7 +122,7 @@
         'Alert': ['v2ShowAlert', 'v2GetAlertInput', 'v2GetAlertSelect'],
         'Lorebook V2': ['v2GetAllLorebooks', 'v2GetLorebookByName', 'v2GetLorebookByIndex', 'v2CreateLorebook', 'v2ModifyLorebookByIndex', 'v2DeleteLorebookByIndex', 'v2GetLorebookCountNew', 'v2SetLorebookAlwaysActive'],
         'String': ['v2RegexTest', 'v2ExtractRegex', 'v2GetCharAt', 'v2GetCharCount', 'v2ToLowerCase', 'v2ToUpperCase', 'v2SetCharAt', 'v2SplitString', 'v2ConcatString'],
-        'Data': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc'],
+        'Data': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc', 'v2GetReplaceGlobalNote', 'v2SetReplaceGlobalNote'],
         'Array': ['v2MakeArrayVar', 'v2GetArrayVarLength', 'v2GetArrayVar', 'v2SetArrayVar', 'v2PushArrayVar', 'v2PopArrayVar', 'v2ShiftArrayVar', 'v2UnshiftArrayVar', 'v2SpliceArrayVar', 'v2SliceArrayVar', 'v2GetIndexOfValueInArrayVar', 'v2RemoveIndexFromArrayVar'],
         'Others': ['v2Random', 'v2UpdateGUI', 'v2UpdateChatAt', 'v2Wait', 'v2StopPromptSending', 'v2Tokenize']
     }
@@ -1009,6 +1011,23 @@
                     index: '',
                     indexType: 'value',
                     value: true,
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetReplaceGlobalNote':{
+                editTrigger = {
+                    type: 'v2GetReplaceGlobalNote',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2SetReplaceGlobalNote':{
+                editTrigger = {
+                    type: 'v2SetReplaceGlobalNote',
+                    value: '',
+                    valueType: 'value',
                     indent: 0
                 }
                 break;
@@ -2539,6 +2558,16 @@
 
                         <span class="block text-textcolor">{language.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetReplaceGlobalNote'}
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2SetReplaceGlobalNote'}
+                        <span>{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}

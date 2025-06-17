@@ -41,7 +41,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength|triggerV2IfAdvanced|
                                 triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2GetAllLorebooks|triggerV2GetLorebookByName|triggerV2GetLorebookByIndex|
                                 triggerV2CreateLorebook|triggerV2ModifyLorebookByIndex|triggerV2DeleteLorebookByIndex|triggerV2GetLorebookCountNew|triggerV2SetLorebookAlwaysActive|
-                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest
+                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest|triggerV2GetReplaceGlobalNote|triggerV2SetReplaceGlobalNote
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -823,6 +823,19 @@ export type triggerV2GetAlertSelect = {
     value: string,
     valueType: 'var'|'value',
     outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetReplaceGlobalNote = {
+    type: 'v2GetReplaceGlobalNote',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetReplaceGlobalNote = {
+    type: 'v2SetReplaceGlobalNote',
+    value: string,
+    valueType: 'var'|'value',
     indent: number
 }
 
@@ -1786,6 +1799,19 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         db.personaPrompt = value
                         setDatabase(db)
                     }
+                    break
+                }
+                case 'v2GetReplaceGlobalNote':{
+                    setVar(effect.outputVar, char.replaceGlobalNote ?? '')
+                    break
+                }
+                case 'v2SetReplaceGlobalNote':{
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    char.replaceGlobalNote = value
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase();
+                    (db.characters[selectedCharId] as character).replaceGlobalNote = value
+                    setCurrentCharacter(char)
                     break
                 }
                 case 'v2MakeArrayVar':{
