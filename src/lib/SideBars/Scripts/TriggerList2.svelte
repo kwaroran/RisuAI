@@ -105,6 +105,7 @@
         'v2SliceArrayVar',
         'v2GetIndexOfValueInArrayVar',
         'v2RemoveIndexFromArrayVar',
+        'v2JoinArrayVar',
 
         //Others
         'v2Random',
@@ -125,7 +126,7 @@
         'Lorebook V2': ['v2GetAllLorebooks', 'v2GetLorebookByName', 'v2GetLorebookByIndex', 'v2CreateLorebook', 'v2ModifyLorebookByIndex', 'v2DeleteLorebookByIndex', 'v2GetLorebookCountNew', 'v2SetLorebookAlwaysActive'],
         'String': ['v2RegexTest', 'v2ExtractRegex', 'v2GetCharAt', 'v2GetCharCount', 'v2ToLowerCase', 'v2ToUpperCase', 'v2SetCharAt', 'v2SplitString', 'v2ConcatString'],
         'Data': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc', 'v2GetReplaceGlobalNote', 'v2SetReplaceGlobalNote', 'v2GetAuthorNote', 'v2SetAuthorNote'],
-        'Array': ['v2MakeArrayVar', 'v2GetArrayVarLength', 'v2GetArrayVar', 'v2SetArrayVar', 'v2PushArrayVar', 'v2PopArrayVar', 'v2ShiftArrayVar', 'v2UnshiftArrayVar', 'v2SpliceArrayVar', 'v2SliceArrayVar', 'v2GetIndexOfValueInArrayVar', 'v2RemoveIndexFromArrayVar'],
+        'Array': ['v2MakeArrayVar', 'v2GetArrayVarLength', 'v2GetArrayVar', 'v2SetArrayVar', 'v2PushArrayVar', 'v2PopArrayVar', 'v2ShiftArrayVar', 'v2UnshiftArrayVar', 'v2SpliceArrayVar', 'v2SliceArrayVar', 'v2GetIndexOfValueInArrayVar', 'v2RemoveIndexFromArrayVar', 'v2JoinArrayVar'],
         'Others': ['v2Random', 'v2UpdateGUI', 'v2SystemPrompt', 'v2UpdateChatAt', 'v2Wait', 'v2StopPromptSending', 'v2Tokenize']
     }
 
@@ -590,6 +591,17 @@
                     type: 'v2SplitString',
                     source: '',
                     sourceType: 'value',
+                    delimiter: '',
+                    delimiterType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            case 'v2JoinArrayVar':
+                editTrigger = {
+                    type: 'v2JoinArrayVar',
+                    var: '',
+                    varType: 'value',
                     delimiter: '',
                     delimiterType: 'value',
                     outputVar: '',
@@ -2118,6 +2130,22 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.source} />
+                        <span>{language.delimiter}</span>
+                        <SelectInput bind:value={editTrigger.delimiterType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.delimiter} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+
+                    {:else if editTrigger.type === 'v2JoinArrayVar'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
                         <span>{language.delimiter}</span>
                         <SelectInput bind:value={editTrigger.delimiterType}>
                             <OptionInput value="value">{language.value}</OptionInput>

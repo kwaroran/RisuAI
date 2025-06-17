@@ -304,6 +304,8 @@ export const languageKorean = {
         "v2GetIndexOfValueInArrayVarDesc": "배열 변수 {{var}}에서 값 {{value}}의 인덱스 가져오기 => {{outputVar}}",
         "v2RemoveIndexFromArrayVar": "배열 변수에서 인덱스에 있는 값 제거",
         "v2RemoveIndexFromArrayVarDesc": "배열 변수 {{var}}에서 인덱스 {{index}} 에 있는 값 제거",
+        "v2JoinArrayVar": "배열 결합",
+        "v2JoinArrayVarDesc": "배열 {{var}}를 {{delimiter}}로 결합 => {{outputVar}}",
         "v2ConcatString": "문자열 합치기",
         "v2ConcatStringDesc": "{{source1}}와 {{source2}}를 합치기 => {{outputVar}}",
         "v2GetLastUserMessage": "마지막 유저 메시지 가져오기",

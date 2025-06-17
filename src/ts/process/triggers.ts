@@ -33,7 +33,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2GetLastMessage|triggerV2GetMessageAtIndex|triggerV2GetMessageCount|triggerV2GetLastMessage|triggerV2GetMessageAtIndex|
                                 triggerV2GetMessageCount|triggerV2ModifyLorebook|triggerV2GetLorebook|triggerV2GetLorebookCount|triggerV2GetLorebookEntry|
                                 triggerV2SetLorebookActivation|triggerV2GetLorebookIndexViaName|triggerV2LoopNTimes|triggerV2Random|triggerV2GetCharAt|
-                                triggerV2GetCharCount|triggerV2ToLowerCase|triggerV2ToUpperCase|triggerV2SetCharAt|triggerV2SplitString|triggerV2GetCharacterDesc|
+                                triggerV2GetCharCount|triggerV2ToLowerCase|triggerV2ToUpperCase|triggerV2SetCharAt|triggerV2SplitString|triggerV2JoinArrayVar|triggerV2GetCharacterDesc|
                                 triggerV2SetCharacterDesc|triggerV2GetPersonaDesc|triggerV2SetPersonaDesc|triggerV2MakeArrayVar|triggerV2GetArrayVarLength|triggerV2GetArrayVar|triggerV2SetArrayVar|
                                 triggerV2PushArrayVar|triggerV2PopArrayVar|triggerV2ShiftArrayVar|triggerV2UnshiftArrayVar|triggerV2SpliceArrayVar|triggerV2GetFirstMessage|
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
@@ -468,6 +468,16 @@ export type triggerV2SplitString = {
     indent: number
 }
 
+export type triggerV2JoinArrayVar = {
+    type: 'v2JoinArrayVar',
+    var: string,
+    varType: 'var'|'value',
+    delimiter: string,
+    delimiterType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
 export type triggerV2GetCharacterDesc = {
     type: 'v2GetCharacterDesc',
     outputVar: string,
@@ -872,6 +882,7 @@ const safeSubset = [
     'v2ToUpperCase',
     'v2SetCharAt',
     'v2SplitString',
+    'v2JoinArrayVar',
     'v2ConcatString',
     'v2MakeArrayVar',
     'v2GetArrayVarLength',
@@ -1785,6 +1796,17 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     let source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
                     let delimiter = effect.delimiterType === 'value' ? risuChatParser(effect.delimiter,{chara:char}) : getVar(risuChatParser(effect.delimiter,{chara:char}))
                     setVar(effect.outputVar, JSON.stringify(source.split(delimiter)))
+                    break
+                }
+                case 'v2JoinArrayVar':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let arr = JSON.parse(varValue)
+                        let delimiter = effect.delimiterType === 'value' ? risuChatParser(effect.delimiter,{chara:char}) : getVar(risuChatParser(effect.delimiter,{chara:char}))
+                        setVar(effect.outputVar, arr.join(delimiter))
+                    } catch (error) {
+                        setVar(effect.outputVar, '')
+                    }
                     break
                 }
                 case 'v2GetCharacterDesc':{

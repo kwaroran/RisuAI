@@ -361,6 +361,8 @@ export const languageEnglish = {
         v2GetIndexOfValueInArrayVarDesc: "Get Index of {{value}} in Array Variable {{var}} => {{outputVar}}",
         v2RemoveIndexFromArrayVar: "Remove Index from Array Variable",
         v2RemoveIndexFromArrayVarDesc: "Remove Value at Index {{index}} from Array Variable {{var}}",
+        v2JoinArrayVar: "Join Array",
+        v2JoinArrayVarDesc: "Join Array {{var}} with {{delimiter}} => {{outputVar}}",
         v2ConcatString: "Concatenate Strings",
         v2ConcatStringDesc: "Concatenate {{source1}} and {{source2}} => {{outputVar}}",
         v2GetLastUserMessage: "Get Last User Message",
