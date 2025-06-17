@@ -1043,7 +1043,7 @@ export const languageKorean = {
         "Special": "특수",
         "Control": "제어",
         "Chat": "채팅",
-        "Low Level": "저수준",
+        "Low Level": "저수준 접근",
         "Alert": "알림",
         "Lorebook V2": "로어북",
         "String": "문자열",
