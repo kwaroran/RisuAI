@@ -1352,6 +1352,29 @@
             <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md z-50" style={contextMenuLoc.style}>
                 {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent' && selectMode === 1}
                     <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
+                        const currentEffect = value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2
+                        if(currentEffect.type === 'v2If' || currentEffect.type === 'v2IfAdvanced'){
+                            let hasExistingElse = false
+                            let pointer = selectedEffectIndex + 1
+                            let indent = currentEffect.indent
+                            
+                            while(pointer < value[selectedIndex].effect.length){
+                                const effect = value[selectedIndex].effect[pointer] as triggerEffectV2
+                                if(effect.type === 'v2EndIndent' && effect.indent === indent + 1){
+                                    if(pointer + 1 < value[selectedIndex].effect.length){
+                                        const nextEffect = value[selectedIndex].effect[pointer + 1] as triggerEffectV2
+                                        if(nextEffect.type === 'v2Else' && nextEffect.indent === indent){
+                                            hasExistingElse = true
+                                        }
+                                    }
+                                    break
+                                }
+                                pointer++
+                            }
+                            
+                            addElse = hasExistingElse
+                        }
+                        
                         menuMode = 3
                     }}>
                         {language.edit}
@@ -2565,10 +2588,69 @@
                             }
                             value[selectedIndex].effect.splice(selectedEffectIndex, 0, editTrigger)
                         }
+                        else if(menuMode === 3){
+                            const originalEffect = value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2
+                            const isIfType = editTrigger.type === 'v2If' || editTrigger.type === 'v2IfAdvanced'
+                            
+                            if(isIfType){
+                                let hasExistingElse = false
+                                let elseIndex = -1
+                                let endIndentIndex = -1
+                                
+                                let pointer = selectedEffectIndex + 1
+                                let indent = originalEffect.indent
+                                while(pointer < value[selectedIndex].effect.length){
+                                    const effect = value[selectedIndex].effect[pointer] as triggerEffectV2
+                                    if(effect.type === 'v2EndIndent' && effect.indent === indent + 1){
+                                        endIndentIndex = pointer
+                                        break
+                                    }
+                                    pointer++
+                                }
+                                
+                                if(endIndentIndex !== -1 && endIndentIndex + 1 < value[selectedIndex].effect.length){
+                                    const nextEffect = value[selectedIndex].effect[endIndentIndex + 1] as triggerEffectV2
+                                    if(nextEffect.type === 'v2Else' && nextEffect.indent === indent){
+                                        hasExistingElse = true
+                                        elseIndex = endIndentIndex + 1
+                                    }
+                                }
+                                
+                                if(addElse && !hasExistingElse){
+                                    value[selectedIndex].effect.splice(endIndentIndex + 1, 0, {
+                                        type: 'v2Else',
+                                        indent: indent
+                                    })
+                                    value[selectedIndex].effect.splice(endIndentIndex + 2, 0, {
+                                        type: 'v2EndIndent',
+                                        indent: indent + 1
+                                    })
+                                }
+                                else if(!addElse && hasExistingElse){
+                                    let elseEndIndex = -1
+                                    pointer = elseIndex + 1
+                                    while(pointer < value[selectedIndex].effect.length){
+                                        const effect = value[selectedIndex].effect[pointer] as triggerEffectV2
+                                        if(effect.type === 'v2EndIndent' && effect.indent === indent + 1){
+                                            elseEndIndex = pointer
+                                            break
+                                        }
+                                        pointer++
+                                    }
+                                    
+                                    if(elseEndIndex !== -1){
+                                        value[selectedIndex].effect.splice(elseIndex, elseEndIndex - elseIndex + 1)
+                                    }
+                                }
+                            }
+                            
+                            value[selectedIndex].effect[selectedEffectIndex] = editTrigger
+                        }
                         else{
                             value[selectedIndex].effect[selectedEffectIndex] = editTrigger
                         }
                         menuMode = 0
+                        updateGuideLines()
                     }}>Save</Button>
 
                     {#if menuMode === 3}
