@@ -33,8 +33,9 @@
         'v2LoopNTimes',
         'v2Loop',
         'v2BreakLoop',
-        'v2RunTrigger',
+        'v2Command',
         'v2ConsoleLog',
+        'v2RunTrigger',
         'v2StopTrigger',
 
         //Chat
@@ -42,7 +43,6 @@
         'v2ModifyChat',
         'v2SystemPrompt',
         'v2Impersonate',
-        'v2Command',
         'v2GetLastMessage',
         'v2GetLastUserMessage',
         'v2GetLastCharMessage',
@@ -114,8 +114,8 @@
 
     const effectCategories = {
         'Special': ['v2GetDisplayState', 'v2SetDisplayState', 'v2GetRequestState', 'v2SetRequestState', 'v2GetRequestStateRole', 'v2SetRequestStateRole', 'v2GetRequestStateLength'],
-        'Control': ['v2SetVar', 'v2IfAdvanced', 'v2LoopNTimes', 'v2Loop', 'v2BreakLoop', 'v2RunTrigger', 'v2ConsoleLog', 'v2StopTrigger'],
-        'Chat': ['v2CutChat', 'v2ModifyChat', 'v2SystemPrompt', 'v2Impersonate', 'v2Command', 'v2GetLastMessage', 'v2GetLastUserMessage', 'v2GetLastCharMessage', 'v2GetMessageAtIndex', 'v2GetMessageCount', 'v2GetFirstMessage', 'v2QuickSearchChat'],
+        'Control': ['v2SetVar', 'v2IfAdvanced', 'v2LoopNTimes', 'v2Loop', 'v2BreakLoop', 'v2Command', 'v2ConsoleLog', 'v2RunTrigger', 'v2StopTrigger'],
+        'Chat': ['v2CutChat', 'v2ModifyChat', 'v2SystemPrompt', 'v2Impersonate', 'v2GetLastMessage', 'v2GetLastUserMessage', 'v2GetLastCharMessage', 'v2GetMessageAtIndex', 'v2GetMessageCount', 'v2GetFirstMessage', 'v2QuickSearchChat'],
         'Low Level': ['v2SendAIprompt', 'v2ImgGen', 'v2CheckSimilarity', 'v2RunLLM'],
         'Alert': ['v2ShowAlert', 'v2GetAlertInput', 'v2GetAlertSelect'],
         'Lorebook V2': ['v2GetAllLorebooks', 'v2GetLorebookByName', 'v2GetLorebookByIndex', 'v2CreateLorebook', 'v2ModifyLorebookByIndex', 'v2DeleteLorebookByIndex', 'v2GetLorebookCountNew', 'v2SetLorebookAlwaysActive'],
