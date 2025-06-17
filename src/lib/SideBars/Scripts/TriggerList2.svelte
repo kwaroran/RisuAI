@@ -1665,7 +1665,7 @@
                         <div class="hidden md:flex md:flex-1 md:flex-col md:overflow-y-auto">
                             {#each getAvailableCategories() as category}
                                 <button 
-                                    class="w-full p-3 text-left hover:bg-selected transition-colors"
+                                    class="w-full p-3 text-left hover:bg-selected hover:text-textcolor transition-colors"
                                     class:bg-selected={selectedCategory === category}
                                     class:text-textcolor={selectedCategory === category}
                                     class:text-textcolor2={selectedCategory !== category}
