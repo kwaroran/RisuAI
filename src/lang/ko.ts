@@ -1039,7 +1039,7 @@ export const languageKorean = {
         "Alert": "알림",
         "Lorebook V2": "로어북",
         "String": "문자열",
-        "Character": "캐릭터",
+        "Data": "데이터",
         "Array": "배열",
         "Others": "기타",
         "Deprecated": "비권장"

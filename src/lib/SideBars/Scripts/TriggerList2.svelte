@@ -83,7 +83,7 @@
         'v2SplitString',
         'v2ConcatString',
 
-        //Character
+        //Data
         'v2GetCharacterDesc',
         'v2SetCharacterDesc',
         'v2GetPersonaDesc',
@@ -120,7 +120,7 @@
         'Alert': ['v2ShowAlert', 'v2GetAlertInput', 'v2GetAlertSelect'],
         'Lorebook V2': ['v2GetAllLorebooks', 'v2GetLorebookByName', 'v2GetLorebookByIndex', 'v2CreateLorebook', 'v2ModifyLorebookByIndex', 'v2DeleteLorebookByIndex', 'v2GetLorebookCountNew', 'v2SetLorebookAlwaysActive'],
         'String': ['v2RegexTest', 'v2ExtractRegex', 'v2GetCharAt', 'v2GetCharCount', 'v2ToLowerCase', 'v2ToUpperCase', 'v2SetCharAt', 'v2SplitString', 'v2ConcatString'],
-        'Character': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc'],
+        'Data': ['v2GetCharacterDesc', 'v2SetCharacterDesc', 'v2GetPersonaDesc', 'v2SetPersonaDesc'],
         'Array': ['v2MakeArrayVar', 'v2GetArrayVarLength', 'v2GetArrayVar', 'v2SetArrayVar', 'v2PushArrayVar', 'v2PopArrayVar', 'v2ShiftArrayVar', 'v2UnshiftArrayVar', 'v2SpliceArrayVar', 'v2SliceArrayVar', 'v2GetIndexOfValueInArrayVar', 'v2RemoveIndexFromArrayVar'],
         'Others': ['v2Random', 'v2UpdateGUI', 'v2UpdateChatAt', 'v2Wait', 'v2StopPromptSending', 'v2Tokenize']
     }

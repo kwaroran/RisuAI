@@ -1175,7 +1175,7 @@ export const languageEnglish = {
         "Alert": "Alert",
         "Lorebook V2": "Lorebook V2",
         "String": "String",
-        "Character": "Character",
+        "Data": "Data",
         "Array": "Array",
         "Others": "Others",
         "Deprecated": "Deprecated"
