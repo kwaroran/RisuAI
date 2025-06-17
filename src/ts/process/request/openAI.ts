@@ -12,6 +12,7 @@ import { supportsInlayImage } from "../files/inlays"
 import { Capacitor } from "@capacitor/core"
 import { replaceAsync, simplifySchema } from "src/ts/util"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
+import { alertError, alertNormal, alertWait, showHypaV2Alert } from "src/ts/alert";
 
 
 interface OAIResponseInputItem {
@@ -72,41 +73,75 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
     const db = getDatabase()
     const aiModel = arg.aiModel
 
-    const replaceToolCall = async (text:string) => {
+    const processToolCalls = async (text:string, originalMessage:any) => {
+        // Split text by tool_call tags and process each segment
+        const segments = text.split(/(<tool_call>.*?<\/tool_call>)/gms)
+        const processedMessages = []
+        
+        let currentContent = ''
+        
+        for(let i = 0; i < segments.length; i++) {
+            const segment = segments[i]
+            
+            if(segment.match(/<tool_call>(.*?)<\/tool_call>/gms)) {
+                // This is a tool call segment
+                const toolCallMatch = segment.match(/<tool_call>(.*?)<\/tool_call>/s)
+                if(toolCallMatch) {
+                    const call = await decodeToolCall(toolCallMatch[1])
+                    if(call) {
+                        // Create assistant message with accumulated content and this tool call
+                        processedMessages.push({
+                            ...originalMessage,
+                            role: 'assistant',
+                            content: currentContent,
+                            tool_calls: [{
+                                id: call.call.id,
+                                type: 'function',
+                                function: {
+                                    name: call.call.name,
+                                    arguments: call.call.arg
+                                }
+                            }]
+                        })
 
+                        // Add tool response
+                        processedMessages.push({
+                            role: 'tool',
+                            content: call.response.filter(m => m.type === 'text').map(m => m.text).join('\n'),
+                            tool_call_id: call.call.id,
+                            cachePoint: true
+                        })
 
-        return replaceAsync(text, /<tool_call>(.*?)<\/tool_call>/gms, async (match, p1) => {
-            const call = await decodeToolCall(p1)
-            if(!call){
-                return match
-            }
-            formatedChat.push({
-                role: 'assistant',
-                content: '',
-                tool_calls: [{
-                    id: call.call.id,
-                    type: 'function',
-                    function: {
-                        name: call.call.name,
-                        arguments: JSON.stringify(call.call.arg)
+                        // Reset content for next segment
+                        currentContent = ''
                     }
-                }]
+                }
+            } else {
+                // This is regular text content - accumulate it
+                currentContent += segment
+            }
+        }
+        
+        // If there's remaining content without tool calls, add it as a regular message
+        if(currentContent.trim()) {
+            processedMessages.push({
+                ...originalMessage,
+                role: 'assistant',
+                content: currentContent
             })
-
-            formatedChat.push({
-                role: 'tool',
-                content: call.response.filter(m => m.type === 'text').map(m => m.text).join('\n'),
-                tool_call_id: call.call.id,
-                cachePoint: true
-            })
-
-            return ''
-        })
+        }
+        
+        return processedMessages
     }
-    
-    for(let i=0;i<formated.length;i++){
+      for(let i=0;i<formated.length;i++){
         const m = formated[i]
-        if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
+        
+        // Check if message contains tool calls
+        if(m.content && m.content.includes('<tool_call>')) {
+            const processedMessages = await processToolCalls(m.content, m)
+            formatedChat.push(...processedMessages)
+        }
+        else if(m.multimodals && m.multimodals.length > 0 && m.role === 'user'){
             let v:OpenAIChatExtra = safeStructuredClone(m)
             let contents:OpenAIContents[] = []
             for(let j=0;j<m.multimodals.length;j++){
@@ -120,13 +155,12 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             }
             contents.push({
                 "type": "text",
-                "text": await replaceToolCall(m.content)
+                "text": m.content
             })
             v.content = contents
             formatedChat.push(v)
         }
         else{
-            m.content = await replaceToolCall(m.content)
             formatedChat.push(m)
         }
     }
@@ -514,6 +548,13 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         replacerURL = 'https://api.ai21.com/studio/v1/chat/completions'
     }
     if(arg.multiGen){
+        // Check if tools are enabled - multiGen with tools is not supported
+        if(arg.tools && arg.tools.length > 0){
+            return {
+                type: 'fail',
+                result: 'MultiGen mode cannot be used with tool calls. Please disable one of them.'
+            }
+        }
         // @ts-ignore
         body.n = db.genTime
     }
@@ -569,115 +610,13 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             url: replacerURL,
         })
 
-        let dataUint:Uint8Array|Buffer = new Uint8Array([])
-        let reasoningContent = ""
-
-        const transtream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
-            async transform(chunk, control) {
-                dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
-                let JSONreaded:{[key:string]:string} = {}
-                try {
-                    const datas = dataUint.toString().split('\n')
-                    let readed:{[key:string]:string} = {}
-                    for(const data of datas){
-                        if(data.startsWith("data: ")){
-                            try {
-                                const rawChunk = data.replace("data: ", "")
-                                if(rawChunk === "[DONE]"){
-                                    if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
-                                        readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
-                                            reasoningContent = p1
-                                            return ""
-                                        })
-                    
-                                        if(reasoningContent){
-                                            reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
-                                        }
-                                    }                
-                                    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                                        for(const key in readed){
-                                            const extracted = extractJSON(readed[key], arg.extractJson)
-                                            JSONreaded[key] = extracted
-                                        }
-                                        console.log(JSONreaded)
-                                        control.enqueue(JSONreaded)
-                                    }
-                                    else if(reasoningContent){
-                                        control.enqueue({
-                                            "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"]}`
-                                        })
-                                    }
-                                    else{
-                                        control.enqueue(readed)
-                                    }
-                                    return
-                                }
-                                const choices = JSON.parse(rawChunk).choices
-                                for(const choice of choices){
-                                    const chunk = choice.delta.content ?? choices.text
-                                    if(chunk){
-                                        if(arg.multiGen){
-                                            const ind = choice.index.toString()
-                                            if(!readed[ind]){
-                                                readed[ind] = ""
-                                            }
-                                            readed[ind] += chunk
-                                        }
-                                        else{
-                                            if(!readed["0"]){
-                                                readed["0"] = ""
-                                            }
-                                            readed["0"] += chunk
-                                        }
-                                    }
-
-                                    if(choice?.delta?.reasoning_content){
-                                        reasoningContent += choice.delta.reasoning_content
-                                    }
-                                }
-                            } catch (error) {}
-                        }
-                    }
-
-                    
-                    if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
-                        readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
-                            reasoningContent = p1
-                            return ""
-                        })
-    
-                        if(reasoningContent){
-                            reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
-                        }
-                    }
-
-                    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                        for(const key in readed){
-                            const extracted = extractJSON(readed[key], arg.extractJson)
-                            JSONreaded[key] = extracted
-                        }
-                        console.log(JSONreaded)
-                        control.enqueue(JSONreaded)
-                    }
-                    else if(reasoningContent){
-                        control.enqueue({
-                            "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"]}`
-                        })
-                    }
-                    else{
-                        control.enqueue(readed)
-                    }
-                } catch (error) {
-                    
-                }
-            }
-        },)
+        const transtream = getTranStream(arg)
 
         da.body.pipeTo(transtream.writable)
 
         return {
             type: 'streaming',
-            result: transtream.readable
+            result: wrapToolStream(transtream.readable, body, headers, replacerURL, arg)
         }
     }
 
@@ -761,14 +700,77 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
         chatId: arg.chatId
     })
 
+    function processTextResponse(dat: any):string{
+        if(dat?.choices[0]?.text){
+            let text = dat.choices[0].text as string
+            if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+                try {
+                    const parsed = JSON.parse(text)
+                    const extracted = extractJSON(parsed, arg.extractJson)
+                    return extracted
+                } catch (error) {
+                    console.log(error)
+                    return text
+                }
+            }
+            return text
+        }
+        if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+            return extractJSON(dat.choices[0].message.content, arg.extractJson)
+        }
+        const msg:OpenAIChatFull = (dat.choices[0].message)
+        let result = msg.content
+        if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
+            console.log("Checking for reasoning content")
+            let reasoningContent = ""
+            result = result.replace(/(.*)\<\/think\>/gms, (m, p1) => {
+                reasoningContent = p1
+                return ""
+            })
+            console.log(`Reasoning Content: ${reasoningContent}`)
+            if(reasoningContent){
+                reasoningContent = reasoningContent.replace(/\<think\>/gms, '')
+                result = `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${result}`
+            }
+        }
+        if(dat?.choices[0]?.reasoning_content){
+            result = `<Thoughts>\n${dat.choices[0].reasoning_content}\n</Thoughts>\n${result}`
+        }
+
+        return result
+    }
+
     const dat = res.data as any
     if(res.ok){
         try {
+            // Collect all tool_calls from all choices
+            let allToolCalls: OpenAIToolCall[] = []
+            if(dat.choices) {
+                for(const choice of dat.choices) {
+                    if(choice.message?.tool_calls && choice.message.tool_calls.length > 0) {
+                        allToolCalls = allToolCalls.concat(choice.message.tool_calls)
+                    }
+                }
+            }
+            
+            // Replace choices[0].message.tool_calls with all collected tool calls
+            if(dat.choices?.[0]?.message && allToolCalls.length > 0) {
+                dat.choices[0].message.tool_calls = allToolCalls
+            }
+
             if(dat.choices?.[0]?.message?.tool_calls && dat.choices[0].message.tool_calls.length > 0){
                 const toolCalls = dat.choices[0].message.tool_calls as OpenAIToolCall[]
 
                 const messages = body.messages as OpenAIChatExtra[]
+                
                 messages.push(dat.choices[0].message)
+
+                // Remove the last message content if simplifiedToolUse is enabled
+                if(db.simplifiedToolUse && messages[messages.length - 1].content) {
+                    messages[messages.length - 1].content = ''
+                }
+                
+                const callCodes: string[] = []
 
                 for(const toolCall of toolCalls){
                     if(!toolCall.function || !toolCall.function.name || !toolCall.function.arguments){
@@ -795,15 +797,14 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                                         tool_call_id: toolCall.id
                                     })
                                     if(arg.rememberToolUsage){
-                                        arg.additionalOutput ??= ''
-                                        arg.additionalOutput += await encodeToolCall({
+                                        callCodes.push(await encodeToolCall({
                                             call: {
                                                 id: toolCall.id,
                                                 name: toolCall.function.name,
                                                 arg: toolCall.function.arguments
                                             },
                                             response: x
-                                        })
+                                        }))
                                     }
                                 }
                                 else{
@@ -822,95 +823,72 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                             tool_call_id: toolCall.id
                         })
                     }
-                }
-
+                }                
+                
                 body.messages = messages
 
-                return requestHTTPOpenAI(replacerURL, body, headers, arg)
+                // Send the next request recursively
+                let resRec
+                let attempt = 0
+                
+                do {
+                    attempt++
+                    resRec = await requestHTTPOpenAI(replacerURL, body, headers, arg)
+                    
+                    if (resRec.type != 'fail') {
+                        break
+                    }
+                } while (attempt <= db.requestRetrys) // Retry up to db.requestRetrys times
+
+                const callCode = callCodes.join('\n\n')
+
+                // Combine the tool call results with the main response (does not include text response if simplifiedToolUse is enabled)
+                const result = (db.simplifiedToolUse ? '' : (processTextResponse(dat) ?? '') + '\n\n') + callCode
+                        
+                if(resRec.type === 'fail') {
+                    alertError(`Failed to fetch model response after tool execution`)
+                    return {
+                        type: 'success',
+                        result: result
+                    }
+                } else if(resRec.type === 'success') {
+                    return {
+                        type: 'success',
+                        result: result + '\n\n' + resRec.result
+                    }
+                }
+                        
+                return resRec
             }
-
-            arg.additionalOutput ??= ''
-
+                    
             if(arg.multiGen && dat.choices){
                 if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-
-                    const c = dat.choices.map((v:{
-                        message:{content:string}
-                    }) => {
-                        const extracted = extractJSON( arg.additionalOutput + v.message.content, arg.extractJson)
-                        return ["char",extracted]
+                    
+                    const c = dat.choices.map((v:{message:{content:string}}) => {
+                        const extracted = extractJSON(v.message.content, arg.extractJson)
+                        return ["char", extracted]
                     })
-
+                    
                     return {
                         type: 'multiline',
                         result: c
                     }
-
                 }
                 return {
                     type: 'multiline',
                     result: dat.choices.map((v) => {
-                        return ["char", arg.additionalOutput + v.message.content]
+                        return ["char", v.message.content]
                     })
                 }
-
             }            
-
-            if(dat?.choices[0]?.text){
-                let text = dat.choices[0].text as string
-                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                    try {
-                        const parsed = JSON.parse(text)
-                        const extracted = extractJSON(parsed, arg.extractJson)
-                        return {
-                            type: 'success',
-                            result:  arg.additionalOutput + extracted
-                        }
-                    } catch (error) {
-                        console.log(error)
-                        return {
-                            type: 'success',
-                            result:  arg.additionalOutput + text
-                        }
-                    }
-                }
-                return {
-                    type: 'success',
-                    result:  arg.additionalOutput + text
-                }
-            }
-            if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                return {
-                    type: 'success',
-                    result:  extractJSON(dat.choices[0].message.content, arg.extractJson)
-                }
-            }
-            const msg:OpenAIChatFull = (dat.choices[0].message)
-            let result = msg.content
-
-            if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
-                console.log("Checking for reasoning content")
-                let reasoningContent = ""
-                result = result.replace(/(.*)\<\/think\>/gms, (m, p1) => {
-                    reasoningContent = p1
-                    return ""
-                })
-                console.log(`Reasoning Content: ${reasoningContent}`)
-
-                if(reasoningContent){
-                    reasoningContent = reasoningContent.replace(/\<think\>/gms, '')
-                    result = `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${result}`
-                }
-            }
-
-            if(dat?.choices[0]?.reasoning_content){
-                result = `<Thoughts>\n${dat.choices[0].reasoning_content}\n</Thoughts>\n${result}`
-            }
+                    
+            const result = processTextResponse(dat) ?? ''
             
             return {
                 type: 'success',
-                result:  arg.additionalOutput + result
+                result: result
             }
+            
         } catch (error) {                    
             return {
                 type: 'fail',
@@ -1130,6 +1108,295 @@ export async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):
         type: 'success',
         result: result
     }
+}
 
+function getTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Array, StreamResponseChunk> {
+    let dataUint:Uint8Array|Buffer = new Uint8Array([])
+    let reasoningContent = ""
+    const db = getDatabase()
 
+    return new TransformStream<Uint8Array, StreamResponseChunk>({
+        async transform(chunk, control) {
+            dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
+            let JSONreaded:{[key:string]:string} = {}
+                        try {
+                const datas = dataUint.toString().split('\n')
+                let readed:{[key:string]:string} = {}
+                for(const data of datas){
+                    if(data.startsWith("data: ")){
+                        try {
+                            const rawChunk = data.replace("data: ", "")
+                            if(rawChunk === "[DONE]"){
+                                if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
+                                    readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
+                                        reasoningContent = p1
+                                        return ""
+                                    })
+                
+                                    if(reasoningContent){
+                                        reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
+                                    }
+                                }                
+                                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+                                    for(const key in readed){
+                                        const extracted = extractJSON(readed[key], arg.extractJson)
+                                        JSONreaded[key] = extracted
+                                    }
+                                    console.log(JSONreaded)
+                                    control.enqueue(JSONreaded)
+                                }
+                                else if(reasoningContent){
+                                    control.enqueue({
+                                        "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"]}`
+                                    })
+                                }
+                                else{
+                                    control.enqueue(readed)
+                                }
+                                return
+                            }
+                            const choices = JSON.parse(rawChunk).choices
+                            for(const choice of choices){
+                                const chunk = choice.delta.content ?? choices.text
+                                if(chunk){
+                                    if(arg.multiGen){
+                                        const ind = choice.index.toString()
+                                        if(!readed[ind]){
+                                            readed[ind] = ""
+                                        }
+                                        readed[ind] += chunk
+                                    }
+                                    else{
+                                        if(!readed["0"]){
+                                            readed["0"] = ""
+                                        }
+                                        readed["0"] += chunk
+                                    }
+                                }
+                                // Check for tool calls in the delta
+                                if(choice?.delta?.tool_calls){
+                                    if(!readed["__tool_calls"]){
+                                        readed["__tool_calls"] = JSON.stringify({})
+                                    }
+                                    const toolCallsData = JSON.parse(readed["__tool_calls"])
+                                    
+                                    for(const toolCall of choice.delta.tool_calls) {
+                                        const index = toolCall.index ?? 0
+                                        const toolCallId = toolCall.id
+                                        
+                                        // Initialize tool call data if not exists
+                                        if(!toolCallsData[index]) {
+                                            toolCallsData[index] = {
+                                                id: toolCallId || null,
+                                                type: 'function',
+                                                function: {
+                                                    name: null,
+                                                    arguments: ''
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Update tool call data incrementally
+                                        if(toolCall.id) {
+                                            toolCallsData[index].id = toolCall.id
+                                        }
+                                        if(toolCall.function?.name) {
+                                            toolCallsData[index].function.name = toolCall.function.name
+                                        }
+                                        if(toolCall.function?.arguments) {
+                                            toolCallsData[index].function.arguments += toolCall.function.arguments
+                                        }
+                                    }
+                                    
+                                    readed["__tool_calls"] = JSON.stringify(toolCallsData)
+                                }
+                                if(choice?.delta?.reasoning_content){
+                                    reasoningContent += choice.delta.reasoning_content
+                                }
+                            }
+                        } catch (error) {}
+                    }
+                }
+                
+                if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput)){
+                    readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
+                        reasoningContent = p1
+                        return ""
+                    })
+
+                    if(reasoningContent){
+                        reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
+                    }
+                }
+                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+                    for(const key in readed){
+                        const extracted = extractJSON(readed[key], arg.extractJson)
+                        JSONreaded[key] = extracted
+                    }
+                    console.log(JSONreaded)
+                    control.enqueue(JSONreaded)
+                }
+                else if(reasoningContent){
+                    control.enqueue({
+                        "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"]}`
+                    })
+                }
+                else{
+                    control.enqueue(readed)
+                }
+            } catch (error) {
+                
+            }
+        }        
+    })
+}
+
+function wrapToolStream(
+    stream: ReadableStream<StreamResponseChunk>,
+    body:any,
+    headers:Record<string,string>,
+    replacerURL:string,
+    arg:RequestDataArgumentExtended
+):ReadableStream<StreamResponseChunk> {
+    return new ReadableStream<StreamResponseChunk>({
+        async start(controller) {
+
+            const db = getDatabase()
+            let reader = stream.getReader()
+            let prefix = ''
+            let lastValue
+
+            while(true){
+                let {done, value} = await reader.read()
+
+                let content = value?.['0'] || ''
+                if(done){
+                    value = lastValue ?? {'0': ''}
+                    content = value?.['0'] || ''
+                    
+                    const toolCalls = Object.values(JSON.parse(value?.['__tool_calls'] || '{}') || {}) as OpenAIToolCall[]; 
+                    if(toolCalls && toolCalls.length > 0){
+                        const messages = body.messages as OpenAIChatExtra[]
+
+                        messages.push({
+                            role: 'assistant',
+                            content: (db.simplifiedToolUse ? '' : content),
+                            tool_calls: toolCalls.map(call => ({
+                                id: call.id,
+                                type: 'function',
+                                function: {
+                                    name: call.function.name,
+                                    arguments: call.function.arguments
+                                }
+                            }))
+                        })
+
+                        const callCodes: string[] = []
+                    
+                        for(const toolCall of toolCalls){
+                            if(!toolCall.function || !toolCall.function.name || !toolCall.function.arguments){
+                                continue
+                            }
+                            try {
+                                const functionArgs = JSON.parse(toolCall.function.arguments)
+                                if(arg.tools && arg.tools.length > 0){
+                                    const tool = arg.tools.find(t => t.name === toolCall.function.name)
+                                    if(!tool){
+                                        messages.push({
+                                            role:'tool',
+                                            content: 'No tool found with name: ' + toolCall.function.name,
+                                            tool_call_id: toolCall.id
+                                        })
+                                    }
+                                    else{
+                                        const parsed = functionArgs
+                                        const x = (await callTool(tool.name, parsed)).filter(m => m.type === 'text')
+                                        if(x.length > 0){
+                                            messages.push({
+                                                role: 'tool',
+                                                content: x[0].text,
+                                                tool_call_id: toolCall.id
+                                            })
+                                            if(arg.rememberToolUsage){
+                                                callCodes.push(await encodeToolCall({
+                                                    call: {
+                                                        id: toolCall.id,
+                                                        name: toolCall.function.name,
+                                                        arg: toolCall.function.arguments
+                                                    },
+                                                    response: x
+                                                }))
+                                            }
+                                        }
+                                        else{
+                                            messages.push({
+                                                role: 'tool',
+                                                content: 'Tool call failed with no text response',
+                                                tool_call_id: toolCall.id
+                                            })
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                messages.push({
+                                    role: 'tool',
+                                    content: 'Tool call failed with error: ' + error,
+                                    tool_call_id: toolCall.id
+                                })
+                            }
+                        }    
+                        
+                        body.messages = messages
+                        
+                        let resRec
+                        let attempt = 0
+                        let errorFlag = true
+                        
+                        do {
+                            attempt++
+                            resRec = await fetchNative(replacerURL, {
+                                body: JSON.stringify(body),
+                                method: "POST",
+                                headers: headers,
+                                signal: arg.abortSignal,
+                                chatId: arg.chatId
+                            })
+                            
+                            if(resRec.status == 200 && resRec.headers.get('Content-Type').includes('text/event-stream')) {
+                                addFetchLog({
+                                    body: body,
+                                    response: "Streaming",
+                                    success: true,
+                                    url: replacerURL,
+                                })
+                                
+                                errorFlag = false
+                                break
+                            }     
+                        } while (attempt <= db.requestRetrys) // Retry up to db.requestRetrys times
+                        
+                        if(errorFlag){
+                            alertError(`Failed to fetch model response after tool execution`)
+                            return controller.close()
+                        }
+                        
+                        const transtream = getTranStream(arg)                    
+                        resRec.body.pipeTo(transtream.writable)
+                        
+                        reader = transtream.readable.getReader()
+                        
+                        prefix += (content && !db.simplifiedToolUse ? content + '\n\n' : '') + callCodes.join('\n\n')
+                        controller.enqueue({"0": prefix})
+
+                        continue
+                    }
+                    return controller.close()
+                }
+                
+                lastValue = value
+                
+                controller.enqueue({"0": (prefix ? prefix + '\n\n' : '') + content})
+            }
+        }
+    })
 }
