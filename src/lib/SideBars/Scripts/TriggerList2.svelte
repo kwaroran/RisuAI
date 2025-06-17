@@ -172,7 +172,6 @@
     $effect(() => {
         if(menuMode === 0 && selectedIndex > 0) {
             setTimeout(() => updateGuideLines(), 10)
-            setTimeout(() => updateGuideLines(), 30)
             setTimeout(() => updateGuideLines(), 50)
         }
     })
