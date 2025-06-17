@@ -1043,6 +1043,7 @@
         if(selectedEffectIndex < 0){
             selectedEffectIndex = 0
         }
+        updateGuideLines()
     }
 
     const copyEffect = () => {
@@ -1065,6 +1066,7 @@
             value[selectedIndex].effect.splice(selectedEffectIndex, 0, safeStructuredClone(effect))
             selectedEffectIndex += 1
         }
+        updateGuideLines()
     }
 
     const copyTrigger = () => {
