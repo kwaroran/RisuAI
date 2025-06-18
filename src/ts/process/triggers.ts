@@ -13,6 +13,7 @@ import { requestChatData, type OpenAIChatExtra } from "./request/request";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
 import { runScripted } from "./scriptings";
+import { calcString } from "./infunctions";
 
 
 export interface triggerscript{
@@ -43,7 +44,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2CreateLorebook|triggerV2ModifyLorebookByIndex|triggerV2DeleteLorebookByIndex|triggerV2GetLorebookCountNew|triggerV2SetLorebookAlwaysActive|
                                 triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest|triggerV2GetReplaceGlobalNote|triggerV2SetReplaceGlobalNote|
                                 triggerV2GetAuthorNote|triggerV2SetAuthorNote|triggerV2MakeDictVar|triggerV2GetDictVar|triggerV2SetDictVar|triggerV2DeleteDictKey|
-                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues
+                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues|triggerV2Calculate
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -940,6 +941,14 @@ export type triggerV2GetDictValues = {
     indent: number
 }
 
+export type triggerV2Calculate = {
+    type: 'v2Calculate',
+    expression: string,
+    expressionType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
 const safeSubset = [
     'v2SetVar',
     'v2If',
@@ -972,7 +981,8 @@ const safeSubset = [
     'v2SpliceArrayVar',
     'v2SliceArrayVar',
     'v2GetIndexOfValueInArrayVar',
-    'v2RemoveIndexFromArrayVar'
+    'v2RemoveIndexFromArrayVar',
+    'v2Calculate'
 ]
 
 export const displayAllowList = [
@@ -2493,6 +2503,22 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         setVar(effect.outputVar, JSON.stringify(values))
                     } catch (error) {
                         setVar(effect.outputVar, '[]')
+                    }
+                    break
+                }
+                case 'v2Calculate':{
+                    try {
+                        let expression = effect.expressionType === 'value' ? risuChatParser(effect.expression,{chara:char}) : getVar(risuChatParser(effect.expression,{chara:char}))
+                        expression = expression.replace(/\$([a-zA-Z0-9_]+)/g, (_, varName) => {
+                            const varValue = getVar(varName)
+                            const parsed = parseFloat(varValue)
+                            return isNaN(parsed) ? '0' : parsed.toString()
+                        })
+                        
+                        const result = calcString(expression)
+                        setVar(effect.outputVar, result.toString())
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
                     }
                     break
                 }

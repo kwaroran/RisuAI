@@ -141,6 +141,7 @@ export const languageEnglish = {
         urllora: "You can use direct download link of the model file. you can make direct url from google drive like website like https://sites.google.com/site/gdocs2direct/ , or use civitai URL, copy the the AIR (looks like `urn:air:flux1:lora:civitai:180891@776656` or just `civitai:180891@776656`) and paste it.",
         v2GetAlertSelect: "Options are separated by | (pipe) character.",
         v2RegexTest: "Returns 1 if the regex matches, 0 if it doesn't match.",
+        v2Calculate: "Evaluates mathematical expressions with support for basic arithmetic (+, -, *, /, %, ^), comparison operators (<, >, <=, >=, =, !=), logical operators (&&, ||, !), parentheses for precedence, and variable substitution using $variableName format. Variables are automatically converted to numbers (defaults to 0 if invalid).",
         namespace: "Namespace is a unique identifier for the module. it is used to prevent conflicts between modules, and for interaction of presets, other modules and etc. if you are not sure what to put, leave it blank.",
         moduleIntergration: "You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, `module1,module2,module3`. this is for advanced users, who wants to vary the use of modules by presets.",
         customCSS: "Custom CSS for styling. you can also disable/enable it by pressing (Ctrl + .) if something goes wrong.",
@@ -454,6 +455,8 @@ export const languageEnglish = {
         v2GetLorebookCountNewDesc: "Get total lorebook count => {{outputVar}}",
         v2SetLorebookAlwaysActive: "Set Lorebook Always Active",
         v2SetLorebookAlwaysActiveDesc: "Set lorebook at index {{index}} always active to {{value}}",
+        v2Calculate: "Calculate",
+        v2CalculateDesc: "Calculate {{expression}} => {{outputVar}}",
     },
     triggerInputLabels: {
         "value": "Value",
@@ -535,7 +538,8 @@ export const languageEnglish = {
         "helpInsertOrder": "Insert order",
         "helpDepth": "Depth of messages to search",
         "helpMinMax": "Min and max value range",
-        "helpSlot": "Use {{slot}} to keep unchanged"
+        "helpSlot": "Use {{slot}} to keep unchanged",
+        "expression": "Expression"
     },
     confirm: "Confirm",
     goback: "Go Back",

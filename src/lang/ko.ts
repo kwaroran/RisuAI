@@ -128,6 +128,7 @@ export const languageKorean = {
         "promptInfoInsideChatDesc": "활성화되면 채팅 메타데이터에 프롬프트 프리셋 정보를 저장합니다. 저장되는 정보는 프롬프트 프리셋 이름과 활성화된 토글, 그리고 프롬프트 텍스트입니다. 약간의 처리 시간과 용량을 차지할 수 있습니다.",
         "v2GetAlertSelect": "선택지는 | 로 구분합니다.",
         "v2RegexTest": "정규표현식에 매칭이 되면 1, 매칭이 되지 않으면 0을 출력합니다.",
+        "v2Calculate": "기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.",
     },
     "setup": {
         "chooseProvider": "AI 제공자를 선택해 주세요",
@@ -398,6 +399,8 @@ export const languageKorean = {
         "v2GetLorebookCountNewDesc": "전체 로어북 개수 가져오기 => {{outputVar}}",
         "v2SetLorebookAlwaysActive": "로어북 언제나 활성화 설정",
         "v2SetLorebookAlwaysActiveDesc": "인덱스 {{index}}의 로어북 언제나 활성화를 {{value}}로 설정",
+        "v2Calculate": "연산",
+        "v2CalculateDesc": "{{expression}} 연산 => {{outputVar}}",
         "v2GetReplaceGlobalNote": "글로벌 노트 덮어쓰기 가져오기",
         "v2GetReplaceGlobalNoteDesc": "글로벌 노트 덮어쓰기 가져오기 => {{outputVar}}",
         "v2SetReplaceGlobalNote": "글로벌 노트 덮어쓰기 설정",
@@ -487,7 +490,8 @@ export const languageKorean = {
         "helpInsertOrder": "삽입 순서",
         "helpDepth": "검색할 메시지 깊이",
         "helpMinMax": "최소값과 최대값 범위",
-        "helpSlot": "변경하지 않으려면 {{slot}}을 사용하세요"
+        "helpSlot": "변경하지 않으려면 {{slot}}을 사용하세요",
+        "expression": "수식"
     },
     "confirm": "확인",
     "goback": "뒤로",

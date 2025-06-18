@@ -30,6 +30,7 @@
         ],
         'Control': [
             'v2SetVar',
+            'v2Calculate',
             'v2IfAdvanced',
             'v2LoopNTimes',
             'v2Loop',
@@ -1126,6 +1127,16 @@
                     type: 'v2GetDictValues',
                     var: '',
                     varType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2Calculate':{
+                editTrigger = {
+                    type: 'v2Calculate',
+                    expression: '',
+                    expressionType: 'value',
                     outputVar: '',
                     indent: 0
                 }
@@ -2786,6 +2797,15 @@
                             <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2Calculate'}
+                        <span class="block text-textcolor">{language.triggerInputLabels.expression} <Help key="v2Calculate" /></span>
+                        <SelectInput bind:value={editTrigger.expressionType}>
+                            <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
+                            <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                        </SelectInput>
+                        <TextAreaInput highlight bind:value={editTrigger.expression} />
                         <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
                     {:else}
