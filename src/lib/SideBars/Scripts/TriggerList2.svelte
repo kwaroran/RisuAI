@@ -82,7 +82,8 @@
             'v2ToUpperCase',
             'v2SetCharAt',
             'v2SplitString',
-            'v2ConcatString'
+            'v2ConcatString',
+            'v2ReplaceString'
         ],
         'Data': [
             'v2GetCharacterDesc',
@@ -1137,6 +1138,22 @@
                     type: 'v2Calculate',
                     expression: '',
                     expressionType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2ReplaceString':{
+                editTrigger = {
+                    type: 'v2ReplaceString',
+                    source: '',
+                    sourceType: 'value',
+                    regex: '',
+                    regexType: 'value',
+                    replacement: '',
+                    replacementType: 'value',
+                    flags: '',
+                    flagsType: 'value',
                     outputVar: '',
                     indent: 0
                 }
@@ -2806,6 +2823,33 @@
                             <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
                         </SelectInput>
                         <TextAreaInput highlight bind:value={editTrigger.expression} />
+                        <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2ReplaceString'}
+                        <span>{language.triggerInputLabels.source}</span>
+                        <SelectInput bind:value={editTrigger.sourceType}>
+                            <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
+                            <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.source} />
+                        <span>{language.triggerInputLabels.regex}</span>
+                        <SelectInput bind:value={editTrigger.regexType}>
+                            <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
+                            <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.regex} />
+                        <span>{language.triggerInputLabels.replacement}</span>
+                        <SelectInput bind:value={editTrigger.replacementType}>
+                            <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
+                            <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.replacement} />
+                        <span>{language.triggerInputLabels.flags}</span>
+                        <SelectInput bind:value={editTrigger.flagsType}>
+                            <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
+                            <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.flags} />
                         <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
                     {:else}

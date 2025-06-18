@@ -457,6 +457,8 @@ export const languageEnglish = {
         v2SetLorebookAlwaysActiveDesc: "Set lorebook at index {{index}} always active to {{value}}",
         v2Calculate: "Calculate",
         v2CalculateDesc: "Calculate {{expression}} => {{outputVar}}",
+        v2ReplaceString: "Replace String",
+        v2ReplaceStringDesc: "Replace {{source}} with regex {{regex}} to {{replacement}} => {{outputVar}}",
     },
     triggerInputLabels: {
         "value": "Value",
@@ -484,6 +486,7 @@ export const languageEnglish = {
         "options": "Options",
         "cmd": "Command",
         "regex": "Regex",
+        "replacement": "Replacement",
         "flags": "Flags",
         "negPrompt": "Negative Prompt",
         "resultFormat": "Result Format",
