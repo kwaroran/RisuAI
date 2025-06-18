@@ -8,6 +8,7 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import Help from "src/lib/Others/Help.svelte";
     import { type triggerEffectV2, type triggerEffect, type triggerscript, displayAllowList, requestAllowList, type triggerV2IfAdvanced } from "src/ts/process/triggers";
     import { onDestroy, onMount } from "svelte";
     import { DBState } from "src/ts/stores.svelte";
@@ -2443,7 +2444,7 @@
                         </SelectInput>
                         <TextInput bind:value={editTrigger.display} />
 
-                        <span class="block text-textcolor">{language.triggerInputLabels.options}</span>
+                        <span class="block text-textcolor">{language.triggerInputLabels.options} <Help key="v2GetAlertSelect" /></span>
                         <SelectInput bind:value={editTrigger.valueType}>
                             <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
                             <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
@@ -2670,7 +2671,7 @@
                         </SelectInput>
                         <TextInput bind:value={editTrigger.flags} />
 
-                        <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
+                        <span class="block text-textcolor">{language.triggerInputLabels.outputVar} <Help key="v2RegexTest" /></span>
                         <TextInput bind:value={editTrigger.outputVar} />
                     {:else if editTrigger.type === 'v2GetReplaceGlobalNote'}
                         <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
