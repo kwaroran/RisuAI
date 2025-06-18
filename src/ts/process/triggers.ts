@@ -465,7 +465,7 @@ export type triggerV2SplitString = {
     source: string,
     sourceType: 'var'|'value',
     delimiter: string,
-    delimiterType: 'var'|'value',
+    delimiterType: 'var'|'value'|'regex',
     outputVar: string,
     indent: number
 }
@@ -1895,8 +1895,36 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2SplitString':{
                     let source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
-                    let delimiter = effect.delimiterType === 'value' ? risuChatParser(effect.delimiter,{chara:char}) : getVar(risuChatParser(effect.delimiter,{chara:char}))
-                    setVar(effect.outputVar, JSON.stringify(source.split(delimiter)))
+                    let delimiter: string
+                    
+                    if (effect.delimiterType === 'value') {
+                        delimiter = risuChatParser(effect.delimiter,{chara:char})
+                    } else if (effect.delimiterType === 'var') {
+                        delimiter = getVar(risuChatParser(effect.delimiter,{chara:char}))
+                    } else {
+                        delimiter = risuChatParser(effect.delimiter,{chara:char})
+                    }
+                    
+                    let result: string[]
+                    if (effect.delimiterType === 'regex') {
+                        try {
+                            const regexMatch = delimiter.match(/^\/(.+)\/([gimuy]*)$/)
+                            if (regexMatch) {
+                                const [, pattern, flags] = regexMatch
+                                const regex = new RegExp(pattern, flags)
+                                result = source.split(regex)
+                            } else {
+                                const regex = new RegExp(delimiter)
+                                result = source.split(regex)
+                            }
+                        } catch (error) {
+                            result = [source]
+                        }
+                    } else {
+                        result = source.split(delimiter)
+                    }
+                    
+                    setVar(effect.outputVar, JSON.stringify(result))
                     break
                 }
                 case 'v2JoinArrayVar':{

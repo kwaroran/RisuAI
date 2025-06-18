@@ -2230,6 +2230,7 @@
                         <SelectInput bind:value={editTrigger.delimiterType}>
                             <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
                             <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                            <OptionInput value="regex">{language.triggerInputLabels.regex}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.delimiter} />
                         <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
