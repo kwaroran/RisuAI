@@ -73,7 +73,7 @@
     "msgpackr": "1.10.1",
     "node-html-parser": "^6.1.12",
     "ollama": "^0.5.0",
-    "pdfjs-dist": "^4.0.379",
+    "pdfjs-dist": "^4.2.67",
     "peerjs": "^1.5.2",
     "png-chunk-text": "^1.0.0",
     "png-chunks-encode": "^1.0.0",
