@@ -107,6 +107,17 @@
             'v2RemoveIndexFromArrayVar',
             'v2JoinArrayVar'
         ],
+        'Dictionary': [
+            'v2MakeDictVar',
+            'v2GetDictVar',
+            'v2SetDictVar',
+            'v2DeleteDictKey',
+            'v2HasDictKey',
+            'v2ClearDict',
+            'v2GetDictSize',
+            'v2GetDictKeys',
+            'v2GetDictValues'
+        ],
         'Others': [
             'v2Random',
             'v2UpdateGUI',
@@ -1021,6 +1032,100 @@
                     type: 'v2SetAuthorNote',
                     value: '',
                     valueType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2MakeDictVar':{
+                editTrigger = {
+                    type: 'v2MakeDictVar',
+                    var: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetDictVar':{
+                editTrigger = {
+                    type: 'v2GetDictVar',
+                    var: '',
+                    varType: 'value',
+                    key: '',
+                    keyType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2SetDictVar':{
+                editTrigger = {
+                    type: 'v2SetDictVar',
+                    var: '',
+                    varType: 'value',
+                    key: '',
+                    keyType: 'value',
+                    value: '',
+                    valueType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2DeleteDictKey':{
+                editTrigger = {
+                    type: 'v2DeleteDictKey',
+                    var: '',
+                    varType: 'value',
+                    key: '',
+                    keyType: 'value',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2HasDictKey':{
+                editTrigger = {
+                    type: 'v2HasDictKey',
+                    var: '',
+                    varType: 'value',
+                    key: '',
+                    keyType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2ClearDict':{
+                editTrigger = {
+                    type: 'v2ClearDict',
+                    var: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetDictSize':{
+                editTrigger = {
+                    type: 'v2GetDictSize',
+                    var: '',
+                    varType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetDictKeys':{
+                editTrigger = {
+                    type: 'v2GetDictKeys',
+                    var: '',
+                    varType: 'value',
+                    outputVar: '',
+                    indent: 0
+                }
+                break;
+            }
+            case 'v2GetDictValues':{
+                editTrigger = {
+                    type: 'v2GetDictValues',
+                    var: '',
+                    varType: 'value',
+                    outputVar: '',
                     indent: 0
                 }
                 break;
@@ -2587,6 +2692,101 @@
                             <OptionInput value="var">{language.var}</OptionInput>
                         </SelectInput>
                         <TextAreaInput highlight bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2MakeDictVar'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <TextInput bind:value={editTrigger.var} />
+                    {:else if editTrigger.type === 'v2GetDictVar'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.key}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2SetDictVar'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.key}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                        <span class="block text-textcolor">{language.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2DeleteDictKey'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.key}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                    {:else if editTrigger.type === 'v2HasDictKey'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.key}</span>
+                        <SelectInput bind:value={editTrigger.keyType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.key} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2ClearDict'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <TextInput bind:value={editTrigger.var} />
+                    {:else if editTrigger.type === 'v2GetDictSize'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetDictKeys'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2GetDictValues'}
+                        <span class="block text-textcolor">{language.var}</span>
+                        <SelectInput bind:value={editTrigger.varType}>
+                            <OptionInput value="value">{language.value}</OptionInput>
+                            <OptionInput value="var">{language.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.outputVar}</span>
+                        <TextInput bind:value={editTrigger.outputVar} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}

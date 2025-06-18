@@ -42,7 +42,8 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2GetAllLorebooks|triggerV2GetLorebookByName|triggerV2GetLorebookByIndex|
                                 triggerV2CreateLorebook|triggerV2ModifyLorebookByIndex|triggerV2DeleteLorebookByIndex|triggerV2GetLorebookCountNew|triggerV2SetLorebookAlwaysActive|
                                 triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest|triggerV2GetReplaceGlobalNote|triggerV2SetReplaceGlobalNote|
-                                triggerV2GetAuthorNote|triggerV2SetAuthorNote
+                                triggerV2GetAuthorNote|triggerV2SetAuthorNote|triggerV2MakeDictVar|triggerV2GetDictVar|triggerV2SetDictVar|triggerV2DeleteDictKey|
+                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -860,6 +861,82 @@ export type triggerV2SetAuthorNote = {
     type: 'v2SetAuthorNote',
     value: string,
     valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2MakeDictVar = {
+    type: 'v2MakeDictVar',
+    var: string,
+    indent: number
+}
+
+export type triggerV2GetDictVar = {
+    type: 'v2GetDictVar',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetDictVar = {
+    type: 'v2SetDictVar',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2DeleteDictKey = {
+    type: 'v2DeleteDictKey',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2HasDictKey = {
+    type: 'v2HasDictKey',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2ClearDict = {
+    type: 'v2ClearDict',
+    var: string,
+    indent: number
+}
+
+export type triggerV2GetDictSize = {
+    type: 'v2GetDictSize',
+    var: string,
+    varType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetDictKeys = {
+    type: 'v2GetDictKeys',
+    var: string,
+    varType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetDictValues = {
+    type: 'v2GetDictValues',
+    var: string,
+    varType: 'var'|'value',
+    outputVar: string,
     indent: number
 }
 
@@ -2305,6 +2382,117 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         currentCharacter.chats[currentCharacter.chatPage].note = value
                         db.characters[selectedCharId].chats[currentCharacter.chatPage].note = value
                         setCurrentCharacter(currentCharacter)
+                    }
+                    break
+                }
+                case 'v2MakeDictVar':{
+                    if(effect.var.startsWith('{') && effect.var.endsWith('}')){
+                        return
+                    }
+
+                    setVar(effect.var, '{}')
+                    break
+                }
+                case 'v2GetDictVar':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        setVar(effect.outputVar, dict[key] ?? 'null')
+                    } catch (error) {
+                        setVar(effect.outputVar, 'null')
+                    }
+                    break
+                }
+                case 'v2SetDictVar':{
+                    try {
+                        const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                        const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        
+                        if(effect.varType === 'value') {
+                            break
+                        }
+                        
+                        let varValue = getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        dict[key] = value
+                        setVar(effect.var, JSON.stringify(dict))
+                    } catch (error) {
+                        if(effect.varType === 'var') {
+                            const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                            const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                            let dict = {}
+                            dict[key] = value
+                            setVar(effect.var, JSON.stringify(dict))
+                        }
+                    }
+                    break
+                }
+                case 'v2DeleteDictKey':{
+                    try {
+                        if(effect.varType === 'value') {
+                            break
+                        }
+                        
+                        let varValue = getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        delete dict[key]
+                        setVar(effect.var, JSON.stringify(dict))
+                    } catch (error) {
+                        if(effect.varType === 'var') {
+                            setVar(effect.var, '{}')
+                        }
+                    }
+                    break
+                }
+                case 'v2HasDictKey':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        setVar(effect.outputVar, dict.hasOwnProperty(key) ? '1' : '0')
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
+                    }
+                    break
+                }
+                case 'v2ClearDict':{
+                    if(effect.var.startsWith('{') && effect.var.endsWith('}')){
+                        return
+                    }
+                    setVar(effect.var, '{}')
+                    break
+                }
+                case 'v2GetDictSize':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        setVar(effect.outputVar, Object.keys(dict).length.toString())
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
+                    }
+                    break
+                }
+                case 'v2GetDictKeys':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let keys = Object.keys(dict)
+                        setVar(effect.outputVar, JSON.stringify(keys))
+                    } catch (error) {
+                        setVar(effect.outputVar, '[]')
+                    }
+                    break
+                }
+                case 'v2GetDictValues':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let values = Object.values(dict)
+                        setVar(effect.outputVar, JSON.stringify(values))
+                    } catch (error) {
+                        setVar(effect.outputVar, '[]')
                     }
                     break
                 }
