@@ -1297,5 +1297,6 @@ export const languageEnglish = {
     personaNote: "Persona Note",
     mcpAccessPrompt: "{{tool}} is trying to \"{{action}}\". do you want to allow this?",
     rememberToolUsage: "Remember tool usage",
-    toolCalled: "Tool '{{tool}}' Called"
+    simplifiedToolUse: "Simplified tool usage",
+    toolCalled: "Tool '{{tool}}' Called",
 }

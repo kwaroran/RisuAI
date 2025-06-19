@@ -1839,10 +1839,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             let msgStr = ''
             for(let i = (msgs.length - 1);i>=0;i--){
                 if(msgs[i].role === 'char'){
-                    msgStr = `character: ${msgs[i].data.replace(/\n/, ' ')} \n` + msgStr
+                    msgStr = `character: ${msgs[i].data.replace(/\n/g, ' ')} \n` + msgStr
                 }
                 else{
-                    msgStr = `user: ${msgs[i].data.replace(/\n/, ' ')} \n` + msgStr
+                    msgStr = `user: ${msgs[i].data.replace(/\n/g, ' ')} \n` + msgStr
                     break
                 }
             }

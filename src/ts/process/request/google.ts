@@ -8,6 +8,8 @@ import type { OpenAIChat } from "../index.svelte"
 import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
+import { alertError, alertNormal, alertWait, showHypaV2Alert } from "src/ts/alert";
+import { addFetchLog } from "src/ts/globalApi.svelte"
 
 type GeminiFunctionCall = {
     id?: string;
@@ -32,9 +34,15 @@ interface GeminiPart{
 }
 
 interface GeminiChat {
-    role: "USER"|"MODEL"
+    role: "user"|"model"|"function"
     parts:|GeminiPart[]
 }
+
+// The experimental flag is used to enable experimental features
+// Adds an empty user message to the end of the chat
+// - weakens censorship when the last message is a functionResponse
+// - resolves thinking-related issues 
+const experimental = false; 
 
 
 export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
@@ -56,8 +64,8 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
   
         const prevChat = reformatedChat[reformatedChat.length-1]
         const qRole = 
-            chat.role === 'user' ? 'USER' :
-            chat.role === 'assistant' ? 'MODEL' :
+            chat.role === 'user' ? 'user' :
+            chat.role === 'assistant' ? 'model' :
             chat.role
 
         if (chat.multimodals && chat.multimodals.length > 0) {
@@ -87,30 +95,16 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
             }
     
             reformatedChat.push({
-                role: chat.role === 'user' ? 'USER' : 'MODEL',
+                role: chat.role === 'user' ? 'user' : 'model',
                 parts: geminiParts,
-            });
-        } else if (prevChat?.role === qRole) {
-            if (reformatedChat[reformatedChat.length-1].parts[
-                reformatedChat[reformatedChat.length-1].parts.length-1
-            ].inlineData) {
-                reformatedChat[reformatedChat.length-1].parts.push({
-                    text: chat.content,
-                })
-            } else {
-                reformatedChat[reformatedChat.length-1].parts[
-                    reformatedChat[reformatedChat.length-1].parts.length-1
-                ].text += '\n' + chat.content
-            }
-            continue
-        }
+            });        }
         else if(chat.role === 'system'){
-            if(prevChat?.role === 'USER'){
+            if(prevChat?.role === 'user'){
                 reformatedChat[reformatedChat.length-1].parts[0].text += '\nsystem:' + chat.content
             }
             else{
                 reformatedChat.push({
-                    role: "USER",
+                    role: "user",
                     parts: [{
                         text: chat.role + ':' + chat.content
                     }]
@@ -119,7 +113,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         }
         else if(chat.role === 'assistant' || chat.role === 'user'){
             reformatedChat.push({
-                role: chat.role === 'user' ? 'USER' : 'MODEL',
+                role: chat.role === 'user' ? 'user' : 'model',
                 parts: [{
                     text: chat.content
                 }]
@@ -127,7 +121,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         }
         else{
             reformatedChat.push({
-                role: "USER",
+                role: "user",
                 parts: [{
                     text: chat.role + ':' + chat.content
                 }]
@@ -135,35 +129,100 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         }
     }
 
+    for (let i=0;i<reformatedChat.length;i++){
 
-    for(let i=0;i<reformatedChat.length;i++){
         let chat = reformatedChat[i]
-        for(let j=0;j<chat.parts.length;j++){
+        for (let j=0;j<chat.parts.length;j++){
+            
             const part = chat.parts[j]
-            if(part.text){
-                part.text = await replaceAsync(part.text,/<tool_call>(.*?)<\/tool_call>/g, async (match:string, p1:string) => {
-                    const call = await decodeToolCall(p1)
-                    if(call){
-                        const tool = arg?.tools?.find((t) => t.name === call.call.name)
-                        if(tool){
-                            reformatedChat.splice(i, 0, {
-                                role: 'MODEL',
+            if (part.text && part.text.includes('<tool_call>')){
+                // Analyze the entire text to sequentially process multiple tool_calls
+                const toolCallMatches = [...part.text.matchAll(/<tool_call>(.*?)<\/tool_call>/g)]
+                if (toolCallMatches.length > 0) {
+                    // Split the text by tool_call and reconstruct in order
+                    const segments = []
+                    let lastIndex = 0
+
+                    for (let k = 0; k < toolCallMatches.length; k++) {
+                        const match = toolCallMatches[k]
+                        // Text before tool_call
+                        if (match.index! > lastIndex) {
+                            segments.push({
+                                type: 'text',
+                                content: part.text.substring(lastIndex, match.index).trim(),
+                                role: chat.role
+                            })
+                        }
+
+                        // Handle tool_call
+                        const call = await decodeToolCall(match[1])
+                        if (call) {
+                            const tool = arg?.tools?.find((t) => t.name === call.call.name)
+                            if (tool) {
+                                segments.push({
+                                    type: 'functionCall',
+                                    call: call,
+                                    tool: tool
+                                })
+                            }
+                        }
+
+                        lastIndex = match.index! + match[0].length
+                    }
+                    // Last text after the last tool_call
+                    if (lastIndex < part.text.length) {
+                        segments.push({
+                            type: 'text',
+                            content: part.text.substring(lastIndex).trim(),
+                            role: chat.role
+                        })
+                    }
+                    // Keep the first text in the current part
+                    if (segments.length > 0 && segments[0].type === 'text') {
+                        part.text = segments[0].content.trim() ? segments[0].content : ''
+                        segments.shift()
+                    } else {
+                        part.text = ''
+                    }
+
+                    // Mark the current part for removal if its text is empty
+                    const shouldRemoveCurrentPart = !part.text.trim()
+
+                    // Insert the remaining segments in order
+                    let insertIndex = i + 1
+                    for (const segment of segments) {
+                        if (segment.type === 'text') {
+                            // Insert only non-empty text
+                            if (segment.content.trim()) {
+                                reformatedChat.splice(insertIndex, 0, {
+                                    role: segment.role,
+                                    parts: [{
+                                        text: segment.content
+                                    }]
+                                })
+                                insertIndex++
+                            }
+                        } else if (segment.type === 'functionCall') {
+                            // Insert functionCall
+                            reformatedChat.splice(insertIndex, 0, {
+                                role: 'model',
                                 parts: [{
                                     functionCall: {
-                                        //id: call.call.id,   VertexAI will return unknown parameter error if it is included
-                                        name: call.call.name,
-                                        args: call.call.arg
+                                        name: segment.call.call.name,
+                                        args: segment.call.call.arg
                                     }
                                 }]
                             })
-                            reformatedChat.splice(i+1, 0, {
-                                role: 'USER',
+                            insertIndex++
+
+                            // Insert functionResponse
+                            reformatedChat.splice(insertIndex, 0, {
+                                role: 'function',
                                 parts: [{
                                     functionResponse: {
-                                        //id: call.call.id,    VertexAI will return unknown parameter error if it is included
-                                        name: call.call.name,
+                                        name: segment.call.call.name,
                                         response: {
-                                            data: call.response.filter((r) => {
+                                            data: segment.call.response.filter((r) => {
                                                 return r.type === 'text'
                                             }).map((r) => {
                                                 return r.text
@@ -172,12 +231,44 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
                                     }
                                 }]
                             })
-                            i+=2
-                            chat = reformatedChat[i]
+                            insertIndex++
                         }
                     }
-                    return ''
-                })}
+                    // Remove the current part if its text is empty
+                    if (shouldRemoveCurrentPart) {
+                        reformatedChat.splice(i, 1)
+                        i = insertIndex - 2 // Adjust index after removal
+                    } else {
+                        i = insertIndex - 1 // Start from the correct position in the next loop
+                    }
+                }
+            }
+        }
+    }
+
+    // After tool parsing, merge consecutive chats with the same role
+    for (let i = reformatedChat.length - 1; i >= 1; i--) {
+        const currentChat = reformatedChat[i]
+        const prevChat = reformatedChat[i - 1]
+
+        if (currentChat.role === prevChat.role) {
+            // If the same role is consecutive, merge the parts arrays and remove the current chat
+
+            // If the last part of the previous chat and the first part of the current chat are both text, join with \n\n
+            const prevLastPart = prevChat.parts[prevChat.parts.length - 1]
+            const currentFirstPart = currentChat.parts[0]
+
+            if (prevLastPart.text && currentFirstPart.text) {
+                prevLastPart.text += '\n\n' + currentFirstPart.text
+                // Add the rest of the current chat's parts except the first
+                prevChat.parts.push(...currentChat.parts.slice(1))
+            } else {
+                // If not text, just merge the parts arrays
+                prevChat.parts.push(...currentChat.parts)
+            }
+
+            // Remove the current chat
+            reformatedChat.splice(i, 1)
         }
     }
 
@@ -394,22 +485,21 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         url = u.toString()
     }
     else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
-        // VertexAI global endpoint with streaming or non-streaming
-        const endpoint = arg.useStreaming ? 'streamGenerateContent' : 'generateContent'
+        const endpoint = arg.useStreaming ? 'streamGenerateContent?alt=sse' : 'generateContent'
         url = REGION === 'global' ?
             `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}` :
             `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}`
         
-        // VertexAI api will return error if functionDeclarations is empty
-        if(body.tools?.functionDeclarations?.length === 0){
-            body.tools = undefined
         }
-    }
     else if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
-        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${db.google.accessToken}`
+        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${db.google.accessToken}&alt=sse`
     }
     else{
         url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
+    }
+    // will return error if functionDeclarations is empty
+    if(body.tools?.functionDeclarations?.length === 0){
+        body.tools = undefined
     }
 
     if(arg.previewBody){
@@ -429,6 +519,16 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
 async function requestGoogle(url:string, body:any, headers:{[key:string]:string}, arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
     
     const db = getDatabase()
+
+    if(experimental) {
+        // Experimental: add an empty user message to the end of the chat
+        body.contents.push({
+            role: 'user',
+            parts: [{
+                text: '',
+            }]
+        })
+    }
 
     const fallBackGemini = async (originalError:string):Promise<requestDataResponse> => {
         if(!db.antiServerOverloads){
@@ -454,7 +554,35 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             }
         }
 
+        if(experimental) {
+            // Experimental: remove the last user part which is empty
+            body.content.pop()
+        }
+
         return requestGoogle(url, body, headers, arg)
+    }
+
+    // process the text parts into a single text response
+    const processTextResponse = (data: string[]) => {
+        if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+            for(let i=0;i<rDatas.length;i++){
+                const extracted = extractJSON(data[i], arg.extractJson)
+                data[i] = extracted
+            }
+        }
+        
+        let ret = data[data.length-1]
+        if(data.length > 1){
+            if(arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
+                const thought = data.splice(data.length-2, 1)[0]
+                ret = `<Thoughts>${thought}</Thoughts>\n\n${data.join('\n\n')}`
+            }
+            else{
+                ret = data.join('\n\n')
+            }
+        }
+
+        return ret
     }
 
     if((arg.modelInfo.format === LLMFormat.GoogleCloud || arg.modelInfo.format === LLMFormat.VertexAIGemini) && arg.useStreaming){
@@ -475,7 +603,7 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             body: JSON.stringify(body),
             method: 'POST',
             chatId: arg.chatId,
-            signal: arg.abortSignal
+            signal: arg.abortSignal,
         })
 
         if(f.status !== 200){
@@ -489,65 +617,13 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             }
         }
 
-        let fullResult:string = ''
+        const transtream = getTranStream(arg) 
 
-        const stream = new TransformStream<Uint8Array, StreamResponseChunk>(  {
-            async transform(chunk, control) {
-                fullResult += new TextDecoder().decode(chunk)
-                try {
-                    let reformatted = fullResult
-                    if(reformatted.endsWith(',')){
-                        reformatted = fullResult.slice(0, -1) + ']'
-                    }
-                    if(!reformatted.endsWith(']')){
-                        reformatted = fullResult + ']'
-                    }
-
-                    const data = JSON.parse(reformatted)
-
-                    let rDatas:string[] = ['']
-                    for(const d of data){
-                        const parts = d.candidates[0].content?.parts
-                        for(let i=0;i<parts.length;i++){
-                            const part = parts[i]
-                            if(i > 0){
-                                rDatas.push('')
-                            }
-                        }
-                    }
-
-                    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                        for(let i=0;i<rDatas.length;i++){
-                            const extracted = extractJSON(rDatas[i], arg.extractJson)
-                            rDatas[i] = extracted
-                        }
-                    }
-
-                    if(rDatas.length > 1){
-                        if(arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
-                            const thought = rDatas.splice(rDatas.length-2, 1)[0]
-                            rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
-                        }
-                        else{
-                            rDatas[rDatas.length-1] = rDatas.join('\n\n')
-                        }
-                    }
-
-                    console.log(rDatas[rDatas.length-1])
-
-                    control.enqueue({
-                        '0': rDatas[rDatas.length-1],
-                    })
-                } catch (error) {
-                    console.log(error)
-                }
-                
-            }
-        },)
+        f.body.pipeTo(transtream.writable)
 
         return {
             type: 'streaming',
-            result: f.body.pipeThrough(stream)
+            result: wrapToolStream(transtream.readable, body, headers, url, arg)
         }
     }
 
@@ -570,7 +646,8 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         }
     }
 
-    let rDatas:string[] = ['']
+    // array to store response texts
+    let rDatas:string[] = [] 
     const processDataItem = async (data:any):Promise<GeminiFunctionCall[]> => {
         const parts = data?.candidates?.[0]?.content?.parts
         const calls:GeminiFunctionCall[] = []
@@ -579,11 +656,10 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
          
             for(let i=0;i<parts.length;i++){
                 const part = parts[i]
-                if(i > 0){
-                    rDatas.push('')
-                }
 
-                rDatas[rDatas.length-1] += part.text ?? ''
+                if(part.text){
+                    rDatas.push(part.text)
+                }
 
                 if(part.functionCall){
                     calls.push(part.functionCall as GeminiFunctionCall)
@@ -616,6 +692,11 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             }   
         }
         
+        // make sure rDatas has at least one element
+        if(rDatas.length === 0){
+            rDatas.push('')
+        }
+
         return calls
     }
 
@@ -631,28 +712,65 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         calls = calls.concat(c)
     }
 
+    // If there are function calls, handle calls and send next request
     if(calls.length > 0){
         const chat = body.contents as GeminiChat[]
-        chat.push({
-            role: 'MODEL',
-            parts: calls.map((call) => {
-                return {
-                    functionCall: {
-                        id: call.id,
-                        name: call.name,
-                        args: call.args
-                    }
-                }
-            })
-        })
 
+        if(experimental) {
+            chat.pop() // Experimental: remove the last user part which is empty
+        }
+
+        // Add the model response part to the request content (only function calls if simplifiedToolUse is enabled)
+        if(db.simplifiedToolUse){
+            chat.push({
+                role: 'model',
+                parts: calls.map((call) => {
+                    return {
+                        functionCall: {
+                            //id: call.id,
+                            name: call.name,
+                            args: call.args
+                        }
+                    } as GeminiPart
+                })
+            })
+        }
+        // Add the model response part to the request content (text response and function calls)
+        else{
+            chat.push({
+                role: 'model',
+                parts: rDatas
+                .map((text) => {
+                    return {text: text} as GeminiPart
+                })
+                .filter((part) => part.text?.trim())
+                .concat(
+                    calls.map((call) => {
+                    return {
+                        functionCall: {
+                            //id: call.id,
+                            name: call.name,
+                            args: call.args
+                        }
+                    } as GeminiPart
+                }))
+            })
+        }
+        // If the last part is a model response, merge it with the previous model response
+        if(chat[chat.length - 2]?.role === 'model') {
+            chat[chat.length - 2].parts = chat[chat.length - 2].parts.concat(chat[chat.length - 1].parts)
+            chat.pop() 
+        }
+        
         const parts: GeminiPart[] = []
+        const callCodes: string[] = []
         const tools = arg?.tools ?? []
         
+        // Handle tool calls
         for(const call of calls){
             const functionName = call.name
             const functionArgs = call.args
-
+            
             const tool = tools.find((t) => t.name === functionName)
             if(tool){
                 const result = (await callTool(tool.name, functionArgs)).filter((r) => {
@@ -661,25 +779,25 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                 if(result.length === 0){
                     parts.push({
                         functionResponse: {
-                            id: call.id,
+                            //id: call.id,
                             name: call.name,
                             response: 'No response from tool.'
                         }
                     })
                 }
-                else{
-                    if(arg.rememberToolUsage){
-                        arg.additionalOutput ??= ''
-                        arg.additionalOutput += await encodeToolCall({
-                            call: {
-                                id: call.id,
-                                name: call.name,
-                                arg: call.args
-                            },
-                            response: result
-                        })
-                    }
+                
+                // Store the encoded tool call history for later use
+                if(arg.rememberToolUsage){
+                    callCodes.push(await encodeToolCall({
+                        call: {
+                            id: call.id,
+                            name: call.name,
+                            arg: call.args
+                        },
+                        response: result
+                    }))
                 }
+                
                 for(let i=0;i<result.length;i++){
                     let response:any = result[i].text
                     try {
@@ -694,7 +812,7 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                     }
                     parts.push({
                         functionResponse: {
-                            id: call.id,
+                            //id: call.id,
                             name: call.name,
                             response
                         }
@@ -704,46 +822,309 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
             else{
                 parts.push({
                     functionResponse: {
-                        id: call.id,
+                        //id: call.id,
                         name: call.name,
                         response: `Tool ${call.name} not found.`
                     }
                 })
             }
+        }
+        
+        // Add the user response part to the request content (function responses)
+        chat.push({
+            role: 'function',
+            parts: parts
+        })
+
+        body.contents = chat
+
+        // Send the next request recursively 
+        let resRec
+        let attempt = 0
+        do {
+            attempt++
+            resRec = await requestGoogle(url, body, headers, arg)
             
-            chat.push({
-                role: 'USER',
-                parts: parts
-            })
+            if (resRec.type != 'fail') {
+                break
+            }
+        } while (attempt <= db.requestRetrys) // Retry up to db.requestRetrys times
+        
+        // Only includes the tool calls if simplifiedToolUse is enabled
+        const result = (db.simplifiedToolUse ? '' : processTextResponse(rDatas) + '\n\n') + callCodes.join('\n\n')
 
-            body.contents = chat
-
-            return requestGoogle(url, body, headers, arg)
-
-
-
+        // If the next request fails, only the responses so far are returned
+        if(resRec.type === 'fail'){
+            alertError(`Failed to fetch model response after tool execution`)
+            return {
+                type: 'success',
+                result: result
+            }
+        } else if(resRec.type === 'success'){
+            return {
+                type: 'success',
+                result: result + '\n\n' + resRec.result
+            }
         }
-    }
-
-    if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-        for(let i=0;i<rDatas.length;i++){
-            const extracted = extractJSON(rDatas[i], arg.extractJson)
-            rDatas[i] = extracted
-        }
+        
+        return resRec
     }
     
-    if(rDatas.length > 1 && arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
-        const thought = rDatas.splice(rDatas.length-2, 1)[0]
-        rDatas[rDatas.length-1] = `<Thoughts>${thought}</Thoughts>\n\n${rDatas.join('\n\n')}`
-    }
-    else if(rDatas.length > 1){
-        rDatas[rDatas.length-1] = rDatas.join('\n\n')
-    }
-
-    arg.additionalOutput ??= ''
-    console.log(arg.additionalOutput + rDatas[rDatas.length-1])
+    const result = processTextResponse(rDatas)
+    console.log(result)
     return {
         type: 'success',
-        result: arg.additionalOutput + rDatas[rDatas.length-1]
+        result: result
     }
+}
+
+function getTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Array, StreamResponseChunk> {
+    let buffer = '';
+    const db = getDatabase()
+
+    return new TransformStream<Uint8Array, StreamResponseChunk>({
+        async transform(chunk, control) {
+            buffer += new TextDecoder().decode(chunk);
+            const lines = buffer.split('\n');
+            
+            let readed: {[key:string]:string} = {};
+            try {
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.slice(6).trim();
+                        if (dataStr === '[DONE]') return;
+                    
+                        const jsonData = JSON.parse(dataStr);
+                        
+                        if (jsonData.candidates?.[0]?.content?.parts) {
+                            const parts = jsonData.candidates[0].content.parts;
+                            for (const part of parts) {
+                                if (part.text) {
+                                    if (!readed["0"]) readed["0"] = "";
+                                    readed["0"] += part.text;
+                                }
+                                if (part.functionCall) {
+                                    if (!readed["__tool_calls"]) {
+                                        readed["__tool_calls"] = JSON.stringify([]);
+                                    }
+                                    const toolCallsData = JSON.parse(readed["__tool_calls"]);
+                                    toolCallsData.push(part.functionCall);
+                                    readed["__tool_calls"] = JSON.stringify(toolCallsData);
+                                }
+                            }
+                        }
+                    } 
+                }
+                control.enqueue(readed)
+            } catch (error) { 
+
+            }
+        }
+    });
+}
+
+function wrapToolStream(
+    stream: ReadableStream<StreamResponseChunk>,
+    body:any,
+    headers:Record<string,string>,
+    url:string,
+    arg:RequestDataArgumentExtended
+):ReadableStream<StreamResponseChunk> {
+    return new ReadableStream<StreamResponseChunk>({
+        async start(controller) {
+
+            const db = getDatabase()
+            let reader = stream.getReader()
+            let prefix = ''
+            let lastValue
+
+            while(true){
+                let {done, value} = await reader.read()
+
+                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+                    value['0'] = extractJSON(value?.['0'] || '', arg.extractJson)
+                }
+
+                let content = value?.['0'] || ''
+                if(done){
+                    value = lastValue ?? {'0': ''}
+                    content = value?.['0'] || ''
+                    
+                    const calls = JSON.parse(value?.['__tool_calls'] || '[]') as GeminiFunctionCall[]
+                    if(calls && calls.length > 0){
+                        const chat = body.contents as GeminiChat[]
+                                        
+                        if(experimental) {
+                            chat.pop() // Experimental: remove the last user part which is empty
+                        }
+                    
+                        // Add the model response part to the request content (only function calls if simplifiedToolUse is enabled)
+                        if(db.simplifiedToolUse){
+                            chat.push({
+                                role: 'model',
+                                parts: calls.map((call) => {
+                                    return {
+                                        functionCall: {
+                                            //id: call.id,
+                                            name: call.name,
+                                            args: call.args
+                                        }
+                                    } as GeminiPart
+                                })
+                            })
+                        }
+                        // Add the model response part to the request content (text response and function calls)
+                        else{
+                            chat.push({
+                                role: 'model',
+                                parts: [{text: content} as GeminiPart]
+                                .concat(
+                                    calls.map((call) => {
+                                    return {
+                                        functionCall: {
+                                            //id: call.id,
+                                            name: call.name,
+                                            args: call.args
+                                        }
+                                    } as GeminiPart
+                                }))
+                            })
+                        }
+                        // If the last part is a model response, merge it with the previous model response
+                        if(chat[chat.length - 2]?.role === 'model') {
+                            chat[chat.length - 2].parts = chat[chat.length - 2].parts.concat(chat[chat.length - 1].parts)
+                            chat.pop() 
+                        }
+                        const parts: GeminiPart[] = []
+                        const callCodes: string[] = []
+                        const tools = arg?.tools ?? []
+                        // Handle tool calls
+                        for(const call of calls){
+                            const functionName = call.name
+                            const functionArgs = call.args
+                            const tool = tools.find((t) => t.name === functionName)
+                            if(tool){
+                                const result = (await callTool(tool.name, functionArgs)).filter((r) => {
+                                    return r.type === 'text'
+                                })
+                                if(result.length === 0){
+                                    parts.push({
+                                        functionResponse: {
+                                            //id: call.id,
+                                            name: call.name,
+                                            response: 'No response from tool.'
+                                        }
+                                    })
+                                }
+                                // Store the encoded tool call history for later use
+                                if(arg.rememberToolUsage){
+                                    callCodes.push(await encodeToolCall({
+                                        call: {
+                                            id: call.id,
+                                            name: call.name,
+                                            arg: call.args
+                                        },
+                                        response: result
+                                    }))
+                                }
+                                for(let i=0;i<result.length;i++){
+                                    let response:any = result[i].text
+                                    try {
+                                        //try json parse
+                                        response = {
+                                            data: JSON.parse(response)
+                                        }
+                                    } catch (error) {
+                                        response = {
+                                            data: response
+                                        }
+                                    }
+                                    parts.push({
+                                        functionResponse: {
+                                            //id: call.id,
+                                            name: call.name,
+                                            response
+                                        }
+                                    })
+                                }
+                            }
+                            else{
+                                parts.push({
+                                    functionResponse: {
+                                        //id: call.id,
+                                        name: call.name,
+                                        response: `Tool ${call.name} not found.`
+                                    }
+                                })
+                            }
+                        }
+                        // Add the user response part to the request content (function responses)
+                        chat.push({
+                            role: 'function',
+                            parts: parts
+                        })
+
+                        body.contents = chat
+                        
+                        headers['Content-Type'] = 'application/json'
+                        if(experimental) {
+                            body.contents.push({
+                                role: 'user',
+                                parts: [{
+                                    text: '',
+                                }]
+                            })
+                        }
+
+                        let resRec
+                        let attempt = 0
+                        let errorFlag = true
+                        
+                        do {
+                            attempt++
+                            resRec = await fetchNative(url, {
+                                headers: headers,
+                                body: JSON.stringify(body),
+                                method: 'POST',
+                                chatId: arg.chatId,
+                                signal: arg.abortSignal,
+                            })
+                        
+                            if(resRec.status == 200){
+                                addFetchLog({
+                                    body: body,
+                                    response: "Streaming",
+                                    success: true,
+                                    url: url,
+                                })
+
+                                errorFlag = false
+                                break
+                            }
+                        } while (attempt <= db.requestRetrys) // Retry up to db.requestRetrys times
+
+                        if(errorFlag){
+                            alertError(`Failed to fetch model response after tool execution`)
+                            return controller.close()
+                        }
+
+                        const transtream = getTranStream(arg)
+                        resRec.body.pipeTo(transtream.writable)
+
+                        reader = transtream.readable.getReader()
+
+                        prefix += (content && !db.simplifiedToolUse ? content + '\n\n' : '') + callCodes.join('\n\n')
+                        controller.enqueue({"0": prefix})
+                        
+                        continue
+                    }
+                    return controller.close()
+                }
+                
+                lastValue = value
+                
+                controller.enqueue({"0": (prefix ? prefix + '\n\n' : '') + content})
+            }
+        }
+    })
 }

@@ -196,10 +196,10 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         if(db.NAIImgConfig.variety_plus) {
             if(db.NAIImgModel.includes('nai-diffusion-4-full') || db.NAIImgModel.includes('nai-diffusion-4-curated')
             || db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3')) {
-                commonReq.body.parameters.skip_cfg_above_sigma = 19;
+                commonReq.body.parameters.skip_cfg_above_sigma = Math.sqrt(db.NAIImgConfig.width * db.NAIImgConfig.height) * 0.01889;
             }
             if(db.NAIImgModel.includes('nai-diffusion-4-5-full') || db.NAIImgModel.includes('nai-diffusion-4-5-curated')) {
-                commonReq.body.parameters.skip_cfg_above_sigma = 58;
+                commonReq.body.parameters.skip_cfg_above_sigma = Math.sqrt(db.NAIImgConfig.width * db.NAIImgConfig.height) * 0.05766;
             }
         }
 

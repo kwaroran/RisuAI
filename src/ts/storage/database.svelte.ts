@@ -569,6 +569,7 @@ export function setDatabase(data:Database){
     data.customModels ??= []
     data.authRefreshes ??= []
     data.rememberToolUsage ??= true
+    data.simplifiedToolUse ??= false
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -1054,6 +1055,7 @@ export interface Database{
     claudeBatching:boolean
     claude1HourCaching:boolean
     rememberToolUsage:boolean
+    simplifiedToolUse:boolean
 }
 
 interface SeparateParameters{

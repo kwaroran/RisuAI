@@ -14,6 +14,7 @@ export interface HypaProcessorV2Options {
 }
 
 export interface EmbeddingText<TMetadata> {
+  id: string;
   content: string;
   metadata?: TMetadata;
 }
@@ -28,7 +29,7 @@ export class HypaProcessorV2<TMetadata> {
   private static readonly LOG_PREFIX = "[HypaProcessorV2]";
   public readonly options: HypaProcessorV2Options;
   public progressCallback: (queuedCount: number) => void = null;
-  private vectors: Map<string, EmbeddingResult<TMetadata>> = new Map();
+  public vectors: Map<string, EmbeddingResult<TMetadata>> = new Map();
   private forage: LocalForage = localforage.createInstance({
     name: "hypaVector",
   });
@@ -67,9 +68,12 @@ export class HypaProcessorV2<TMetadata> {
     const uniqueQueries = [...new Set(queries)];
 
     // Convert queries to EmbeddingText array
-    const ebdTexts: EmbeddingText<TMetadata>[] = uniqueQueries.map((query) => ({
-      content: query,
-    }));
+    const ebdTexts: EmbeddingText<TMetadata>[] = uniqueQueries.map(
+      (query, index) => ({
+        id: `query-${index}`,
+        content: query,
+      })
+    );
 
     // Get query embeddings (don't save to memory)
     const ebdResults = await this.getEmbeds(ebdTexts, false);
@@ -109,11 +113,11 @@ export class HypaProcessorV2<TMetadata> {
 
     // Load cache
     const loadPromises = ebdTexts.map(async (item, index) => {
-      const { content, metadata } = item;
+      const { id, content, metadata } = item;
 
       // Use if already in memory
-      if (this.vectors.has(content)) {
-        resultMap.set(content, this.vectors.get(content));
+      if (this.vectors.has(id)) {
+        resultMap.set(id, this.vectors.get(id));
         return;
       }
 
@@ -134,10 +138,10 @@ export class HypaProcessorV2<TMetadata> {
 
           // Save to memory
           if (saveToMemory) {
-            this.vectors.set(content, cached);
+            this.vectors.set(id, cached);
           }
 
-          resultMap.set(content, cached);
+          resultMap.set(id, cached);
         } else {
           toEmbed.push(item);
         }
@@ -149,7 +153,7 @@ export class HypaProcessorV2<TMetadata> {
     await Promise.all(loadPromises);
 
     if (toEmbed.length === 0) {
-      return ebdTexts.map((item) => resultMap.get(item.content));
+      return ebdTexts.map((item) => resultMap.get(item.id));
     }
 
     // Chunking array
@@ -175,9 +179,10 @@ export class HypaProcessorV2<TMetadata> {
         );
 
         const savePromises = embeddings.map(async (embedding, j) => {
-          const { content, metadata } = chunk[j];
+          const { id, content, metadata } = chunk[j];
 
           const ebdResult: EmbeddingResult<TMetadata> = {
+            id,
             content,
             embedding,
             metadata,
@@ -191,10 +196,10 @@ export class HypaProcessorV2<TMetadata> {
 
           // Save to memory
           if (saveToMemory) {
-            this.vectors.set(content, ebdResult);
+            this.vectors.set(id, ebdResult);
           }
 
-          resultMap.set(content, ebdResult);
+          resultMap.set(id, ebdResult);
         });
 
         await Promise.all(savePromises);
@@ -228,9 +233,10 @@ export class HypaProcessorV2<TMetadata> {
 
         const chunk = chunks[i];
         const savePromises = result.data.map(async (embedding, j) => {
-          const { content, metadata } = chunk[j];
+          const { id, content, metadata } = chunk[j];
 
           const ebdResult: EmbeddingResult<TMetadata> = {
+            id,
             content,
             embedding,
             metadata,
@@ -244,10 +250,10 @@ export class HypaProcessorV2<TMetadata> {
 
           // Save to memory
           if (saveToMemory) {
-            this.vectors.set(content, ebdResult);
+            this.vectors.set(id, ebdResult);
           }
 
-          resultMap.set(content, ebdResult);
+          resultMap.set(id, ebdResult);
         });
 
         await Promise.all(savePromises);
@@ -265,7 +271,7 @@ export class HypaProcessorV2<TMetadata> {
       }
     }
 
-    return ebdTexts.map((item) => resultMap.get(item.content));
+    return ebdTexts.map((item) => resultMap.get(item.id));
   }
 
   private similarity(a: EmbeddingVector, b: EmbeddingVector): number {
