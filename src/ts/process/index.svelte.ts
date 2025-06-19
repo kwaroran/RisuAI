@@ -90,6 +90,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     chatProcessStage.set(0)
     const abortSignal = arg.signal ?? (new AbortController()).signal
+    
+    const stageTimings = {
+        stage1Start: 0,
+        stage2Start: 0,
+        stage3Start: 0,
+        stage4Start: 0,
+        stage1Duration: 0,
+        stage2Duration: 0,
+        stage3Duration: 0,
+        stage4Duration: 0
+    }
 
     let isAborted = false
     let findCharCache:{[key:string]:character} = {}
@@ -312,6 +323,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
 
     chatProcessStage.set(1)
+    stageTimings.stage1Start = Date.now()
     let unformated = {
         'main':([] as OpenAIChat[]),
         'jailbreak':([] as OpenAIChat[]),
@@ -915,7 +927,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
     
     if(nowChatroom.supaMemory && (DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypav2 || DBState.db.hypaV3)){
+        stageTimings.stage1Duration = Date.now() - stageTimings.stage1Start
         chatProcessStage.set(2)
+        stageTimings.stage2Start = Date.now()
         if(DBState.db.hanuraiEnable){
             const hn = await hanuraiMemory(chats, {
                 currentTokens,
@@ -982,9 +996,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             console.log(currentChat.supaMemoryData)
             currentChat.lastMemory = sp.lastId ?? currentChat.lastMemory;
         }
+        stageTimings.stage2Duration = Date.now() - stageTimings.stage2Start
         chatProcessStage.set(1)
     }
     else{
+        stageTimings.stage1Duration = Date.now() - stageTimings.stage1Start
         while(currentTokens > maxContextTokens){
             if(chats.length <= 1){
                 throwError(language.errors.toomuchtoken + "\n\nRequired Tokens: " + currentTokens)
@@ -1380,8 +1396,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         inputTokens: inputTokens,
         outputTokens: outputTokens,
         maxContext: maxContextTokens,
+        stageTiming: {
+            stage1: stageTimings.stage1Duration,
+            stage2: stageTimings.stage2Duration,
+            stage3: 0,
+            stage4: 0
+        }
     }
+
     chatProcessStage.set(3)
+    stageTimings.stage3Start = Date.now()
     if(arg.preview){
         previewFormated = formated
         return true
@@ -1604,7 +1628,29 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         DBState.db.characters[selectedChar].chats[selectedChat].message[DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1].data += rq
     }
 
+    stageTimings.stage3Duration = Date.now() - stageTimings.stage3Start
+
+    if(generationInfo.stageTiming) {
+        generationInfo.stageTiming.stage3 = stageTimings.stage3Duration
+    }
+    chatProcessStage.set(4)
+    stageTimings.stage4Start = Date.now()
+
     if(resendChat){
+        stageTimings.stage4Duration = Date.now() - stageTimings.stage4Start
+        
+        if(generationInfo.stageTiming) {
+            generationInfo.stageTiming.stage1 = stageTimings.stage1Duration
+            generationInfo.stageTiming.stage2 = stageTimings.stage2Duration
+            generationInfo.stageTiming.stage3 = stageTimings.stage3Duration
+            generationInfo.stageTiming.stage4 = stageTimings.stage4Duration
+        }
+        
+        const lastMessageIndex = DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1
+        if(lastMessageIndex >= 0 && DBState.db.characters[selectedChar].chats[selectedChat].message[lastMessageIndex].generationInfo) {
+            DBState.db.characters[selectedChar].chats[selectedChat].message[lastMessageIndex].generationInfo = generationInfo
+        }
+        
         doingChat.set(false)
         return await sendChat(chatProcessIndex, {
             signal: abortSignal
@@ -1626,8 +1672,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             
         }
     }
-
-    chatProcessStage.set(4)
 
     peerSync()
 
@@ -1850,6 +1894,20 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
             await stableDiff(currentChar, msgStr)
         }
+    }
+
+    stageTimings.stage4Duration = Date.now() - stageTimings.stage4Start
+    
+    if(generationInfo.stageTiming) {
+        generationInfo.stageTiming.stage1 = stageTimings.stage1Duration
+        generationInfo.stageTiming.stage2 = stageTimings.stage2Duration
+        generationInfo.stageTiming.stage3 = stageTimings.stage3Duration
+        generationInfo.stageTiming.stage4 = stageTimings.stage4Duration
+    }
+    
+    const lastMessageIndex = DBState.db.characters[selectedChar].chats[selectedChat].message.length - 1
+    if(lastMessageIndex >= 0 && DBState.db.characters[selectedChar].chats[selectedChat].message[lastMessageIndex].generationInfo) {
+        DBState.db.characters[selectedChar].chats[selectedChat].message[lastMessageIndex].generationInfo = generationInfo
     }
 
     return true

@@ -1580,6 +1580,12 @@ export interface MessageGenerationInfo{
     inputTokens?: number
     outputTokens?: number
     maxContext?: number
+    stageTiming?: {
+        stage1?: number
+        stage2?: number
+        stage3?: number
+        stage4?: number
+    }
 }
 
 export interface MessagePresetInfo{
