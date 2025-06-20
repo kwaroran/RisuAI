@@ -1208,10 +1208,12 @@
             return
         }
 
+        let insertIndex = selectedEffectIndex === -1 ? value[selectedIndex].effect.length : selectedEffectIndex
         for(const effect of clipboard.value){
-            value[selectedIndex].effect.splice(selectedEffectIndex, 0, safeStructuredClone(effect))
-            selectedEffectIndex += 1
+            value[selectedIndex].effect.splice(insertIndex, 0, safeStructuredClone(effect))
+            insertIndex += 1
         }
+        selectedEffectIndex = insertIndex - 1
         updateGuideLines()
     }
 
@@ -1227,10 +1229,12 @@
             return
         }
 
+        let insertIndex = selectedIndex
         for(const trigger of clipboard.value){
-            value.splice(selectedIndex, 0, safeStructuredClone(trigger))
-            selectedIndex += 1
+            value.splice(insertIndex, 0, safeStructuredClone(trigger))
+            insertIndex += 1
         }
+        selectedIndex = insertIndex - 1
     }
 
     const deleteTrigger = () => {
