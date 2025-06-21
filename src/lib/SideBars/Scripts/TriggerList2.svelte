@@ -145,6 +145,8 @@
     let { value = $bindable([]), lowLevelAble = false }: Props = $props();
     let selectedIndex = $state(0);
     let selectedEffectIndex = $state(-1);
+    let selectedTriggerIndices = $state<number[]>([]);
+    let lastSelectedTriggerIndex = $state(-1);
     let menuMode = $state(0)
     let editTrigger:triggerEffectV2 = $state(null as triggerEffectV2)
     let addElse = $state(false)
@@ -180,6 +182,7 @@
             if(menu0Container) {
                 menu0ScrollPosition = menu0Container.scrollTop
             }
+            clearTriggerSelection()
         }
     })
 
@@ -229,6 +232,45 @@
 
     const close = () => {
         selectedIndex = 0;
+    }
+
+    const isMultipleSelected = () => {
+        return selectedTriggerIndices.length > 0
+    }
+
+    const isTriggerSelected = (index: number) => {
+        return selectedTriggerIndices.includes(index)
+    }
+
+    const clearTriggerSelection = () => {
+        selectedTriggerIndices = []
+        lastSelectedTriggerIndex = -1
+    }
+
+    const selectTriggerRange = (startIndex: number, endIndex: number) => {
+        const start = Math.min(startIndex, endIndex)
+        const end = Math.max(startIndex, endIndex)
+        const range = []
+        for (let i = start; i <= end; i++) {
+            if (i > 0) {
+                range.push(i)
+            }
+        }
+        selectedTriggerIndices = range
+    }
+
+    const handleTriggerClick = (index: number, event: MouseEvent) => {
+        event.preventDefault()
+        event.stopPropagation()
+        
+        if (event.shiftKey && lastSelectedTriggerIndex !== -1) {
+            selectTriggerRange(lastSelectedTriggerIndex, index)
+        } else {
+            selectedTriggerIndices = [index]
+            lastSelectedTriggerIndex = index
+            selectedIndex = index
+        }
+        selectMode = 0
     }
 
     const checkSupported = (e:string) => {
@@ -1256,9 +1298,17 @@
     }
 
     const copyTrigger = () => {
-        clipboard = {
-            type: 'trigger',
-            value: safeStructuredClone([value[selectedIndex]])
+        if (isMultipleSelected()) {
+            const selectedTriggers = selectedTriggerIndices.map(index => value[index]).filter(Boolean)
+            clipboard = {
+                type: 'trigger',
+                value: safeStructuredClone(selectedTriggers)
+            }
+        } else {
+            clipboard = {
+                type: 'trigger',
+                value: safeStructuredClone([value[selectedIndex]])
+            }
         }
     }
 
@@ -1273,16 +1323,34 @@
             insertIndex += 1
         }
         selectedIndex = insertIndex - 1
+        clearTriggerSelection()
     }
 
     const deleteTrigger = () => {
-        if(value.length <= 2){
-            return
-        }
-        value.splice(selectedIndex, 1)
-        selectedIndex -= 1
-        if(selectedIndex < 1){
-            selectedIndex = 1
+        if (isMultipleSelected()) {
+            if (selectedTriggerIndices.length >= value.length - 1) {
+                return
+            }
+            
+            const sortedIndices = [...selectedTriggerIndices].sort((a, b) => b - a)
+            for (const index of sortedIndices) {
+                if (index > 0 && index < value.length) {
+                    value.splice(index, 1)
+                }
+            }
+            
+            clearTriggerSelection()
+            selectedIndex = Math.max(1, Math.min(selectedIndex, value.length - 1))
+        } else {
+            if(value.length <= 2){
+                return
+            }
+            value.splice(selectedIndex, 1)
+            selectedIndex -= 1
+            if(selectedIndex < 1){
+                selectedIndex = 1
+            }
+            clearTriggerSelection()
         }
     }
 
@@ -1291,19 +1359,58 @@
         if (fromIndex < 0 || toIndex < 0 || fromIndex >= value.length || toIndex > value.length) return;
         if (!value[fromIndex]) return;
         
-        let triggers = [...value];
-        const movedItem = triggers.splice(fromIndex, 1)[0];
-        if (!movedItem) return;
-        
-        triggers.splice(toIndex, 0, movedItem);
-        
-        if (selectedIndex === fromIndex) {
-            selectedIndex = toIndex;
-        } else if (fromIndex < selectedIndex && toIndex >= selectedIndex) {
-            selectedIndex = selectedIndex - 1;
-        } else if (fromIndex > selectedIndex && toIndex <= selectedIndex) {
-            selectedIndex = selectedIndex + 1;
+        if (isMultipleSelected() && isTriggerSelected(fromIndex)) {
+            moveMultipleTriggers(toIndex);
+        } else {
+            let triggers = [...value];
+            const movedItem = triggers.splice(fromIndex, 1)[0];
+            if (!movedItem) return;
+            
+            triggers.splice(toIndex, 0, movedItem);
+            
+            if (selectedIndex === fromIndex) {
+                selectedIndex = toIndex;
+            } else if (fromIndex < selectedIndex && toIndex >= selectedIndex) {
+                selectedIndex = selectedIndex - 1;
+            } else if (fromIndex > selectedIndex && toIndex <= selectedIndex) {
+                selectedIndex = selectedIndex + 1;
+            }
+            
+            value = triggers;
         }
+    }
+
+    const moveMultipleTriggers = (toIndex: number) => {
+        const sortedIndices = [...selectedTriggerIndices].sort((a, b) => a - b);
+        const triggersToMove = sortedIndices.map(index => value[index]);
+        
+        let triggers = [...value];
+        
+        for (let i = sortedIndices.length - 1; i >= 0; i--) {
+            triggers.splice(sortedIndices[i], 1);
+        }
+        
+        let insertIndex = toIndex;
+        for (let i = 0; i < sortedIndices.length; i++) {
+            if (sortedIndices[i] < toIndex) {
+                insertIndex--;
+            }
+        }
+        
+        insertIndex = Math.max(1, insertIndex);
+        
+        for (let i = 0; i < triggersToMove.length; i++) {
+            triggers.splice(insertIndex + i, 0, triggersToMove[i]);
+        }
+        
+        const newSelectedIndices = [];
+        for (let i = 0; i < triggersToMove.length; i++) {
+            newSelectedIndices.push(insertIndex + i);
+        }
+        
+        selectedTriggerIndices = newSelectedIndices;
+        selectedIndex = newSelectedIndices[0];
+        lastSelectedTriggerIndex = newSelectedIndices[0];
         
         value = triggers;
     }
@@ -1319,8 +1426,11 @@
     }
 
     const handleKeydown = (e:KeyboardEvent) => {
-        console.log(e.key)
         if(e.key === 'Escape'){
+            if(contextMenu){
+                contextMenu = false
+                return
+            }
             if(menuMode === 0){
                 close()
             }
@@ -1452,6 +1562,12 @@
             if (effect) {
                 editTrigger = effect as triggerEffectV2
             }
+        } else if (mode === 0) {
+            if (!isTriggerSelected(effectIndex)) {
+                selectedTriggerIndices = [effectIndex]
+                lastSelectedTriggerIndex = effectIndex
+                selectedIndex = effectIndex
+            }
         }
         
         e.preventDefault()
@@ -1505,6 +1621,26 @@
     onMount(() => {
         window.addEventListener('keydown', handleKeydown);
         window.addEventListener('resize', updateGuideLines);
+        
+        const handleGlobalClick = (e: MouseEvent) => {
+            if (contextMenu) {
+                contextMenu = false
+            }
+        }
+        
+        const handleGlobalContextMenu = (e: MouseEvent) => {
+            if (contextMenu) {
+                e.preventDefault()
+            }
+        }
+        
+        document.addEventListener('click', handleGlobalClick, true);
+        document.addEventListener('contextmenu', handleGlobalContextMenu, true);
+        
+        return () => {
+            document.removeEventListener('click', handleGlobalClick, true);
+            document.removeEventListener('contextmenu', handleGlobalContextMenu, true);
+        }
     })
 
     onDestroy(() => {
@@ -1520,6 +1656,8 @@
         e.stopPropagation()
         menuMode = 0
         selectedIndex = 1
+        selectedTriggerIndices = [1]
+        lastSelectedTriggerIndex = 1
     }}>
         {language.edit}
     </Button>
@@ -1532,82 +1670,138 @@
 <Portal>
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="text-textcolor absolute top-0 bottom-0 bg-black bg-opacity-50 max-w-full w-full h-full z-40 flex justify-center items-center" onclick={(e) => {
-        e.stopPropagation()
-        contextMenu = false
-    }}>
+    <div class="text-textcolor absolute top-0 bottom-0 bg-black bg-opacity-50 max-w-full w-full h-full z-40 flex justify-center items-center" 
+         onclick={(e) => {
+             if (e.target === e.currentTarget) {
+                 contextMenu = false
+                 if (menuMode === 0) {
+                     clearTriggerSelection()
+                 }
+             }
+         }}
+         oncontextmenu={(e) => {
+             if (e.target === e.currentTarget) {
+                 e.preventDefault()
+                 contextMenu = false
+             }
+         }}
+    >
         {#if contextMenu}
-            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md z-50" style={contextMenuLoc.style}>
-                {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent' && selectMode === 1}
-                    <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
-                        const currentEffect = value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2
-                        if(currentEffect.type === 'v2If' || currentEffect.type === 'v2IfAdvanced'){
-                            let hasExistingElse = false
-                            let pointer = selectedEffectIndex + 1
-                            let indent = currentEffect.indent
-                            
-                            while(pointer < value[selectedIndex].effect.length){
-                                const effect = value[selectedIndex].effect[pointer] as triggerEffectV2
-                                if(effect.type === 'v2EndIndent' && effect.indent === indent + 1){
-                                    if(pointer + 1 < value[selectedIndex].effect.length){
-                                        const nextEffect = value[selectedIndex].effect[pointer + 1] as triggerEffectV2
-                                        if(nextEffect.type === 'v2Else' && nextEffect.indent === indent){
-                                            hasExistingElse = true
+            <div class="absolute flex-col gap-2 w-28 p-2 flex bg-darkbg border border-darkborderc rounded-md z-50" style={contextMenuLoc.style} 
+                 onclick={(e) => {
+                     e.stopPropagation()
+                 }}
+                 oncontextmenu={(e) => {
+                     e.preventDefault()
+                     e.stopPropagation()
+                 }}
+            >
+                {#if selectedTriggerIndices.length > 1 && selectMode === 0}
+                    <div class="text-textcolor2 text-xs border-b border-darkborderc pb-2 mb-2">
+                        {selectedTriggerIndices.length} selected
+                    </div>
+                {/if}
+                
+                {#if selectMode === 1}
+                    {#if selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent'}
+                        <button class="text-textcolor2 hover:text-textcolor" onclick={(e) => {
+                            e.stopPropagation()
+                            const currentEffect = value[selectedIndex].effect[selectedEffectIndex] as triggerEffectV2
+                            if(currentEffect.type === 'v2If' || currentEffect.type === 'v2IfAdvanced'){
+                                let hasExistingElse = false
+                                let pointer = selectedEffectIndex + 1
+                                let indent = currentEffect.indent
+                                
+                                while(pointer < value[selectedIndex].effect.length){
+                                    const effect = value[selectedIndex].effect[pointer] as triggerEffectV2
+                                    if(effect.type === 'v2EndIndent' && effect.indent === indent + 1){
+                                        if(pointer + 1 < value[selectedIndex].effect.length){
+                                            const nextEffect = value[selectedIndex].effect[pointer + 1] as triggerEffectV2
+                                            if(nextEffect.type === 'v2Else' && nextEffect.indent === indent){
+                                                hasExistingElse = true
+                                            }
                                         }
+                                        break
                                     }
-                                    break
+                                    pointer++
                                 }
-                                pointer++
+                                
+                                addElse = hasExistingElse
                             }
                             
-                            addElse = hasExistingElse
-                        }
+                            menuMode = 3
+                            contextMenu = false
+                        }}>
+                            {language.edit}
+                        </button>
                         
-                        menuMode = 3
-                    }}>
-                        {language.edit}
-                    </button>
-                {/if}
-
-                {#if (selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent') || selectMode === 0}
-                    <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
-                        if(selectMode === 1){
+                        <button class="text-textcolor2 hover:text-textcolor" onclick={(e) => {
+                            e.stopPropagation()
                             copyEffect()
-                        }
-                        else{
-                            copyTrigger()
-                        }
+                            contextMenu = false
+                        }}>
+                            {language.copy}
+                        </button>
+                        
+                        <button class="text-textcolor2 hover:text-textcolor" onclick={(e) => {
+                            e.stopPropagation()
+                            deleteEffect()
+                            contextMenu = false
+                        }}>
+                            {language.remove}
+                        </button>
+                    {/if}
+                    
+                    <button class="text-textcolor2 hover:text-textcolor" onclick={(e) => {
+                        e.stopPropagation()
+                        pasteEffect()
+                        contextMenu = false
+                    }}>
+                        {language.paste}
+                    </button>
+                    
+                {:else if selectMode === 0}
+                    <button class="text-textcolor2 hover:text-textcolor" onclick={(e) => {
+                        e.stopPropagation()
+                        copyTrigger()
+                        contextMenu = false
                     }}>
                         {language.copy}
                     </button>
-                {/if}
-
-                <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
-                    if(selectMode === 1){
-                        pasteEffect()
-                    }
-                    else{
+                    
+                    <button class="text-textcolor2 hover:text-textcolor" onclick={(e) => {
+                        e.stopPropagation()
                         pasteTrigger()
-                    }
-                }}>
-                    {language.paste}
-                </button>
-
-                {#if (selectedEffectIndex !== -1 && value[selectedIndex].effect[selectedEffectIndex].type !== 'v2EndIndent') || selectMode === 0}
-                    <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
-                        if(selectMode === 1){
-                            deleteEffect()
-                        }
-                        else{
-                            deleteTrigger()
-                        }
+                        contextMenu = false
+                    }}>
+                        {language.paste}
+                    </button>
+                    
+                    <button class="text-textcolor2 hover:text-textcolor" onclick={(e) => {
+                        e.stopPropagation()
+                        deleteTrigger()
+                        contextMenu = false
                     }}>
                         {language.remove}
                     </button>
                 {/if}
             </div>
         {/if}
-        <div class="max-w-full p-2 border border-darkborderc bg-bgcolor flex max-h-full flex-col-reverse md:flex-row overflow-y-auto md:overflow-y-visible" class:w-7xl={menuMode === 0} class:w-3xl={menuMode !== 0} class:h-full={menuMode!==2}>
+        <div class="max-w-full p-2 border border-darkborderc bg-bgcolor flex max-h-full flex-col-reverse md:flex-row overflow-y-auto md:overflow-y-visible" 
+             class:w-7xl={menuMode === 0} 
+             class:w-3xl={menuMode !== 0} 
+             class:h-full={menuMode!==2}
+             onclick={(e) => {
+                 if (contextMenu) {
+                     contextMenu = false
+                 }
+             }}
+             oncontextmenu={(e) => {
+                 if (contextMenu) {
+                     e.preventDefault()
+                 }
+             }}
+        >
             {#if menuMode === 0}
                 <div class="pr-2 md:w-96 flex flex-col md:h-full mt-2 md:mt-0">
                     <div class="flex-1 flex flex-col overflow-y-auto">
@@ -1631,15 +1825,21 @@
                                 </div>
                                 
                                 <button
-                                    class="p-2 text-start text-textcolor2 hover:text-textcolor hover:cursor-grab active:cursor-grabbing trigger-item"
-                                    class:bg-darkbg={selectedIndex === i}
+                                    class="p-2 text-start text-textcolor2 hover:text-textcolor hover:cursor-grab active:cursor-grabbing trigger-item select-none"
+                                    class:bg-darkbg={selectedIndex === i && !isMultipleSelected()}
+                                    class:bg-selected={isTriggerSelected(i)}
+                                    style="user-select: none;"
                                     draggable="true"
                                     ondragstart={(e) => {
                                         e.dataTransfer?.setData('text', 'trigger')
                                         e.dataTransfer?.setData('triggerIndex', i.toString())
                                         
                                         const dragElement = document.createElement('div')
-                                        dragElement.textContent = trigger?.comment || 'Unnamed Trigger'
+                                        if (isMultipleSelected() && isTriggerSelected(i)) {
+                                            dragElement.textContent = `${selectedTriggerIndices.length} triggers selected`
+                                        } else {
+                                            dragElement.textContent = trigger?.comment || 'Unnamed Trigger'
+                                        }
                                         dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
                                         document.body.appendChild(dragElement)
                                         e.dataTransfer?.setDragImage(dragElement, 10, 10)
@@ -1654,9 +1854,8 @@
                                     ondrop={(e) => {
                                         handleTriggerDrop(i, e)
                                     }}
-                                    onclick={() => {
-                                        selectMode = 0
-                                        selectedIndex = i
+                                    onclick={(event) => {
+                                        handleTriggerClick(i, event)
                                     }}
                                     oncontextmenu={(e) => handleContextMenu(e, 0, i)}
                                 >
