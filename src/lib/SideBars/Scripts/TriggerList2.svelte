@@ -1825,7 +1825,10 @@
                                 </div>
                                 
                                 <button
-                                    class="p-2 text-start text-textcolor2 hover:text-textcolor hover:cursor-grab active:cursor-grabbing trigger-item select-none"
+                                    class="p-2 text-start hover:cursor-grab active:cursor-grabbing trigger-item select-none"
+                                    class:text-textcolor2={!isTriggerSelected(i) && selectedIndex !== i}
+                                    class:text-textcolor={isTriggerSelected(i) || selectedIndex === i}
+                                    class:hover:text-textcolor={!isTriggerSelected(i) && selectedIndex !== i}
                                     class:bg-darkbg={selectedIndex === i && !isMultipleSelected()}
                                     class:bg-selected={isTriggerSelected(i)}
                                     style="user-select: none;"
