@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-node": "^5.0.1"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "node-html-parser": "^7.0.1"
+  }
+}
