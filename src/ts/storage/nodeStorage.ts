@@ -59,7 +59,7 @@ export class NodeStorage{
             throw data.error
         }
         return data.content
-    }
+    }    
     async removeItem(key:string){
         await this.checkAuth()
         const da = await fetch('/api/remove', {
@@ -76,6 +76,28 @@ export class NodeStorage{
         if(data.error){
             throw data.error
         }
+    }
+
+    async patchItem(key: string, patch: any[]): Promise<boolean> {
+        await this.checkAuth()
+        
+        const da = await fetch('/api/patch', {
+            method: "POST",
+            body: JSON.stringify(patch),
+            headers: {
+                'content-type': 'application/json',
+                'file-path': Buffer.from(key, 'utf-8').toString('hex'),
+                'risu-auth': auth
+            }
+        })
+        if(da.status < 200 || da.status >= 300){
+            return false
+        }
+        const data = await da.json()
+        if(data.error){
+            return false
+        }
+        return true
     }
 
     private async checkAuth(){

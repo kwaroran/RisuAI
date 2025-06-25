@@ -1,5 +1,5 @@
 import localforage from "localforage"
-import { isNodeServer, replaceDbResources } from "../globalApi.svelte"
+import { isNodeServer, replaceDbResources, supportsPatchSync } from "../globalApi.svelte"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertInput, alertSelect, alertStore } from "../alert"
@@ -36,6 +36,15 @@ export class AutoStorage{
     async removeItem(key:string){
         await this.Init()
         return await this.realStorage.removeItem(key)
+    }
+
+    async patchItem(key: string, patch: any[]): Promise<boolean> {
+        await this.Init()
+        // Only NodeStorage supports patching for now
+        if (this.realStorage instanceof NodeStorage && supportsPatchSync) {
+            return await (this.realStorage as NodeStorage).patchItem(key, patch)
+        }
+        return false
     }
 
     async checkAccountSync(){
