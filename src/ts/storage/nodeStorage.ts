@@ -43,12 +43,13 @@ export class NodeStorage{
         }
         return data
     }
-    async keys():Promise<string[]>{
+    async keys(prefix:string = ""):Promise<string[]>{
         await this.checkAuth()
         const da = await fetch('/api/list', {
             method: "GET",
             headers:{
-                'risu-auth': auth
+                'risu-auth': auth,
+                'key-prefix': prefix
             }
         })
         const data = await da.json()
@@ -78,18 +79,24 @@ export class NodeStorage{
         }
     }
 
-    async patchItem(key: string, patch: any[]): Promise<boolean> {
+    async patchItem(key: string, patchData: {patch: any[], expectedVersion: number}): Promise<boolean> {
         await this.checkAuth()
         
         const da = await fetch('/api/patch', {
             method: "POST",
-            body: JSON.stringify(patch),
+            body: JSON.stringify(patchData),
             headers: {
                 'content-type': 'application/json',
                 'file-path': Buffer.from(key, 'utf-8').toString('hex'),
                 'risu-auth': auth
             }
         })
+        
+        if(da.status === 409) {
+            // Version mismatch - throw specific error for client to handle
+            throw new Error('Version mismatch')
+        }
+        
         if(da.status < 200 || da.status >= 300){
             return false
         }

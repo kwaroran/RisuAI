@@ -30,8 +30,9 @@ if (enablePatchSync) {
     }
 }
 
-// In-memory database cache for patch-based sync
+// In-memory database cache for patch-based sync with versioning
 let dbCache = {}
+let dbVersions = {} // Track version numbers for each file
 let saveTimers = {}
 const SAVE_INTERVAL = 5000 // Save to disk after 5 seconds of inactivity
 
@@ -361,7 +362,6 @@ app.get('/api/read', async (req, res, next) => {
         if (saveTimers[filePath]) {
             clearTimeout(saveTimers[filePath]);
             delete saveTimers[filePath];
-            // console.log(`[Read] Cleared pending save timer for: ${Buffer.from(filePath, 'hex').toString('utf-8')}`);
         }
         
         // write to disk if available in cache
@@ -369,8 +369,12 @@ app.get('/api/read', async (req, res, next) => {
             const decodedFilePath = Buffer.from(filePath, 'hex').toString('utf-8');
             let dataToSave = await encodeRisuSaveServer(dbCache[filePath]);
             await fs.writeFile(fullPath, dataToSave);
-            // console.log(`[Read] Wrote cache to disk for: ${decodedFilePath}`);
         }
+        
+        // Clear cache and reset version after read operation
+        if (dbCache[filePath]) delete dbCache[filePath];
+        dbVersions[filePath] = 0;
+        
         // read from disk
         if(!existsSync(path.join(savePath, filePath))){
             res.send();
@@ -425,9 +429,10 @@ app.get('/api/list', async (req, res, next) => {
         return
     }
     try {
-        const data = (await fs.readdir(path.join(savePath))).map((v) => {
-            return Buffer.from(v, 'hex').toString('utf-8')
-        })
+        const data = (await fs.readdir(path.join(savePath)))
+            .map((v) => { return Buffer.from(v, 'hex').toString('utf-8') })
+            .filter((v) => { return v.startsWith(req.headers['key-prefix'].trim()) })
+
         res.send({
             success: true,
             content: data
@@ -462,6 +467,15 @@ app.post('/api/write', async (req, res, next) => {
 
     try {
         await fs.writeFile(path.join(savePath, filePath), fileContent);
+        // Clear cache for this file since it was directly written
+        if (dbCache[filePath]) delete dbCache[filePath];
+        // Clear any pending save timer for this file
+        if (saveTimers[filePath]) {
+            clearTimeout(saveTimers[filePath]);
+            delete saveTimers[filePath];
+        }
+        // Reset version to 0 after direct write
+        dbVersions[filePath] = 0;
         res.send({
             success: true
         });
@@ -487,7 +501,9 @@ app.post('/api/patch', async (req, res, next) => {
         return
     }
     const filePath = req.headers['file-path'];
-    const patch = req.body
+    const patch = req.body.patch;
+    const clientVersion = parseInt(req.body.expectedVersion) || 0;
+    
     if (!filePath || !patch) {
         res.status(400).send({
             error:'File path and patch required'
@@ -503,21 +519,39 @@ app.post('/api/patch', async (req, res, next) => {
 
     try {
         const decodedFilePath = Buffer.from(filePath, 'hex').toString('utf-8');
+        
+        // Initialize version if not exists
+        if (!dbVersions[filePath]) dbVersions[filePath] = 0;
+        
+        // Check version mismatch
+        const serverVersion = dbVersions[filePath];
+        if (clientVersion !== serverVersion) {
+            console.log(`[Patch] Version mismatch for ${decodedFilePath}: client=${clientVersion}, server=${serverVersion}`);
+            res.status(409).send({
+                error: 'Version mismatch',
+            });
+            return;
+        }
+        
         // Load database into memory if not already cached
         if (!dbCache[filePath]) {
             const fullPath = path.join(savePath, filePath);
             if (existsSync(fullPath)) {
                 const fileContent = await fs.readFile(fullPath);
                 dbCache[filePath] = await decodeRisuSaveServer(fileContent);
-                // console.log(`[Patch] Loaded ${decodedFilePath} into cache`);
             } 
             else {
                 dbCache[filePath] = {};
             }
         }
+        
         // Apply patch to in-memory database
         const result = applyPatch(dbCache[filePath], patch, true);
-        // console.log(`[Patch] Applied ${result.length} operations to ${decodedFilePath}`);
+        
+        // Increment version after successful patch
+        dbVersions[filePath]++;
+        const newVersion = dbVersions[filePath];
+
         // Schedule save to disk (debounced)
         if (saveTimers[filePath]) {
             clearTimeout(saveTimers[filePath]);
@@ -527,7 +561,6 @@ app.post('/api/patch', async (req, res, next) => {
                 const fullPath = path.join(savePath, filePath);
                 let dataToSave = await encodeRisuSaveServer(dbCache[filePath]);
                 await fs.writeFile(fullPath, dataToSave);
-                // console.log(`[Patch] Saved ${decodedFilePath} to disk`);
                 // Create backup for database files after successful save
                 if (decodedFilePath.includes('database/database.bin')) {
                     try {
@@ -537,10 +570,8 @@ app.post('/api/patch', async (req, res, next) => {
                         const backupFullPath = path.join(savePath, backupFilePath);
                         // Create backup using the same data that was just saved
                         await fs.writeFile(backupFullPath, dataToSave);
-                        // console.log(`[Patch] Created backup: ${backupFileName}`);
                     } catch (backupError) {
                         console.error(`[Patch] Error creating backup:`, backupError);
-                        // Don't fail if backup creation fails
                     }
                 }
             } catch (error) {
@@ -552,7 +583,8 @@ app.post('/api/patch', async (req, res, next) => {
 
         res.send({
             success: true,
-            appliedOperations: result.length
+            appliedOperations: result.length,
+            newVersion: newVersion
         });
     } catch (error) {
         console.error(`[Patch] Error applying patch to ${filePath}:`, error);

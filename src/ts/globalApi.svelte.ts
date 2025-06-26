@@ -317,6 +317,7 @@ export async function loadAsset(id:string){
 
 let lastSave = ''
 let lastSyncedDb: any = null
+let dbVersion = 0 // Track local database version for patch sync
 export let saving = $state({
     state: false
 })
@@ -415,14 +416,16 @@ export async function saveDb(){
                                 const patch = compare(lastSyncedDb, serializedDb)
                                 
                                 if(patch.length > 0){
-                                    // console.log(`[Patch] Sending ${patch.length} operations (filtered from ${rawPatch.length})`)
-                                    const success = await forageStorage.patchItem('database/database.bin', patch)
+                                    const success = await forageStorage.patchItem('database/database.bin', {
+                                        patch: patch,
+                                        expectedVersion: dbVersion
+                                    })
                                     if(success){
-                                        lastSyncedDb = $state.snapshot(db) // Use $state.snapshot instead of JSON clone
-                                        console.log('[Patch] Successfully applied patch')
+                                        lastSyncedDb = $state.snapshot(db)
+                                        dbVersion++ // Increment version after successful patch
+                                        console.log(`[Patch] Successfully applied patch, new version: ${dbVersion}`)
                                         patchSuccessful = true
                                         // Backup is handled by server in patch endpoint, skip local backup creation
-                                        // Continue to cleanup section instead of skipping it
                                     }
                                     else {
                                         // Patch failed, fall through to full save
@@ -430,19 +433,12 @@ export async function saveDb(){
                                     }
                                 } 
                                 else {
-                                    // No valid changes, skip to cleanup section
-                                    console.log('[Patch] No valid operations to send, skipping to cleanup')
-                                    patchSuccessful = true // No changes needed, consider as successful
+                                    // No changes needed, consider as successful
+                                    patchSuccessful = true 
                                 }
                             } catch (error) {
-                                console.warn('[Patch] Failed to apply patch, falling back to full save:', error)
                                 // Fall through to full save
                             }
-                        }
-                        
-                        // Full save for first time or patch failure
-                        if(lastSyncedDb === null){
-                            console.log('[Patch] First time save, using full save')
                         }
                         
                         // Do full save if: first time OR patch failed
@@ -450,8 +446,9 @@ export async function saveDb(){
                             const dbData = encodeRisuSaveLegacy(db)
                             await forageStorage.setItem('database/database.bin', dbData)
                             await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
-                            lastSyncedDb = $state.snapshot(db) // Use $state.snapshot instead of JSON clone
-                            console.log('[Patch] Full save completed, patch tracking enabled')
+                            lastSyncedDb = $state.snapshot(db)
+                            dbVersion = 0 // Reset version after full save
+                            console.log('[Patch] Full save completed, patch tracking enabled with version reset')
                         }             
                     }
                     else {
@@ -537,7 +534,7 @@ async function getDbBackups() {
         return backups
     }
     else{
-        const keys = await forageStorage.keys()
+        const keys = await forageStorage.keys("database/dbbackup-")
 
         const backups = keys
           .filter(key => key.startsWith('database/dbbackup-'))
@@ -628,6 +625,7 @@ export async function loadData() {
                     console.log(decoded)
                     setDatabase(decoded)
                     lastSyncedDb = $state.snapshot(decoded)
+                    dbVersion = 0 // Initialize version tracking
                 } catch (error) {
                     console.error(error)
                     const backups = await getDbBackups()
