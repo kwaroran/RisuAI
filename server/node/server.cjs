@@ -19,7 +19,16 @@ const hubURL = 'https://sv.risuai.xyz';
 let password = ''
 
 // Configuration flags for patch-based sync
-const enablePatchSync = process.env.RISU_PATCH_SYNC === '1' || process.argv.includes('--patch-sync')
+let enablePatchSync = process.env.RISU_PATCH_SYNC === '1' || process.argv.includes('--patch-sync')
+
+if (enablePatchSync) {
+    const [major, minor, patch] = process.version.slice(1).split('.').map(Number);
+    // v22.7.0, v23 and above have a bug with msgpackr that causes it to crash on encoding risu saves
+    if (major >= 23 || (major === 22 && minor === 7 && patch === 0)) {
+        console.log(`[Server] Detected problematic Node.js version ${process.version}. Disabling patch-based sync.`);
+        enablePatchSync = false;
+    }
+}
 
 // In-memory database cache for patch-based sync
 let dbCache = {}
