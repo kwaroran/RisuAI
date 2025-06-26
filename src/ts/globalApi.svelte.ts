@@ -627,6 +627,7 @@ export async function loadData() {
                     const decoded = await decodeRisuSave(gotStorage)
                     console.log(decoded)
                     setDatabase(decoded)
+                    lastSyncedDb = $state.snapshot(decoded)
                 } catch (error) {
                     console.error(error)
                     const backups = await getDbBackups()
