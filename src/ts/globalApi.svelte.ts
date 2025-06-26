@@ -323,6 +323,42 @@ export let saving = $state({
 })
 
 /**
+ * Attempts to save database changes using patch synchronization.
+ * @returns {Promise<boolean>} Returns true if patch was successfully applied or no changes exist, false if full save is required.
+ */
+async function tryPatchSave(db: Database): Promise<boolean> {
+    // Initial save cannot use patch, so return false to trigger full save.
+    if (lastSyncedDb === null) {
+        return false;
+    }
+
+    try {
+        const serializedDb = $state.snapshot(db);
+        const patch = compare(lastSyncedDb, serializedDb);
+
+        if (patch.length > 0) {
+            const success = await forageStorage.patchItem('database/database.bin', {
+                patch: patch,
+                expectedVersion: dbVersion
+            });
+
+            if (success) {
+                lastSyncedDb = serializedDb;
+                dbVersion++;
+                console.log(`[Patch] Successfully applied patch, new version: ${dbVersion}`);
+                return true;
+            }
+            console.warn('[Patch] Patch failed, falling back to full save');
+            return false;
+        }
+        return true; // No changes detected, treat as success
+    } catch (error) {
+        console.error('[Patch] Error during patch attempt:', error);
+        return false; // Fall back to full save on error
+    }
+}
+
+/**
  * Saves the current state of the database.
  * 
  * @returns {Promise<void>} - A promise that resolves when the database has been saved.
@@ -406,56 +442,25 @@ export async function saveDb(){
             else{                
                 if(!forageStorage.isAccount){                    
                     // Patch-based sync for Node server                    
-                    if(isNodeServer && supportsPatchSync){
-                        let patchSuccessful = false
-                        
-                        // Try patch-based update first
-                        if(lastSyncedDb !== null){                            
-                            try {
-                                const serializedDb = $state.snapshot(db)
-                                const patch = compare(lastSyncedDb, serializedDb)
-                                
-                                if(patch.length > 0){
-                                    const success = await forageStorage.patchItem('database/database.bin', {
-                                        patch: patch,
-                                        expectedVersion: dbVersion
-                                    })
-                                    if(success){
-                                        lastSyncedDb = $state.snapshot(db)
-                                        dbVersion++ // Increment version after successful patch
-                                        console.log(`[Patch] Successfully applied patch, new version: ${dbVersion}`)
-                                        patchSuccessful = true
-                                        // Backup is handled by server in patch endpoint, skip local backup creation
-                                    }
-                                    else {
-                                        // Patch failed, fall through to full save
-                                        console.warn('[Patch] Patch failed, falling back to full save')
-                                    }
-                                } 
-                                else {
-                                    // No changes needed, consider as successful
-                                    patchSuccessful = true 
-                                }
-                            } catch (error) {
-                                // Fall through to full save
-                            }
+                    if (isNodeServer && supportsPatchSync) {
+                        const patchSuccessful = await tryPatchSave(db);
+
+                        // If this is the first save or patch failed, fall back to full save.
+                        if (!patchSuccessful) {
+                            const dbData = encodeRisuSaveLegacy(db);
+                            await forageStorage.setItem('database/database.bin', dbData);
+                            await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
+
+                            // (Re)initialize patch tracking state after full save.
+                            lastSyncedDb = $state.snapshot(db);
+                            dbVersion = 0;
+                            console.log('[Patch] Full save completed, patch tracking (re)initialized.');
                         }
-                        
-                        // Do full save if: first time OR patch failed
-                        if(lastSyncedDb === null || !patchSuccessful){
-                            const dbData = encodeRisuSaveLegacy(db)
-                            await forageStorage.setItem('database/database.bin', dbData)
-                            await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
-                            lastSyncedDb = $state.snapshot(db)
-                            dbVersion = 0 // Reset version after full save
-                            console.log('[Patch] Full save completed, patch tracking enabled with version reset')
-                        }             
-                    }
-                    else {
-                        // Non-Node server or patch not supported - use traditional full save
-                        const dbData = encodeRisuSaveLegacy(db)
-                        await forageStorage.setItem('database/database.bin', dbData)
-                        await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
+                    } else {
+                        // Standard save method for environments that don't support patches 
+                        const dbData = encodeRisuSaveLegacy(db);
+                        await forageStorage.setItem('database/database.bin', dbData);
+                        await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
                     }
                 }
                 if(forageStorage.isAccount){
