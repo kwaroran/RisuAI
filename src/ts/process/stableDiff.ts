@@ -209,7 +209,9 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             // Determine which model to use based on vibe_model_selection or fallback to current model
             const modelKey = db.NAIImgConfig.vibe_model_selection || 
                             (db.NAIImgModel.includes('nai-diffusion-4-full') ? 'v4full' : 
-                             db.NAIImgModel.includes('nai-diffusion-4-curated') ? 'v4curated' : null);
+                             db.NAIImgModel.includes('nai-diffusion-4-curated') ? 'v4curated' : 
+                             db.NAIImgModel.includes('nai-diffusion-4-5-full') ? 'v4-5full' :
+                             db.NAIImgModel.includes('nai-diffusion-4-5-curated') ? 'v4-5curated' : null);
 
             if(modelKey && vibeData.encodings && vibeData.encodings[modelKey]) {
                 // Initialize arrays if they don't exist
