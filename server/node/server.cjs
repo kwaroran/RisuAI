@@ -6,7 +6,7 @@ const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const fs = require('fs/promises')
 const crypto = require('crypto')
 const { applyPatch } = require('fast-json-patch')
-const { Packr, Unpackr } = require('msgpackr')
+const { Packr, Unpackr, decode } = require('msgpackr')
 const fflate = require('fflate')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(express.json({ limit: '50mb' }));
