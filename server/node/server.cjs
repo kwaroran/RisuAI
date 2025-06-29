@@ -49,6 +49,15 @@ app.get('/', async (req, res, next) => {
 })
 
 const reverseProxyFunc = async (req, res, next) => {
+    const authHeader = req.headers['risu-auth'];
+    if(!authHeader || authHeader.trim() !== password.trim()){
+        console.log('incorrect', 'received:', authHeader, 'expected:', password)
+        res.status(400).send({
+            error:'Password Incorrect'
+        });
+        return
+    }
+    
     const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
 
     if (!urlParam) {
@@ -98,6 +107,15 @@ const reverseProxyFunc = async (req, res, next) => {
 }
 
 const reverseProxyFunc_get = async (req, res, next) => {
+    const authHeader = req.headers['risu-auth'];
+    if(!authHeader || authHeader.trim() !== password.trim()){
+        console.log('incorrect', 'received:', authHeader, 'expected:', password)
+        res.status(400).send({
+            error:'Password Incorrect'
+        });
+        return
+    }
+    
     const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
 
     if (!urlParam) {
