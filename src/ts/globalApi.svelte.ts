@@ -984,6 +984,14 @@ async function fetchWithProxy(url: string, arg: GlobalFetchArgs): Promise<Global
       ...(arg.useRisuToken && { "x-risu-tk": "use" }),
     };
 
+    // Add risu-auth header for Node.js server
+    if (isNodeServer) {
+      const auth = localStorage.getItem('risuauth');
+      if (auth) {
+        headers["risu-auth"] = auth;
+      }
+    }
+
     const body = arg.body instanceof URLSearchParams ? arg.body.toString() : JSON.stringify(arg.body);
 
     const response = await fetch(furl, { body, headers, method: arg.method ?? "POST", signal: arg.abortSignal });
@@ -2056,11 +2064,13 @@ export async function fetchNative(url:string, arg:{
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
                 "risu-url": encodeURIComponent(url),
                 "Content-Type": "application/json",
-                "x-risu-tk": "use"
+                "x-risu-tk": "use",
+                ...(isNodeServer && localStorage.getItem('risuauth') ? { "risu-auth": localStorage.getItem('risuauth') } : {})
             }: {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
                 "risu-url": encodeURIComponent(url),
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                ...(isNodeServer && localStorage.getItem('risuauth') ? { "risu-auth": localStorage.getItem('risuauth') } : {})
             },
             method: arg.method,
             signal: arg.signal
