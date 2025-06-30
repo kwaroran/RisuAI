@@ -14,10 +14,15 @@ jobs:
     if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (PR)
         uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
         with:
-          ref: ${{ github.head_ref }} 
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Checkout (Push)
+        uses: actions/checkout@v4
+        if: github.event_name != 'pull_request'
 
       - name: Format code
         uses: creyD/prettier_action@v4.6
