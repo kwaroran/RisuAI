@@ -23,7 +23,7 @@ jobs:
         with:
           version: latest
   
-      - run: pnpm ci
+      - run: pnpm install
   
       - run: npx prettier --write .
   
