@@ -1120,6 +1120,16 @@ export const LLMModels: LLMModel[] = [
         recommended: true
     },
     {
+        name: "Gemini Pro 2.5",
+        id: 'gemini-2.5-pro',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasImageOutput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
+    {
         name: "Gemini Flash 2.5 Preview (04/17)",
         id: 'gemini-2.5-flash-preview-04-17',
         provider: LLMProvider.GoogleCloud,
