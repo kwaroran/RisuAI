@@ -6,26 +6,25 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-  push:
-    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
-  format:
-    if: ${{ github.event.pull_request.draft == false }}
+  autofix:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (PR)
-        uses: actions/checkout@v4
-        if: github.event_name == 'pull_request'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      
+      - name: install pnpm
+        uses: pnpm/action-setup@v3
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
-
-      - name: Checkout (Push)
-        uses: actions/checkout@v4
-        if: github.event_name != 'pull_request'
-
-      - name: Format code
-        uses: creyD/prettier_action@v4.6
-        with:
-          # This part is also where you can pass other options, for example:
-          prettier_options: --write **/*.{js,ts}
+          version: latest
+  
+      - run: pnpm ci
+  
+      - run: npx prettier --write .
+  
+      - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
