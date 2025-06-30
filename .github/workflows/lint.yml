@@ -1,0 +1,30 @@
+name: autofix.ci
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.draft == false)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      
+      - name: install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+  
+      - run: pnpm install
+      - run: pnpm add --global prettier
+      - run: prettier --write src/
+  
+      - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
