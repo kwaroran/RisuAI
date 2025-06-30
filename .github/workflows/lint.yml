@@ -1,0 +1,24 @@
+name: Formatting
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  push:
+    branches: [ "main" ]
+
+jobs:
+  format:
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Format code
+        uses: creyD/prettier_action@v4.6
+        with:
+          # This part is also where you can pass other options, for example:
+          prettier_options: --write **/*.{js,ts}
