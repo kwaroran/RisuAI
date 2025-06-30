@@ -24,7 +24,7 @@ jobs:
           version: latest
   
       - run: pnpm install
-  
-      - run: npx prettier --write .
+      - run: pnpm add --global prettier
+      - run: prettier --write .
   
       - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
