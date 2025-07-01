@@ -133,10 +133,11 @@ export async function alertLogin(){
     return get(alertStoreImported).msg
 }
 
-export async function alertSelect(msg:string[]){
+export async function alertSelect(msg:string[], display?:string){
+    const message = display !== undefined ? `__DISPLAY__${display}||${msg.join('||')}` : msg.join('||')
     alertStoreImported.set({
         'type': 'select',
-        'msg': msg.join('||')
+        'msg': message
     })
 
     while(true){
