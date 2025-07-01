@@ -5,7 +5,7 @@
     import { alertError } from "../../ts/alert"
     import { ParseMarkdown, postTranslationParse, trimMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
     import { getLLMCache, translateHTML } from "../../ts/translator/translator"
-    
+
     interface Props {
         character?: simpleCharacterArgument|string|null
         firstMessage?: boolean
@@ -15,6 +15,7 @@
         role: string|null
         translated: boolean
         translating: boolean
+        retranslate: boolean
     }
 
     let {
@@ -24,14 +25,14 @@
         msgDisplay,
         role,
         translated = $bindable(false),
-        translating = $bindable(false)
+        translating = $bindable(false),
+        retranslate = $bindable(false)
     }: Props =  $props()
 
     // svelte-ignore non_reactive_update
     let lastParsed = ''
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
-    let retranslate = false
 
     function getCbsCondition(){
         try{
@@ -49,7 +50,7 @@
         }
     }
 
-    const markParsing = async (data: string, charArg: string | simpleCharacterArgument, chatID: number, translateText?:boolean, tries?:number) => {
+    const markParsing = async (data: string, charArg: string | simpleCharacterArgument, chatID: number, tries?:number) => {
         let lastParsedQueue = ''
         let mode = 'notrim' as const
         try {
@@ -57,7 +58,7 @@
                 lastParsedQueue = ''
                 lastCharArg = charArg
                 lastChatId = chatID
-                translateText = false
+                let translateText = false
                 try {
                     if(DBState.db.autoTranslate){
                         if(DBState.db.autoTranslateCachedOnly && DBState.db.translatorType === 'llm'){
@@ -89,41 +90,47 @@
                     console.error(error)
                 }
             }
-            if(translateText){
-                if (!retranslate && DBState.db.showTranslationLoading) {
-                    lastParsed = `<div class="flex justify-center items-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-textcolor"></div></div>`
+            if(retranslate || translated){
+                if (DBState.db.showTranslationLoading) {
+                    lastParsed = `<div style="display:flex;justify-content:center;align-items:center;height:48px;"><div style="animation: spin 1s linear infinite; border-radius: 50%; height: 32px; width: 32px; border: 2px solid #3b82f6; border-top: 2px solid transparent;"></div></div><style>@keyframes spin { to { transform: rotate(360deg); } }</style>`
                 }
+
+                let transResult
                 
-                let doRetranslate = retranslate
-                retranslate = false
                 if(DBState.db.translatorType === 'llm' && DBState.db.translateBeforeHTMLFormatting){
                     await sleep(100)
                     translating = true
-                    data = await translateHTML(data, false, charArg, chatID, doRetranslate)
+                    data = await translateHTML(data, false, charArg, chatID, retranslate)
                     translating = false
                     const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                     lastParsedQueue = marked
                     lastCharArg = charArg
-                    return marked
+                    transResult = marked
                 }
                 else if(!DBState.db.legacyTranslation){
                     const marked = await ParseMarkdown(data, charArg, 'pretranslate', chatID, getCbsCondition())
                     translating = true
-                    const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID, doRetranslate))
+                    const translated = await postTranslationParse(await translateHTML(marked, false, charArg, chatID, retranslate))
                     translating = false
                     lastParsedQueue = translated
                     lastCharArg = charArg
-                    return translated
+                    transResult = translated
                 }
                 else{
                     const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
                     translating = true
-                    const translated = await translateHTML(marked, false, charArg, chatID, doRetranslate)
+                    const translated = await translateHTML(marked, false, charArg, chatID, retranslate)
                     translating = false
                     lastParsedQueue = translated
                     lastCharArg = charArg
-                    return translated
+                    transResult = translated
                 }
+
+                setTimeout(() => {
+                    retranslate = false
+                }, 10);
+
+                return transResult
             }
             else{
                 const marked = await ParseMarkdown(data, charArg, mode, chatID, getCbsCondition())
@@ -135,10 +142,10 @@
             //retry
             if(tries > 2){
 
-                alertError(`Error while parsing chat message: ${translateText}, ${error.message}, ${error.stack}`)
+                alertError(`Error while parsing chat message: ${translated}, ${error.message}, ${error.stack}`)
                 return data
             }
-            return await markParsing(data, charArg, chatID, translateText, (tries ?? 0) + 1)
+            return await markParsing(data, charArg, chatID, (tries ?? 0) + 1)
         }
         finally{
             //since trimMarkdown is fast, we don't need to cache it
@@ -146,7 +153,7 @@
         }
     }
 
-    let markParsingResult = $derived.by(() => markParsing(msgDisplay, character, idx, translated))
+    let markParsingResult = $derived.by(() => markParsing(msgDisplay, character, idx))
 </script>
 
 {#await markParsingResult}
