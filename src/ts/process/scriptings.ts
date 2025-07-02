@@ -563,7 +563,7 @@ export async function runScripted(code:string, arg:{
             })
 
             // Lore books
-            declareAPI('getLoreBooksMain', (id:string, search: string) => {
+            declareAPI('getLoreBooksMain', (id:string, search:string) => {
                 const db = getDatabase()
                 const selectedChar = db.characters[get(selectedCharID)]
                 if (selectedChar.type !== 'character') {
@@ -574,6 +574,48 @@ export async function runScripted(code:string, arg:{
                 const found = loreBooks.filter((b) => b.comment === search)
 
                 return JSON.stringify(found.map((b) => ({ ...b, content: risuChatParser(b.content, { chara: selectedChar }) })))
+            })
+
+            type upsertLoreBookOptions = {
+                alwaysActive?: boolean
+                insertOrder?: number
+                key?: string
+                secondKey?: string
+                regex?: boolean
+            }
+
+            declareAPI('upsertLocalLoreBook', (id:string, name:string, content:string, options:upsertLoreBookOptions) => {
+                if(!ScriptingSafeIds.has(id)){
+                    return
+                }
+
+                if (char.type !== 'character') {
+                    return
+                }
+
+                const {
+                    alwaysActive = false,
+                    insertOrder = 100,
+                    key = '',
+                    regex = false,
+                    secondKey = '',
+                } = options
+
+                const currentChat = char.chats[char.chatPage]
+
+                const newLocalLoreBooks = currentChat.localLore.filter((book) => book.comment !== name)
+                newLocalLoreBooks.push({
+                    alwaysActive,
+                    comment: name,
+                    content: content,
+                    insertorder: insertOrder,
+                    mode: 'normal',
+                    key,
+                    secondkey: secondKey,
+                    selective: !!secondKey,
+                    useRegex: regex,
+                })
+                currentChat.localLore = newLocalLoreBooks
             })
 
             declareAPI('loadLoreBooksMain', async (id:string, reserve:number) => {
