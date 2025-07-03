@@ -459,7 +459,7 @@ export async function saveDb(){
  */
 async function getDbBackups() {
     let db = getDatabase()
-    if(db?.account?.useSync){
+    if(db?.account?.useSync && !isTauri && !isNodeServer){
         return []
     }
     if(isTauri){
