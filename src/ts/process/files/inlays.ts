@@ -82,17 +82,15 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
             drawHeight = imgObj.height
             drawWidth = imgObj.width
 
-            //resize image to fit inlay, if it's too big (max 1024px)
-            if(drawHeight > 1024){
-                drawWidth = drawWidth * (1024 / drawHeight)
-                drawHeight = 1024
+            //resize image to fit inlay, if total pixels exceed 1024*1024
+            const maxPixels = 1024 * 1024
+            const currentPixels = drawHeight * drawWidth
+            
+            if(currentPixels > maxPixels){
+                const scaleFactor = Math.sqrt(maxPixels / currentPixels)
+                drawWidth = Math.floor(drawWidth * scaleFactor)
+                drawHeight = Math.floor(drawHeight * scaleFactor)
             }
-            if(drawWidth > 1024){
-                drawHeight = drawHeight * (1024 / drawWidth)
-                drawWidth = 1024
-            }
-            drawHeight = Math.floor(drawHeight)
-            drawWidth = Math.floor(drawWidth)
 
             canvas.width = drawWidth
             canvas.height = drawHeight
