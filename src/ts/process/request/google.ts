@@ -871,6 +871,15 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
     }
     
     const result = processTextResponse(rDatas)
+
+    // fail if the result is empty
+    if(!result) {
+        return {
+            type: 'fail',
+            result: `Got empty response: ${JSON.stringify(res.data)}`
+        }
+    }
+
     console.log(result)
     return {
         type: 'success',
