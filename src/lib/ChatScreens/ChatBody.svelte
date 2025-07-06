@@ -56,6 +56,9 @@
     }
 
     const markParsing = async (data: string, charArg: string | simpleCharacterArgument, chatID: number, tries?:number) => {
+        // track 'translated' and 'retranslate' state
+        translated;
+        retranslate;
         let lastParsedQueue = ''
         let mode = 'notrim' as const
         try {
