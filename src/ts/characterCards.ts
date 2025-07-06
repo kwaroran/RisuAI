@@ -96,14 +96,18 @@ export async function importCharacterProcess(f:{
             alertError(language.errors.noData)
             return
         }
+        let lorebook:loreBook[] = null
         if(reader.moduleData){
             const md = await readModule(Buffer.from(reader.moduleData))
             card.data.extensions ??= {}
             card.data.extensions.risuai ??= {}
             card.data.extensions.risuai.triggerscript = md.trigger ?? []
             card.data.extensions.risuai.customScripts = md.regex ?? []
+            if(md.lorebook){
+                lorebook = md.lorebook
+            }
         }
-        await importCharacterCardSpec(card, undefined, 'normal', reader.assets)
+        await importCharacterCardSpec(card, undefined, 'normal', reader.assets, lorebook)
         let db = getDatabase()
         return db.characters.length - 1
     }
@@ -671,7 +675,7 @@ export async function exportChar(charaID:number):Promise<string> {
 }
 
 
-async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3, img?:Uint8Array, mode:'hub'|'normal' = 'normal', assetDict:{[key:string]:string} = {}):Promise<boolean>{
+async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3, img?:Uint8Array, mode:'hub'|'normal' = 'normal', assetDict:{[key:string]:string} = {}, overrideLorebook?: loreBook[] = null):Promise<boolean>{
     if(!card ||(card.spec !== 'chara_card_v2' && card.spec !== 'chara_card_v3' )){
         return false
     }
@@ -870,10 +874,10 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
         }
     }
     const charbook = data.character_book
-    let lorebook:loreBook[] = []
+    let lorebook:loreBook[] = overrideLorebook ?? []
     let loresettings:undefined|loreSettings = undefined
     let loreExt:undefined|any = undefined
-    if(charbook){
+    if(charbook && !overrideLorebook){
         const a = convertCharbook({
             lorebook,
             charbook,
