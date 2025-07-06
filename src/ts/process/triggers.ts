@@ -1980,16 +1980,18 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     break
                 }
                 case 'v2MakeArrayVar':{
-                    if(effect.var.startsWith('[') && effect.var.endsWith(']')){
+                    const varName = risuChatParser(effect.var, {chara:char})
+                    if(varName.startsWith('[') && varName.endsWith(']')){
                         return
                     }
 
-                    setVar(effect.var, '[]')
+                    setVar(varName, '[]')
                     break
                 }
                 case 'v2GetArrayVarLength':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         setVar(effect.outputVar, arr.length.toString())
                     } catch (error) {
@@ -1999,7 +2001,8 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2GetArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
                         setVar(effect.outputVar, arr[index] ?? 'null')
@@ -2010,66 +2013,79 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2PushArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                         arr.push(value)
-                        setVar(effect.var, JSON.stringify(arr))
+                        setVar(varName, JSON.stringify(arr))
                     } catch (error) {
-                        setVar(effect.var, '[]')
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        setVar(varName, '[]')
                     }
                     break
                 }
                 case 'v2PopArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
-                        arr.pop()
-                        setVar(effect.var, JSON.stringify(arr))
+                        setVar(effect.outputVar, arr.pop() ?? 'null')
+                        setVar(varName, JSON.stringify(arr))
                     } catch (error) {
-                        setVar(effect.var, '[]')
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        setVar(varName, '[]')
+                        setVar(effect.outputVar, 'null')
                     }
                     break
                 }
                 case 'v2ShiftArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
-                        arr.shift()
-                        setVar(effect.var, JSON.stringify(arr))
+                        setVar(effect.outputVar, arr.shift() ?? 'null')
+                        setVar(varName, JSON.stringify(arr))
                     } catch (error) {
-                        setVar(effect.var, '[]')
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        setVar(varName, '[]')
+                        setVar(effect.outputVar, 'null')
                     }
                     break
                 }
                 case 'v2UnshiftArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                         arr.unshift(value)
-                        setVar(effect.var, JSON.stringify(arr))
+                        setVar(varName, JSON.stringify(arr))
                     } catch (error) {
-                        setVar(effect.var, '[]')
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        setVar(varName, '[]')
                     }
                     break
                 }
                 case 'v2SpliceArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         let start = effect.startType === 'value' ? Number(risuChatParser(effect.start,{chara:char})) : Number(getVar(risuChatParser(effect.start,{chara:char})))
                         let value = effect.itemType === 'value' ? risuChatParser(effect.item,{chara:char}) : getVar(risuChatParser(effect.item,{chara:char}))
                         arr.splice(start, 0, value)
-                        setVar(effect.var, JSON.stringify(arr))
+                        setVar(varName, JSON.stringify(arr))
                     } catch (error) {
-                        setVar(effect.var, '[]')
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        setVar(varName, '[]')
                     }
                     break
                 }
                 case 'v2SliceArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         let start = effect.startType === 'value' ? Number(risuChatParser(effect.start,{chara:char})) : Number(getVar(risuChatParser(effect.start,{chara:char})))
                         let end = effect.endType === 'value' ? Number(risuChatParser(effect.end,{chara:char})) : Number(getVar(risuChatParser(effect.end,{chara:char})))
@@ -2082,7 +2098,8 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2GetIndexOfValueInArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                         setVar(effect.outputVar, arr.indexOf(value).toString())
@@ -2093,13 +2110,15 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2RemoveIndexFromArrayVar':{
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
                         arr.splice(index, 1)
-                        setVar(effect.var, JSON.stringify(arr))
+                        setVar(varName, JSON.stringify(arr))
                     } catch (error) {
-                        setVar(effect.var, '[]')
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        setVar(varName, '[]')
                     }
                     break
                 }
@@ -2151,10 +2170,11 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         break
                     }
                     try {
-                        let varValue = getVar(effect.var)
+                        const varName = risuChatParser(effect.var, {chara:char})
+                        let varValue = getVar(varName)
                         let arr = JSON.parse(varValue)
                         arr[index] = value
-                        setVar(effect.var, JSON.stringify(arr))
+                        setVar(varName, JSON.stringify(arr))
                     } catch (error) {
                         
                     }
