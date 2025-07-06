@@ -390,6 +390,10 @@
                             DBState.db.NAIImgConfig.vibe_model_selection = 'v4full';
                         } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-curated')) {
                             DBState.db.NAIImgConfig.vibe_model_selection = 'v4curated';
+                        } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-5-full')) { 
+                            DBState.db.NAIImgConfig.vibe_model_selection = 'v4-5full';
+                        } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-5-curated')) {
+                            DBState.db.NAIImgConfig.vibe_model_selection = 'v4-5curated';
                         }
 
                         // Set InfoExtracted to the first value for the selected model
@@ -454,6 +458,12 @@
                     {/if}
                     {#if DBState.db.NAIImgConfig.vibe_data.encodings?.v4curated}
                         <OptionInput value="v4curated">nai-diffusion-4-curated</OptionInput>
+                    {/if}
+                    {#if DBState.db.NAIImgConfig.vibe_data.encodings?.['v4-5full']}
+                        <OptionInput value="v4-5full">nai-diffusion-4-5-full</OptionInput>
+                    {/if}
+                    {#if DBState.db.NAIImgConfig.vibe_data.encodings?.['v4-5curated']}
+                        <OptionInput value="v4-5curated">nai-diffusion-4-5-curated</OptionInput>
                     {/if}
                 </SelectInput>
 
