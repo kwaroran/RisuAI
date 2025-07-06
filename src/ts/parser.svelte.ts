@@ -59,6 +59,8 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
         if(!decoding){
             node.setAttribute("decoding", "async")
         }
+
+        const src = node.getAttribute("src") || "";
     }
 });
 
