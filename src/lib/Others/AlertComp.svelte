@@ -144,14 +144,29 @@
                     }}>Do not Accept</Button>
                 </div>
             {:else if $alertStore.type === 'select'}
-                {#each $alertStore.msg.split('||') as n, i}
-                    <Button className="mt-4" onclick={() => {
-                        alertStore.set({
-                            type: 'none',
-                            msg: i.toString()
-                        })
-                    }}>{n}</Button>
-                {/each}
+                {@const hasDisplay = $alertStore.msg.startsWith('__DISPLAY__')}
+                {#if hasDisplay}
+                    {@const parts = $alertStore.msg.substring(11).split('||')}
+                    <div class="mb-4 text-textcolor">{parts[0]}</div>
+                    {#each parts.slice(1) as n, i}
+                        <Button className="mt-4" onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: i.toString()
+                            })
+                        }}>{n}</Button>
+                    {/each}
+                {:else}
+                    {@const parts = $alertStore.msg.split('||')}
+                    {#each parts as n, i}
+                        <Button className="mt-4" onclick={() => {
+                            alertStore.set({
+                                type: 'none',
+                                msg: i.toString()
+                            })
+                        }}>{n}</Button>
+                    {/each}
+                {/if}
             {:else if $alertStore.type === 'error' || $alertStore.type === 'normal' || $alertStore.type === 'markdown'}
                <Button className="mt-4" onclick={() => {
                     alertStore.set({

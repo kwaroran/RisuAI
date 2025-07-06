@@ -1,5 +1,5 @@
 import { parseChatML, risuChatParser } from "../parser.svelte";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, type Chat, type character } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, setDatabase, type Chat, type character } from "../storage/database.svelte";
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
@@ -13,6 +13,7 @@ import { requestChatData, type OpenAIChatExtra } from "./request/request";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
 import { runScripted } from "./scriptings";
+import { calcString } from "./infunctions";
 
 
 export interface triggerscript{
@@ -33,13 +34,17 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2GetLastMessage|triggerV2GetMessageAtIndex|triggerV2GetMessageCount|triggerV2GetLastMessage|triggerV2GetMessageAtIndex|
                                 triggerV2GetMessageCount|triggerV2ModifyLorebook|triggerV2GetLorebook|triggerV2GetLorebookCount|triggerV2GetLorebookEntry|
                                 triggerV2SetLorebookActivation|triggerV2GetLorebookIndexViaName|triggerV2LoopNTimes|triggerV2Random|triggerV2GetCharAt|
-                                triggerV2GetCharCount|triggerV2ToLowerCase|triggerV2ToUpperCase|triggerV2SetCharAt|triggerV2SplitString|triggerV2GetCharacterDesc|
-                                triggerV2SetCharacterDesc|triggerV2MakeArrayVar|triggerV2GetArrayVarLength|triggerV2GetArrayVar|triggerV2SetArrayVar|
+                                triggerV2GetCharCount|triggerV2ToLowerCase|triggerV2ToUpperCase|triggerV2SetCharAt|triggerV2SplitString|triggerV2JoinArrayVar|triggerV2GetCharacterDesc|
+                                triggerV2SetCharacterDesc|triggerV2GetPersonaDesc|triggerV2SetPersonaDesc|triggerV2MakeArrayVar|triggerV2GetArrayVarLength|triggerV2GetArrayVar|triggerV2SetArrayVar|
                                 triggerV2PushArrayVar|triggerV2PopArrayVar|triggerV2ShiftArrayVar|triggerV2UnshiftArrayVar|triggerV2SpliceArrayVar|triggerV2GetFirstMessage|
                                 triggerV2SliceArrayVar|triggerV2GetIndexOfValueInArrayVar|triggerV2RemoveIndexFromArrayVar|triggerV2ConcatString|triggerV2GetLastUserMessage|
-                                triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2UpdateChatAt|triggerV2Wait|
-                                triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetReuqestStateLength|triggerV2IfAdvanced|
-                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize
+                                triggerV2GetLastCharMessage|triggerV2GetAlertInput|triggerV2GetAlertSelect|triggerV2GetDisplayState|triggerV2SetDisplayState|triggerV2UpdateGUI|triggerV2UpdateChatAt|triggerV2Wait|
+                                triggerV2GetRequestState|triggerV2SetRequestState|triggerV2GetRequestStateRole|triggerV2SetRequestStateRole|triggerV2GetRequestStateLength|triggerV2IfAdvanced|
+                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2GetAllLorebooks|triggerV2GetLorebookByName|triggerV2GetLorebookByIndex|
+                                triggerV2CreateLorebook|triggerV2ModifyLorebookByIndex|triggerV2DeleteLorebookByIndex|triggerV2GetLorebookCountNew|triggerV2SetLorebookAlwaysActive|
+                                triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest|triggerV2GetReplaceGlobalNote|triggerV2SetReplaceGlobalNote|
+                                triggerV2GetAuthorNote|triggerV2SetAuthorNote|triggerV2MakeDictVar|triggerV2GetDictVar|triggerV2SetDictVar|triggerV2DeleteDictKey|
+                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues|triggerV2Calculate|triggerV2ReplaceString
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -460,6 +465,16 @@ export type triggerV2SplitString = {
     source: string,
     sourceType: 'var'|'value',
     delimiter: string,
+    delimiterType: 'var'|'value'|'regex',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2JoinArrayVar = {
+    type: 'v2JoinArrayVar',
+    var: string,
+    varType: 'var'|'value',
+    delimiter: string,
     delimiterType: 'var'|'value',
     outputVar: string,
     indent: number
@@ -473,6 +488,19 @@ export type triggerV2GetCharacterDesc = {
 
 export type triggerV2SetCharacterDesc = {
     type: 'v2SetCharacterDesc',
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2GetPersonaDesc = {
+    type: 'v2GetPersonaDesc',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetPersonaDesc = {
+    type: 'v2SetPersonaDesc',
     value: string,
     valueType: 'var'|'value',
     indent: number
@@ -661,7 +689,7 @@ export type triggerV2SetRequestStateRole = {
     indent: number
 }
 
-export type triggerV2GetReuqestStateLength = {
+export type triggerV2GetRequestStateLength = {
     type: 'v2GetRequestStateLength',
     outputVar: string,
     indent: number
@@ -719,6 +747,222 @@ export type triggerV2Tokenize = {
     outputVar:string
 }
 
+export type triggerV2GetAllLorebooks = {
+    type: 'v2GetAllLorebooks',
+    outputVar: string,
+    indent: number
+}
+export type triggerV2RegexTest = {
+    type: 'v2RegexTest',
+    value: string,
+    valueType: 'var'|'value',
+    regex: string,
+    regexType: 'var'|'value',
+    flags: string,
+    flagsType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetLorebookByName = {
+    type: 'v2GetLorebookByName',
+    name: string,
+    nameType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetLorebookByIndex = {
+    type: 'v2GetLorebookByIndex',
+    index: string,
+    indexType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2CreateLorebook = {
+    type: 'v2CreateLorebook',
+    name: string,
+    nameType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    content: string,
+    contentType: 'var'|'value',
+    insertOrder: string,
+    insertOrderType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2ModifyLorebookByIndex = {
+    type: 'v2ModifyLorebookByIndex',
+    index: string,
+    indexType: 'var'|'value',
+    name: string,
+    nameType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    content: string,
+    contentType: 'var'|'value',
+    insertOrder: string,
+    insertOrderType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2DeleteLorebookByIndex = {
+    type: 'v2DeleteLorebookByIndex',
+    index: string,
+    indexType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2GetLorebookCountNew = {
+    type: 'v2GetLorebookCountNew',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetLorebookAlwaysActive = {
+    type: 'v2SetLorebookAlwaysActive',
+    index: string,
+    indexType: 'var'|'value',
+    value: boolean,
+    indent: number
+}
+
+export type triggerV2GetAlertSelect = {
+    type: 'v2GetAlertSelect',
+    display: string,
+    displayType: 'var'|'value',
+    value: string,
+    valueType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetReplaceGlobalNote = {
+    type: 'v2GetReplaceGlobalNote',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetReplaceGlobalNote = {
+    type: 'v2SetReplaceGlobalNote',
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2GetAuthorNote = {
+    type: 'v2GetAuthorNote',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetAuthorNote = {
+    type: 'v2SetAuthorNote',
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2MakeDictVar = {
+    type: 'v2MakeDictVar',
+    var: string,
+    indent: number
+}
+
+export type triggerV2GetDictVar = {
+    type: 'v2GetDictVar',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2SetDictVar = {
+    type: 'v2SetDictVar',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2DeleteDictKey = {
+    type: 'v2DeleteDictKey',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    indent: number
+}
+
+export type triggerV2HasDictKey = {
+    type: 'v2HasDictKey',
+    var: string,
+    varType: 'var'|'value',
+    key: string,
+    keyType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2ClearDict = {
+    type: 'v2ClearDict',
+    var: string,
+    indent: number
+}
+
+export type triggerV2GetDictSize = {
+    type: 'v2GetDictSize',
+    var: string,
+    varType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetDictKeys = {
+    type: 'v2GetDictKeys',
+    var: string,
+    varType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2GetDictValues = {
+    type: 'v2GetDictValues',
+    var: string,
+    varType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2Calculate = {
+    type: 'v2Calculate',
+    expression: string,
+    expressionType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
+export type triggerV2ReplaceString = {
+    type: 'v2ReplaceString',
+    source: string,
+    sourceType: 'var'|'value',
+    regex: string,
+    regexType: 'var'|'value',
+    replacement: string,
+    replacementType: 'var'|'value',
+    flags: string,
+    flagsType: 'var'|'value',
+    outputVar: string,
+    indent: number
+}
+
 const safeSubset = [
     'v2SetVar',
     'v2If',
@@ -731,12 +975,14 @@ const safeSubset = [
     'v2StopTrigger',
     'v2Random',
     'v2ExtractRegex',
+    'v2RegexTest',
     'v2GetCharAt',
     'v2GetCharCount',
     'v2ToLowerCase',
     'v2ToUpperCase',
     'v2SetCharAt',
     'v2SplitString',
+    'v2JoinArrayVar',
     'v2ConcatString',
     'v2MakeArrayVar',
     'v2GetArrayVarLength',
@@ -749,7 +995,8 @@ const safeSubset = [
     'v2SpliceArrayVar',
     'v2SliceArrayVar',
     'v2GetIndexOfValueInArrayVar',
-    'v2RemoveIndexFromArrayVar'
+    'v2RemoveIndexFromArrayVar',
+    'v2Calculate'
 ]
 
 export const displayAllowList = [
@@ -1648,8 +1895,47 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2SplitString':{
                     let source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
-                    let delimiter = effect.delimiterType === 'value' ? risuChatParser(effect.delimiter,{chara:char}) : getVar(risuChatParser(effect.delimiter,{chara:char}))
-                    setVar(effect.outputVar, JSON.stringify(source.split(delimiter)))
+                    let delimiter: string
+                    
+                    if (effect.delimiterType === 'value') {
+                        delimiter = risuChatParser(effect.delimiter,{chara:char})
+                    } else if (effect.delimiterType === 'var') {
+                        delimiter = getVar(risuChatParser(effect.delimiter,{chara:char}))
+                    } else {
+                        delimiter = risuChatParser(effect.delimiter,{chara:char})
+                    }
+                    
+                    let result: string[]
+                    if (effect.delimiterType === 'regex') {
+                        try {
+                            const regexMatch = delimiter.match(/^\/(.+)\/([gimuy]*)$/)
+                            if (regexMatch) {
+                                const [, pattern, flags] = regexMatch
+                                const regex = new RegExp(pattern, flags)
+                                result = source.split(regex)
+                            } else {
+                                const regex = new RegExp(delimiter)
+                                result = source.split(regex)
+                            }
+                        } catch (error) {
+                            result = [source]
+                        }
+                    } else {
+                        result = source.split(delimiter)
+                    }
+                    
+                    setVar(effect.outputVar, JSON.stringify(result))
+                    break
+                }
+                case 'v2JoinArrayVar':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let arr = JSON.parse(varValue)
+                        let delimiter = effect.delimiterType === 'value' ? risuChatParser(effect.delimiter,{chara:char}) : getVar(risuChatParser(effect.delimiter,{chara:char}))
+                        setVar(effect.outputVar, arr.join(delimiter))
+                    } catch (error) {
+                        setVar(effect.outputVar, '')
+                    }
                     break
                 }
                 case 'v2GetCharacterDesc':{
@@ -1662,6 +1948,34 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     const selectedCharId = get(selectedCharID)
                     const db = getDatabase();
                     (db.characters[selectedCharId] as character).desc = value
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2GetPersonaDesc':{
+                    const db = getDatabase()
+                    setVar(effect.outputVar, db.personas[db.selectedPersona]?.personaPrompt ?? '')
+                    break
+                }
+                case 'v2SetPersonaDesc':{
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    const db = getDatabase()
+                    if(db.personas[db.selectedPersona]){
+                        db.personas[db.selectedPersona].personaPrompt = value
+                        db.personaPrompt = value
+                        setDatabase(db)
+                    }
+                    break
+                }
+                case 'v2GetReplaceGlobalNote':{
+                    setVar(effect.outputVar, char.replaceGlobalNote ?? '')
+                    break
+                }
+                case 'v2SetReplaceGlobalNote':{
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    char.replaceGlobalNote = value
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase();
+                    (db.characters[selectedCharId] as character).replaceGlobalNote = value
                     setCurrentCharacter(char)
                     break
                 }
@@ -1819,6 +2133,17 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     setVar(effect.outputVar, value)
                     break
                 }
+                case 'v2GetAlertSelect':{
+                    if(arg.displayMode){
+                        return
+                    }
+                    const display = effect.displayType === 'value' ? risuChatParser(effect.display,{chara:char}) : getVar(risuChatParser(effect.display,{chara:char}))
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    const options = value.split('|')
+                    let result = await alertSelect(options, display)
+                    setVar(effect.outputVar, result)
+                    break
+                }
                 case 'v2SetArrayVar':{
                     const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                     const index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
@@ -1945,6 +2270,314 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 case 'v2Tokenize':{
                     const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                     setVar(effect.outputVar, (await tokenize(value)).toString())
+                    break
+                }
+                case 'v2GetAllLorebooks':{
+                    char.globalLore = char.globalLore ?? []
+                    const allPrompts = char.globalLore
+                        .filter(lore => lore && lore.content !== undefined)
+                        .map(lore => lore.content)
+                    setVar(effect.outputVar, JSON.stringify(allPrompts))
+                    break
+                }
+                case 'v2GetLorebookByName':{
+                    char.globalLore = char.globalLore ?? []
+                    const name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
+                    const regex = new RegExp(name, 'i')
+                    const matchingIndices = char.globalLore
+                        .map((lore, index) => {
+                            if(lore && lore.comment !== undefined && regex.test(lore.comment)){
+                                return index
+                            }
+                            return -1
+                        })
+                        .filter(index => index !== -1)
+                    setVar(effect.outputVar, JSON.stringify(matchingIndices))
+                    break
+                }
+                case 'v2GetLorebookByIndex':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length){
+                        setVar(effect.outputVar, 'null')
+                    } else {
+                        const loreEntry = char.globalLore[index]
+                        if(loreEntry && loreEntry.content !== undefined){
+                            setVar(effect.outputVar, loreEntry.content)
+                        } else {
+                            setVar(effect.outputVar, 'null')
+                        }
+                    }
+                    break
+                }
+                case 'v2CreateLorebook':{
+                    char.globalLore = char.globalLore ?? []
+                    const name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
+                    const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                    const content = effect.contentType === 'value' ? risuChatParser(effect.content,{chara:char}) : getVar(risuChatParser(effect.content,{chara:char}))
+                    const insertOrder = effect.insertOrderType === 'value' ? Number(risuChatParser(effect.insertOrder,{chara:char})) : Number(getVar(risuChatParser(effect.insertOrder,{chara:char})))
+                    
+                    char.globalLore.push({
+                        key: key,
+                        comment: name,
+                        content: content,
+                        mode: 'normal',
+                        insertorder: Number.isNaN(insertOrder) ? 100 : insertOrder,
+                        alwaysActive: false,
+                        secondkey: "",
+                        selective: false
+                    })
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2ModifyLorebookByIndex':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length || !char.globalLore[index]){
+                        break
+                    }
+
+                    const currentLore = char.globalLore[index]
+                    
+                    let name = effect.nameType === 'value' ? risuChatParser(effect.name,{chara:char}) : getVar(risuChatParser(effect.name,{chara:char}))
+                    name = name.replace(/{{slot}}/g, currentLore.comment || '')
+                    char.globalLore[index].comment = name
+                    
+                    let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                    key = key.replace(/{{slot}}/g, currentLore.key || '')
+                    char.globalLore[index].key = key
+                    
+                    let content = effect.contentType === 'value' ? risuChatParser(effect.content,{chara:char}) : getVar(risuChatParser(effect.content,{chara:char}))
+                    content = content.replace(/{{slot}}/g, currentLore.content || '')
+                    char.globalLore[index].content = content
+                    
+                    let insertOrder = effect.insertOrderType === 'value' ? risuChatParser(effect.insertOrder,{chara:char}) : getVar(risuChatParser(effect.insertOrder,{chara:char}))
+                    insertOrder = insertOrder.replace(/{{slot}}/g, (currentLore.insertorder || 100).toString())
+                    const insertOrderNum = Number(insertOrder)
+                    if(!Number.isNaN(insertOrderNum)){
+                        char.globalLore[index].insertorder = insertOrderNum
+                    }
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2DeleteLorebookByIndex':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length || !char.globalLore[index]){
+                        break
+                    }
+
+                    char.globalLore.splice(index, 1)
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2GetLorebookCountNew':{
+                    char.globalLore = char.globalLore ?? []
+                    setVar(effect.outputVar, char.globalLore.length.toString())
+                    break
+                }
+                case 'v2SetLorebookAlwaysActive':{
+                    char.globalLore = char.globalLore ?? []
+                    let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
+                    
+                    if(Number.isNaN(index) || index < 0 || index >= char.globalLore.length || !char.globalLore[index]){
+                        break
+                    }
+
+                    char.globalLore[index].alwaysActive = effect.value
+
+                    const selectedCharId = get(selectedCharID)
+                    const db = getDatabase()
+                    db.characters[selectedCharId].globalLore = char.globalLore
+                    setCurrentCharacter(char)
+                    break
+                }
+                case 'v2RegexTest':{
+                    try {
+                        const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                        const regexPattern = effect.regexType === 'value' ? risuChatParser(effect.regex,{chara:char}) : getVar(risuChatParser(effect.regex,{chara:char}))
+                        const flags = effect.flagsType === 'value' ? risuChatParser(effect.flags,{chara:char}) : getVar(risuChatParser(effect.flags,{chara:char}))
+                        const regex = new RegExp(regexPattern, flags)
+                        const result = regex.test(value)
+                        setVar(effect.outputVar, result ? '1' : '0')
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
+                    }
+                    break
+                }
+                case 'v2GetAuthorNote':{
+                    setVar(effect.outputVar, chat.note ?? '')
+                    break
+                }
+                case 'v2SetAuthorNote':{
+                    const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    chat.note = value
+                    
+                    if(!arg.displayMode){
+                        const selectedCharId = get(selectedCharID)
+                        const currentCharacter = getCurrentCharacter()
+                        const db = getDatabase()
+                        currentCharacter.chats[currentCharacter.chatPage].note = value
+                        db.characters[selectedCharId].chats[currentCharacter.chatPage].note = value
+                        setCurrentCharacter(currentCharacter)
+                    }
+                    break
+                }
+                case 'v2MakeDictVar':{
+                    if(effect.var.startsWith('{') && effect.var.endsWith('}')){
+                        return
+                    }
+
+                    setVar(effect.var, '{}')
+                    break
+                }
+                case 'v2GetDictVar':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        setVar(effect.outputVar, dict[key] ?? 'null')
+                    } catch (error) {
+                        setVar(effect.outputVar, 'null')
+                    }
+                    break
+                }
+                case 'v2SetDictVar':{
+                    try {
+                        const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                        const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        
+                        if(effect.varType === 'value') {
+                            break
+                        }
+                        
+                        let varValue = getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        dict[key] = value
+                        setVar(effect.var, JSON.stringify(dict))
+                    } catch (error) {
+                        if(effect.varType === 'var') {
+                            const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                            const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                            let dict = {}
+                            dict[key] = value
+                            setVar(effect.var, JSON.stringify(dict))
+                        }
+                    }
+                    break
+                }
+                case 'v2DeleteDictKey':{
+                    try {
+                        if(effect.varType === 'value') {
+                            break
+                        }
+                        
+                        let varValue = getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        delete dict[key]
+                        setVar(effect.var, JSON.stringify(dict))
+                    } catch (error) {
+                        if(effect.varType === 'var') {
+                            setVar(effect.var, '{}')
+                        }
+                    }
+                    break
+                }
+                case 'v2HasDictKey':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
+                        setVar(effect.outputVar, dict.hasOwnProperty(key) ? '1' : '0')
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
+                    }
+                    break
+                }
+                case 'v2ClearDict':{
+                    if(effect.var.startsWith('{') && effect.var.endsWith('}')){
+                        return
+                    }
+                    setVar(effect.var, '{}')
+                    break
+                }
+                case 'v2GetDictSize':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        setVar(effect.outputVar, Object.keys(dict).length.toString())
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
+                    }
+                    break
+                }
+                case 'v2GetDictKeys':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let keys = Object.keys(dict)
+                        setVar(effect.outputVar, JSON.stringify(keys))
+                    } catch (error) {
+                        setVar(effect.outputVar, '[]')
+                    }
+                    break
+                }
+                case 'v2GetDictValues':{
+                    try {
+                        let varValue = effect.varType === 'value' ? risuChatParser(effect.var,{chara:char}) : getVar(risuChatParser(effect.var,{chara:char}))
+                        let dict = JSON.parse(varValue)
+                        let values = Object.values(dict)
+                        setVar(effect.outputVar, JSON.stringify(values))
+                    } catch (error) {
+                        setVar(effect.outputVar, '[]')
+                    }
+                    break
+                }
+                case 'v2Calculate':{
+                    try {
+                        let expression = effect.expressionType === 'value' ? risuChatParser(effect.expression,{chara:char}) : getVar(risuChatParser(effect.expression,{chara:char}))
+                        expression = expression.replace(/\$([a-zA-Z0-9_]+)/g, (_, varName) => {
+                            const varValue = getVar(varName)
+                            const parsed = parseFloat(varValue)
+                            return isNaN(parsed) ? '0' : parsed.toString()
+                        })
+                        
+                        const result = calcString(expression)
+                        setVar(effect.outputVar, result.toString())
+                    } catch (error) {
+                        setVar(effect.outputVar, '0')
+                    }
+                    break
+                }
+                case 'v2ReplaceString':{
+                    try {
+                        const source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
+                        const regexPattern = effect.regexType === 'value' ? risuChatParser(effect.regex,{chara:char}) : getVar(risuChatParser(effect.regex,{chara:char}))
+                        const replacement = effect.replacementType === 'value' ? risuChatParser(effect.replacement,{chara:char}) : getVar(risuChatParser(effect.replacement,{chara:char}))
+                        const flags = effect.flagsType === 'value' ? risuChatParser(effect.flags,{chara:char}) : getVar(risuChatParser(effect.flags,{chara:char}))
+                        
+                        const regex = new RegExp(regexPattern, flags)
+                        const result = source.replace(regex, replacement)
+                        setVar(effect.outputVar, result)
+                    } catch (error) {
+                        const source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
+                        setVar(effect.outputVar, source)
+                    }
                     break
                 }
             }
