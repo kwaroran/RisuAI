@@ -50,19 +50,22 @@ let pendingEngineCreations = new Map<string, Promise<ScriptingEngineState>>();
 export async function runScripted(code:string, arg:{
     char?:character|groupChat|simpleCharacterArgument,
     chat?:Chat
+    data?: string|OpenAIChat[],
     setVar?: (key:string, value:string) => void,
     getVar?: (key:string) => string,
     lowLevelAccess?: boolean,
+    meta?: object,
     mode?: string,
-    data?: any,
     type?: 'lua'|'py'
 }){
     const type: 'lua'|'py' = arg.type ?? 'lua'
     const char = arg.char ?? getCurrentCharacter()
+    const data = arg.data ?? ''
     const setVar = arg.setVar ?? setChatVar
     const getVar = arg.getVar ?? getChatVar
+    const meta = arg.meta ?? {}
     const mode = arg.mode ?? 'manual'
-    const data = arg.data ?? {}
+
     let chat = arg.chat ?? getCurrentChat()
     let stopSending = false
     let lowLevelAccess = arg.lowLevelAccess ?? false
@@ -757,7 +760,7 @@ export async function runScripted(code:string, arg:{
 
             console.log('Running Lua code:', code)
             if(ScriptingEngineState.type === 'lua'){
-                await ScriptingEngineState.engine?.doString(luaCodeWarper(code))
+                await ScriptingEngineState.engine?.doString(luaCodeWrapper(code))
             }
             if(ScriptingEngineState.type === 'py'){
                 await ScriptingEngineState.pyodide?.init(code)
@@ -813,7 +816,7 @@ export async function runScripted(code:string, arg:{
                     case 'editOutput':{
                         const func = luaEngine.global.get('callListenMain')
                         if(func){
-                            res = await func(mode, accessKey, JSON.stringify(data))
+                            res = await func(mode, accessKey, JSON.stringify(data), JSON.stringify(meta))
                             res = JSON.parse(res)
                         }
                         break
@@ -855,7 +858,7 @@ export async function runScripted(code:string, arg:{
                 case 'editDisplay':
                 case 'editInput':
                 case 'editOutput':{
-                    res = await ScriptingEngineState.pyodide?.python(`callListenMain('${mode}', '${accessKey}', '${JSON.stringify(data)}')`)
+                    res = await ScriptingEngineState.pyodide?.python(`callListenMain('${mode}', '${accessKey}', '${JSON.stringify(data)}', '${JSON.stringify(meta)}')`)
                     res = JSON.parse(res)
                     break
                 }
@@ -946,7 +949,7 @@ async function getOrCreateEngineState(
     return creationPromise;
 }
 
-function luaCodeWarper(code:string){
+function luaCodeWrapper(code:string){
     return `
 json = require 'json'
 
@@ -1052,30 +1055,31 @@ function async(callback)
     end
 end
 
-callListenMain = async(function(type, id, value)
+callListenMain = async(function(type, id, value, meta)
     local realValue = json.decode(value)
+    local realMeta = json.decode(meta)
 
     if type == 'editRequest' then
         for _, func in ipairs(editRequestFuncs) do
-            realValue = func(id, realValue)
+            realValue = func(id, realValue, realMeta)
         end
     end
 
     if type == 'editDisplay' then
         for _, func in ipairs(editDisplayFuncs) do
-            realValue = func(id, realValue)
+            realValue = func(id, realValue, realMeta)
         end
     end
 
     if type == 'editInput' then
         for _, func in ipairs(editInputFuncs) do
-            realValue = func(id, realValue)
+            realValue = func(id, realValue, realMeta)
         end
     end
 
     if type == 'editOutput' then
         for _, func in ipairs(editOutputFuncs) do
-            realValue = func(id, realValue)
+            realValue = func(id, realValue, realMeta)
         end
     end
 
@@ -1086,9 +1090,7 @@ ${code}
 `
 }
 
-export async function runLuaEditTrigger<T extends any>(char:character|groupChat|simpleCharacterArgument, mode:string, content:T):Promise<T>{
-    let data = content
-
+export async function runLuaEditTrigger<T extends string|OpenAIChat[]>(char:character|groupChat|simpleCharacterArgument, mode:string, content:T, meta?:object):Promise<T>{
     switch(mode){
         case 'editinput':
             mode = 'editInput'
@@ -1104,6 +1106,8 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
     }
 
     try {
+        let data = content
+
         const triggers = char.type === 'group' ? (getModuleTriggers()) : (char.triggerscript.map((v) => {
             v.lowLevelAccess = false
             return v
@@ -1115,7 +1119,8 @@ export async function runLuaEditTrigger<T extends any>(char:character|groupChat|
                     char: char,
                     lowLevelAccess: false,
                     mode: mode,
-                    data: data
+                    data,
+                    meta,
                 })
                 data = runResult.res ?? data
             }
