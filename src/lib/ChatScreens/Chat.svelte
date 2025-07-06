@@ -25,7 +25,7 @@
     let translating = $state(false)
     let editMode = $state(false)
     let statusMessage:string = $state('')
-    let retranslate = false
+    let retranslate = $state(false)
     interface Props {
         message?: string;
         name?: string;
@@ -222,7 +222,6 @@
                             hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
                         retranslate = true
-                        $ReloadGUIPointer = $ReloadGUIPointer + 1
                     }}
             >
                 <RefreshCcwIcon size={20} />
@@ -265,7 +264,8 @@
                     {name}
                     role={role ?? null}
                     bind:translated={translated}
-                    bind:translating={translating} />
+                    bind:translating={translating}
+                    bind:retranslate={retranslate} />
             {/key}
         </span>
     {/if}
