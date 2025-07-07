@@ -168,12 +168,8 @@
                 const name = img.getAttribute('src')?.toLocaleLowerCase() || ''
 
                 if(
-                    name.startsWith('http:') ||
-                    name.startsWith('https:') ||
-                    name.startsWith('data:') ||
-                    name.startsWith('blob:') ||
-                    name.startsWith('file:') ||
-                    name.startsWith('tauri:')
+                    name.length > 200 ||
+                    name.includes(':')
                 ){
                     img.setAttribute('noimage', 'true')
                     return
