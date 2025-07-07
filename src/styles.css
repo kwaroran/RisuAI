@@ -388,3 +388,14 @@ html, body{
   border-radius: 0.5rem;
   box-shadow: 0 2px 4px rgba(137, 137, 137, 0.1);  
 }
+
+.root-loaded-image-dynamic{
+  max-height: 14rem;
+  transition: max-height 0.5s ease;
+  object-fit: cover;
+  object-position: top;
+}
+
+.root-loaded-image-dynamic:hover{
+  max-height: 30rem;
+}
