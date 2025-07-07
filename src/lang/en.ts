@@ -1299,4 +1299,8 @@ export const languageEnglish = {
     rememberToolUsage: "Remember tool usage",
     simplifiedToolUse: "Simplified tool usage",
     toolCalled: "Tool '{{tool}}' Called",
+    static: "Static",
+    dynamic: "Dynamic",
+    assetStyle: "Asset Style",
+    insertAssetPrompt: "Insert Asset Prompt",
 }

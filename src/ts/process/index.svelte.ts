@@ -6,7 +6,7 @@ import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError, alertToast } from "../alert";
 import { loadLoreBookV3Prompt } from "./lorebook.svelte";
-import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation, parseToggleSyntax } from "../util";
+import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation, parseToggleSyntax, prebuiltAssetCommand } from "../util";
 import { requestChatData } from "./request/request";
 import { stableDiff } from "./stableDiff";
 import { processScript, processScriptFull, risuChatParser } from "./scripts";
@@ -643,6 +643,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         if(currentChar.replaceGlobalNote){
                             content = positionParser(currentChar.replaceGlobalNote).replaceAll('{{original}}', content)
                         }
+                        
+                        if(currentChar.prebuiltAssetCommand && !card.text.includes('{{//@customimageinstruction}}')){
+                            content += prebuiltAssetCommand
+                        }
                         content = (risuChatParser(content, {chara: currentChar, role: card.role}))
                     }
                     else if(card.type2 === 'main'){
@@ -1214,6 +1218,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     if(card.type2 === 'globalNote'){
                         if(currentChar.replaceGlobalNote){
                             content = positionParser(currentChar.replaceGlobalNote).replaceAll('{{original}}', content)
+                        }
+                        if(currentChar.prebuiltAssetCommand && !card.text.includes('{{//@customimageinstruction}}')){
+                            content += prebuiltAssetCommand
                         }
                         content = (risuChatParser(content, {chara: currentChar, role: card.role}))
                     }
