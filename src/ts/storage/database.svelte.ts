@@ -1242,6 +1242,9 @@ export interface character{
     translatorNote?:string
     doNotChangeSeperateModels?:boolean
     escapeOutput?:boolean
+    prebuiltAssetCommand?:boolean
+    prebuiltAssetStyle?:string
+    prebuiltAssetExclude?:string[]
 }
 
 
@@ -1316,6 +1319,9 @@ export interface groupChat{
     utilityBot?:boolean
     license?:string
     realmId:string
+    prebuiltAssetCommand?:boolean
+    prebuiltAssetStyle?:string
+    prebuiltAssetExclude?:string[]
 }
 
 export interface botPreset{

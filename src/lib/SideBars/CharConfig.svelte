@@ -4,7 +4,7 @@
     import { saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID, hypaV3ModalOpen } from "../../ts/stores.svelte";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, HardDriveUploadIcon, Share2Icon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, HardDriveUploadIcon, Share2Icon, ImageIcon, ImageOffIcon } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
@@ -12,7 +12,7 @@
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile, selectSingleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
-    import {isEqual} from 'lodash'
+    import {includes, isEqual} from 'lodash'
     import Help from "../Others/Help.svelte";
     import { exportChar, hubURL } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
@@ -37,6 +37,7 @@
     import Toggles from "./Toggles.svelte";
 
     let iconRemoveMode = $state(false)
+    let viewSubMenu = $state(0)
     let emos:[string, string][] = $state([])
     let iconButtonSize = window.innerWidth > 360 ? 24 as const : 20 as const
     let tokens = $state({
@@ -313,213 +314,328 @@
     {#if !$MobileGUI}
         <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
     {/if}
-    <span class="text-textcolor mt-2 mb-2">{DBState.db.characters[$selectedCharID].type !== 'group' ? language.charIcon : language.groupIcon}</span>
-    {#if DBState.db.characters[$selectedCharID].type === 'group'}
-        <button onclick={async () => {await selectCharImg($selectedCharID)}}>
-            {#await getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
-                <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
-            {:then im}
-                <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im}></div>     
-            {/await}
+
+    <div class="flex w-full rounded-md border border-selected mb-4">
+        <button onclick={() => {
+            viewSubMenu = 0
+        }} class="p-2 flex-1" class:bg-selected={viewSubMenu === 0}>
+            <span>{DBState.db.characters[$selectedCharID].type !== 'group' ? language.charIcon : language.groupIcon}</span>
         </button>
-    {:else}
-        <div class="p-2 border-darkborderc border rounded-md flex flex-wrap gap-2">
-            {#if DBState.db.characters[$selectedCharID].image !== '' && DBState.db.characters[$selectedCharID].image}
-                <button onclick={() => {
-                    if(
-                        DBState.db.characters[$selectedCharID].type === 'character' &&
-                        DBState.db.characters[$selectedCharID].image !== '' &&
-                        DBState.db.characters[$selectedCharID].image &&
-                        iconRemoveMode
-                    ){
-                        DBState.db.characters[$selectedCharID].image = ''
-                        if((DBState.db.characters[$selectedCharID] as character).ccAssets && (DBState.db.characters[$selectedCharID] as character).ccAssets.length > 0){
-                            changeCharImage($selectedCharID, 0)
-                        }
-                        iconRemoveMode = false
-                    }
-                }}>
-                    {#await getCharImage(DBState.db.characters[$selectedCharID].image, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
-                        <div
-                            class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
-                            class:ring-red-500={iconRemoveMode}
-></div>
-                    {:then im}
-                        <div
-                            class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
-                            class:ring-red-500={iconRemoveMode}
-                            style={im}
-></div>     
-                    {/await}
-                </button>
-            {/if}
-            {#if (DBState.db.characters[$selectedCharID] as character).ccAssets}
-                {#each (DBState.db.characters[$selectedCharID] as character).ccAssets as assets, i}
-                    <button onclick={async () => {
-                        if(!iconRemoveMode){
-                            changeCharImage($selectedCharID, i)
-                        }
-                        else if(DBState.db.characters[$selectedCharID].type === 'character'){
-                            (DBState.db.characters[$selectedCharID] as character).ccAssets.splice(i, 1)
+        <button onclick={() => {
+            viewSubMenu = 1
+        }} class="p2 flex-1 border-r border-l border-selected" class:bg-selected={viewSubMenu === 1}>
+            <span>{language.viewScreen}</span>
+        </button>
+        <button onclick={() => {
+            viewSubMenu = 2
+        }} class="p-2 flex-1" class:bg-selected={viewSubMenu === 2}>
+            <span>{language.additionalAssets}</span>
+        </button>
+    </div>
+
+    {#if viewSubMenu === 0}
+        {#if DBState.db.characters[$selectedCharID].type === 'group'}
+            <button onclick={async () => {await selectCharImg($selectedCharID)}}>
+                {#await getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
+                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
+                {:then im}
+                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im}></div>     
+                {/await}
+            </button>
+        {:else}
+            <div class="p-2 border-darkborderc border rounded-md flex flex-wrap gap-2">
+                {#if DBState.db.characters[$selectedCharID].image !== '' && DBState.db.characters[$selectedCharID].image}
+                    <button onclick={() => {
+                        if(
+                            DBState.db.characters[$selectedCharID].type === 'character' &&
+                            DBState.db.characters[$selectedCharID].image !== '' &&
+                            DBState.db.characters[$selectedCharID].image &&
+                            iconRemoveMode
+                        ){
+                            DBState.db.characters[$selectedCharID].image = ''
+                            if((DBState.db.characters[$selectedCharID] as character).ccAssets && (DBState.db.characters[$selectedCharID] as character).ccAssets.length > 0){
+                                changeCharImage($selectedCharID, 0)
+                            }
                             iconRemoveMode = false
                         }
                     }}>
-                        {#await getCharImage(assets.uri, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
+                        {#await getCharImage(DBState.db.characters[$selectedCharID].image, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                             <div
-                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
-                                class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
-></div>
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                                class:ring-red-500={iconRemoveMode}
+    ></div>
                         {:then im}
                             <div
-                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
-                                style={im} class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
-></div>     
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                                class:ring-red-500={iconRemoveMode}
+                                style={im}
+    ></div>     
                         {/await}
                     </button>
-                {/each}
-            {/if}
-            <button onclick={async () => {await selectCharImg($selectedCharID);}}>
-                <div
-                    class="rounded-md h-24 w-24 cursor-pointer border-darkborderc border border-dashed flex justify-center items-center hover:border-blue-500"
-                    style={(DBState.db.characters[$selectedCharID] as character).largePortrait ? 'height: 10.66rem;' : ''}
-                >
-                    <PlusIcon />
-                </div>
-            </button>
-        </div>
-        <div class="flex w-full items-end justify-end mt-2">
-            <button class={iconRemoveMode ? "text-red-500" : "text-textcolor2 hover:text-textcolor"} onclick={() => {
-                iconRemoveMode = !iconRemoveMode
-            }}>
-                <TrashIcon size="18" />
-            </button>
-        </div>
-    {/if}
-
-    {#if DBState.db.characters[$selectedCharID].type === 'character' && DBState.db.characters[$selectedCharID].image !== ''}
-        <div class="flex items-center mt-4">
-            <Check bind:check={(DBState.db.characters[$selectedCharID] as character).largePortrait} name={language.largePortrait}/>
-        </div>
-    {/if}
-
-    {#if DBState.db.characters[$selectedCharID].type === 'group'}
-        <Button onclick={makeGroupImage}>
-            {language.createGroupImg}
-        </Button>
-    {/if}
-
-
-    <span class="text-textcolor mt-6 mb-2">{language.viewScreen}</span>
-    <!-- svelte-ignore block_empty -->
-
-    {#if DBState.db.characters[$selectedCharID].type !== 'group'}
-        <SelectInput className="mb-2" bind:value={DBState.db.characters[$selectedCharID].viewScreen} onchange={() => {
-            if(DBState.db.characters[$selectedCharID].type === 'character'){
-                DBState.db.characters[$selectedCharID] = updateInlayScreen((DBState.db.characters[$selectedCharID] as character))
-            }
-        }}>
-            <OptionInput value="none">{language.none}</OptionInput>
-            <OptionInput value="emotion">{language.emotionImage}</OptionInput>
-            <OptionInput value="imggen">{language.imageGeneration}</OptionInput>
-            {#if DBState.db.tpo}
-                <OptionInput value="vn">VN test</OptionInput>
-            {/if}
-        </SelectInput>
-    {:else}
-        <SelectInput className="mb-2" bind:value={DBState.db.characters[$selectedCharID].viewScreen}>
-            <OptionInput value="none">{language.none}</OptionInput>
-            <OptionInput value="single">{language.singleView}</OptionInput>
-            <OptionInput value="multiple">{language.SpacedView}</OptionInput>
-            <OptionInput value="emp">{language.emphasizedView}</OptionInput>
-
-        </SelectInput>
-    {/if}
-
-    {#if DBState.db.characters[$selectedCharID].viewScreen === 'emotion'}
-        <span class="text-textcolor mt-6">{language.emotionImage} <Help key="emotion"/></span>
-        <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
-
-        <div class="w-full max-w-full border border-selected p-2 rounded-md">
-
-            <table class="w-full max-w-full tabler">
-                <tbody>
-                <tr>
-                    <th class="font-medium w-1/3">{language.image}</th>
-                    <th class="font-medium w-1/2">{language.emotion}</th>
-                    <th class="font-medium"></th>
-                </tr>
-                {#if DBState.db.characters[$selectedCharID].emotionImages.length === 0}
-                    <tr>
-                        <td colspan="3">{language.noImages}</td>
-                    </tr>
-                {:else}
-                    {#each emos as emo, i}
-                        <tr>
-                            {#await getCharImage(emo[1], 'plain')}
-                                <td class="font-medium truncate w-1/3"></td>
+                {/if}
+                {#if (DBState.db.characters[$selectedCharID] as character).ccAssets}
+                    {#each (DBState.db.characters[$selectedCharID] as character).ccAssets as assets, i}
+                        <button onclick={async () => {
+                            if(!iconRemoveMode){
+                                changeCharImage($selectedCharID, i)
+                            }
+                            else if(DBState.db.characters[$selectedCharID].type === 'character'){
+                                (DBState.db.characters[$selectedCharID] as character).ccAssets.splice(i, 1)
+                                iconRemoveMode = false
+                            }
+                        }}>
+                            {#await getCharImage(assets.uri, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
+                                <div
+                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
+                                    class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+    ></div>
                             {:then im}
-                                <td class="font-medium truncate w-1/3"><img src={im} alt="img" class="w-full"></td>                        
+                                <div
+                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
+                                    style={im} class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+    ></div>     
                             {/await}
-                            <td class="font-medium truncate w-1/2">
-                                <TextInput marginBottom size='lg' bind:value={DBState.db.characters[$selectedCharID].emotionImages[i][0]} />
-                            </td>
-                            <td>
-                                <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
-                                    rmCharEmotion($selectedCharID,i)
-                                }}><TrashIcon /></button>
-                            </td>
-
-                        </tr>
+                        </button>
                     {/each}
                 {/if}
-                </tbody>
-            </table>
-
-        </div>
-
-        <div class="text-textcolor2 hover:text-textcolor mt-2 flex">
-            {#if !$addingEmotion}
-                <button class="cursor-pointer hover:text-green-500" onclick={() => {addCharEmotion($selectedCharID)}}>
-                    <PlusIcon />
+                <button onclick={async () => {await selectCharImg($selectedCharID);}}>
+                    <div
+                        class="rounded-md h-24 w-24 cursor-pointer border-darkborderc border border-dashed flex justify-center items-center hover:border-blue-500"
+                        style={(DBState.db.characters[$selectedCharID] as character).largePortrait ? 'height: 10.66rem;' : ''}
+                    >
+                        <PlusIcon />
+                    </div>
                 </button>
-            {:else}
-                <span>Loading...</span>
-            {/if}
-        </div>
-
-        {#if (DBState.db.characters[$selectedCharID] as character).inlayViewScreen}
-            <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
-            <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.emotionInstructions} />
+            </div>
+            <div class="flex w-full items-end justify-end mt-2">
+                <button class={iconRemoveMode ? "text-red-500" : "text-textcolor2 hover:text-textcolor"} onclick={() => {
+                    iconRemoveMode = !iconRemoveMode
+                }}>
+                    <TrashIcon size="18" />
+                </button>
+            </div>
         {/if}
 
-        <CheckInput bind:check={(DBState.db.characters[$selectedCharID] as character).inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
-            if(DBState.db.characters[$selectedCharID].type === 'character'){
-                if((DBState.db.characters[$selectedCharID] as character).inlayViewScreen && (DBState.db.characters[$selectedCharID] as character).additionalAssets === undefined){
-                    (DBState.db.characters[$selectedCharID] as character).additionalAssets = []
-                }else if(!(DBState.db.characters[$selectedCharID] as character).inlayViewScreen && (DBState.db.characters[$selectedCharID] as character).additionalAssets.length === 0){
-                    (DBState.db.characters[$selectedCharID] as character).additionalAssets = undefined
-                }
-                
-                DBState.db.characters[$selectedCharID] = updateInlayScreen((DBState.db.characters[$selectedCharID] as character))
-            }
-        }}/>
-    {/if}
-    {#if DBState.db.characters[$selectedCharID].viewScreen === 'imggen'}
-        <span class="text-textcolor mt-6">{language.imageGeneration} <Help key="imggen"/></span>
-        <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
-        
-        <span class="text-textcolor mt-2">{language.imgGenPrompt}</span>
-        <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.prompt} />
-        <span class="text-textcolor mt-2">{language.imgGenNegatives}</span>
-        <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.negative} />
-        <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
-        <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.instructions} />
+        {#if DBState.db.characters[$selectedCharID].type === 'character' && DBState.db.characters[$selectedCharID].image !== ''}
+            <div class="flex items-center mt-4">
+                <Check bind:check={(DBState.db.characters[$selectedCharID] as character).largePortrait} name={language.largePortrait}/>
+            </div>
+        {/if}
 
-        <CheckInput bind:check={(DBState.db.characters[$selectedCharID] as character).inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
-            if((DBState.db.characters[$selectedCharID] as character).type === 'character'){
-                (DBState.db.characters[$selectedCharID] as character) = updateInlayScreen((DBState.db.characters[$selectedCharID] as character))
-            }
-        }}/>
+        {#if DBState.db.characters[$selectedCharID].type === 'group'}
+            <Button onclick={makeGroupImage}>
+                {language.createGroupImg}
+            </Button>
+        {/if}
+
+
+    {:else if viewSubMenu === 1}
+        <!-- svelte-ignore block_empty -->
+
+        {#if DBState.db.characters[$selectedCharID].type !== 'group'}
+            <SelectInput className="mb-2" bind:value={DBState.db.characters[$selectedCharID].viewScreen} onchange={() => {
+                if(DBState.db.characters[$selectedCharID].type === 'character'){
+                    DBState.db.characters[$selectedCharID] = updateInlayScreen((DBState.db.characters[$selectedCharID] as character))
+                }
+            }}>
+                <OptionInput value="none">{language.none}</OptionInput>
+                <OptionInput value="emotion">{language.emotionImage}</OptionInput>
+                <OptionInput value="imggen">{language.imageGeneration}</OptionInput>
+                {#if DBState.db.tpo}
+                    <OptionInput value="vn">VN test</OptionInput>
+                {/if}
+            </SelectInput>
+        {:else}
+            <SelectInput className="mb-2" bind:value={DBState.db.characters[$selectedCharID].viewScreen}>
+                <OptionInput value="none">{language.none}</OptionInput>
+                <OptionInput value="single">{language.singleView}</OptionInput>
+                <OptionInput value="multiple">{language.SpacedView}</OptionInput>
+                <OptionInput value="emp">{language.emphasizedView}</OptionInput>
+
+            </SelectInput>
+        {/if}
+
+        {#if DBState.db.characters[$selectedCharID].viewScreen === 'emotion'}
+            <span class="text-textcolor mt-6">{language.emotionImage} <Help key="emotion"/></span>
+            <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
+
+            <div class="w-full max-w-full border border-selected p-2 rounded-md">
+
+                <table class="w-full max-w-full tabler">
+                    <tbody>
+                    <tr>
+                        <th class="font-medium w-1/3">{language.image}</th>
+                        <th class="font-medium w-1/2">{language.emotion}</th>
+                        <th class="font-medium"></th>
+                    </tr>
+                    {#if DBState.db.characters[$selectedCharID].emotionImages.length === 0}
+                        <tr>
+                            <td colspan="3">{language.noImages}</td>
+                        </tr>
+                    {:else}
+                        {#each emos as emo, i}
+                            <tr>
+                                {#await getCharImage(emo[1], 'plain')}
+                                    <td class="font-medium truncate w-1/3"></td>
+                                {:then im}
+                                    <td class="font-medium truncate w-1/3"><img src={im} alt="img" class="w-full"></td>                        
+                                {/await}
+                                <td class="font-medium truncate w-1/2">
+                                    <TextInput marginBottom size='lg' bind:value={DBState.db.characters[$selectedCharID].emotionImages[i][0]} />
+                                </td>
+                                <td>
+                                    <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
+                                        rmCharEmotion($selectedCharID,i)
+                                    }}><TrashIcon /></button>
+                                </td>
+
+                            </tr>
+                        {/each}
+                    {/if}
+                    </tbody>
+                </table>
+
+            </div>
+
+            <div class="text-textcolor2 hover:text-textcolor mt-2 flex">
+                {#if !$addingEmotion}
+                    <button class="cursor-pointer hover:text-green-500" onclick={() => {addCharEmotion($selectedCharID)}}>
+                        <PlusIcon />
+                    </button>
+                {:else}
+                    <span>Loading...</span>
+                {/if}
+            </div>
+
+            {#if (DBState.db.characters[$selectedCharID] as character).inlayViewScreen}
+                <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
+                <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.emotionInstructions} />
+            {/if}
+
+            <CheckInput bind:check={(DBState.db.characters[$selectedCharID] as character).inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
+                if(DBState.db.characters[$selectedCharID].type === 'character'){
+                    if((DBState.db.characters[$selectedCharID] as character).inlayViewScreen && (DBState.db.characters[$selectedCharID] as character).additionalAssets === undefined){
+                        (DBState.db.characters[$selectedCharID] as character).additionalAssets = []
+                    }else if(!(DBState.db.characters[$selectedCharID] as character).inlayViewScreen && (DBState.db.characters[$selectedCharID] as character).additionalAssets.length === 0){
+                        (DBState.db.characters[$selectedCharID] as character).additionalAssets = undefined
+                    }
+                    
+                    DBState.db.characters[$selectedCharID] = updateInlayScreen((DBState.db.characters[$selectedCharID] as character))
+                }
+            }}/>
+        {/if}
+        {#if DBState.db.characters[$selectedCharID].viewScreen === 'imggen'}
+            <span class="text-textcolor mt-6">{language.imageGeneration} <Help key="imggen"/></span>
+            <span class="text-textcolor2 text-xs">{language.emotionWarn}</span>
+            
+            <span class="text-textcolor mt-2">{language.imgGenPrompt}</span>
+            <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.prompt} />
+            <span class="text-textcolor mt-2">{language.imgGenNegatives}</span>
+            <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.negative} />
+            <span class="text-textcolor mt-2">{language.imgGenInstructions}</span>
+            <TextAreaInput highlight bind:value={(DBState.db.characters[$selectedCharID] as character).newGenData.instructions} />
+
+            <CheckInput bind:check={(DBState.db.characters[$selectedCharID] as character).inlayViewScreen} name={language.inlayViewScreen} onChange={() => {
+                if((DBState.db.characters[$selectedCharID] as character).type === 'character'){
+                    (DBState.db.characters[$selectedCharID] as character) = updateInlayScreen((DBState.db.characters[$selectedCharID] as character))
+                }
+            }}/>
+        {/if}
+    {:else if viewSubMenu === 2}
+
+            <CheckInput bind:check={DBState.db.characters[$selectedCharID].prebuiltAssetCommand} name={language.insertAssetPrompt}/>
+
+            {#if DBState.db.characters[$selectedCharID].prebuiltAssetCommand}
+
+            <span class="text-textcolor mt-2">{language.assetStyle}</span>
+            <SelectInput className="mb-2" bind:value={DBState.db.characters[$selectedCharID].prebuiltAssetStyle}>
+                <OptionInput value="">{language.static}</OptionInput>
+                <OptionInput value="dynamic">{language.dynamic}</OptionInput>
+            </SelectInput>
+            {/if}
+            <div class="w-full max-w-full border border-selected rounded-md p-2 mt-2">
+                <table class="contain w-full max-w-full tabler mt-2">
+                <tbody>
+                    <tr>
+                        <th class="font-medium">{language.value}</th>
+                        <th class="font-medium cursor-pointer w-10">
+                            <button class="hover:text-green-500" onclick={async () => {
+                                if(DBState.db.characters[$selectedCharID].type === 'character'){
+                                    const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif', 'jpeg', 'jpg', 'ttf', 'otf', 'css', 'webm', 'woff', 'woff2', 'svg', 'avif'])
+                                    DBState.db.characters[$selectedCharID].additionalAssets = DBState.db.characters[$selectedCharID].additionalAssets ?? []
+                                    if(!da){
+                                        return
+                                    }
+                                    for(const f of da){
+                                        const img = f.data
+                                        const name = f.name
+                                        const extension = name.split('.').pop().toLowerCase()
+                                        const imgp = await saveAsset(img,'', extension)
+                                        DBState.db.characters[$selectedCharID].additionalAssets.push([name, imgp, extension])
+                                        DBState.db.characters[$selectedCharID].additionalAssets = DBState.db.characters[$selectedCharID].additionalAssets
+                                    }
+                                }
+                            }}>
+                                <PlusIcon />
+                            </button>
+                        </th>
+                    </tr>
+                    {#if (!DBState.db.characters[$selectedCharID].additionalAssets) || DBState.db.characters[$selectedCharID].additionalAssets.length === 0}
+                        <tr>
+                            <td class="text-textcolor2"> No Assets</td>
+                        </tr>
+                    {:else}
+                        {#each DBState.db.characters[$selectedCharID].additionalAssets as assets, i}
+                            <tr>
+                                <td class="font-medium truncate">
+                                    {#if assetFilePath[i] && DBState.db.useAdditionalAssetsPreview}
+                                        {#if assetFileExtensions[i] === 'mp4'}
+                                        <!-- svelte-ignore a11y_media_has_caption -->
+                                            <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
+                                        {:else if assetFileExtensions[i] === 'mp3'}
+                                            <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
+                                        {:else if ['png', 'webp', 'jpeg', 'jpg', 'gif'].includes(assetFileExtensions[i])}
+                                            <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
+                                        {/if}
+                                    {/if}
+                                    <TextInput size="sm" marginBottom bind:value={DBState.db.characters[$selectedCharID].additionalAssets[i][0]} placeholder="..." />
+                                </td>
+                                
+                                <th class="font-medium cursor-pointer w-10">
+                                    <button class="hover:text-blue-500" onclick={() => {
+                                        if(DBState.db.characters[$selectedCharID].type === 'character'){
+                                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex = -1
+                                            let additionalAssets = DBState.db.characters[$selectedCharID].additionalAssets
+                                            additionalAssets.splice(i, 1)
+                                            DBState.db.characters[$selectedCharID].additionalAssets = additionalAssets
+                                        }
+                                    }}>
+                                        <TrashIcon />
+                                    </button>
+                                    {#if DBState.db.useAdditionalAssetsPreview}
+                                        <button class="hover:text-blue-500" class:text-textcolor2={DBState.db.characters[$selectedCharID].prebuiltAssetExclude?.includes?.(assetFilePath[i])} onclick={() => {
+                                            DBState.db.characters[$selectedCharID].prebuiltAssetExclude ??= []
+                                            if(DBState.db.characters[$selectedCharID].prebuiltAssetExclude.includes(assets[1])){
+                                                DBState.db.characters[$selectedCharID].prebuiltAssetExclude = DBState.db.characters[$selectedCharID].prebuiltAssetExclude.filter((e) => e !== assetFilePath[i])
+                                            }
+                                            else {
+                                                DBState.db.characters[$selectedCharID].prebuiltAssetExclude.push(assets[1])
+                                            }
+                                        }}>
+                                            {#if DBState.db.characters[$selectedCharID]?.prebuiltAssetExclude?.includes?.(assets[1])}
+                                                <ImageOffIcon />
+                                            {:else}
+                                                <ImageIcon />
+                                            {/if}
+                                        </button>
+                                    {/if}
+                                </th>
+                            </tr>
+                        {/each}
+                    {/if}
+                </tbody>
+                </table>
+            </div>
     {/if}
 {:else if $CharConfigSubMenu === 3}
     {#if !$MobileGUI}
@@ -1005,75 +1121,6 @@
             </tbody>
             </table>
         </div>
-      
-        <Arcodion styled name={language.additionalAssets} help="additionalAssets">
-            <div class="w-full max-w-full border border-selected rounded-md p-2">
-                <table class="contain w-full max-w-full tabler mt-2">
-                <tbody>
-                    <tr>
-                        <th class="font-medium">{language.value}</th>
-                        <th class="font-medium cursor-pointer w-10">
-                            <button class="hover:text-green-500" onclick={async () => {
-                                if(DBState.db.characters[$selectedCharID].type === 'character'){
-                                    const da = await selectMultipleFile(['png', 'webp', 'mp4', 'mp3', 'gif', 'jpeg', 'jpg', 'ttf', 'otf', 'css', 'webm', 'woff', 'woff2', 'svg', 'avif'])
-                                    DBState.db.characters[$selectedCharID].additionalAssets = DBState.db.characters[$selectedCharID].additionalAssets ?? []
-                                    if(!da){
-                                        return
-                                    }
-                                    for(const f of da){
-                                        const img = f.data
-                                        const name = f.name
-                                        const extension = name.split('.').pop().toLowerCase()
-                                        const imgp = await saveAsset(img,'', extension)
-                                        DBState.db.characters[$selectedCharID].additionalAssets.push([name, imgp, extension])
-                                        DBState.db.characters[$selectedCharID].additionalAssets = DBState.db.characters[$selectedCharID].additionalAssets
-                                    }
-                                }
-                            }}>
-                                <PlusIcon />
-                            </button>
-                        </th>
-                    </tr>
-                    {#if (!DBState.db.characters[$selectedCharID].additionalAssets) || DBState.db.characters[$selectedCharID].additionalAssets.length === 0}
-                        <tr>
-                            <td class="text-textcolor2"> No Assets</td>
-                        </tr>
-                    {:else}
-                        {#each DBState.db.characters[$selectedCharID].additionalAssets as assets, i}
-                            <tr>
-                                <td class="font-medium truncate">
-                                    {#if assetFilePath[i] && DBState.db.useAdditionalAssetsPreview}
-                                        {#if assetFileExtensions[i] === 'mp4'}
-                                        <!-- svelte-ignore a11y_media_has_caption -->
-                                            <video controls class="mt-2 px-2 w-full m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
-                                        {:else if assetFileExtensions[i] === 'mp3'}
-                                            <audio controls class="mt-2 px-2 w-full h-16 m-1 rounded-md" loop><source src={assetFilePath[i]} type="audio/mpeg"></audio>
-                                        {:else if ['png', 'webp', 'jpeg', 'jpg', 'gif'].includes(assetFileExtensions[i])}
-                                            <img src={assetFilePath[i]} class="w-16 h-16 m-1 rounded-md" alt={assets[0]}/>
-                                        {/if}
-                                    {/if}
-                                    <TextInput size="sm" marginBottom bind:value={DBState.db.characters[$selectedCharID].additionalAssets[i][0]} placeholder="..." />
-                                </td>
-                                
-                                <th class="font-medium cursor-pointer w-10">
-                                    <button class="hover:text-green-500" onclick={() => {
-                                        if(DBState.db.characters[$selectedCharID].type === 'character'){
-                                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex = -1
-                                            let additionalAssets = DBState.db.characters[$selectedCharID].additionalAssets
-                                            additionalAssets.splice(i, 1)
-                                            DBState.db.characters[$selectedCharID].additionalAssets = additionalAssets
-                                        }
-                                    }}>
-                                        <TrashIcon />
-                                    </button>
-                                </th>
-                            </tr>
-                        {/each}
-                    {/if}
-                </tbody>
-                </table>
-            </div>
-        </Arcodion>
 
         <div class="flex items-center mt-4">
             <Check bind:check={DBState.db.characters[$selectedCharID].lowLevelAccess} name={language.lowLevelAccess}/>

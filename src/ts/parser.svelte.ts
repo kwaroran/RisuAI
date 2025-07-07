@@ -1376,6 +1376,23 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             case ';':{ // ;
                 return '\uE9BF'
             }
+
+            case 'chardisplayasset':{
+                const selchar = db.characters[get(selectedCharID)]
+
+                if(!selchar.prebuiltAssetCommand){
+                    return makeArray([])
+                }
+
+                const excludes = selchar.prebuiltAssetExclude ?? []
+                const arr = (selchar?.additionalAssets ?? []).filter((f) => {
+                    return !excludes.includes(f[1])
+                })
+
+                return makeArray(arr.map((f) => {
+                    return f[0]
+                }))
+            }
             
         }
         const arra = p1.split("::")

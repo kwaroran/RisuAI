@@ -163,13 +163,16 @@
         if (imgs && imgs.length > 0) {
             imgs.forEach(async (img) => {
                 const assets = getModuleAssets().concat(getCurrentCharacter().additionalAssets ?? [])
-                const foundAsset = assets.find(asset => asset[0] === img.src)
+                const name = img.getAttribute('src').toLocaleLowerCase()
+                console.log('Checking image:', name, 'Assets:', assets)
+                const foundAsset = assets.find(asset => asset[0].toLocaleLowerCase() === name)
                 if(foundAsset){
+                    img.classList.add('root-loaded-image')
                     img.src = await getFileSrc(foundAsset[1])
                     return
                 }
 
-                if(img.src.length < 3){
+                if(name.length < 3){
                     img.setAttribute('noimage', 'true')
                     return
                 }
@@ -183,9 +186,8 @@
                     }
                 })
 
-                const name = img.src.toLocaleLowerCase()
-                const prefixLoc = img.src.lastIndexOf('.')
-                const prefix = prefixLoc > 0 ? img.src.substring(0, prefixLoc) : ''
+                const prefixLoc = name.lastIndexOf('.')
+                const prefix = prefixLoc > 0 ? name.substring(0, prefixLoc) : ''
                 let currentDistance = 1000
                 let currentFound = ''
                 for(const asset of dista){

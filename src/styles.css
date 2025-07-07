@@ -386,14 +386,5 @@ html, body{
   max-width: 20rem;
   height: auto;
   border-radius: 0.5rem;
-}
-
-/* Root loaded image on mobile */
-@media (max-width: 640px) {
-  .root-loaded-image {
-    width: calc(100% - 3rem);
-    object-fit: cover;
-    object-position: top; 
-    transition: max-height 0.5s ease-in-out, width 0.5s ease-in-out;
-  }
+  box-shadow: 0 2px 4px rgba(137, 137, 137, 0.1);  
 }
