@@ -165,8 +165,21 @@
         const imgs = bodyRoot?.querySelectorAll('img:not([src^="data:"]):not([src^="http:"]):not([src^="https:"]):not([src^="blob:"]):not([src^="file:"]):not([src^="tauri:"]):not([noimage])') as NodeListOf<HTMLImageElement>
         if (imgs && imgs.length > 0) {
             imgs.forEach(async (img) => {
+                const name = img.getAttribute('src')?.toLocaleLowerCase() || ''
+
+                if(
+                    name.startsWith('http:') ||
+                    name.startsWith('https:') ||
+                    name.startsWith('data:') ||
+                    name.startsWith('blob:') ||
+                    name.startsWith('file:') ||
+                    name.startsWith('tauri:')
+                ){
+                    img.setAttribute('noimage', 'true')
+                    return
+                }
+                
                 const assets = getModuleAssets().concat(getCurrentCharacter().additionalAssets ?? [])
-                const name = img.getAttribute('src').toLocaleLowerCase()
                 const styl = getCurrentCharacter().prebuiltAssetStyle
                 console.log('Checking image:', name, 'Assets:', assets)
                 const foundAsset = assets.find(asset => asset[0].toLocaleLowerCase() === name)
