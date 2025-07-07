@@ -113,6 +113,8 @@ export const LanguageVietnamese = {
     "noBias": "Không thiên vị",
     "image": "Hình ảnh",
     "name": "Tên",
+    "folderName": "Tên thư mục",
+    "folderRemoveConfirm": "Thư mục này chứa sách truyền thuyết. Bạn có chắc chắn muốn xóa nó và tất cả nội dung của nó không?",
     "emotion": "Tên cảm xúc",
     "value": "Giá trị",
     "reroll": "tái sinh",
