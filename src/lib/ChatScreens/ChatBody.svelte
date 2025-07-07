@@ -164,10 +164,12 @@
             imgs.forEach(async (img) => {
                 const assets = getModuleAssets().concat(getCurrentCharacter().additionalAssets ?? [])
                 const name = img.getAttribute('src').toLocaleLowerCase()
+                const styl = getCurrentCharacter().prebuiltAssetStyle
                 console.log('Checking image:', name, 'Assets:', assets)
                 const foundAsset = assets.find(asset => asset[0].toLocaleLowerCase() === name)
                 if(foundAsset){
                     img.classList.add('root-loaded-image')
+                    img.classList.add('root-loaded-image-' + styl)
                     img.src = await getFileSrc(foundAsset[1])
                     return
                 }
@@ -203,7 +205,8 @@
                 if(currentFound){
                     img.src = await getFileSrc(currentFound)
                     if(img.classList.length === 0){
-                    img.classList.add('root-loaded-image')
+                        img.classList.add('root-loaded-image')
+                        img.classList.add('root-loaded-image-' + styl)
                     }
                     img.removeAttribute('noimage')
                 }
