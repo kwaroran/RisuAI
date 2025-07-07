@@ -26,6 +26,7 @@
     let editMode = $state(false)
     let statusMessage:string = $state('')
     let retranslate = $state(false)
+    let bodyRoot:HTMLElement|null = $state(null)
     interface Props {
         message?: string;
         name?: string;
@@ -247,7 +248,10 @@
         {@const totalLengthPointer = (idx > totalLength - 6) ? totalLength : 0}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <span class="text chat-width chattext prose minw-0" class:prose-invert={$ColorSchemeTypeStore} onclick={() => {
+        <span class="text chat-width chattext prose minw-0"
+            class:prose-invert={$ColorSchemeTypeStore}
+            bind:this={bodyRoot}
+            onclick={() => {
             if(DBState.db.clickToEdit && idx > -1){
                 editMode = true
             }
@@ -262,6 +266,7 @@
                     {idx}
                     {msgDisplay}
                     {name}
+                    {bodyRoot}
                     role={role ?? null}
                     bind:translated={translated}
                     bind:translating={translating}

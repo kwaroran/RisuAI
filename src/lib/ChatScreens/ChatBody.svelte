@@ -3,8 +3,11 @@
     import { DBState } from 'src/ts/stores.svelte'
     import { sleep } from "src/ts/util"
     import { alertError } from "../../ts/alert"
-    import { ParseMarkdown, postTranslationParse, trimMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
+    import { getDistance, ParseMarkdown, postTranslationParse, trimMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
     import { getLLMCache, translateHTML } from "../../ts/translator/translator"
+    import { getModuleAssets } from "src/ts/process/modules";
+    import { getCurrentCharacter } from "src/ts/storage/database.svelte";
+    import { getFileSrc } from "src/ts/globalApi.svelte";
 
     interface Props {
         character?: simpleCharacterArgument|string|null
@@ -16,6 +19,7 @@
         translated: boolean
         translating: boolean
         retranslate: boolean
+        bodyRoot?: HTMLElement|null
     }
 
     let {
@@ -26,7 +30,8 @@
         role,
         translated = $bindable(false),
         translating = $bindable(false),
-        retranslate = $bindable(false)
+        retranslate = $bindable(false),
+        bodyRoot
     }: Props =  $props()
 
     // svelte-ignore non_reactive_update
@@ -153,7 +158,67 @@
         }
     }
 
+    const checkImg = () => {
+        const imgs = bodyRoot?.querySelectorAll('img:not([src^="data:"]):not([src^="http:"]):not([src^="https:"]):not([src^="blob:"]):not([src^="file:"]):not([src^="tauri:"]):not([noimage])') as NodeListOf<HTMLImageElement>
+        if (imgs && imgs.length > 0) {
+            imgs.forEach(async (img) => {
+                const assets = getModuleAssets().concat(getCurrentCharacter().additionalAssets ?? [])
+                const foundAsset = assets.find(asset => asset[0] === img.src)
+                if(foundAsset){
+                    img.src = await getFileSrc(foundAsset[1])
+                    return
+                }
+
+                if(img.src.length < 3){
+                    img.setAttribute('noimage', 'true')
+                    return
+                }
+                const dista:{
+                    name:string,
+                    path:string
+                }[] = assets.map(asset => {
+                    return {
+                        name: asset[0].toLocaleLowerCase(),
+                        path: asset[1]
+                    }
+                })
+
+                const name = img.src.toLocaleLowerCase()
+                const prefixLoc = img.src.lastIndexOf('.')
+                const prefix = prefixLoc > 0 ? img.src.substring(0, prefixLoc) : ''
+                let currentDistance = 1000
+                let currentFound = ''
+                for(const asset of dista){
+                    if(!asset.name.startsWith(prefix)){
+                        continue
+                    }
+                    const distance = getDistance(name, asset.name)
+                    if(distance < currentDistance){
+                        currentDistance = distance
+                        currentFound = asset.path
+                    }
+                }
+                if(currentFound){
+                    img.src = await getFileSrc(currentFound)
+                    if(img.classList.length === 0){
+                    img.classList.add('root-loaded-image')
+                    }
+                    img.removeAttribute('noimage')
+                }
+                else{
+                    img.setAttribute('noimage', 'true')
+                }
+            })
+        }
+    }
+
     let markParsingResult = $derived.by(() => markParsing(msgDisplay, character, idx))
+
+    $effect(() => {
+        markParsingResult
+        checkImg()
+        markParsingResult.then(checkImg)
+    })
 </script>
 
 {#await markParsingResult}

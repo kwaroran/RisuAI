@@ -524,7 +524,7 @@ async function getClosestMatch(char: simpleCharacterArgument|character, name:str
 }
 
 //Levenshtein distance, new with 1d array
-function getDistance(a:string, b:string) {
+export function getDistance(a:string, b:string) {
     const h = a.length + 1
     const w = b.length + 1
     let d = new Int16Array(h * w)
