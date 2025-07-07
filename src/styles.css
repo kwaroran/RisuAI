@@ -375,3 +375,25 @@ html, body{
 .x-risu-tool-call{
   @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0
 }
+
+.root-loaded-image{
+  /* This class is used to indicate that the image has been with root-loaded method */
+  /* We need to style it to centered and pretty */
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: calc(100% - 1rem);
+  max-width: 20rem;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+/* Root loaded image on mobile */
+@media (max-width: 640px) {
+  .root-loaded-image {
+    width: calc(100% - 3rem);
+    object-fit: cover;
+    object-position: top; 
+    transition: max-height 0.5s ease-in-out, width 0.5s ease-in-out;
+  }
+}
