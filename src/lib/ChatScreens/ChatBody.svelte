@@ -167,6 +167,7 @@
             imgs.forEach(async (img) => {
                 const name = img.getAttribute('src')?.toLocaleLowerCase() || ''
 
+                console.log(name)
                 if(
                     name.length > 200 ||
                     name.includes(':')
@@ -215,7 +216,12 @@
                     }
                 }
                 if(currentFound){
-                    img.src = await getFileSrc(currentFound)
+                    const got = await getFileSrc(currentFound)
+                    const name2 = img.getAttribute('src')?.toLocaleLowerCase() || ''
+                    if(name === name2){
+                        img.setAttribute('src', got)
+                    }
+
                     if(img.classList.length === 0){
                         img.classList.add('root-loaded-image')
                         img.classList.add('root-loaded-image-' + styl)
