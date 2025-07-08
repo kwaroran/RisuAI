@@ -877,7 +877,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     let lorebook:loreBook[] = overrideLorebook ?? []
     let loresettings:undefined|loreSettings = undefined
     let loreExt:undefined|any = undefined
-    if(charbook && !overrideLorebook){
+    if(charbook){
         const a = convertCharbook({
             lorebook,
             charbook,
@@ -885,7 +885,9 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
             loreExt
         })
 
-        lorebook = a.lorebook
+        if(!overrideLorebook){
+            lorebook = a.lorebook
+        }
         loresettings = a.loresettings
         loreExt = a.loreExt
     }
