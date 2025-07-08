@@ -235,6 +235,8 @@ export const languageChineseTraditional = {
     "noBias": "No Bias",
     "image": "圖片",
     "name": "名稱",
+    "folderName": "資料夾名稱",
+    "folderRemoveConfirm": "此資料夾包含世界書。確定要刪除它及其所有內容嗎？",
     "emotion": "情緒名稱",
     "value": "值",
     "reroll": "重新生成",

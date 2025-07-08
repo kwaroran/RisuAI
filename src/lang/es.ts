@@ -192,6 +192,8 @@ export const languageSpanish = {
     noBias: "Sin Bias",
     image: 'Imagen',
     name: 'Nombre',
+    folderName: 'Nombre de la Carpeta',
+    folderRemoveConfirm: 'Esta carpeta contiene libros de lore. ¿Estás seguro de que quieres eliminarla y todo su contenido?',
     emotion: "Nombre de la Emoción",
     value: "Valor",
     reroll: 'Regenerar',

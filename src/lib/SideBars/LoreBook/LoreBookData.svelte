@@ -112,7 +112,11 @@
                     <FolderIcon size={20} class="mr-1" />
                 {/if}
             {/if}
-            <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
+            {#if value.mode === 'folder'}
+                <span>{value.comment.length === 0 ? "Unnamed Folder" : value.comment}</span>
+            {:else}
+                <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
+            {/if}
         </button>
         <button
             class="mr-1"
@@ -136,22 +140,23 @@
             {/if}
         </button>
         <button class="valuer" onclick={async () => {
-
-            if(value.mode === 'folder'){
-                if(externalLoreBooks.filter(e => e.folder === value.key).length > 0){
-                    alertMd(language.folderRemoveLengthError)
-                    return
+            let shouldRemove = true;
+            if (value.mode === 'folder' && externalLoreBooks.some(e => e.folder === value.key)) {
+                const firstConfirm = await alertConfirm(language.folderRemoveConfirm);
+                if (!firstConfirm) {
+                    shouldRemove = false;
                 }
             }
 
-
-            const d = await alertConfirm(language.removeConfirm + value.comment)
-            if(d){
-                if(!open){
-                    onClose()
+            if (shouldRemove) {
+                const secondConfirm = await alertConfirm(language.removeConfirm + (value.comment || 'Unnamed Folder'));
+                if (secondConfirm) {
+                    if (!open) {
+                        onClose();
+                    }
+                    deactivateLocally(value);
+                    onRemove(value.key, value.mode); // key와 mode를 onRemove에 전달
                 }
-                deactivateLocally(value)
-                onRemove()
             }
         }}>
             <XIcon size={20} />
@@ -177,7 +182,13 @@
     {#if open}
         {#if value.mode === 'folder'}
         <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
-            <LoreBookList externalLoreBooks={externalLoreBooks} showFolder={value.key} />
+            <span class="text-textcolor mt-6 mb-2">{language.folderName}</span>
+            <TextInput size="sm" bind:value={value.comment}/>
+
+            <div class="mt-4">
+                <LoreBookList externalLoreBooks={externalLoreBooks} showFolder={value.key} />
+            </div>
+            
             <div class="mt-2 flex gap-1">
                 <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
                     externalLoreBooks.push({
@@ -193,13 +204,6 @@
                     })
                 }}>
                     <PlusIcon size={20} />
-                </button>
-                <button  class="text-textcolor2 hover:text-textcolor" onclick={async () => {
-                    const name = await alertInput(language.folderNameInput)
-                    value.comment = name ?? ''
-                }}>
-
-                    <PencilIcon size={20} />
                 </button>
             </div>
         </div>
