@@ -1061,7 +1061,7 @@ function getBasename(data: string) {
  * @returns {string[]} - An array of unpargeable resources.
  */
 export function getUnpargeables(db: Database, uptype: 'basename' | 'pure' = 'basename') {
-    let unpargeable: string[] = [];
+    const unpargeable = new Set<string>();
 
     /**
      * Adds a resource to the unpargeable list if it is not already included.
@@ -1076,9 +1076,7 @@ export function getUnpargeables(db: Database, uptype: 'basename' | 'pure' = 'bas
             return;
         }
         const bn = uptype === 'basename' ? getBasename(data) : data;
-        if (!unpargeable.includes(bn)) {
-            unpargeable.push(bn);
-        }
+        unpargeable.add(bn);
     }
 
     addUnparge(db.customBackground);
@@ -1138,7 +1136,7 @@ export function getUnpargeables(db: Database, uptype: 'basename' | 'pure' = 'bas
             }
         })
     }
-    return unpargeable;
+    return Array.from(unpargeable);
 }
 
 
@@ -1393,14 +1391,14 @@ async function pargeChunks(){
         return
     }
 
-    const unpargeable = getUnpargeables(db)
+    const unpargeable = new Set(getUnpargeables(db))
     if(isTauri){
         const assets = await readDir('assets', {baseDir: BaseDirectory.AppData})
         console.log(assets)
         for(const asset of assets){
             try {
                 const n = getBasename(asset.name)
-                if(unpargeable.includes(n)){
+                if(unpargeable.has(n)){
                     console.log('unpargeable', n)
                 }
                 else{
@@ -1419,7 +1417,7 @@ async function pargeChunks(){
                 continue
             }
             const n = getBasename(asset)
-            if(unpargeable.includes(n)){
+            if(unpargeable.has(n)){
             }
             else{
                 await forageStorage.removeItem(asset)
