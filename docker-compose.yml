@@ -1,3 +1,5 @@
+name: risuai
+
 services:
   risuai:
     container_name: risuai
