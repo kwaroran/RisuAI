@@ -1303,4 +1303,5 @@ export const languageEnglish = {
     dynamic: "Dynamic",
     assetStyle: "Asset Style",
     insertAssetPrompt: "Insert Asset Prompt",
+    requestLocation: "Request Location",
 }

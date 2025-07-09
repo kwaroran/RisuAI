@@ -1056,6 +1056,7 @@ export interface Database{
     claude1HourCaching:boolean
     rememberToolUsage:boolean
     simplifiedToolUse:boolean
+    requestLocation:string
 }
 
 interface SeparateParameters{
