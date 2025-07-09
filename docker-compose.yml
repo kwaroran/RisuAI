@@ -1,7 +1,7 @@
 services:
   risuai:
     container_name: risuai
-    build: .
+    image: ghcr.io/kwaroran/risuai:latest
     restart: always
     ports:
       - 6001:6001
