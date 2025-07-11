@@ -6,6 +6,7 @@
     import { language } from "src/lang";
     import CheckInput from "./GUI/CheckInput.svelte";
     import { getModelInfo, getModelList } from 'src/ts/model/modellist';
+    import { ArrowLeft } from "lucide-svelte";
 
     interface Props {
         value?: string;
@@ -40,9 +41,19 @@
             e.stopPropagation()
             onclick?.(e)
         }}>
-            <h1 class="font-bold text-xl">{language.model}
-            </h1>
-            <div class="border-t-1 border-y-selected mt-1 mb-1"></div>
+            <div class="flex items-center gap-3 mb-4">
+                <button 
+                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors flex-shrink-0"
+                    onclick={() => {
+                        openOptions = false
+                    }}
+                    title="Back"
+                >
+                    <ArrowLeft size={20} />
+                </button>
+                <h1 class="font-bold text-xl flex-1">{language.model}</h1>
+            </div>
+            <div class="border-t-1 border-y-selected mb-2"></div>
 
             {#each providers as provider}
                 {#if provider.providerName === '@as-is'}
