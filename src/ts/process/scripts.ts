@@ -343,7 +343,8 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     
 
     if(db.dynamicAssets && (char.type === 'simple' || char.type === 'character') && char.additionalAssets && char.additionalAssets.length > 0){
-        if(!db.dynamicAssetsEditDisplay && mode === 'editdisplay'){
+        if((!db.dynamicAssetsEditDisplay && mode === 'editdisplay')
+            || mode === 'editinput' || mode === 'editprocess'){
             cacheScript(hash, data)
             return {data, emoChanged}
         }
