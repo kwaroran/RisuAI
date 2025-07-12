@@ -40,7 +40,20 @@
   let selectedCategory = $state<string>("");
   let categoryManagerOpen = $state(false);
   let editingCategory = $state<{id: string, name: string} | null>(null);
-
+  let tagManagerOpen = $state(false);
+  let currentTagSummaryIndex = $state<number>(-1);
+  let editingTag = $state<string>("");
+  let editingTagIndex = $state<number>(-1);
+  let collapsedSummaries = $state<Set<number>>(new Set());
+  let bulkResummaryState = $state<{
+    isProcessing: boolean;
+    result: string | null;
+    selectedIndices: number[];
+    mergedChatMemos: string[];
+    isTranslating: boolean;
+    translation: string | null;
+  } | null>(null);
+  
   // hypaV3Data에서 categories 읽어오기 (미분류는 항상 첫 번째)
   let categories = $derived((() => {
     const savedCategories = hypaV3DataState.categories || [];
@@ -115,7 +128,7 @@
 
     // Search summary index
     if (query.match(/^#\d+$/)) {
-      const summaryIndex = parseInt(query.substring(1)) - 1;
+      const summaryNumber = parseInt(query.substring(1)) - 1;
 
       if (
         summaryIndex >= 0 &&
@@ -521,6 +534,245 @@
     editingCategory = null;
   }
 
+  // Tag Management Functions
+  function openTagManager(summaryIndex: number) {
+    currentTagSummaryIndex = summaryIndex;
+    tagManagerOpen = true;
+  }
+
+  function closeTagManager() {
+    tagManagerOpen = false;
+    currentTagSummaryIndex = -1;
+    editingTag = "";
+    editingTagIndex = -1;
+  }
+
+  function addTag(summaryIndex: number, tagName: string) {
+    if (!tagName.trim()) return;
+
+    const summary = hypaV3DataState.summaries[summaryIndex];
+    if (!summary.tags) {
+      summary.tags = [];
+    }
+
+    // 중복 태그 방지
+    if (!summary.tags.includes(tagName.trim())) {
+      summary.tags.push(tagName.trim());
+    }
+  }
+
+  function removeTag(summaryIndex: number, tagIndex: number) {
+    const summary = hypaV3DataState.summaries[summaryIndex];
+    if (summary.tags && tagIndex >= 0 && tagIndex < summary.tags.length) {
+      summary.tags.splice(tagIndex, 1);
+    }
+  }
+
+  function startEditTag(tagIndex: number, tagName: string) {
+    editingTagIndex = tagIndex;
+    editingTag = tagName;
+  }
+
+  function saveEditingTag() {
+    if (editingTagIndex === -1 || !editingTag.trim()) return;
+
+    const summary = hypaV3DataState.summaries[currentTagSummaryIndex];
+    if (summary.tags && editingTagIndex < summary.tags.length) {
+      summary.tags[editingTagIndex] = editingTag.trim();
+    }
+
+    editingTag = "";
+    editingTagIndex = -1;
+  }
+
+  function cancelEditingTag() {
+    editingTag = "";
+    editingTagIndex = -1;
+  }
+
+  function toggleSummaryCollapse(summaryIndex: number) {
+    const newCollapsed = new Set(collapsedSummaries);
+    if (newCollapsed.has(summaryIndex)) {
+      newCollapsed.delete(summaryIndex);
+    } else {
+      newCollapsed.add(summaryIndex);
+    }
+    collapsedSummaries = newCollapsed;
+  }
+
+  async function resummarizeBulkSelected() {
+    if (selectedSummaries.size < 2) return;
+
+    const sortedIndices = Array.from(selectedSummaries).sort((a, b) => a - b);
+
+    try {
+      // 재요약 상태 초기화
+      bulkResummaryState = {
+        isProcessing: true,
+        result: null,
+        selectedIndices: sortedIndices,
+        mergedChatMemos: [],
+        isTranslating: false,
+        translation: null
+      };
+
+      // 선택된 요약본들을 OpenAIChat 형태로 변환
+      const selectedSummaryTexts = sortedIndices.map(index =>
+        hypaV3DataState.summaries[index].text
+      );
+
+      const oaiMessages: OpenAIChat[] = selectedSummaryTexts.map(text => ({
+        role: "user",
+        content: text
+      }));
+
+      // 연결된 메시지들 합치기
+      const mergedChatMemos: string[] = [];
+      for (const index of sortedIndices) {
+        const summary = hypaV3DataState.summaries[index];
+        mergedChatMemos.push(...summary.chatMemos);
+      }
+
+      // 중복 제거
+      const uniqueChatMemos = [...new Set(mergedChatMemos)];
+
+      // 재요약 실행
+      const resummary = await summarize(oaiMessages, true);
+
+      // 결과 저장
+      bulkResummaryState = {
+        isProcessing: false,
+        result: resummary,
+        selectedIndices: sortedIndices,
+        mergedChatMemos: uniqueChatMemos,
+        isTranslating: false,
+        translation: null
+      };
+
+    } catch (error) {
+      console.error('재요약 실패:', error);
+      bulkResummaryState = null;
+      // 사용자에게 오류 알림
+      await alertNormalWait(`재요약에 실패했습니다: ${error.message || error}`);
+    }
+  }
+
+  async function applyBulkResummary() {
+    if (!bulkResummaryState || !bulkResummaryState.result) return;
+
+    const sortedIndices = bulkResummaryState.selectedIndices;
+    const minIndex = sortedIndices[0];
+
+    // 가장 빠른 인덱스 요약본을 새로운 내용으로 대체
+    hypaV3DataState.summaries[minIndex] = {
+      text: bulkResummaryState.result,
+      chatMemos: bulkResummaryState.mergedChatMemos,
+      isImportant: hypaV3DataState.summaries[minIndex].isImportant,
+      categoryId: hypaV3DataState.summaries[minIndex].categoryId,
+      tags: hypaV3DataState.summaries[minIndex].tags
+    };
+    
+    // 나머지 인덱스들 제거 (큰 인덱스부터 제거해야 인덱스 변경 없음)
+    for (let i = sortedIndices.length - 1; i > 0; i--) {
+      hypaV3DataState.summaries.splice(sortedIndices[i], 1);
+    }
+    
+    // UI 상태 업데이트
+    summaryUIStates = hypaV3DataState.summaries.map((summary) => ({
+      originalRef: null,
+      isTranslating: false,
+      translation: null,
+      translationRef: null,
+      isRerolling: false,
+      rerolledText: null,
+      isRerolledTranslating: false,
+      rerolledTranslation: null,
+      rerolledTranslationRef: null,
+      chatMemoRefs: new Array(summary.chatMemos.length).fill(null),
+    }));
+    
+    // 기본값으로 모든 요약본을 접힌 상태로 설정
+    collapsedSummaries = new Set(hypaV3DataState.summaries.map((_, index) => index));
+    
+    // 상태 초기화
+    bulkResummaryState = null;
+    clearSelection();
+  }
+
+  async function rerollBulkResummary() {
+    if (!bulkResummaryState) return;
+    
+    const sortedIndices = bulkResummaryState.selectedIndices;
+    
+    try {
+      // 재요약 상태를 처리중으로 변경
+      bulkResummaryState = {
+        ...bulkResummaryState,
+        isProcessing: true,
+        result: null,
+        isTranslating: false,
+        translation: null
+      };
+      
+      // 선택된 요약본들을 다시 OpenAIChat 형태로 변환
+      const selectedSummaryTexts = sortedIndices.map(index => 
+        hypaV3DataState.summaries[index].text
+      );
+      
+      const oaiMessages: OpenAIChat[] = selectedSummaryTexts.map(text => ({
+        role: "user",
+        content: text
+      }));
+      
+      // 재요약 다시 실행
+      const resummary = await summarize(oaiMessages, true);
+      
+      // 새로운 결과로 업데이트
+      bulkResummaryState = {
+        ...bulkResummaryState,
+        isProcessing: false,
+        result: resummary,
+        isTranslating: false,
+        translation: null
+      };
+      
+    } catch (error) {
+      console.error('재요약 재시도 실패:', error);
+      bulkResummaryState = null;
+      await alertNormalWait(`재요약 재시도에 실패했습니다: ${error.message || error}`);
+    }
+  }
+
+  function cancelBulkResummary() {
+    bulkResummaryState = null;
+    clearSelection();
+  }
+
+  async function toggleBulkResummaryTranslation(regenerate: boolean = false) {
+    if (!bulkResummaryState || !bulkResummaryState.result) return;
+    
+    if (bulkResummaryState.isTranslating) return;
+
+    if (bulkResummaryState.translation) {
+      bulkResummaryState.translation = null;
+      return;
+    }
+
+    bulkResummaryState.isTranslating = true;
+    bulkResummaryState.translation = "Loading...";
+
+    try {
+      // 번역 실행
+      const result = await translate(bulkResummaryState.result, regenerate);
+      
+      bulkResummaryState.translation = result;
+    } catch (error) {
+      bulkResummaryState.translation = `Translation failed: ${error}`;
+    } finally {
+      bulkResummaryState.isTranslating = false;
+    }
+  }
+
   function handleDualAction(node: HTMLElement, params: DualActionParams = {}) {
     const DOUBLE_TAP_DELAY = 300;
 
@@ -860,6 +1112,27 @@
                       <TagIcon class="w-3 h-3 inline mr-1" />
                       {getCategoryName(summary.categoryId)}
                     </span>
+
+                    <!-- Individual Tags -->
+                    {#if summary.tags && summary.tags.length > 0}
+                      {#each summary.tags as tag}
+                        <button
+                          class="px-2 py-1 text-xs rounded-full bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+                          onclick={() => openTagManager(i)}
+                        >
+                          #{tag}
+                        </button>
+                      {/each}
+                    {/if}
+
+                    <!-- Add Tag Button -->
+                    <button
+                      class="px-2 py-1 text-xs rounded-full bg-zinc-600 hover:bg-zinc-500 text-zinc-300 transition-colors"
+                      onclick={() => openTagManager(i)}
+                      title="태그 관리"
+                    >
+                      + 태그
+                    </button>
                   </div>
 
                   <div class="flex items-center gap-2">
@@ -1052,12 +1325,21 @@
                 <!-- Connected Messages Header -->
                 <div class="mt-2 sm:mt-4">
                   <div class="flex justify-between items-center">
-                    <span class="text-sm text-zinc-400"
-                      >{language.hypaV3Modal.connectedMessageCountLabel.replace(
+                    <button
+                      class="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+                      tabindex="-1"
+                      onclick={() => toggleSummaryCollapse(i)}
+                    >
+                      {#if collapsedSummaries.has(i)}
+                        <ChevronDownIcon class="w-4 h-4" />
+                      {:else}
+                        <ChevronUpIcon class="w-4 h-4" />
+                      {/if}
+                      <span>{language.hypaV3Modal.connectedMessageCountLabel.replace(
                         "{0}",
                         summary.chatMemos.length.toString()
-                      )}</span
-                    >
+                      )}</span>
+                    </button>
 
                     <div class="flex items-center gap-2">
                       <!-- Translate Message Button -->
@@ -1077,78 +1359,80 @@
                   </div>
                 </div>
 
-                <!-- Connected Message IDs -->
-                <div class="flex flex-wrap mt-2 sm:mt-4 gap-2">
-                  {#each summary.chatMemos as chatMemo, memoIndex}
-                    <button
-                      class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-700 transition-colors bg-zinc-900 {isMessageExpanded(
-                        i,
-                        chatMemo
-                      )
-                        ? 'ring-2 ring-zinc-500'
-                        : ''}"
-                      tabindex="-1"
-                      bind:this={summaryUIStates[i].chatMemoRefs[memoIndex]}
-                      onclick={() => toggleExpandMessage(i, chatMemo)}
-                    >
-                      {chatMemo == null
-                        ? language.hypaV3Modal.connectedFirstMessageLabel
-                        : chatMemo}
-                    </button>
-                  {/each}
-                </div>
+                {#if !collapsedSummaries.has(i)}
+                  <!-- Connected Message IDs -->
+                  <div class="flex flex-wrap mt-2 sm:mt-4 gap-2">
+                    {#each summary.chatMemos as chatMemo, memoIndex}
+                      <button
+                        class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-700 transition-colors bg-zinc-900 {isMessageExpanded(
+                          i,
+                          chatMemo
+                        )
+                          ? 'ring-2 ring-zinc-500'
+                          : ''}"
+                        tabindex="-1"
+                        bind:this={summaryUIStates[i].chatMemoRefs[memoIndex]}
+                        onclick={() => toggleExpandMessage(i, chatMemo)}
+                      >
+                        {chatMemo == null
+                          ? language.hypaV3Modal.connectedFirstMessageLabel
+                          : chatMemo}
+                      </button>
+                    {/each}
+                  </div>
 
-                {#if expandedMessageUIState?.summaryIndex === i}
-                  <!-- Expanded Message -->
-                  <div class="mt-2 sm:mt-4">
-                    {#await getMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
-                      {#if expandedMessage}
-                        <!-- Role -->
-                        <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
-                          {language.hypaV3Modal.connectedMessageRoleLabel.replace(
+                  {#if expandedMessageUIState?.summaryIndex === i}
+                    <!-- Expanded Message -->
+                    <div class="mt-2 sm:mt-4">
+                      {#await getMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
+                        {#if expandedMessage}
+                          <!-- Role -->
+                          <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
+                            {language.hypaV3Modal.connectedMessageRoleLabel.replace(
+                              "{0}",
+                              expandedMessage.role
+                            )}
+                          </div>
+
+                          <!-- Content -->
+                          <textarea
+                            class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none transition-colors text-zinc-200 bg-zinc-900"
+                            readonly
+                            tabindex="-1"
+                            value={expandedMessage.data}
+                          ></textarea>
+                        {:else}
+                          <span class="text-sm text-red-400"
+                            >{language.hypaV3Modal
+                              .connectedMessageNotFoundLabel}</span
+                          >
+                        {/if}
+                      {:catch error}
+                        <span class="text-sm text-red-400"
+                          >{language.hypaV3Modal.connectedMessageLoadingError.replace(
                             "{0}",
-                            expandedMessage.role
-                          )}
+                            error.message
+                          )}</span
+                        >
+                      {/await}
+                    </div>
+
+                    <!-- Expanded Message Translation -->
+                    {#if expandedMessageUIState.translation}
+                      <div class="mt-2 sm:mt-4">
+                        <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
+                          {language.hypaV3Modal.connectedMessageTranslationLabel}
                         </div>
 
-                        <!-- Content -->
                         <textarea
                           class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none transition-colors text-zinc-200 bg-zinc-900"
                           readonly
                           tabindex="-1"
-                          value={expandedMessage.data}
+                          bind:this={expandedMessageUIState.translationRef}
+                          value={expandedMessageUIState.translation}
                         ></textarea>
-                      {:else}
-                        <span class="text-sm text-red-400"
-                          >{language.hypaV3Modal
-                            .connectedMessageNotFoundLabel}</span
-                        >
-                      {/if}
-                    {:catch error}
-                      <span class="text-sm text-red-400"
-                        >{language.hypaV3Modal.connectedMessageLoadingError.replace(
-                          "{0}",
-                          error.message
-                        )}</span
-                      >
-                    {/await}
-                  </div>
-
-                  <!-- Expanded Message Translation -->
-                  {#if expandedMessageUIState.translation}
-                    <div class="mt-2 sm:mt-4">
-                      <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
-                        {language.hypaV3Modal.connectedMessageTranslationLabel}
                       </div>
-
-                      <textarea
-                        class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-vertical rounded border border-zinc-700 focus:outline-none transition-colors text-zinc-200 bg-zinc-900"
-                        readonly
-                        tabindex="-1"
-                        bind:this={expandedMessageUIState.translationRef}
-                        value={expandedMessageUIState.translation}
-                      ></textarea>
-                    </div>
+                    {/if}
                   {/if}
                 {/if}
               </div>
@@ -1156,18 +1440,161 @@
           {/if}
         {/each}
 
-        <!-- Footer -->
-        <ModalFooter {hypaV3Data} />
+        <!-- Next Summarization Target -->
+        <div class="mt-2 sm:mt-4">
+          {#await getNextSummarizationTarget() then nextMessage}
+            {#if nextMessage}
+              {@const chatId =
+                nextMessage.chatId === "first"
+                  ? language.hypaV3Modal.nextSummarizationFirstMessageLabel
+                  : nextMessage.chatId == null
+                    ? language.hypaV3Modal.nextSummarizationNoMessageIdLabel
+                    : nextMessage.chatId}
+              <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
+                {language.hypaV3Modal.nextSummarizationLabel.replace(
+                  "{0}",
+                  chatId
+                )}
+              </div>
+
+              <textarea
+                class="p-2 sm:p-4 w-full min-h-40 sm:min-h-56 resize-none overflow-y-auto rounded border border-zinc-700 focus:outline-none transition-colors text-zinc-200 bg-zinc-900"
+                readonly
+                value={nextMessage.data}
+              ></textarea>
+            {:else}
+              <span class="text-sm text-red-400"
+                >{language.hypaV3Modal
+                  .nextSummarizationNoMessagesFoundLabel}</span
+              >
+            {/if}
+          {:catch error}
+            <span class="text-sm text-red-400"
+              >{language.hypaV3Modal.nextSummarizationLoadingError.replace(
+                "{0}",
+                error.message
+              )}</span
+            >
+          {/await}
+        </div>
+
+        <div class="mt-2 sm:mt-4">
+          <div class="mb-2 sm:mb-4 text-sm text-zinc-400">
+            {language.hypaV3Modal.summarizationConditionLabel}
+          </div>
+
+          <!-- No First Message -->
+          {#if !getFirstMessage()}
+            <span class="text-sm text-red-400"
+              >{language.hypaV3Modal.emptySelectedFirstMessageLabel}</span
+            >
+          {/if}
+        </div>
       </div>
+
+      <!-- Bulk Resummarize Result Section -->
+      {#if bulkResummaryState}
+        <div class="sticky bottom-0 p-4 bg-zinc-900 border-t border-zinc-700 rounded-b-lg">
+          <div class="flex flex-col gap-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-sm font-medium text-zinc-300">재요약 결과</h3>
+              <div class="flex items-center gap-2">
+                <!-- Translate Button -->
+                <button
+                  class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors {bulkResummaryState.isProcessing || !bulkResummaryState.result 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : ''}"
+                  disabled={bulkResummaryState.isProcessing || !bulkResummaryState.result}
+                  title="번역"
+                  use:handleDualAction={{
+                    onMainAction: () => toggleBulkResummaryTranslation(false),
+                    onAlternativeAction: () => toggleBulkResummaryTranslation(true),
+                  }}
+                >
+                  <LanguagesIcon class="w-4 h-4" />
+                </button>
+                
+                <!-- Reroll Button -->
+                <button
+                  class="p-2 rounded transition-colors {bulkResummaryState.isProcessing 
+                    ? 'text-zinc-600 cursor-not-allowed' 
+                    : 'text-orange-400 hover:text-orange-300'}"
+                  onclick={rerollBulkResummary}
+                  disabled={bulkResummaryState.isProcessing}
+                  title="재시도"
+                >
+                  <RefreshCw class="w-4 h-4" />
+                </button>
+                
+                <!-- Apply Button -->
+                <button
+                  class="p-2 rounded transition-colors {bulkResummaryState.isProcessing || !bulkResummaryState.result 
+                    ? 'text-zinc-600 cursor-not-allowed' 
+                    : 'text-green-400 hover:text-green-300'}"
+                  onclick={applyBulkResummary}
+                  disabled={bulkResummaryState.isProcessing || !bulkResummaryState.result}
+                  title="적용"
+                >
+                  <CheckIcon class="w-4 h-4" />
+                </button>
+                
+                <!-- Cancel Button -->
+                <button
+                  class="p-2 rounded transition-colors text-zinc-400 hover:text-zinc-200"
+                  onclick={cancelBulkResummary}
+                  title="취소"
+                >
+                  <XIcon class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            
+            <!-- Result Content -->
+            {#if bulkResummaryState.isProcessing}
+              <div class="text-center py-4 text-zinc-400">
+                <RefreshCw class="w-6 h-6 animate-spin inline mr-2" />
+                재요약 중...
+              </div>
+            {:else if bulkResummaryState.result}
+              <textarea
+                class="p-3 w-full min-h-32 resize-vertical rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors text-zinc-200 bg-zinc-800"
+                readonly
+                value={bulkResummaryState.result}
+              ></textarea>
+              
+              <!-- Translation Result -->
+              {#if bulkResummaryState.translation}
+                <div class="mt-3">
+                  <div class="mb-2 text-sm text-zinc-400">
+                    {language.hypaV3Modal.translationLabel}
+                  </div>
+                  <textarea
+                    class="p-3 w-full min-h-32 resize-vertical rounded border border-zinc-700 focus:outline-none transition-colors text-zinc-200 bg-zinc-800"
+                    readonly
+                    value={bulkResummaryState.translation}
+                  ></textarea>
+                </div>
+              {/if}
+            {/if}
+          </div>
+        </div>
+      {/if}
 
       <!-- Bulk Edit Action Bar -->
       {#if bulkEditMode}
         <div class="sticky bottom-0 p-3 bg-zinc-800 border-t border-zinc-700 rounded-b-lg">
           <div class="flex items-center justify-between">
-            <span class="text-sm text-zinc-300">
-              {selectedSummaries.size > 0 ? `${selectedSummaries.size}개 선택됨` : '항목을 선택하세요'}
-            </span>
-
+            <!-- Resummarize Button -->
+            <button
+              class="px-4 py-2 rounded text-sm font-medium transition-colors {selectedSummaries.size > 1 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-zinc-600 text-zinc-400 cursor-not-allowed'}"
+              onclick={resummarizeBulkSelected}
+              disabled={selectedSummaries.size < 2}
+            >
+              재요약
+            </button>
+            
             <div class="flex items-center gap-2">
               <!-- Category Selection -->
               <select
@@ -1332,6 +1759,107 @@
           <div class="text-center py-8 text-zinc-500 text-sm">
             아직 카테고리가 없습니다.<br>
             <span class="text-xs">위의 + 버튼을 클릭해서 추가해보세요.</span>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Tag Manager Modal -->
+{#if tagManagerOpen && currentTagSummaryIndex >= 0}
+  <div class="fixed inset-0 z-50 p-4 bg-black/70 flex items-center justify-center">
+    <div class="bg-zinc-900 rounded-lg p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-lg font-semibold text-zinc-300">
+          태그 관리 - 요약본 #{currentTagSummaryIndex + 1}
+        </h2>
+        <button
+          class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+          onclick={closeTagManager}
+        >
+          <XIcon class="w-5 h-5" />
+        </button>
+      </div>
+
+      <!-- Add New Tag -->
+      <div class="mb-4">
+        <div class="flex gap-2">
+          <input
+            type="text"
+            class="flex-1 px-3 py-2 text-sm rounded border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="새 태그 이름"
+            bind:value={editingTag}
+            onkeydown={(e) => {
+              if (e.key === 'Enter') {
+                addTag(currentTagSummaryIndex, editingTag);
+                editingTag = "";
+              }
+            }}
+          />
+          <button
+            class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm transition-colors"
+            onclick={() => {
+              addTag(currentTagSummaryIndex, editingTag);
+              editingTag = "";
+            }}
+          >
+            추가
+          </button>
+        </div>
+      </div>
+
+      <!-- Tag List -->
+      <div class="space-y-2 max-h-60 overflow-y-auto">
+        {#if hypaV3DataState.summaries[currentTagSummaryIndex].tags && hypaV3DataState.summaries[currentTagSummaryIndex].tags.length > 0}
+          {#each hypaV3DataState.summaries[currentTagSummaryIndex].tags as tag, tagIndex}
+            <div class="flex items-center gap-2 px-3 py-2 rounded bg-zinc-800">
+              {#if editingTagIndex === tagIndex}
+                <input
+                  type="text"
+                  class="flex-1 px-2 py-1 text-sm rounded border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  bind:value={editingTag}
+                  onkeydown={(e) => {
+                    if (e.key === 'Enter') {
+                      saveEditingTag();
+                    } else if (e.key === 'Escape') {
+                      cancelEditingTag();
+                    }
+                  }}
+                />
+                <button
+                  class="p-1.5 text-green-400 hover:text-green-300 transition-colors"
+                  onclick={saveEditingTag}
+                >
+                  <CheckIcon class="w-4 h-4" />
+                </button>
+                <button
+                  class="p-1.5 text-zinc-400 hover:text-zinc-200 transition-colors"
+                  onclick={cancelEditingTag}
+                >
+                  <XIcon class="w-4 h-4" />
+                </button>
+              {:else}
+                <span class="flex-1 text-sm text-zinc-200">#{tag}</span>
+                <button
+                  class="p-1.5 text-zinc-400 hover:text-zinc-200 transition-colors"
+                  onclick={() => startEditTag(tagIndex, tag)}
+                >
+                  <EditIcon class="w-4 h-4" />
+                </button>
+                <button
+                  class="p-1.5 text-red-400 hover:text-red-300 transition-colors"
+                  onclick={() => removeTag(currentTagSummaryIndex, tagIndex)}
+                >
+                  <Trash2Icon class="w-4 h-4" />
+                </button>
+              {/if}
+            </div>
+          {/each}
+        {:else}
+          <div class="text-center py-8 text-zinc-500 text-sm">
+            아직 태그가 없습니다.<br>
+            <span class="text-xs">위에서 새 태그를 추가해보세요.</span>
           </div>
         {/if}
       </div>

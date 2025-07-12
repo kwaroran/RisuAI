@@ -66,6 +66,22 @@ interface HypaV3Data {
 
 export interface SerializableHypaV3Data extends Omit<HypaV3Data, "summaries"> {
   summaries: SerializableSummary[];
+export interface SerializableHypaV3Data {
+  summaries: {
+    text: string;
+    chatMemos: string[];
+    isImportant: boolean;
+    categoryId?: string;
+    tags?: string[];
+  }[];
+  categories?: { id: string; name: string }[];
+  lastSelectedSummaries?: number[]; // legacy
+  metrics?: {
+    lastImportantSummaries: number[];
+    lastRecentSummaries: number[];
+    lastSimilarSummaries: number[];
+    lastRandomSummaries: number[];
+  };
 }
 
 interface Summary {
@@ -73,6 +89,7 @@ interface Summary {
   chatMemos: Set<string>;
   isImportant: boolean;
   categoryId?: string;
+  tags?: string[];
 }
 
 export interface SerializableSummary extends Omit<Summary, "chatMemos"> {
@@ -443,6 +460,7 @@ async function hypaMemoryV3MainExp(
         chatMemos: new Set(toSummarizeArray[i].map((chat) => chat.memo)),
         isImportant: false,
         categoryId: undefined,
+        tags: [],
       });
     }
   }
@@ -1139,6 +1157,7 @@ async function hypaMemoryV3Main(
           chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
           isImportant: false,
           categoryId: undefined,
+          tags: [],
         });
       } catch (error) {
         console.log(logPrefix, "Summarization failed:", `\n${error}`);
