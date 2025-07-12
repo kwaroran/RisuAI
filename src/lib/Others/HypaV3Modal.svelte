@@ -1,99 +1,75 @@
 <script lang="ts">
-  import { untrack, tick } from "svelte";
-  import {
-    Trash2Icon,
-    XIcon,
-    ChevronUpIcon,
-    ChevronDownIcon,
-    LanguagesIcon,
-    StarIcon,
-    RefreshCw,
-    ScissorsLineDashed,
-    CheckIcon,
-  } from "lucide-svelte";
-  import {
-    summarize,
-    getCurrentHypaV3Preset,
-  } from "src/ts/process/memory/hypav3";
-  import { type OpenAIChat } from "src/ts/process/index.svelte";
-  import { processScriptFull, risuChatParser } from "src/ts/process/scripts";
-  import { type Message } from "src/ts/storage/database.svelte";
-  import { translateHTML } from "src/ts/translator/translator";
-  import { alertConfirm, alertNormalWait } from "src/ts/alert";
+  import { untrack } from "svelte";
+  import { ChevronUpIcon, ChevronDownIcon } from "lucide-svelte";
+  import { type SerializableSummary } from "src/ts/process/memory/hypav3";
+  import { alertNormalWait } from "src/ts/alert";
   import { DBState, selectedCharID } from "src/ts/stores.svelte";
   import { language } from "src/lang";
   import ModalHeader from "./HypaV3Modal/modal-header.svelte";
+  import ModalSummaryItem from "./HypaV3Modal/modal-summary-item.svelte";
+  import ModalFooter from "./HypaV3Modal/modal-footer.svelte";
   import type {
-    SummaryUI,
-    ExpandedMessageUI,
-    SearchUI,
+    SummaryItemState,
+    ExpandedMessageState,
+    SearchState,
     SearchResult,
   } from "./HypaV3Modal/types";
-  import { alertConfirmTwice, handleDualAction } from "./HypaV3Modal/utils";
 
-  const hypaV3DataState = $derived(
+  const hypaV3Data = $derived(
     DBState.db.characters[$selectedCharID].chats[
       DBState.db.characters[$selectedCharID].chatPage
     ].hypaV3Data
   );
 
-  let summaryUIStates = $state<SummaryUI[]>([]);
-  let expandedMessageUIState = $state<ExpandedMessageUI>(null);
-  let searchUIState = $state<SearchUI>(null);
+  let summaryItemStateMap = new WeakMap<
+    SerializableSummary,
+    SummaryItemState
+  >();
+  let expandedMessageState = $state<ExpandedMessageState>(null);
+  let searchState = $state<SearchState>(null);
   let filterImportant = $state(false);
   let dropdownOpen = $state(false);
   let filterSelected = $state(false);
 
   $effect.pre(() => {
+    hypaV3Data?.summaries?.length;
+    filterImportant;
+    filterSelected;
+
     untrack(() => {
       DBState.db.characters[$selectedCharID].chats[
         DBState.db.characters[$selectedCharID].chatPage
       ].hypaV3Data ??= {
         summaries: [],
       };
-    });
 
-    summaryUIStates = hypaV3DataState.summaries.map((summary) => ({
-      originalRef: null,
-      isTranslating: false,
-      translation: null,
-      translationRef: null,
-      isRerolling: false,
-      rerolledText: null,
-      isRerolledTranslating: false,
-      rerolledTranslation: null,
-      rerolledTranslationRef: null,
-      chatMemoRefs: new Array(summary.chatMemos.length).fill(null),
-    }));
-
-    untrack(() => {
-      expandedMessageUIState = null;
-      searchUIState = null;
+      expandedMessageState = null;
+      searchState = null;
     });
   });
 
   function onSearch(e: KeyboardEvent) {
-    if (!searchUIState) return;
+    if (!searchState) return;
 
     if (e.key === "Escape") {
-      searchUIState = null;
+      searchState = null;
       return;
     }
 
     if (e.key === "Enter") {
       e.preventDefault?.(); // Prevent event default action
 
-      const query = searchUIState.query.trim();
+      const query = searchState.query.trim();
 
       if (!query) return;
 
       // When received a new query
-      if (searchUIState.currentResultIndex === -1) {
+      if (searchState.currentResultIndex === -1) {
         const results = generateSearchResults(query);
 
         if (results.length === 0) return;
 
-        searchUIState.results = results;
+        searchState.results = results;
       }
 
       const nextResult = getNextSearchResult(e.shiftKey);
@@ -114,7 +90,7 @@
 
       if (
         summaryIndex >= 0 &&
-        summaryIndex < hypaV3DataState.summaries.length &&
+        summaryIndex < hypaV3Data.summaries.length &&
         isSummaryVisible(summaryIndex)
       ) {
         results.push({ type: "summary", summaryIndex, start: 0, end: 0 });
@@ -125,34 +101,35 @@
 
     if (isGuidLike(query)) {
       // Search chatMemo
-      summaryUIStates.forEach((summaryUI, summaryIndex) => {
-        if (isSummaryVisible(summaryIndex)) {
-          summaryUI.chatMemoRefs.forEach((buttonRef, memoIndex) => {
-            const buttonText = buttonRef.textContent?.toLowerCase() || "";
+      hypaV3Data.summaries.forEach((summary, summaryIndex) => {
+        if (!isSummaryVisible(summaryIndex)) return;
 
-            if (buttonText.includes(normalizedQuery)) {
-              results.push({ type: "chatmemo", summaryIndex, memoIndex });
-            }
-          });
-        }
+        const summaryItemState = summaryItemStateMap.get(summary);
+
+        summaryItemState.chatMemoRefs.forEach((buttonRef, memoIndex) => {
+          const buttonText = buttonRef.textContent?.toLowerCase() || "";
+
+          if (buttonText.includes(normalizedQuery)) {
+            results.push({ type: "chatmemo", summaryIndex, memoIndex });
+          }
+        });
       });
     } else {
       // Search summary
-      summaryUIStates.forEach((summaryUI, summaryIndex) => {
-        if (isSummaryVisible(summaryIndex)) {
-          const textAreaText = summaryUI.originalRef.value?.toLowerCase();
-          let pos = -1;
+      hypaV3Data.summaries.forEach((summary, summaryIndex) => {
+        if (!isSummaryVisible(summaryIndex)) return;
 
-          while (
-            (pos = textAreaText.indexOf(normalizedQuery, pos + 1)) !== -1
-          ) {
-            results.push({
-              type: "summary",
-              summaryIndex,
-              start: pos,
-              end: pos + normalizedQuery.length,
-            });
-          }
+        const summaryItemState = summaryItemStateMap.get(summary);
+        const textAreaText = summaryItemState.originalRef.value?.toLowerCase();
+        let pos = -1;
+
+        while ((pos = textAreaText.indexOf(normalizedQuery, pos + 1)) !== -1) {
+          results.push({
+            type: "summary",
+            summaryIndex,
+            start: pos,
+            end: pos + normalizedQuery.length,
+          });
         }
       });
     }
@@ -170,45 +147,45 @@
   }
 
   function getNextSearchResult(backward: boolean): SearchResult | null {
-    if (!searchUIState || searchUIState.results.length === 0) return null;
+    if (!searchState || searchState.results.length === 0) return null;
 
     let nextIndex: number;
 
-    if (searchUIState.requestedSearchFromIndex !== -1) {
-      const fromSummaryIndex = searchUIState.requestedSearchFromIndex;
+    if (searchState.requestedSearchFromIndex !== -1) {
+      const fromSummaryIndex = searchState.requestedSearchFromIndex;
 
       nextIndex = backward
-        ? searchUIState.results.findLastIndex(
+        ? searchState.results.findLastIndex(
             (r) => r.summaryIndex <= fromSummaryIndex
           )
-        : searchUIState.results.findIndex(
+        : searchState.results.findIndex(
             (r) => r.summaryIndex >= fromSummaryIndex
           );
 
       if (nextIndex === -1) {
-        nextIndex = backward ? searchUIState.results.length - 1 : 0;
+        nextIndex = backward ? searchState.results.length - 1 : 0;
       }
 
-      searchUIState.requestedSearchFromIndex = -1;
+      searchState.requestedSearchFromIndex = -1;
     } else {
       const delta = backward ? -1 : 1;
 
       nextIndex =
-        (searchUIState.currentResultIndex +
-          delta +
-          searchUIState.results.length) %
-        searchUIState.results.length;
+        (searchState.currentResultIndex + delta + searchState.results.length) %
+        searchState.results.length;
     }
 
-    searchUIState.currentResultIndex = nextIndex;
-    return searchUIState.results[nextIndex];
+    searchState.currentResultIndex = nextIndex;
+    return searchState.results[nextIndex];
   }
 
   function navigateToSearchResult(result: SearchResult) {
-    searchUIState.isNavigating = true;
+    searchState.isNavigating = true;
 
     if (result.type === "summary") {
-      const textarea = summaryUIStates[result.summaryIndex].originalRef;
+      const summary = hypaV3Data.summaries[result.summaryIndex];
+      const summaryItemState = summaryItemStateMap.get(summary);
+      const textarea = summaryItemState.originalRef;
 
       // Scroll to element
       textarea.scrollIntoView({
@@ -217,6 +194,7 @@
       });
 
       if (result.start === result.end) {
+        searchState.isNavigating = false;
         return;
       }
 
@@ -230,13 +208,14 @@
         textarea.readOnly = true;
         textarea.focus();
         window.setTimeout(() => {
-          searchUIState.ref.focus(); // Restore focus to search bar
+          searchState.ref.focus(); // Restore focus to search bar
           textarea.readOnly = false; // Remove readonly after focus moved
         }, 300);
       }
     } else {
-      const button =
-        summaryUIStates[result.summaryIndex].chatMemoRefs[result.memoIndex];
+      const summary = hypaV3Data.summaries[result.summaryIndex];
+      const summaryItemState = summaryItemStateMap.get(summary);
+      const button = summaryItemState.chatMemoRefs[result.memoIndex];
 
       // Scroll to element
       button.scrollIntoView({
@@ -253,7 +232,7 @@
       }, 1000);
     }
 
-    searchUIState.isNavigating = false;
+    searchState.isNavigating = false;
   }
 
   function scrollToSelection(textarea: HTMLTextAreaElement) {
@@ -291,8 +270,8 @@
   }
 
   function isSummaryVisible(index: number): boolean {
-    const summary = hypaV3DataState.summaries[index];
-    const metrics = hypaV3DataState.metrics;
+    const summary = hypaV3Data.summaries[index];
+    const metrics = hypaV3Data.metrics;
 
     const selectedFilter =
       !filterSelected ||
@@ -305,303 +284,6 @@
     const importantFilter = !filterImportant || summary.isImportant;
 
     return selectedFilter && importantFilter;
-  }
-
-  async function toggleTranslate(
-    summaryIndex: number,
-    regenerate?: boolean
-  ): Promise<void> {
-    const summaryUIState = summaryUIStates[summaryIndex];
-
-    if (summaryUIState.isTranslating) return;
-
-    if (summaryUIState.translation) {
-      summaryUIState.translation = null;
-      return;
-    }
-
-    summaryUIState.isTranslating = true;
-    summaryUIState.translation = "Loading...";
-
-    // Focus on translation element after it's rendered
-    await tick();
-
-    if (summaryUIState.translationRef) {
-      summaryUIState.translationRef.focus();
-      summaryUIState.translationRef.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-
-    // Translate
-    const result = await translate(
-      hypaV3DataState.summaries[summaryIndex].text,
-      regenerate
-    );
-
-    summaryUIState.translation = result;
-    summaryUIState.isTranslating = false;
-  }
-
-  function isOrphan(summaryIndex: number): boolean {
-    const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-    const summary = hypaV3DataState.summaries[summaryIndex];
-
-    for (const chatMemo of summary.chatMemos) {
-      if (chatMemo == null) {
-        // Check first message exists
-        if (!getFirstMessage()) return true;
-      } else {
-        if (chat.message.findIndex((m) => m.chatId === chatMemo) === -1)
-          return true;
-      }
-    }
-
-    return false;
-  }
-
-  async function toggleReroll(summaryIndex: number): Promise<void> {
-    const summaryUIState = summaryUIStates[summaryIndex];
-
-    if (summaryUIState.isRerolling) return;
-    if (isOrphan(summaryIndex)) return;
-
-    summaryUIState.isRerolling = true;
-    summaryUIState.rerolledText = "Loading...";
-
-    try {
-      const summary = hypaV3DataState.summaries[summaryIndex];
-      const toSummarize: OpenAIChat[] = await Promise.all(
-        summary.chatMemos.map(async (chatMemo) => {
-          const message = await getMessageFromChatMemo(chatMemo);
-
-          return {
-            role: (message.role === "char"
-              ? "assistant"
-              : message.role) as OpenAIChat["role"],
-            content: message.data,
-          };
-        })
-      );
-
-      const summarizeResult = await summarize(toSummarize);
-
-      summaryUIState.rerolledText = summarizeResult;
-    } catch (error) {
-      summaryUIState.rerolledText = "Reroll failed";
-    } finally {
-      summaryUIState.isRerolling = false;
-    }
-  }
-
-  async function toggleTranslateRerolled(
-    summaryIndex: number,
-    regenerate?: boolean
-  ): Promise<void> {
-    const summaryUIState = summaryUIStates[summaryIndex];
-
-    if (summaryUIState.isRerolledTranslating) return;
-
-    if (summaryUIState.rerolledTranslation) {
-      summaryUIState.rerolledTranslation = null;
-      return;
-    }
-
-    if (!summaryUIState.rerolledText) return;
-
-    summaryUIState.isRerolledTranslating = true;
-    summaryUIState.rerolledTranslation = "Loading...";
-
-    // Focus on rerolled translation element after it's rendered
-    await tick();
-
-    if (summaryUIState.rerolledTranslationRef) {
-      summaryUIState.rerolledTranslationRef.focus();
-      summaryUIState.rerolledTranslationRef.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-
-    // Translate
-    const result = await translate(summaryUIState.rerolledText, regenerate);
-
-    summaryUIState.rerolledTranslation = result;
-    summaryUIState.isRerolledTranslating = false;
-  }
-
-  async function getMessageFromChatMemo(
-    chatMemo: string | null
-  ): Promise<Message | null> {
-    const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-    const shouldProcess = getCurrentHypaV3Preset().settings.processRegexScript;
-
-    let msg = null;
-    let msgIndex = -1;
-
-    if (chatMemo == null) {
-      const firstMessage = getFirstMessage();
-
-      if (!firstMessage) return null;
-      msg = { role: "char", data: firstMessage };
-    } else {
-      msgIndex = chat.message.findIndex((m) => m.chatId === chatMemo);
-      if (msgIndex === -1) return null;
-      msg = chat.message[msgIndex];
-    }
-
-    return shouldProcess ? await processRegexScript(msg, msgIndex) : msg;
-  }
-
-  function getFirstMessage(): string | null {
-    const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-
-    return chat.fmIndex === -1
-      ? char.firstMessage
-      : char.alternateGreetings?.[chat.fmIndex]
-        ? char.alternateGreetings[chat.fmIndex]
-        : null;
-  }
-
-  async function processRegexScript(
-    msg: Message,
-    msgIndex: number = -1
-  ): Promise<Message> {
-    const char = DBState.db.characters[$selectedCharID];
-    const newData: string = (
-      await processScriptFull(
-        char,
-        risuChatParser(msg.data, { chara: char, role: msg.role }),
-        "editprocess",
-        msgIndex,
-        {
-          chatRole: msg.role,
-        }
-      )
-    ).data;
-
-    return {
-      ...msg,
-      data: newData,
-    };
-  }
-
-  function isMessageExpanded(
-    summaryIndex: number,
-    chatMemo: string | null
-  ): boolean {
-    if (!expandedMessageUIState) return false;
-
-    const summary = hypaV3DataState.summaries[summaryIndex];
-
-    return (
-      expandedMessageUIState.summaryIndex === summaryIndex &&
-      expandedMessageUIState.selectedChatMemo === chatMemo
-    );
-  }
-
-  function toggleExpandMessage(
-    summaryIndex: number,
-    chatMemo: string | null
-  ): void {
-    expandedMessageUIState = isMessageExpanded(summaryIndex, chatMemo)
-      ? null
-      : {
-          summaryIndex,
-          selectedChatMemo: chatMemo,
-          isTranslating: false,
-          translation: null,
-          translationRef: null,
-        };
-  }
-
-  async function toggleTranslateExpandedMessage(
-    regenerate?: boolean
-  ): Promise<void> {
-    if (!expandedMessageUIState || expandedMessageUIState.isTranslating) return;
-
-    if (expandedMessageUIState.translation) {
-      expandedMessageUIState.translation = null;
-      return;
-    }
-
-    const message = await getMessageFromChatMemo(
-      expandedMessageUIState.selectedChatMemo
-    );
-
-    if (!message) return;
-
-    expandedMessageUIState.isTranslating = true;
-    expandedMessageUIState.translation = "Loading...";
-
-    // Focus on translation element after it's rendered
-    await tick();
-
-    if (expandedMessageUIState.translationRef) {
-      expandedMessageUIState.translationRef.focus();
-      expandedMessageUIState.translationRef.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-
-    // Translate
-    const result = await translate(message.data, regenerate);
-
-    expandedMessageUIState.translation = result;
-    expandedMessageUIState.isTranslating = false;
-  }
-
-  async function translate(
-    text: string,
-    regenerate?: boolean
-  ): Promise<string> {
-    try {
-      return await translateHTML(text, false, "", -1, regenerate);
-    } catch (error) {
-      return `Translation failed: ${error}`;
-    }
-  }
-
-  async function getNextSummarizationTarget(): Promise<Message | null> {
-    const char = DBState.db.characters[$selectedCharID];
-    const chat = char.chats[DBState.db.characters[$selectedCharID].chatPage];
-    const shouldProcess = getCurrentHypaV3Preset().settings.processRegexScript;
-
-    // Summaries exist
-    if (hypaV3DataState.summaries.length > 0) {
-      const lastSummary = hypaV3DataState.summaries.at(-1);
-      const lastMessageIndex = chat.message.findIndex(
-        (m) => m.chatId === lastSummary.chatMemos.at(-1)
-      );
-
-      if (lastMessageIndex !== -1) {
-        const next = chat.message[lastMessageIndex + 1] ?? null;
-
-        return next && shouldProcess
-          ? await processRegexScript(next, lastMessageIndex + 1)
-          : next;
-      }
-    }
-
-    // When no summaries exist OR couldn't find last connected message,
-    // check if first message is available
-    const firstMessage = getFirstMessage();
-
-    if (!firstMessage) {
-      const next = chat.message[0] ?? null;
-
-      return next && shouldProcess ? await processRegexScript(next, 0) : next;
-    }
-
-    // Will summarize first message
-    const next: Message = { role: "char", chatId: "first", data: firstMessage };
-
-    return shouldProcess ? await processRegexScript(next) : next;
   }
 
   function isHypaV2ConversionPossible(): boolean {
@@ -686,7 +368,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      class="flex flex-col w-full max-w-3xl p-3 rounded-lg sm:p-6 bg-zinc-900 {hypaV3DataState
+      class="flex flex-col w-full max-w-3xl p-3 rounded-lg sm:p-6 bg-zinc-900 {hypaV3Data
         .summaries.length === 0
         ? 'h-fit'
         : 'h-full'}"
@@ -697,7 +379,7 @@
     >
       <!-- Header -->
       <ModalHeader
-        bind:searchUIState
+        bind:searchState
         bind:filterImportant
         bind:dropdownOpen
         bind:filterSelected
@@ -705,7 +387,7 @@
 
       <!-- Scrollable Container -->
       <div class="flex flex-col gap-2 overflow-y-auto sm:gap-4" tabindex="-1">
-        {#if hypaV3DataState.summaries.length === 0}
+        {#if hypaV3Data.summaries.length === 0}
           <!-- Conversion Section -->
           {#if isHypaV2ConversionPossible()}
             <div
@@ -746,7 +428,7 @@
           {/if}
 
           <!-- Search Bar -->
-        {:else if searchUIState}
+        {:else if searchState}
           <div class="sticky top-0 p-2 sm:p-3 bg-zinc-800">
             <div class="flex items-center gap-2">
               <div class="relative flex items-center flex-1">
@@ -760,24 +442,24 @@
                   <input
                     class="w-full px-2 py-2 border rounded sm:px-4 sm:py-3 border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
                     placeholder={language.hypaV3Modal.searchPlaceholder}
-                    bind:this={searchUIState.ref}
-                    bind:value={searchUIState.query}
+                    bind:this={searchState.ref}
+                    bind:value={searchState.query}
                     oninput={() => {
-                      if (searchUIState) {
-                        searchUIState.results = [];
-                        searchUIState.currentResultIndex = -1;
+                      if (searchState) {
+                        searchState.results = [];
+                        searchState.currentResultIndex = -1;
                       }
                     }}
                     onkeydown={(e) => onSearch(e)}
                   />
                 </form>
 
-                {#if searchUIState.results.length > 0}
+                {#if searchState.results.length > 0}
                   <span
                     class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:px-3 py-1 sm:py-2 rounded text-sm font-semibold text-zinc-100 bg-zinc-700/65"
                   >
-                    {searchUIState.currentResultIndex + 1}/{searchUIState
-                      .results.length}
+                    {searchState.currentResultIndex + 1}/{searchState.results
+                      .length}
                   </span>
                 {/if}
               </div>
@@ -808,403 +490,22 @@
         {/if}
 
         <!-- Summaries List -->
-        {#each hypaV3DataState.summaries as summary, i}
+        {#each hypaV3Data.summaries as summary, i (summary)}
           {#if isSummaryVisible(i)}
-            {#if summaryUIStates[i]}
-              <!-- Summary Item  -->
-              <div
-                class="flex flex-col p-2 border rounded-lg sm:p-4 border-zinc-700 bg-zinc-800/50"
-              >
-                <!-- Original Summary Header -->
-                <div class="flex items-center justify-between">
-                  <!-- Summary Number / Metrics Container -->
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm text-zinc-400"
-                      >{language.hypaV3Modal.summaryNumberLabel.replace(
-                        "{0}",
-                        (i + 1).toString()
-                      )}</span
-                    >
-
-                    {#if filterSelected && hypaV3DataState.metrics}
-                      <div class="flex flex-wrap gap-1">
-                        {#if hypaV3DataState.metrics.lastImportantSummaries.includes(i)}
-                          <span
-                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-purple-200 bg-purple-900/70"
-                          >
-                            Important
-                          </span>
-                        {/if}
-                        {#if hypaV3DataState.metrics.lastRecentSummaries.includes(i)}
-                          <span
-                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-blue-200 bg-blue-900/70"
-                          >
-                            Recent
-                          </span>
-                        {/if}
-                        {#if hypaV3DataState.metrics.lastSimilarSummaries.includes(i)}
-                          <span
-                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-green-200 bg-green-900/70"
-                          >
-                            Similar
-                          </span>
-                        {/if}
-                        {#if hypaV3DataState.metrics.lastRandomSummaries.includes(i)}
-                          <span
-                            class="px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap text-yellow-200 bg-yellow-900/70"
-                          >
-                            Random
-                          </span>
-                        {/if}
-                      </div>
-                    {/if}
-                  </div>
-
-                  <!-- Buttons Container -->
-                  <div class="flex items-center gap-2">
-                    <!-- Translate Button -->
-                    <button
-                      class="p-2 transition-colors text-zinc-400 hover:text-zinc-200"
-                      tabindex="-1"
-                      use:handleDualAction={{
-                        onMainAction: () => toggleTranslate(i, false),
-                        onAlternativeAction: () => toggleTranslate(i, true),
-                      }}
-                    >
-                      <LanguagesIcon class="w-4 h-4" />
-                    </button>
-
-                    <!-- Important Button -->
-                    <button
-                      class="p-2 transition-colors {summary.isImportant
-                        ? 'text-yellow-400 hover:text-yellow-300'
-                        : 'text-zinc-400 hover:text-zinc-200'}"
-                      tabindex="-1"
-                      onclick={() => {
-                        summary.isImportant = !summary.isImportant;
-                      }}
-                    >
-                      <StarIcon class="w-4 h-4" />
-                    </button>
-
-                    <!-- Reroll Button -->
-                    <button
-                      class="p-2 transition-colors text-zinc-400 hover:text-zinc-200"
-                      tabindex="-1"
-                      disabled={isOrphan(i)}
-                      onclick={async () => await toggleReroll(i)}
-                    >
-                      <RefreshCw class="w-4 h-4" />
-                    </button>
-
-                    <!-- Delete This Button -->
-                    <button
-                      class="p-2 transition-colors text-zinc-400 hover:text-rose-300"
-                      tabindex="-1"
-                      onclick={async () => {
-                        if (
-                          await alertConfirm(
-                            language.hypaV3Modal.deleteThisConfirmMessage
-                          )
-                        ) {
-                          hypaV3DataState.summaries =
-                            hypaV3DataState.summaries.filter(
-                              (_, index) => index !== i
-                            );
-                        }
-                      }}
-                    >
-                      <Trash2Icon class="w-4 h-4" />
-                    </button>
-
-                    <!-- Delete After Button -->
-                    <button
-                      class="p-2 transition-colors text-zinc-400 hover:text-rose-300"
-                      tabindex="-1"
-                      onclick={async () => {
-                        if (
-                          await alertConfirmTwice(
-                            language.hypaV3Modal.deleteAfterConfirmMessage,
-                            language.hypaV3Modal.deleteAfterConfirmSecondMessage
-                          )
-                        ) {
-                          hypaV3DataState.summaries.splice(i + 1);
-                        }
-                      }}
-                    >
-                      <ScissorsLineDashed class="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Original Summary -->
-                <div class="mt-2 sm:mt-4">
-                  <textarea
-                    class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
-                    bind:this={summaryUIStates[i].originalRef}
-                    bind:value={summary.text}
-                    onfocus={() => {
-                      if (searchUIState && !searchUIState.isNavigating) {
-                        searchUIState.requestedSearchFromIndex = i;
-                      }
-                    }}
-                  >
-                  </textarea>
-                </div>
-
-                <!-- Original Summary Translation -->
-                {#if summaryUIStates[i].translation}
-                  <div class="mt-2 sm:mt-4">
-                    <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-                      {language.hypaV3Modal.translationLabel}
-                    </div>
-
-                    <textarea
-                      class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
-                      readonly
-                      tabindex="-1"
-                      bind:this={summaryUIStates[i].translationRef}
-                      value={summaryUIStates[i].translation}
-                    ></textarea>
-                  </div>
-                {/if}
-
-                {#if summaryUIStates[i].rerolledText}
-                  <!-- Rerolled Summary Header -->
-                  <div class="mt-2 sm:mt-4">
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm text-zinc-400"
-                        >{language.hypaV3Modal.rerolledSummaryLabel}</span
-                      >
-                      <div class="flex items-center gap-2">
-                        <!-- Translate Rerolled Button -->
-                        <button
-                          class="p-2 transition-colors text-zinc-400 hover:text-zinc-200"
-                          tabindex="-1"
-                          use:handleDualAction={{
-                            onMainAction: () =>
-                              toggleTranslateRerolled(i, false),
-                            onAlternativeAction: () =>
-                              toggleTranslateRerolled(i, true),
-                          }}
-                        >
-                          <LanguagesIcon class="w-4 h-4" />
-                        </button>
-
-                        <!-- Cancel Button -->
-                        <button
-                          class="p-2 transition-colors text-zinc-400 hover:text-zinc-200"
-                          tabindex="-1"
-                          onclick={() => {
-                            summaryUIStates[i].rerolledText = null;
-                            summaryUIStates[i].rerolledTranslation = null;
-                          }}
-                        >
-                          <XIcon class="w-4 h-4" />
-                        </button>
-
-                        <!-- Apply Button -->
-                        <button
-                          class="p-2 transition-colors text-zinc-400 hover:text-rose-300"
-                          tabindex="-1"
-                          onclick={() => {
-                            summary.text = summaryUIStates[i].rerolledText!;
-                            summaryUIStates[i].translation = null;
-                            summaryUIStates[i].rerolledText = null;
-                            summaryUIStates[i].rerolledTranslation = null;
-                          }}
-                        >
-                          <CheckIcon class="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Rerolled Summary -->
-                  <div class="mt-2 sm:mt-4">
-                    <textarea
-                      class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
-                      tabindex="-1"
-                      bind:value={summaryUIStates[i].rerolledText}
-                    >
-                    </textarea>
-                  </div>
-
-                  <!-- Rerolled Summary Translation -->
-                  {#if summaryUIStates[i].rerolledTranslation}
-                    <div class="mt-2 sm:mt-4">
-                      <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-                        {language.hypaV3Modal.rerolledTranslationLabel}
-                      </div>
-
-                      <textarea
-                        class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
-                        readonly
-                        tabindex="-1"
-                        bind:this={summaryUIStates[i].rerolledTranslationRef}
-                        value={summaryUIStates[i].rerolledTranslation}
-                      ></textarea>
-                    </div>
-                  {/if}
-                {/if}
-
-                <!-- Connected Messages Header -->
-                <div class="mt-2 sm:mt-4">
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-zinc-400"
-                      >{language.hypaV3Modal.connectedMessageCountLabel.replace(
-                        "{0}",
-                        summary.chatMemos.length.toString()
-                      )}</span
-                    >
-
-                    <div class="flex items-center gap-2">
-                      <!-- Translate Message Button -->
-                      <button
-                        class="p-2 transition-colors text-zinc-400 hover:text-zinc-200"
-                        tabindex="-1"
-                        use:handleDualAction={{
-                          onMainAction: () =>
-                            toggleTranslateExpandedMessage(false),
-                          onAlternativeAction: () =>
-                            toggleTranslateExpandedMessage(true),
-                        }}
-                      >
-                        <LanguagesIcon class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Connected Message IDs -->
-                <div class="flex flex-wrap gap-2 mt-2 sm:mt-4">
-                  {#each summary.chatMemos as chatMemo, memoIndex}
-                    <button
-                      class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-700 transition-colors bg-zinc-900 {isMessageExpanded(
-                        i,
-                        chatMemo
-                      )
-                        ? 'ring-2 ring-zinc-500'
-                        : ''}"
-                      tabindex="-1"
-                      bind:this={summaryUIStates[i].chatMemoRefs[memoIndex]}
-                      onclick={() => toggleExpandMessage(i, chatMemo)}
-                    >
-                      {chatMemo == null
-                        ? language.hypaV3Modal.connectedFirstMessageLabel
-                        : chatMemo}
-                    </button>
-                  {/each}
-                </div>
-
-                {#if expandedMessageUIState?.summaryIndex === i}
-                  <!-- Expanded Message -->
-                  <div class="mt-2 sm:mt-4">
-                    {#await getMessageFromChatMemo(expandedMessageUIState.selectedChatMemo) then expandedMessage}
-                      {#if expandedMessage}
-                        <!-- Role -->
-                        <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-                          {language.hypaV3Modal.connectedMessageRoleLabel.replace(
-                            "{0}",
-                            expandedMessage.role
-                          )}
-                        </div>
-
-                        <!-- Content -->
-                        <textarea
-                          class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
-                          readonly
-                          tabindex="-1"
-                          value={expandedMessage.data}
-                        ></textarea>
-                      {:else}
-                        <span class="text-sm text-red-400"
-                          >{language.hypaV3Modal
-                            .connectedMessageNotFoundLabel}</span
-                        >
-                      {/if}
-                    {:catch error}
-                      <span class="text-sm text-red-400"
-                        >{language.hypaV3Modal.connectedMessageLoadingError.replace(
-                          "{0}",
-                          error.message
-                        )}</span
-                      >
-                    {/await}
-                  </div>
-
-                  <!-- Expanded Message Translation -->
-                  {#if expandedMessageUIState.translation}
-                    <div class="mt-2 sm:mt-4">
-                      <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-                        {language.hypaV3Modal.connectedMessageTranslationLabel}
-                      </div>
-
-                      <textarea
-                        class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
-                        readonly
-                        tabindex="-1"
-                        bind:this={expandedMessageUIState.translationRef}
-                        value={expandedMessageUIState.translation}
-                      ></textarea>
-                    </div>
-                  {/if}
-                {/if}
-              </div>
-            {/if}
+            <!-- Summary Item  -->
+            <ModalSummaryItem
+              summaryIndex={i}
+              {hypaV3Data}
+              {summaryItemStateMap}
+              bind:expandedMessageState
+              bind:searchState
+              {filterSelected}
+            />
           {/if}
         {/each}
 
-        <!-- Next Summarization Target -->
-        <div class="mt-2 sm:mt-4">
-          {#await getNextSummarizationTarget() then nextMessage}
-            {#if nextMessage}
-              {@const chatId =
-                nextMessage.chatId === "first"
-                  ? language.hypaV3Modal.nextSummarizationFirstMessageLabel
-                  : nextMessage.chatId == null
-                    ? language.hypaV3Modal.nextSummarizationNoMessageIdLabel
-                    : nextMessage.chatId}
-              <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-                {language.hypaV3Modal.nextSummarizationLabel.replace(
-                  "{0}",
-                  chatId
-                )}
-              </div>
-
-              <textarea
-                class="w-full p-2 overflow-y-auto transition-colors border rounded resize-none sm:p-4 min-h-40 sm:min-h-56 border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
-                readonly
-                value={nextMessage.data}
-              ></textarea>
-            {:else}
-              <span class="text-sm text-red-400"
-                >{language.hypaV3Modal
-                  .nextSummarizationNoMessagesFoundLabel}</span
-              >
-            {/if}
-          {:catch error}
-            <span class="text-sm text-red-400"
-              >{language.hypaV3Modal.nextSummarizationLoadingError.replace(
-                "{0}",
-                error.message
-              )}</span
-            >
-          {/await}
-        </div>
-
-        <div class="mt-2 sm:mt-4">
-          <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-            {language.hypaV3Modal.summarizationConditionLabel}
-          </div>
-
-          <!-- No First Message -->
-          {#if !getFirstMessage()}
-            <span class="text-sm text-red-400"
-              >{language.hypaV3Modal.emptySelectedFirstMessageLabel}</span
-            >
-          {/if}
-        </div>
+        <!-- Footer -->
+        <ModalFooter {hypaV3Data} />
       </div>
     </div>
   </div>

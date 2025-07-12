@@ -17,26 +17,26 @@
     DBState,
     selectedCharID,
   } from "src/ts/stores.svelte";
-  import type { SearchUI } from "./types";
+  import type { SearchState } from "./types";
   import { alertConfirmTwice } from "./utils";
 
   interface Props {
-    searchUIState: SearchUI;
+    searchState: SearchState;
     filterImportant: boolean;
     dropdownOpen: boolean;
     filterSelected: boolean;
   }
 
   let {
-    searchUIState = $bindable(null),
-    filterImportant = $bindable(false),
-    dropdownOpen = $bindable(false),
-    filterSelected = $bindable(false),
+    searchState = $bindable(),
+    filterImportant = $bindable(),
+    dropdownOpen = $bindable(),
+    filterSelected = $bindable(),
   }: Props = $props();
 
   async function toggleSearch() {
-    if (searchUIState === null) {
-      searchUIState = {
+    if (searchState === null) {
+      searchState = {
         ref: null,
         query: "",
         results: [],
@@ -48,16 +48,15 @@
       // Focus on search element after it's rendered
       await tick();
 
-      if (searchUIState.ref) {
-        searchUIState.ref.focus();
+      if (searchState.ref) {
+        searchState.ref.focus();
       }
     } else {
-      searchUIState = null;
+      searchState = null;
     }
   }
 
   function toggleFilterImportant() {
-    searchUIState = null;
     filterImportant = !filterImportant;
   }
 
@@ -73,7 +72,6 @@
   }
 
   function toggleFilterSelected() {
-    searchUIState = null;
     filterSelected = !filterSelected;
   }
 
