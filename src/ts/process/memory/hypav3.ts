@@ -60,25 +60,18 @@ interface HypaV3Data {
   };
 }
 
-export interface SerializableHypaV3Data {
-  summaries: {
-    text: string;
-    chatMemos: string[];
-    isImportant: boolean;
-  }[];
-  lastSelectedSummaries?: number[]; // legacy
-  metrics?: {
-    lastImportantSummaries: number[];
-    lastRecentSummaries: number[];
-    lastSimilarSummaries: number[];
-    lastRandomSummaries: number[];
-  };
+export interface SerializableHypaV3Data extends Omit<HypaV3Data, "summaries"> {
+  summaries: SerializableSummary[];
 }
 
 interface Summary {
   text: string;
   chatMemos: Set<string>;
   isImportant: boolean;
+}
+
+export interface SerializableSummary extends Omit<Summary, "chatMemos"> {
+  chatMemos: string[];
 }
 
 interface SummaryChunk {
