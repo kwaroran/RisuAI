@@ -5,6 +5,7 @@ import {
   type EmbeddingResult,
   HypaProcessorV2,
 } from "./hypamemoryv2";
+import { type DisplayMode as ModalDisplayMode } from "src/lib/Others/HypaV3Modal/types";
 import {
   type Chat,
   type character,
@@ -57,6 +58,8 @@ interface HypaV3Data {
     displayRangeFrom: number;
     displayRangeTo: number;
     displayRecentCount: number;
+    displayImportant: boolean;
+    displaySelected: boolean;
   };
 }
 
@@ -78,16 +81,6 @@ interface SummaryChunk {
   text: string;
   summary: Summary;
 }
-
-export const MODAL_DISPLAYMODE = {
-  All: "All",
-  Range: "Range",
-  Recent: "Recent",
-  Selected: "Selected",
-} as const;
-
-export type ModalDisplayMode =
-  (typeof MODAL_DISPLAYMODE)[keyof typeof MODAL_DISPLAYMODE];
 
 export interface HypaV3Result {
   currentTokens: number;
