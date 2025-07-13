@@ -317,5 +317,6 @@
     :global(.risu-ghost-item) {
         /* The placeholder for the drop location */
         background-color: rgba(var(--risu-theme-selected-rgb), 0.2);
+
     }
 </style>
