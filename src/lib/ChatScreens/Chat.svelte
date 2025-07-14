@@ -540,7 +540,7 @@
                     <Volume2Icon size={20}/>
                 </button>
             {/if}
-            <button class="ml-2 hover:text-yellow-400 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={toggleBookmark}>
+            <button class="ml-2 hover:text-yellow-500 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={toggleBookmark}>
                 <BookmarkIcon size={20}/>
             </button>
             {#if !$ConnectionOpenStore}
