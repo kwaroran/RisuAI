@@ -1,23 +1,19 @@
 <script lang="ts">
     import { XIcon, TrashIcon } from "lucide-svelte";
-    import type { character, groupChat } from "src/ts/storage/database.svelte";
     import Chat from "../ChatScreens/Chat.svelte";
     import { getCharImage } from "src/ts/characters";
     import { findCharacterbyId, getUserName, getUserIcon } from "src/ts/util";
-    import { createSimpleCharacter } from "src/ts/stores.svelte";
+    import { createSimpleCharacter, bookmarkListOpen, DBState, selectedCharID } from "src/ts/stores.svelte";
     import { language } from "src/lang";
 
-    interface Props {
-        chara: character | groupChat;
-        close: () => void;
-    }
+    const close = () => $bookmarkListOpen = false;
+    let chara = $derived(DBState.db.characters[$selectedCharID]);
 
-    let { chara, close }: Props = $props();
-
+    // 일반 채팅일 경우를 대비해 simpleChar를 미리 생성합니다.
     const simpleChar = $derived(createSimpleCharacter(chara));
 
     const bookmarkedMessages = $derived(
-        chara.chats[chara.chatPage].bookmarks
+        !chara ? [] : chara.chats[chara.chatPage].bookmarks
             ?.map(id => {
                 const message = chara.chats[chara.chatPage].message.find(m => m.chatId === id);
                 const index = chara.chats[chara.chatPage].message.findIndex(m => m.chatId === id);
@@ -36,8 +32,8 @@
     }
 </script>
 
-<div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center">
-    <div class="bg-darkbg p-4 rounded-md flex flex-col max-w-3xl w-full max-h-[80%] overflow-y-auto">
+<div class="fixed top-0 left-0 w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-darkbg p-4 rounded-md flex flex-col max-w-3xl w-full max-h-[90%] overflow-y-auto">
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="text-xl font-bold">{language.bookmarks}</h2>
             <button class="ml-auto text-textcolor2 hover:text-green-500" onclick={close}>

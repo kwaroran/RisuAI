@@ -18,9 +18,9 @@
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getModuleToggles } from "src/ts/process/modules";
+    import { bookmarkListOpen } from "src/ts/stores.svelte";
     import { language } from "src/lang";
-    import Toggles from "./Toggles.svelte";
-    import BookmarkList from "../Others/BookmarkList.svelte";
+  import Toggles from "./Toggles.svelte";
 
     interface Props {
         chara: character|groupChat;
@@ -28,7 +28,6 @@
 
     let { chara = $bindable() }: Props = $props();
     let editMode = $state(false)
-    let bookmarkListOpen = $state(false)
 
     let chatsStb: Sortable[] = []
     let folderStb: Sortable = null
@@ -482,7 +481,7 @@
                 <SplitIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
-                bookmarkListOpen = true;
+                $bookmarkListOpen = true;
             }}>
                 <BookmarkCheckIcon size={18}/>
             </button>
@@ -512,9 +511,5 @@
     <div class="flex mt-2 items-center">
         <CheckInput bind:check={chara.orderByOrder} name={language.orderByOrder}/>
     </div>
-    {/if}
-
-    {#if bookmarkListOpen}
-        <BookmarkList chara={chara} close={() => bookmarkListOpen = false} />
     {/if}
 </div>
