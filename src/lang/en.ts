@@ -1303,4 +1303,6 @@ export const languageEnglish = {
     dynamic: "Dynamic",
     assetStyle: "Asset Style",
     insertAssetPrompt: "Insert Asset Prompt",
+    bookmarks: "Bookmarks",
+    noBookmarks: "No Bookmarks",
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BotIcon, CopyIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "lucide-svelte"
+    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "lucide-svelte"
     import { getFileSrc } from "src/ts/globalApi.svelte"
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
@@ -192,6 +192,32 @@
                 return v
             })
         }
+    }
+
+    let isBookmarked = $derived(
+        DBState.db.characters[selIdState.selId]
+            ?.chats[DBState.db.characters[selIdState.selId].chatPage]
+            ?.bookmarks?.includes(DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.chatId) ?? false
+    );
+
+    function toggleBookmark() {
+        const chat = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage];
+        const messageId = chat.message[idx]?.chatId;
+
+        if (!messageId) return;
+
+        chat.bookmarks ??= [];
+
+        const bookmarkIndex = chat.bookmarks.indexOf(messageId);
+
+        if (bookmarkIndex > -1) {
+            chat.bookmarks.splice(bookmarkIndex, 1);
+        } else {
+            chat.bookmarks.push(messageId);
+        }
+
+        // Svelte 5의 반응성을 위해 배열을 재할당합니다.
+        chat.bookmarks = [...chat.bookmarks];
     }
 </script>
 
@@ -514,7 +540,9 @@
                     <Volume2Icon size={20}/>
                 </button>
             {/if}
-
+            <button class="ml-2 hover:text-yellow-400 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={toggleBookmark}>
+                <BookmarkIcon size={20}/>
+            </button>
             {#if !$ConnectionOpenStore}
                 <button class={"ml-2 hover:text-blue-500 transition-colors button-icon-edit "+(editMode?'text-blue-400':'')} onclick={() => {
                     if(!editMode){
