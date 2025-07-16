@@ -12,7 +12,7 @@
     import Button from "../UI/GUI/Button.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
 
-    import { exportChat, importChat } from "src/ts/characters";
+    import { exportChat, importChat, exportAllChats } from "src/ts/characters";
     import { alertChatOptions, alertConfirm, alertError, alertInput, alertNormal, alertSelect, alertStore } from "src/ts/alert";
     import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
@@ -461,6 +461,11 @@
 
     <div class="border-t border-selected mt-2">
         <div class="flex mt-2 ml-2 items-center">
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
+                exportAllChats()
+            }} title="모든 채팅 내보내기">
+                <DownloadIcon size={18}/>
+            </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 importChat()
             }}>
