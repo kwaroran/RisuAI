@@ -463,7 +463,7 @@
         <div class="flex mt-2 ml-2 items-center">
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 exportAllChats()
-            }} title="모든 채팅 내보내기">
+            }}>
                 <DownloadIcon size={18}/>
             </button>
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {

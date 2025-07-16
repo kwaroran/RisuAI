@@ -219,10 +219,15 @@ export async function exportChat(page:number){
         }
 
         if(mode === '0'){
+            let folders = []
+            if(chat.folderId) {
+                folders = db.characters[selectedID].chatFolders.filter(f => f.id === chat.folderId)
+            }
             const stringl = Buffer.from(JSON.stringify({
                 type: 'risuChat',
-                ver: 1,
-                data: chat
+                ver: 2,
+                data: chat,
+                folders: folders
             }), 'utf-8')
     
             await downloadFile(`${char.name}_${date}_chat`.replace(/[<>:"/\\|?*\.\,]/g, "") + '.json', stringl)
@@ -415,6 +420,32 @@ export async function importChat(){
         }
         else if(dat.name.endsWith('json')){
             const json = JSON.parse(Buffer.from(dat.data).toString('utf-8'))
+            if((json.type === 'risuAllChats' || json.type === 'risuChat') && json.ver === 2){
+                const folders = json.folders || []
+                const chats = Array.isArray(json.data) ? json.data : [json.data]
+                const selectedID = get(selectedCharID)
+                let db = getDatabase()
+                let folderIdMap = {}
+                folders.forEach(folder => {
+                    if(db.characters[selectedID].chatFolders.some(f => f.id === folder.id)){
+                        const newId = uuidv4()
+                        folderIdMap[folder.id] = newId
+                        folder.id = newId
+                    } else {
+                        folderIdMap[folder.id] = folder.id
+                    }
+                })
+                db.characters[selectedID].chatFolders.push(...folders)
+                chats.forEach(chat => {
+                    if(chat.folderId && folderIdMap[chat.folderId]){
+                        chat.folderId = folderIdMap[chat.folderId]
+                    }
+                })
+                db.characters[selectedID].chats.unshift(...chats)
+                setDatabase(db)
+                alertNormal(language.successImport)
+                return
+            }
             if(json.type === 'risuAllChats' && json.ver === 1){
                 const chats = json.data
                 if(Array.isArray(chats) && chats.length > 0){
@@ -471,10 +502,12 @@ export async function exportAllChats() {
         const char = db.characters[selectedID]
         const date = new Date().toISOString().replace(/[:.]/g, "-")
         const allChats = char.chats
+        const allFolders = char.chatFolders
         const stringl = Buffer.from(JSON.stringify({
             type: 'risuAllChats',
-            ver: 1,
-            data: allChats
+            ver: 2,
+            data: allChats,
+            folders: allFolders
         }), 'utf-8')
         await downloadFile(`${char.name}_all_chats_${date}`.replace(/[<>:"/\\|?*.,]/g, "") + '.json', stringl)
         alertNormal(language.successExport)
