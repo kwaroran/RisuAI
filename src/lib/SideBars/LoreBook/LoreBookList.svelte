@@ -73,6 +73,44 @@
         await new Promise(resolve => setTimeout(resolve, 10));
     }
     
+    // SortableJS recreation function
+    const recreateStb = async () => {
+        try {
+            stb.destroy()
+        } catch (error) {
+            // Ignore destroy failure (may already be removed)
+        }
+
+        // Svelte reactivity trigger - force re-render {#key} block by changing sorted value
+        sorted += 1
+
+        // Wait for DOM stabilization (dynamic measurement)
+        try {
+            await waitForDOMReady();
+        } catch (error) {
+            console.warn('DOM stabilization failed:', error);
+            // Fallback to short fixed wait
+            await sleep(100);
+        }
+        
+        // Reactivate drag function only when lorebook detail is not open
+        // (drag should be disabled when detail is open)
+        if (openedDetails === 0) {
+            try {
+                createStb(); // Create new SortableJS instance
+            } catch (error) {
+                console.error('Failed to recreate sortable:', error);
+                // Retry
+                await sleep(50);
+                try {
+                    createStb();
+                } catch (retryError) {
+                    console.error('Retry failed:', retryError);
+                }
+            }
+        }
+    }
+    
     const createStb = () => {
         stb = Sortable.create(ele, {
             ...sortableOptions,
@@ -88,16 +126,19 @@
                 // Basic condition check
                 if (!evt.from || !evt.to) {
                     alertError('Error: \'evt.from\' or \'evt.to\' is null');
+                    await recreateStb();
                     return;
                 }
                 
                 if (evt.oldIndex === undefined || evt.newIndex === undefined) {
                     alertError('Error: oldIndex or newIndex is undefined');
+                    await recreateStb();
                     return;
                 }
                 
                 // Cancel movement
                 if (evt.oldIndex === evt.newIndex && evt.from === evt.to) {
+                    await recreateStb();
                     return;
                 }
 
@@ -249,40 +290,8 @@
                 
                 // ===== Stage 5: Force UI synchronization and SortableJS reinitialization =====
                 // Remove existing SortableJS instance (prevent DOM inconsistency due to data change)
-                try {
-                    stb.destroy()
-                } catch (error) {
-                    // Ignore destroy failure (may already be removed)
-                }
-                
-                // Svelte reactivity trigger - force re-render {#key} block by changing sorted value
-                sorted += 1
+                await recreateStb()
 
-                // Wait for DOM stabilization (dynamic measurement)
-                try {
-                    await waitForDOMReady();
-                } catch (error) {
-                    console.warn('DOM stabilization failed:', error);
-                    // Fallback to short fixed wait
-                    await sleep(100);
-                }
-                
-                // Reactivate drag function only when lorebook detail is not open
-                // (drag should be disabled when detail is open)
-                if (openedDetails === 0) {
-                    try {
-                        createStb(); // Create new SortableJS instance
-                    } catch (error) {
-                        console.error('Failed to recreate sortable:', error);
-                        // Retry
-                        await sleep(50);
-                        try {
-                            createStb();
-                        } catch (retryError) {
-                            console.error('Retry failed:', retryError);
-                        }
-                    }
-                }
             }
         })
     }
