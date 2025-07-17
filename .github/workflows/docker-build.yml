@@ -34,11 +34,12 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
     
-      - name: Build Docker image
+      - name: Build Docker images
         shell: bash
         run: |
-          docker build -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA") .
-      - name: Push Docker image
+          docker build -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:latest .
+
+      - name: Push Docker images
         shell: bash
         run: |
-          docker push ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA")
+          docker push --all-tags ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai
