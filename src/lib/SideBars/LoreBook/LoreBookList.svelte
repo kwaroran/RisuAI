@@ -380,7 +380,25 @@
                             }
                             
                             let lore = externalLoreBooks
-                            lore.splice(i, 1)
+                            
+                            // When deleting a folder, also delete all items that belong to that folder
+                            if (book.mode === 'folder') {
+                                // Close items belonging to the folder if they are open
+                                lore.forEach(item => {
+                                    if (item.folder === book.key && openedRefs.has(item)) {
+                                        onClose(true, item)
+                                    }
+                                })
+                                
+                                // Filter out the folder and all items belonging to it
+                                lore = lore.filter(item => 
+                                    item !== book && item.folder !== book.key
+                                )
+                            } else {
+                                // Delete regular item
+                                lore.splice(i, 1)
+                            }
+                            
                             externalLoreBooks = lore
                         }} 
                         onOpen={(isDetail = true) => onOpen(isDetail, book)}
@@ -413,7 +431,25 @@
                             }
                             
                             let lore  = DBState.db.characters[$selectedCharID].globalLore
-                            lore.splice(i, 1)
+                            
+                            // When deleting a folder, also delete all items that belong to that folder
+                            if (book.mode === 'folder') {
+                                // Close items belonging to the folder if they are open
+                                lore.forEach(item => {
+                                    if (item.folder === book.key && openedRefs.has(item)) {
+                                        onClose(true, item)
+                                    }
+                                })
+                                
+                                // Filter out the folder and all items belonging to it
+                                lore = lore.filter(item => 
+                                    item !== book && item.folder !== book.key
+                                )
+                            } else {
+                                // Delete regular item
+                                lore.splice(i, 1)
+                            }
+                            
                             DBState.db.characters[$selectedCharID].globalLore = lore
                         }} 
                         onOpen={(isDetail = true) => onOpen(isDetail, book)}
@@ -446,7 +482,25 @@
                             }
                             
                             let lore  = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore
-                            lore.splice(i, 1)
+                            
+                            // When deleting a folder, also delete all items that belong to that folder
+                            if (book.mode === 'folder') {
+                                // Close items belonging to the folder if they are open
+                                lore.forEach(item => {
+                                    if (item.folder === book.key && openedRefs.has(item)) {
+                                        onClose(true, item)
+                                    }
+                                })
+                                
+                                // Filter out the folder and all items belonging to it
+                                lore = lore.filter(item => 
+                                    item !== book && item.folder !== book.key
+                                )
+                            } else {
+                                // Delete regular item
+                                lore.splice(i, 1)
+                            }
+                            
                             DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].localLore = lore
                         }} 
                         onOpen={(isDetail = true) => onOpen(isDetail, book)}
