@@ -37,9 +37,11 @@ jobs:
       - name: Build Docker images
         shell: bash
         run: |
-          docker build -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai:latest .
+          GITHUB_REPOSITORY_OWNER_SMALLCASE=$(echo $GITHUB_REPOSITORY_OWNER | tr '[:upper:]' '[:lower:]')
+          echo "GITHUB_REPOSITORY_OWNER_SMALLCASE=$GITHUB_REPOSITORY_OWNER_SMALLCASE" >> $GITHUB_ENV
+          docker build -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:latest .
 
       - name: Push Docker images
         shell: bash
         run: |
-          docker push --all-tags ghcr.io/$(echo $GITHUB_REPOSITORY_OWNER)/risuai
+          docker push --all-tags ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai
