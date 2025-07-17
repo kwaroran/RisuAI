@@ -1562,6 +1562,7 @@ export interface Chat{
     folderId?:string
     lastDate?:number
     bookmarks?: string[];
+    bookmarkNames?: { [chatId: string]: string };
 }
 
 export interface ChatFolder{

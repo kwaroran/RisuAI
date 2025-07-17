@@ -1305,4 +1305,8 @@ export const languageEnglish = {
     insertAssetPrompt: "Insert Asset Prompt",
     bookmarks: "Bookmarks",
     noBookmarks: "No Bookmarks",
+    bookmarkAskNameOrDefault: "Enter bookmark name. If not entered, it will be automatically assigned.",
+    bookmarkAskNameOrCancel: "Enter bookmark name. If not entered, rename will be canceled.",
+    collapseAll: "Collapse All",
+    expandAll: "Expand All",
 }
