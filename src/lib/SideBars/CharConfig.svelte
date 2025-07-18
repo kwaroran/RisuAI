@@ -4,7 +4,7 @@
     import { saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID, hypaV3ModalOpen } from "../../ts/stores.svelte";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, HardDriveUploadIcon, Share2Icon, ImageIcon, ImageOffIcon } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, HardDriveUploadIcon, Share2Icon, ImageIcon, ImageOffIcon, ArrowUp, ArrowDown } from 'lucide-svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
@@ -189,6 +189,28 @@
         } catch (error) {
             console.error('Error fetching fish speech models:', error);
             fishSpeechModels = [];
+        }
+    }
+
+    function moveAlternateGreetingUp(index: number) {
+        if(index === 0) return
+        if(DBState.db.characters[$selectedCharID].type === 'character'){
+            let alternateGreetings = DBState.db.characters[$selectedCharID].alternateGreetings
+            let temp = alternateGreetings[index]
+            alternateGreetings[index] = alternateGreetings[index - 1]
+            alternateGreetings[index - 1] = temp
+            DBState.db.characters[$selectedCharID].alternateGreetings = alternateGreetings
+        }
+    }
+
+    function moveAlternateGreetingDown(index: number) {
+        if(index === DBState.db.characters[$selectedCharID].alternateGreetings.length - 1) return
+        if(DBState.db.characters[$selectedCharID].type === 'character'){
+            let alternateGreetings = DBState.db.characters[$selectedCharID].alternateGreetings
+            let temp = alternateGreetings[index]
+            alternateGreetings[index] = alternateGreetings[index + 1]
+            alternateGreetings[index + 1] = temp
+            DBState.db.characters[$selectedCharID].alternateGreetings = alternateGreetings
         }
     }
 
@@ -1082,7 +1104,7 @@
                 <tbody>
                 <tr>
                     <th class="font-medium">{language.value}</th>
-                    <th class="font-medium cursor-pointer w-10">
+                    <th class="font-medium cursor-pointer w-8">
                         <button class="hover:text-green-500" onclick={() => {
                             if(DBState.db.characters[$selectedCharID].type === 'character'){
                                 let alternateGreetings = DBState.db.characters[$selectedCharID].alternateGreetings
@@ -1104,17 +1126,25 @@
                         <td class="font-medium truncate">
                             <TextAreaInput highlight bind:value={DBState.db.characters[$selectedCharID].alternateGreetings[i]} placeholder="..." fullwidth />
                         </td>
-                        <th class="font-medium cursor-pointer w-10">
-                            <button class="hover:text-green-500" onclick={() => {
-                                if(DBState.db.characters[$selectedCharID].type === 'character'){
-                                    DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex = -1
-                                    let alternateGreetings = DBState.db.characters[$selectedCharID].alternateGreetings
-                                    alternateGreetings.splice(i, 1)
-                                    DBState.db.characters[$selectedCharID].alternateGreetings = alternateGreetings
-                                }
-                            }}>
-                                <TrashIcon />
-                            </button>
+                        <th class="font-medium cursor-pointer w-8">
+                            <div class="flex flex-col items-center">
+                                <button class="hover:text-blue-500 p-1" onclick={() => moveAlternateGreetingUp(i)} disabled={i === 0}>
+                                    <ArrowUp size={16} />
+                                </button>
+                                <button class="hover:text-blue-500 p-1" onclick={() => moveAlternateGreetingDown(i)} disabled={i === DBState.db.characters[$selectedCharID].alternateGreetings.length - 1}>
+                                    <ArrowDown size={16} />
+                                </button>
+                                <button class="hover:text-red-500 p-1" onclick={() => {
+                                    if(DBState.db.characters[$selectedCharID].type === 'character'){
+                                        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex = -1
+                                        let alternateGreetings = DBState.db.characters[$selectedCharID].alternateGreetings
+                                        alternateGreetings.splice(i, 1)
+                                        DBState.db.characters[$selectedCharID].alternateGreetings = alternateGreetings
+                                    }
+                                }}>
+                                    <TrashIcon size={16} />
+                                </button>
+                            </div>
                         </th>
                     </tr>
                 {/each}
