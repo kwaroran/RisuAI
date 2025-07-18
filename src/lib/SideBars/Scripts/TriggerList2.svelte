@@ -155,6 +155,10 @@
     let contextMenuLoc = $state({x: 0, y: 0, style: ''})
     let menu0Container = $state<HTMLDivElement>(null)
     let menu0ScrollPosition = $state(0)
+    let triggerScrollRef = $state<HTMLDivElement>(null)
+    let triggerScrollPosition = $state(0)
+    let selectedTriggerIndex = $state(0)
+    let selectedEffectIndexSaved = $state(-1)
     let effectElements = $state<HTMLButtonElement[]>([])
     let guideLineKey = $state(0)
     let selectedCategory = $state('Control')
@@ -175,16 +179,61 @@
             addElse = false
             if(menu0Container) {
                 setTimeout(() => {
-                    menu0Container.scrollTop = menu0ScrollPosition
+                    if(menu0Container) {
+                        menu0Container.scrollTop = menu0ScrollPosition
+                    }
                 }, 0)
+            }
+            if(triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
+                setTimeout(() => {
+                    if(triggerScrollRef && triggerScrollRef.scrollTop !== null && triggerScrollRef.scrollTop !== undefined) {
+                        try {
+                            triggerScrollRef.scrollTop = triggerScrollPosition || 0
+                        } catch(e) {
+                            console.warn('Failed to set triggerScrollRef.scrollTop:', e)
+                        }
+                    }
+                }, 10)
+            }
+            if(selectedTriggerIndex > 0) {
+                setTimeout(() => {
+                    try {
+                        if(value && value.length > 0) {
+                            const validIndex = selectedTriggerIndex < value.length ? selectedTriggerIndex : 1
+                            selectedIndex = validIndex
+                            if(selectedEffectIndexSaved >= 0 && value[validIndex]?.effect && selectedEffectIndexSaved < value[validIndex].effect.length) {
+                                selectedEffectIndex = selectedEffectIndexSaved
+                            }
+                        }
+                    } catch(e) {
+                        console.warn('Failed to restore trigger selection:', e)
+                    }
+                }, 10)
             }
         } else if(menuMode === 1 || menuMode === 2 || menuMode === 3) {
             if(menu0Container) {
                 menu0ScrollPosition = menu0Container.scrollTop
             }
+            if(triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
+                try {
+                    triggerScrollPosition = triggerScrollRef.scrollTop
+                } catch(e) {
+                    console.warn('Failed to get triggerScrollRef.scrollTop:', e)
+                }
+            }
             clearTriggerSelection()
         }
     })
+
+    function handleTriggerScroll() {
+        if(triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
+            try {
+                triggerScrollPosition = triggerScrollRef.scrollTop
+            } catch(e) {
+                console.warn('Failed to handle trigger scroll:', e)
+            }
+        }
+    }
 
     $effect(() => {
         if(menuMode === 0 && selectedIndex > 0) {
@@ -232,6 +281,8 @@
 
     const close = () => {
         selectedIndex = 0;
+        selectedTriggerIndex = 0;
+        selectedEffectIndexSaved = -1;
     }
 
     const isMultipleSelected = () => {
@@ -269,6 +320,7 @@
             selectedTriggerIndices = [index]
             lastSelectedTriggerIndex = index
             selectedIndex = index
+            selectedTriggerIndex = index
         }
         selectMode = 0
     }
@@ -1435,6 +1487,10 @@
                 close()
             }
             else{
+                if(selectedIndex > 0) {
+                    selectedTriggerIndex = selectedIndex;
+                    selectedEffectIndexSaved = selectedEffectIndex;
+                }
                 menuMode = 0
             }
         }
@@ -1658,6 +1714,7 @@
         selectedIndex = 1
         selectedTriggerIndices = [1]
         lastSelectedTriggerIndex = 1
+        selectedTriggerIndex = 1
     }}>
         {language.edit}
     </Button>
@@ -1729,6 +1786,10 @@
                                 addElse = hasExistingElse
                             }
                             
+                            if(selectedIndex > 0) {
+                                selectedTriggerIndex = selectedIndex;
+                                selectedEffectIndexSaved = selectedEffectIndex;
+                            }
                             menuMode = 3
                             contextMenu = false
                         }}>
@@ -1804,7 +1865,7 @@
         >
             {#if menuMode === 0}
                 <div class="pr-2 md:w-96 flex flex-col md:h-full mt-2 md:mt-0">
-                    <div class="flex-1 flex flex-col overflow-y-auto">
+                    <div class="flex-1 flex flex-col overflow-y-auto" bind:this={triggerScrollRef} onscroll={handleTriggerScroll}>
                         {#each value as trigger, i}
                             {#if i === 0}
                                 <!-- Header, skip the first trigger -->
@@ -1895,7 +1956,10 @@
                             <PlusIcon />
                         </button>
                     </div>
-                    <Button className="mt-2" onclick={close}>Close</Button>
+                    <Button className="mt-2" onclick={(e) => {
+                        e?.stopPropagation();
+                        close();
+                    }}>Close</Button>
                 </div>
 
                 <div class="md:flex-1 bg-darkbg flex-col flex h-svh min-h-svh md:h-auto md:min-h-0">
@@ -1975,6 +2039,10 @@
                                 bind:this={effectElements[i]}
                                 onclick={() => {
                                     if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
+                                        if(selectedIndex > 0) {
+                                            selectedTriggerIndex = selectedIndex;
+                                            selectedEffectIndexSaved = selectedEffectIndex;
+                                        }
                                         menuMode = 1
                                     }
 
@@ -1995,6 +2063,10 @@
                             //add effect
                             if(lastClickTime + 500 > Date.now()){
                                 selectedEffectIndex = -1
+                                if(selectedIndex > 0) {
+                                    selectedTriggerIndex = selectedIndex;
+                                    selectedEffectIndexSaved = selectedEffectIndex;
+                                }
                                 menuMode = 1
                             }
                             lastClickTime = Date.now()
@@ -2008,6 +2080,10 @@
                     <div class="w-full md:w-48 border-b md:border-b-0 md:border-r border-darkborderc flex flex-col">
                         <div class="p-4 border-b border-darkborderc flex items-center min-h-16">
                             <button class="border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                                if(selectedIndex > 0) {
+                                    selectedTriggerIndex = selectedIndex;
+                                    selectedEffectIndexSaved = selectedEffectIndex;
+                                }
                                 menuMode = 0
                             }}>
                                 <ArrowLeftIcon />
@@ -2058,6 +2134,10 @@
                                     onclick={(e) => {
                                         e.stopPropagation()
                                         makeDefaultEditType(type)
+                                        if(selectedIndex > 0) {
+                                            selectedTriggerIndex = selectedIndex;
+                                            selectedEffectIndexSaved = selectedEffectIndex;
+                                        }
                                         menuMode = 2
                                     }}
                                 >
@@ -2081,6 +2161,10 @@
                 <div class="flex-1 flex-col flex overflow-y-auto">
                     <div class="flex items-center gap-2 mb-4">
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor" onclick={() => {
+                            if(menuMode === 3 && selectedIndex > 0) {
+                                selectedTriggerIndex = selectedIndex;
+                                selectedEffectIndexSaved = selectedEffectIndex;
+                            }
                             menuMode = menuMode === 2 ? 1 : 0
                         }}>
                             <ArrowLeftIcon />
@@ -3207,6 +3291,10 @@
                         else{
                             value[selectedIndex].effect[selectedEffectIndex] = editTrigger
                         }
+                        if(selectedIndex > 0) {
+                            selectedTriggerIndex = selectedIndex;
+                            selectedEffectIndexSaved = selectedEffectIndex;
+                        }
                         menuMode = 0
                         updateGuideLines()
                     }}>Save</Button>
@@ -3215,6 +3303,10 @@
                         <Button className="mt-2" onclick={() => {
                             deleteEffect()
                             selectedEffectIndex = -1
+                            if(selectedIndex > 0) {
+                                selectedTriggerIndex = selectedIndex;
+                                selectedEffectIndexSaved = selectedEffectIndex;
+                            }
                             menuMode = 0
                         }}>Delete</Button>
                     {/if}
