@@ -90,16 +90,17 @@
         <BaseRoundedButton
             onClick={async () => {
                 const sel = parseInt(await alertSelect([language.createfromScratch, language.importCharacter]))
-                if(sel === 1){
-                    return
+                if(sel === 0){
+                    DBState.db.personas.push({
+                        name: 'New Persona',
+                        icon: '',
+                        personaPrompt: '',
+                        note: ''
+                    })
+                    changeUserPersona(DBState.db.personas.length - 1)
+                } else if(sel === 1){
+                    await importUserPersona()
                 }
-                DBState.db.personas.push({
-                    name: 'New Persona',
-                    icon: '',
-                    personaPrompt: '',
-                    note: ''
-                })
-                changeUserPersona(DBState.db.personas.length - 1)
             }}
             ><svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
                 ><path
