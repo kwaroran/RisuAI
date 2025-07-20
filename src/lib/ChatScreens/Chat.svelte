@@ -43,6 +43,8 @@
         character?: simpleCharacterArgument|string|null;
         firstMessage?: boolean;
         altGreeting?: boolean;
+        currentPage?: number;
+        totalPages?: number;
     }
 
     let {
@@ -60,7 +62,9 @@
         unReroll = () => {},
         character = null,
         firstMessage = false,
-        altGreeting = false
+        altGreeting = false,
+        currentPage = 1,
+        totalPages = 1
     }: Props = $props();
 
     let msgDisplay = $state('')
@@ -545,6 +549,9 @@
                 <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={unReroll}>
                     <ArrowLeft size={22}/>
                 </button>
+                {#if firstMessage && DBState.db.swipe}
+                    <span class="ml-2 text-xs text-textcolor2">{currentPage}/{totalPages}</span>
+                {/if}
                 <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={onReroll}>
                     <ArrowRight size={22}/>
                 </button>
