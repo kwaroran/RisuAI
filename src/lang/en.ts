@@ -710,6 +710,7 @@ export const languageEnglish = {
     SuperMemory:"SupaMemory",
     useExperimental: "Able Experimental Features",
     showMemoryLimit: "Show Memory Limit",
+    showFirstMessagePages: "Show First Message Pages",
     roundIcons: "Round Icons",
     streaming: "Streaming",
     chatBot:'Chat Bot',

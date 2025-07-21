@@ -549,7 +549,7 @@
                 <button class="ml-2 hover:text-blue-500 transition-colors button-icon-unreroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={unReroll}>
                     <ArrowLeft size={22}/>
                 </button>
-                {#if firstMessage && DBState.db.swipe}
+                {#if firstMessage && DBState.db.swipe && DBState.db.showFirstMessagePages}
                     <span class="ml-2 text-xs text-textcolor2">{currentPage}/{totalPages}</span>
                 {/if}
                 <button class="ml-2 hover:text-blue-500 transition-colors button-icon-reroll" class:dyna-icon={rerollIcon === 'dynamic'} onclick={onReroll}>
