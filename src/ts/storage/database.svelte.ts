@@ -570,7 +570,7 @@ export function setDatabase(data:Database){
     data.authRefreshes ??= []
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
-    data.streamGeminiThinking ??= false
+    data.streamGeminiThoughts ??= false
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -1057,7 +1057,7 @@ export interface Database{
     claude1HourCaching:boolean
     rememberToolUsage:boolean
     simplifiedToolUse:boolean
-    streamGeminiThinking:boolean
+    streamGeminiThoughts:boolean
 }
 
 interface SeparateParameters{

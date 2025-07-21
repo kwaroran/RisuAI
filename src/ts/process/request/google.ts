@@ -1098,7 +1098,7 @@ function wrapToolStream(
                 
                 lastValue = value
 
-                if(db.streamGeminiThinking)
+                if(db.streamGeminiThoughts)
                     controller.enqueue({
                         "0": (prefix ? prefix + '\n\n' : '')
                             + (thoughts ? `<Thoughts>\n\n${thoughts}\n\n</Thoughts>\n\n` : '')

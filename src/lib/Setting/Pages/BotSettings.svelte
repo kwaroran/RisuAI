@@ -244,7 +244,7 @@
             <Check bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`}/>
             
             {#if DBState.db.useStreaming && (modelInfo.flags.includes(LLMFlags.geminiThinking) || subModelInfo.flags.includes(LLMFlags.geminiThinking))}
-                <Check bind:check={DBState.db.streamGeminiThinking} name={`Stream Gemini Thinking`}/>
+                <Check bind:check={DBState.db.streamGeminiThoughts} name={`Stream Gemini Thoughts`}/>
             {/if}
         {/if}
 
