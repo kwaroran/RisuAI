@@ -162,6 +162,7 @@
     let effectElements = $state<HTMLButtonElement[]>([])
     let guideLineKey = $state(0)
     let selectedCategory = $state('Control')
+    let isMobile = $state(false)
 
 
     type VirtualClipboard = {
@@ -1675,6 +1676,14 @@
 
 
     onMount(() => {
+        // 모바일 감지
+        const checkMobile = () => {
+            isMobile = window.innerWidth < 768
+        }
+        
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        
         window.addEventListener('keydown', handleKeydown);
         window.addEventListener('resize', updateGuideLines);
         
@@ -1694,6 +1703,7 @@
         document.addEventListener('contextmenu', handleGlobalContextMenu, true);
         
         return () => {
+            window.removeEventListener('resize', checkMobile)
             document.removeEventListener('click', handleGlobalClick, true);
             document.removeEventListener('contextmenu', handleGlobalContextMenu, true);
         }
@@ -1870,31 +1880,44 @@
                             {#if i === 0}
                                 <!-- Header, skip the first trigger -->
                             {:else}
-                                <div class="w-full h-1 min-h-1 transition-colors duration-200 hover:bg-gray-600" 
-                                    role="listitem"
-                                    ondragover={(e) => {
-                                        e.preventDefault()
-                                        e.currentTarget.classList.add('bg-gray-600')
-                                    }} 
-                                    ondragleave={(e) => {
-                                        e.currentTarget.classList.remove('bg-gray-600')
-                                    }} 
-                                    ondrop={(e) => {
-                                        e.currentTarget.classList.remove('bg-gray-600')
-                                        handleTriggerDrop(i, e)
-                                    }}>
-                                </div>
+                                                        <div class="w-full h-1 min-h-1 transition-colors duration-200" 
+                            class:hover:bg-gray-600={!isMobile}
+                            role="listitem"
+                            ondragover={(e) => {
+                                if (!isMobile) {
+                                    e.preventDefault()
+                                    e.currentTarget.classList.add('bg-gray-600')
+                                }
+                            }} 
+                            ondragleave={(e) => {
+                                if (!isMobile) {
+                                    e.currentTarget.classList.remove('bg-gray-600')
+                                }
+                            }} 
+                            ondrop={(e) => {
+                                if (!isMobile) {
+                                    e.currentTarget.classList.remove('bg-gray-600')
+                                    handleTriggerDrop(i, e)
+                                }
+                            }}>
+                        </div>
                                 
                                 <button
-                                    class="p-2 text-start hover:cursor-grab active:cursor-grabbing trigger-item select-none"
+                                    class="p-2 text-start trigger-item select-none"
+                                    class:hover:cursor-grab={!isMobile}
+                                    class:active:cursor-grabbing={!isMobile}
                                     class:text-textcolor2={!isTriggerSelected(i) && selectedIndex !== i}
                                     class:text-textcolor={isTriggerSelected(i) || selectedIndex === i}
                                     class:hover:text-textcolor={!isTriggerSelected(i) && selectedIndex !== i}
                                     class:bg-darkbg={selectedIndex === i && !isMultipleSelected()}
                                     class:bg-selected={isTriggerSelected(i)}
                                     style="user-select: none;"
-                                    draggable="true"
+                                    draggable={!isMobile}
                                     ondragstart={(e) => {
+                                        if (isMobile) {
+                                            e.preventDefault()
+                                            return
+                                        }
                                         e.dataTransfer?.setData('text', 'trigger')
                                         e.dataTransfer?.setData('triggerIndex', i.toString())
                                         
@@ -1913,33 +1936,47 @@
                                         }, 0)
                                     }}
                                     ondragover={(e) => {
-                                        e.preventDefault()
+                                        if (!isMobile) {
+                                            e.preventDefault()
+                                        }
                                     }}
                                     ondrop={(e) => {
-                                        handleTriggerDrop(i, e)
+                                        if (!isMobile) {
+                                            handleTriggerDrop(i, e)
+                                        }
                                     }}
                                     onclick={(event) => {
                                         handleTriggerClick(i, event)
                                     }}
-                                    oncontextmenu={(e) => handleContextMenu(e, 0, i)}
+                                    oncontextmenu={(e) => {
+                                        e.preventDefault()
+                                        handleContextMenu(e, 0, i)
+                                    }}
                                 >
                                     {trigger?.comment || 'Unnamed Trigger'}
                                 </button>
                             {/if}
                         {/each}
                         
-                        <div class="w-full h-1 min-h-1 transition-colors duration-200 hover:bg-gray-600" 
+                        <div class="w-full h-1 min-h-1 transition-colors duration-200" 
+                            class:hover:bg-gray-600={!isMobile}
                             role="listitem"
                             ondragover={(e) => {
-                                e.preventDefault()
-                                e.currentTarget.classList.add('bg-gray-600')
+                                if (!isMobile) {
+                                    e.preventDefault()
+                                    e.currentTarget.classList.add('bg-gray-600')
+                                }
                             }} 
                             ondragleave={(e) => {
-                                e.currentTarget.classList.remove('bg-gray-600')
+                                if (!isMobile) {
+                                    e.currentTarget.classList.remove('bg-gray-600')
+                                }
                             }} 
                             ondrop={(e) => {
-                                e.currentTarget.classList.remove('bg-gray-600')
-                                handleTriggerDrop(value.length, e)
+                                if (!isMobile) {
+                                    e.currentTarget.classList.remove('bg-gray-600')
+                                    handleTriggerDrop(value.length, e)
+                                }
                             }}>
                         </div>
                     </div>
