@@ -478,10 +478,19 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     }    
     
     let url = ''
+    let apiKey = arg.key || db.google.accessToken
     
     if(arg.customURL){
-        const u = new URL(arg.customURL)
-        u.searchParams.set('key', db.proxyKey)
+        let baseURL = arg.customURL
+        if (!baseURL.endsWith('/')) {
+            baseURL += '/'
+        }
+        const endpoint = arg.useStreaming ? 'streamGenerateContent' : 'generateContent'
+        const u = new URL(`models/${arg.modelInfo.internalID}:${endpoint}`, baseURL)
+        u.searchParams.set('key', apiKey)
+        if (arg.useStreaming) {
+            u.searchParams.set('alt', 'sse')
+        }
         url = u.toString()
     }
     else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
@@ -492,10 +501,10 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         
         }
     else if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){
-        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${db.google.accessToken}&alt=sse`
+        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:streamGenerateContent?key=${apiKey}&alt=sse`
     }
     else{
-        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${db.google.accessToken}`
+        url = `https://generativelanguage.googleapis.com/v1beta/models/${arg.modelInfo.internalID}:generateContent?key=${apiKey}`
     }
     // will return error if functionDeclarations is empty
     if(body.tools?.functionDeclarations?.length === 0){
