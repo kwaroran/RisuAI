@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PlusIcon, XIcon, ArrowLeftIcon } from "lucide-svelte";
+    import { PlusIcon, XIcon, ArrowLeftIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
@@ -299,6 +299,45 @@
     const clearTriggerSelection = () => {
         selectedTriggerIndices = []
         lastSelectedTriggerIndex = -1
+    }
+
+    const importTriggers = () => {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = '.json'
+        input.onchange = async (event) => {
+            const file = (event.target as HTMLInputElement)?.files?.[0]
+            if (!file) return
+            
+            try {
+                const text = await file.text()
+                const importedTriggers = JSON.parse(text)
+                
+                if (!Array.isArray(importedTriggers)) {
+                    return
+                }
+                
+                for (const trigger of importedTriggers) {
+                    if (!trigger.hasOwnProperty('comment') || 
+                        !trigger.hasOwnProperty('type') ||
+                        !trigger.hasOwnProperty('conditions') ||
+                        !trigger.hasOwnProperty('effect') ||
+                        !Array.isArray(trigger.conditions) ||
+                        !Array.isArray(trigger.effect)) {
+                        return
+                    }
+                }
+                
+                for (const trigger of importedTriggers) {
+                    value.push(trigger)
+                }
+                
+            } catch (error) {
+                console.error('Import error:', error)
+            }
+        }
+        
+        input.click()
     }
 
     const selectTriggerRange = (startIndex: number, endIndex: number) => {
@@ -2011,7 +2050,7 @@
                             }}>
                         </div>
                     </div>
-                    <div>
+                    <div class="flex gap-2">
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
                             value.push({
                                 comment: "",
@@ -2022,6 +2061,29 @@
                             selectedIndex = value.length - 1
                         }}>
                             <PlusIcon />
+                        </button>
+                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
+                            const triggersToExport = value.slice(1); // 첫 번째 헤더 제외
+                            const jsonData = JSON.stringify(triggersToExport, null, 2);
+                            
+                            const blob = new Blob([jsonData], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+                            
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `triggers-${new Date().getTime()}.json`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            
+                            URL.revokeObjectURL(url);
+                        }}>
+                            <DownloadIcon />
+                        </button>
+                        <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
+                            importTriggers()
+                        }}>
+                            <UploadIcon />
                         </button>
                     </div>
                     <Button className="mt-2" onclick={(e) => {
@@ -2258,7 +2320,7 @@
                             <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
                             <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
                         </SelectInput>
-                        <TextInput bind:value={editTrigger.value} />
+                        <TextAreaInput highlight bind:value={editTrigger.value} />
                     {:else if editTrigger.type === 'v2If' || editTrigger.type === 'v2IfAdvanced'}
                         
                         <span class="block text-textcolor">{editTrigger.type === 'v2If' ? language.triggerInputLabels.varName : 'A'}</span>
