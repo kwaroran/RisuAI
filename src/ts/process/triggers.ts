@@ -44,7 +44,8 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2CreateLorebook|triggerV2ModifyLorebookByIndex|triggerV2DeleteLorebookByIndex|triggerV2GetLorebookCountNew|triggerV2SetLorebookAlwaysActive|
                                 triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest|triggerV2GetReplaceGlobalNote|triggerV2SetReplaceGlobalNote|
                                 triggerV2GetAuthorNote|triggerV2SetAuthorNote|triggerV2MakeDictVar|triggerV2GetDictVar|triggerV2SetDictVar|triggerV2DeleteDictKey|
-                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues|triggerV2Calculate|triggerV2ReplaceString|triggerV2Comment
+                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues|triggerV2Calculate|triggerV2ReplaceString|triggerV2Comment|
+                                triggerV2DeclareLocalVar
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -969,6 +970,14 @@ export type triggerV2Comment = {
     indent: number
 }
 
+export type triggerV2DeclareLocalVar = {
+    type: 'v2DeclareLocalVar',
+    var: string,
+    value: string,
+    valueType: 'var'|'value',
+    indent: number
+}
+
 const safeSubset = [
     'v2SetVar',
     'v2If',
@@ -1003,7 +1012,8 @@ const safeSubset = [
     'v2GetIndexOfValueInArrayVar',
     'v2RemoveIndexFromArrayVar',
     'v2Calculate',
-    'v2Comment'
+    'v2Comment',
+    'v2DeclareLocalVar'
 ]
 
 export const displayAllowList = [
@@ -1055,8 +1065,72 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     }
 
     let tempVars:Record<string, string> = arg.tempVars ?? {}
+    
+    let localVarScopes: Record<number, Record<string, string>>[] = [{}]
+    let currentIndent = 0
+    
+
+    function getLocalVar(key: string): string | null {
+        if (!localVarScopes || localVarScopes.length === 0) {
+            return null
+        }
+        const currentScope = localVarScopes[localVarScopes.length - 1]
+        if (!currentScope) {
+            return null
+        }
+        for (let indent = currentIndent; indent >= 0; indent--) {
+            if (currentScope[indent] && currentScope[indent][key] !== undefined) {
+                const value = currentScope[indent][key]
+                return value
+            }
+        }
+        return null
+    }
+    
+    function setLocalVar(key: string, value: string, indent: number) {
+        if (!localVarScopes || localVarScopes.length === 0) {
+            localVarScopes = [{}]
+        }
+        const currentScope = localVarScopes[localVarScopes.length - 1]
+        if (!currentScope) {
+            return
+        }
+        if (!currentScope[indent]) {
+            currentScope[indent] = {}
+        }
+        const finalValue = (value === null || value === undefined) ? 'null' : value
+        currentScope[indent][key] = finalValue
+    }
+    
+    function declareLocalVar(key: string, value: string, indent: number) {
+        setLocalVar(key, value, indent)
+    }
+    
+    function clearLocalVarsAtIndent(indent: number) {
+        if (!localVarScopes || localVarScopes.length === 0) {
+            return
+        }
+        const currentScope = localVarScopes[localVarScopes.length - 1]
+        if (!currentScope) {
+            return
+        }
+        const indentsToDelete: string[] = []
+        for (const scopeIndent in currentScope) {
+            if (Number(scopeIndent) >= indent) {
+                indentsToDelete.push(scopeIndent)
+            }
+        }
+        indentsToDelete.forEach(indentKey => {
+            delete currentScope[indentKey]
+        })
+    }
 
     function getVar(key:string){
+        const localVar = getLocalVar(key)
+        if(localVar !== null){
+            return localVar
+        }
+        
         const state = chat.scriptstate?.['$' + key]
         if(state === undefined || state === null){
             const findResult = defaultVariables.find((f) => {
@@ -1194,6 +1268,13 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
             if(mode === 'request' && !requestAllowList.includes(effect.type)){
                 continue
             }
+            
+            if(effect && 'indent' in effect && typeof effect.indent === 'number' && effect.indent >= 0){
+                currentIndent = effect.indent
+            } else if(!effect || !('indent' in effect)) {
+                currentIndent = 0
+            }
+            
             switch(effect.type){
                 case'setvar': {
                     const effectValue = risuChatParser(effect.value,{chara:char})
@@ -1466,6 +1547,13 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     setVar(varKey, resultValue)
                     break
                 }
+                case 'v2DeclareLocalVar':{
+                    const effectValue = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
+                    const varKey = risuChatParser(effect.var,{chara:char})
+                    const finalValue = (effectValue === null || effectValue === undefined) ? 'null' : effectValue
+                    declareLocalVar(varKey, finalValue, effect.indent)
+                    break
+                }
                 case 'v2If':
                 case 'v2IfAdvanced':{
                     const sourceValue = (effect.type === 'v2If' || effect.sourceType === 'var') ? getVar(risuChatParser(effect.source,{chara:char})) : risuChatParser(effect.source,{chara:char})
@@ -1625,6 +1713,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                             tempVars['loopTimes'] = 0
                         }
                     }
+                    
+                    clearLocalVarsAtIndent(effect.indent)
+                    
                     break
                 }
                 case 'v2Loop':
