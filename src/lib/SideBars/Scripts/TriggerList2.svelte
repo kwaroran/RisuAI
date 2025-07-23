@@ -2040,7 +2040,7 @@
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
                             value.push({
                                 comment: "",
-                                type: "start",
+                                type: "manual",
                                 conditions: [],
                                 effect: []
                             })
