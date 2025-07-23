@@ -1071,35 +1071,65 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     
 
     function getLocalVar(key: string): string | null {
-        if (!localVarScopes || localVarScopes.length === 0) {
-            return null
-        }
-        const currentScope = localVarScopes[localVarScopes.length - 1]
-        if (!currentScope) {
-            return null
-        }
-        for (let indent = currentIndent; indent >= 0; indent--) {
-            if (currentScope[indent] && currentScope[indent][key] !== undefined) {
-                const value = currentScope[indent][key]
-                return value
+        try {
+            if (!localVarScopes || localVarScopes.length === 0) {
+                return null
             }
+            const currentScope = localVarScopes[localVarScopes.length - 1]
+            if (!currentScope || typeof currentScope !== 'object') {
+                return null
+            }
+            for (let indent = currentIndent; indent >= 0; indent--) {
+                if (currentScope[indent] && typeof currentScope[indent] === 'object' && currentScope[indent][key] !== undefined) {
+                    const value = currentScope[indent][key]
+                    return value
+                }
+            }
+            return null
+        } catch (error) {
+            console.warn('getLocalVar error:', error)
+            return null
         }
-        return null
+    }
+    
+    function findLocalVarIndent(key: string): number | null {
+        try {
+            if (!localVarScopes || localVarScopes.length === 0) {
+                return null
+            }
+            const currentScope = localVarScopes[localVarScopes.length - 1]
+            if (!currentScope || typeof currentScope !== 'object') {
+                return null
+            }
+            for (let indent = currentIndent; indent >= 0; indent--) {
+                if (currentScope[indent] && typeof currentScope[indent] === 'object' && currentScope[indent][key] !== undefined) {
+                    return indent
+                }
+            }
+            return null
+        } catch (error) {
+            console.warn('findLocalVarIndent error:', error)
+            return null
+        }
     }
     
     function setLocalVar(key: string, value: string, indent: number) {
-        if (!localVarScopes || localVarScopes.length === 0) {
-            localVarScopes = [{}]
+        try {
+            if (!localVarScopes || localVarScopes.length === 0) {
+                localVarScopes = [{}]
+            }
+            const currentScope = localVarScopes[localVarScopes.length - 1]
+            if (!currentScope || typeof currentScope !== 'object') {
+                return
+            }
+            if (!currentScope[indent] || typeof currentScope[indent] !== 'object') {
+                currentScope[indent] = {}
+            }
+            const finalValue = (value === null || value === undefined) ? 'null' : value
+            currentScope[indent][key] = finalValue
+        } catch (error) {
+            console.warn('setLocalVar error:', error)
         }
-        const currentScope = localVarScopes[localVarScopes.length - 1]
-        if (!currentScope) {
-            return
-        }
-        if (!currentScope[indent]) {
-            currentScope[indent] = {}
-        }
-        const finalValue = (value === null || value === undefined) ? 'null' : value
-        currentScope[indent][key] = finalValue
     }
     
     function declareLocalVar(key: string, value: string, indent: number) {
@@ -1107,60 +1137,95 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     }
     
     function clearLocalVarsAtIndent(indent: number) {
-        if (!localVarScopes || localVarScopes.length === 0) {
-            return
-        }
-        const currentScope = localVarScopes[localVarScopes.length - 1]
-        if (!currentScope) {
-            return
-        }
-        const indentsToDelete: string[] = []
-        for (const scopeIndent in currentScope) {
-            if (Number(scopeIndent) >= indent) {
-                indentsToDelete.push(scopeIndent)
+        try {
+            if (!localVarScopes || localVarScopes.length === 0) {
+                return
             }
+            const currentScope = localVarScopes[localVarScopes.length - 1]
+            if (!currentScope || typeof currentScope !== 'object') {
+                return
+            }
+            const indentsToDelete: string[] = []
+            for (const scopeIndent in currentScope) {
+                if (Number(scopeIndent) >= indent) {
+                    indentsToDelete.push(scopeIndent)
+                }
+            }
+            indentsToDelete.forEach(indentKey => {
+                delete currentScope[indentKey]
+            })
+        } catch (error) {
+            console.warn('clearLocalVarsAtIndent error:', error)
         }
-        indentsToDelete.forEach(indentKey => {
-            delete currentScope[indentKey]
-        })
     }
 
     function getVar(key:string){
-        const localVar = getLocalVar(key)
-        if(localVar !== null){
-            return localVar
-        }
-        
-        const state = chat.scriptstate?.['$' + key]
-        if(state === undefined || state === null){
-            const findResult = defaultVariables.find((f) => {
-                return f[0] === key
-            })
-            if(findResult){
-                return findResult[1]
+        try {
+            const localVar = getLocalVar(key)
+            if(localVar !== null){
+                return localVar
             }
-            if(arg.displayMode){
-                return tempVars[key] ?? 'null'
+            
+            const state = chat.scriptstate?.['$' + key]
+            if(state === undefined || state === null){
+                const findResult = defaultVariables.find((f) => {
+                    return f[0] === key
+                })
+                if(findResult){
+                    return findResult[1]
+                }
+                if(arg.displayMode){
+                    return tempVars[key] ?? 'null'
+                }
+                return 'null'
             }
+            return state.toString()
+        } catch (error) {
+            console.warn('getVar error:', error)
             return 'null'
         }
-        return state.toString()
     }
 
     function setVar(key:string, value:string){
-        if(arg.displayMode){
-            tempVars[key] = value
-            return
+        try {
+            if(arg.displayMode){
+                tempVars[key] = value
+                return
+            }
+            
+            const existingIndent = findLocalVarIndent(key)
+            if(existingIndent !== null && typeof existingIndent === 'number'){
+                setLocalVar(key, value, existingIndent)
+                return
+            }
+            
+            const selectedCharId = get(selectedCharID)
+            const currentCharacter = getCurrentCharacter()
+            const db = getDatabase()
+            varChanged = true
+            chat.scriptstate ??= {}
+            chat.scriptstate['$' + key] = value
+            currentChat.scriptstate = chat.scriptstate
+            currentCharacter.chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
+            db.characters[selectedCharId].chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
+        } catch (error) {
+            console.warn('setVar error:', error)
+            try {
+                if(!arg.displayMode) {
+                    const selectedCharId = get(selectedCharID)
+                    const currentCharacter = getCurrentCharacter()
+                    const db = getDatabase()
+                    varChanged = true
+                    chat.scriptstate ??= {}
+                    chat.scriptstate['$' + key] = value
+                    currentChat.scriptstate = chat.scriptstate
+                    currentCharacter.chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
+                    db.characters[selectedCharId].chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
+                }
+            } catch (fallbackError) {
+                console.error('setVar fallback error:', fallbackError)
+            }
         }
-        const selectedCharId = get(selectedCharID)
-        const currentCharacter = getCurrentCharacter()
-        const db = getDatabase()
-        varChanged = true
-        chat.scriptstate ??= {}
-        chat.scriptstate['$' + key] = value
-        currentChat.scriptstate = chat.scriptstate
-        currentCharacter.chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
-        db.characters[selectedCharId].chats[currentCharacter.chatPage].scriptstate = chat.scriptstate
     }
     
     
