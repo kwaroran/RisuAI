@@ -44,7 +44,7 @@ export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|tri
                                 triggerV2CreateLorebook|triggerV2ModifyLorebookByIndex|triggerV2DeleteLorebookByIndex|triggerV2GetLorebookCountNew|triggerV2SetLorebookAlwaysActive|
                                 triggerV2QuickSearchChat|triggerV2StopPromptSending|triggerV2Tokenize|triggerV2RegexTest|triggerV2GetReplaceGlobalNote|triggerV2SetReplaceGlobalNote|
                                 triggerV2GetAuthorNote|triggerV2SetAuthorNote|triggerV2MakeDictVar|triggerV2GetDictVar|triggerV2SetDictVar|triggerV2DeleteDictKey|
-                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues|triggerV2Calculate|triggerV2ReplaceString
+                                triggerV2HasDictKey|triggerV2ClearDict|triggerV2GetDictSize|triggerV2GetDictKeys|triggerV2GetDictValues|triggerV2Calculate|triggerV2ReplaceString|triggerV2Comment
 
 export type triggerConditionsVar = {
     type:'var'|'value'
@@ -963,6 +963,12 @@ export type triggerV2ReplaceString = {
     indent: number
 }
 
+export type triggerV2Comment = {
+    type: 'v2Comment',
+    value: string,
+    indent: number
+}
+
 const safeSubset = [
     'v2SetVar',
     'v2If',
@@ -996,7 +1002,8 @@ const safeSubset = [
     'v2SliceArrayVar',
     'v2GetIndexOfValueInArrayVar',
     'v2RemoveIndexFromArrayVar',
-    'v2Calculate'
+    'v2Calculate',
+    'v2Comment'
 ]
 
 export const displayAllowList = [
@@ -2598,6 +2605,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         const source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
                         setVar(effect.outputVar, source)
                     }
+                    break
+                }
+                case 'v2Comment':{
                     break
                 }
             }
