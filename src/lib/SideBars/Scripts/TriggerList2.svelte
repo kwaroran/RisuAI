@@ -150,6 +150,8 @@
     let selectedTriggerIndices = $state<number[]>([]);
     let lastSelectedTriggerIndex = $state(-1);
     let menuMode = $state(0)
+    let isDragging = $state(false);
+    let dragOverIndex = $state(-1);
     let editTrigger:triggerEffectV2 = $state(null as triggerEffectV2)
     let addElse = $state(false)
     let selectMode = $state(0) //0 = trigger 1 = effect
@@ -1945,29 +1947,39 @@
         >
             {#if menuMode === 0}
                 <div class="pr-2 md:w-96 flex flex-col md:h-full mt-2 md:mt-0">
-                    <div class="flex-1 flex flex-col overflow-y-auto" bind:this={triggerScrollRef} onscroll={handleTriggerScroll}>
+                    <div class="flex-1 flex flex-col overflow-y-auto" bind:this={triggerScrollRef} onscroll={handleTriggerScroll} 
+                         ondragleave={(e) => {
+                             if (!isMobile) {
+                                 const rect = e.currentTarget.getBoundingClientRect()
+                                 const mouseX = e.clientX
+                                 const mouseY = e.clientY
+                                 
+                                 if (mouseX < rect.left || mouseX > rect.right || 
+                                     mouseY < rect.top || mouseY > rect.bottom) {
+                                     dragOverIndex = -1
+                                 }
+                             }
+                         }}>
                         {#each value as trigger, i}
                             {#if i === 0}
                                 <!-- Header, skip the first trigger -->
                             {:else}
-                                                        <div class="w-full h-1 min-h-1 transition-colors duration-200" 
-                            class:hover:bg-gray-600={!isMobile}
+                                                        <div class="w-full h-0.5 min-h-0.5 transition-all duration-200" 
+                            class:hover:bg-gray-600={!isMobile && !isDragging}
+                            class:h-0.5={!isDragging || dragOverIndex !== i}
+                            class:h-1={isDragging && dragOverIndex === i}
+                            class:bg-blue-500={isDragging && dragOverIndex === i}
+                            class:shadow-lg={isDragging && dragOverIndex === i}
                             role="listitem"
                             ondragover={(e) => {
                                 if (!isMobile) {
                                     e.preventDefault()
-                                    e.currentTarget.classList.add('bg-gray-600')
-                                }
-                            }} 
-                            ondragleave={(e) => {
-                                if (!isMobile) {
-                                    e.currentTarget.classList.remove('bg-gray-600')
                                 }
                             }} 
                             ondrop={(e) => {
                                 if (!isMobile) {
-                                    e.currentTarget.classList.remove('bg-gray-600')
                                     handleTriggerDrop(i, e)
+                                    dragOverIndex = -1
                                 }
                             }}>
                         </div>
@@ -1988,6 +2000,7 @@
                                             e.preventDefault()
                                             return
                                         }
+                                        isDragging = true
                                         e.dataTransfer?.setData('text', 'trigger')
                                         e.dataTransfer?.setData('triggerIndex', i.toString())
                                         
@@ -2005,14 +2018,40 @@
                                             document.body.removeChild(dragElement)
                                         }, 0)
                                     }}
+                                    ondragend={(e) => {
+                                        isDragging = false
+                                        dragOverIndex = -1
+                                    }}
                                     ondragover={(e) => {
                                         if (!isMobile) {
                                             e.preventDefault()
+                                            const rect = e.currentTarget.getBoundingClientRect()
+                                            const mouseY = e.clientY
+                                            const elementCenter = rect.top + rect.height / 2
+                                            
+                                            if (mouseY < elementCenter) {
+                                                dragOverIndex = i
+                                            } else {
+                                                dragOverIndex = i + 1
+                                            }
+                                        }
+                                    }}
+                                    ondragleave={(e) => {
+                                        if (!isMobile) {
+                                            const rect = e.currentTarget.getBoundingClientRect()
+                                            const mouseX = e.clientX
+                                            const mouseY = e.clientY
+                                            
+                                            if (mouseX < rect.left || mouseX > rect.right || 
+                                                mouseY < rect.top || mouseY > rect.bottom) {
+                                                dragOverIndex = -1
+                                            }
                                         }
                                     }}
                                     ondrop={(e) => {
                                         if (!isMobile) {
-                                            handleTriggerDrop(i, e)
+                                            handleTriggerDrop(dragOverIndex, e)
+                                            dragOverIndex = -1
                                         }
                                     }}
                                     onclick={(event) => {
@@ -2028,24 +2067,23 @@
                             {/if}
                         {/each}
                         
-                        <div class="w-full h-1 min-h-1 transition-colors duration-200" 
-                            class:hover:bg-gray-600={!isMobile}
+                        <div class="w-full h-0.5 min-h-0.5 transition-all duration-200" 
+                            class:hover:bg-gray-600={!isMobile && !isDragging}
+                            class:h-0.5={!isDragging || dragOverIndex !== value.length}
+                            class:h-1={isDragging && dragOverIndex === value.length}
+                            class:bg-blue-500={isDragging && dragOverIndex === value.length}
+                            class:shadow-lg={isDragging && dragOverIndex === value.length}
                             role="listitem"
                             ondragover={(e) => {
                                 if (!isMobile) {
                                     e.preventDefault()
-                                    e.currentTarget.classList.add('bg-gray-600')
-                                }
-                            }} 
-                            ondragleave={(e) => {
-                                if (!isMobile) {
-                                    e.currentTarget.classList.remove('bg-gray-600')
+                                    dragOverIndex = value.length
                                 }
                             }} 
                             ondrop={(e) => {
                                 if (!isMobile) {
-                                    e.currentTarget.classList.remove('bg-gray-600')
                                     handleTriggerDrop(value.length, e)
+                                    dragOverIndex = -1
                                 }
                             }}>
                         </div>
