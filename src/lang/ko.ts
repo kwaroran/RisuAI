@@ -413,6 +413,8 @@ export const languageKorean = {
         "v2SetAuthorNoteDesc": "작가의 노트를 {{value}}로 설정",
         "v2Comment": "주석 삽입",
         "v2CommentDesc": "{{value}}",
+        "v2DeclareLocalVar": "지역변수 선언",
+        "v2DeclareLocalVarDesc": "지역변수 {{var}} 를 {{value}} 로 선언",
     },
     "triggerInputLabels": {
         "value": "값",

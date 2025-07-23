@@ -30,6 +30,7 @@
         ],
         'Control': [
             'v2SetVar',
+            'v2DeclareLocalVar',
             'v2Calculate',
             'v2IfAdvanced',
             'v2LoopNTimes',
@@ -1273,6 +1274,16 @@
                 }
                 break;
             }
+            case 'v2DeclareLocalVar':{
+                editTrigger = {
+                    type: 'v2DeclareLocalVar',
+                    var: '',
+                    value: '',
+                    valueType: 'value',
+                    indent: 0
+                }
+                break;
+            }
         }
     }
 
@@ -1675,6 +1686,9 @@
             }
             if(effect.type === 'v2SetVar' && p1 === 'var'){
                 return `<span class="text-yellow-500">${d || 'null'}</span>`
+            }
+            if(effect.type === 'v2DeclareLocalVar' && p1 === 'var'){
+                return `<span class="text-cyan-500">${d || 'null'}</span>`
             }
             return `<span class="text-blue-500">${d || 'null'}</span>`
         })
@@ -3237,6 +3251,15 @@
                         <TextInput bind:value={editTrigger.outputVar} />
                     {:else if editTrigger.type === 'v2Comment'}
                         <span class="block text-textcolor">{language.triggerInputLabels.value}</span>
+                        <TextInput bind:value={editTrigger.value} />
+                    {:else if editTrigger.type === 'v2DeclareLocalVar'}
+                        <span class="block text-textcolor">{language.triggerInputLabels.varName}</span>
+                        <TextInput bind:value={editTrigger.var} />
+                        <span class="block text-textcolor">{language.triggerInputLabels.value}</span>
+                        <SelectInput bind:value={editTrigger.valueType}>
+                            <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
+                            <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                        </SelectInput>
                         <TextInput bind:value={editTrigger.value} />
                     {:else}
                         <span>{language.noConfig}</span>
