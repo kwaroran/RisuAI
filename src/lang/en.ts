@@ -353,6 +353,8 @@ export const languageEnglish = {
         v2GetAuthorNoteDesc: "Get Author Note => {{outputVar}}",
         v2SetAuthorNote: "Set Author Note",
         v2SetAuthorNoteDesc: "Set Author Note to {{value}}",
+        v2Comment: "Add Comment",
+        v2CommentDesc: "{{value}}",
         v2MakeArrayVar: "Make Array Variable",
         v2MakeArrayVarDesc: "Make Array Variable {{var}}",
         v2GetArrayVarLength: "Get Array Variable Length",

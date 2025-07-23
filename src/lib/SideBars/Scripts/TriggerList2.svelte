@@ -38,7 +38,8 @@
             'v2Command',
             'v2ConsoleLog',
             'v2RunTrigger',
-            'v2StopTrigger'
+            'v2StopTrigger',
+            'v2Comment'
         ],
         'Chat': [
             'v2CutChat',
@@ -1303,6 +1304,14 @@
                 }
                 break;
             }
+            case 'v2Comment':{
+                editTrigger = {
+                    type: 'v2Comment',
+                    value: '',
+                    indent: 0
+                }
+                break;
+            }
         }
     }
 
@@ -1680,6 +1689,10 @@
         const txt = (language.triggerDesc[type + 'Desc'] as string || type).replace(/{{(.+?)}}/g, (match, p1) => {
             const d = effect[p1]
             
+            if(type === 'v2Comment' && p1 === 'value') {
+                return `<span class="text-gray-400">${d || ''}</span>`
+            }
+            
             if(typeof d === 'boolean'){
                 return `<span class="text-blue-500">${d ? 'true' : 'false'}</span>`
             }
@@ -1704,6 +1717,10 @@
             }
             return `<span class="text-blue-500">${d || 'null'}</span>`
         })
+
+        if(type === 'v2Comment') {
+            return `<div class="text-gray-500 italic" style="margin-left:${(effect as triggerEffectV2).indent}rem">// ${txt}</div>`
+        }
 
         return `<div class="text-purple-500" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</div>`
     }
@@ -3280,6 +3297,9 @@
                         <TextInput bind:value={editTrigger.flags} />
                         <span class="block text-textcolor">{language.triggerInputLabels.outputVar}</span>
                         <TextInput bind:value={editTrigger.outputVar} />
+                    {:else if editTrigger.type === 'v2Comment'}
+                        <span class="block text-textcolor">{language.triggerInputLabels.value}</span>
+                        <TextInput bind:value={editTrigger.value} />
                     {:else}
                         <span>{language.noConfig}</span>
                     {/if}

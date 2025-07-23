@@ -411,6 +411,8 @@ export const languageKorean = {
         "v2GetAuthorNoteDesc": "작가의 노트 가져오기 => {{outputVar}}",
         "v2SetAuthorNote": "작가의 노트 설정",
         "v2SetAuthorNoteDesc": "작가의 노트를 {{value}}로 설정",
+        "v2Comment": "주석 삽입",
+        "v2CommentDesc": "{{value}}",
     },
     "triggerInputLabels": {
         "value": "값",
