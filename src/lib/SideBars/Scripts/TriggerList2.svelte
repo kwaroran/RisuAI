@@ -1578,6 +1578,54 @@
         }
     }
 
+    const getBlockRange = (startIndex: number): { start: number, end: number } => {
+        if (!value || !value[selectedIndex] || !value[selectedIndex].effect) {
+            return { start: startIndex, end: startIndex };
+        }
+        
+        const effects = value[selectedIndex].effect;
+        const startEffect = effects[startIndex] as triggerEffectV2;
+        
+        if (!startEffect || 
+            (startEffect.type !== 'v2If' && startEffect.type !== 'v2IfAdvanced' && 
+             startEffect.type !== 'v2Loop' && startEffect.type !== 'v2LoopNTimes')) {
+            return { start: startIndex, end: startIndex };
+        }
+        
+        let pointer = startIndex + 1;
+        const indent = startEffect.indent;
+        
+        while (pointer < effects.length) {
+            const currentEffect = effects[pointer] as triggerEffectV2;
+            if (currentEffect.type === 'v2EndIndent' && currentEffect.indent === indent + 1) {
+                // v2EndIndent 포함
+                let endIndex = pointer;
+                
+                // else가 있는지 확인
+                if (pointer + 1 < effects.length) {
+                    const nextEffect = effects[pointer + 1] as triggerEffectV2;
+                    if (nextEffect.type === 'v2Else' && nextEffect.indent === indent) {
+                        // else 블록도 포함해서 끝까지 찾기
+                        pointer += 2; // else 다음부터 시작
+                        while (pointer < effects.length) {
+                            const elseEffect = effects[pointer] as triggerEffectV2;
+                            if (elseEffect.type === 'v2EndIndent' && elseEffect.indent === indent + 1) {
+                                endIndex = pointer;
+                                break;
+                            }
+                            pointer++;
+                        }
+                    }
+                }
+                
+                return { start: startIndex, end: endIndex };
+            }
+            pointer++;
+        }
+        
+        return { start: startIndex, end: startIndex };
+    }
+
     const canMoveEffect = (fromIndex: number, toIndex: number): boolean => {
         if (!value || !value[selectedIndex] || !value[selectedIndex].effect) return false;
         if (fromIndex === toIndex) return false;
@@ -1587,12 +1635,23 @@
         const fromEffect = value[selectedIndex].effect[fromIndex] as triggerEffectV2;
         if (!fromEffect) return false;
         
-        if (fromEffect.type === 'v2EndIndent' || fromEffect.type === 'v2If' || 
-            fromEffect.type === 'v2IfAdvanced' || fromEffect.type === 'v2Loop' || 
-            fromEffect.type === 'v2LoopNTimes' || fromEffect.type === 'v2Else') {
+        // v2EndIndent와 v2Else는 단독으로 이동할 수 없음
+        if (fromEffect.type === 'v2EndIndent' || fromEffect.type === 'v2Else') {
             return false;
         }
         
+        // if/loop 블록의 경우 블록 전체 이동 가능성 확인
+        if (fromEffect.type === 'v2If' || fromEffect.type === 'v2IfAdvanced' || 
+            fromEffect.type === 'v2Loop' || fromEffect.type === 'v2LoopNTimes') {
+            const blockRange = getBlockRange(fromIndex);
+            
+            // 블록이 자기 자신 안으로 이동하는지 확인
+            if (toIndex > blockRange.start && toIndex <= blockRange.end + 1) {
+                return false;
+            }
+        }
+        
+        // 들여쓰기 레벨 확인
         if (toIndex < value[selectedIndex].effect.length) {
             const targetEffect = value[selectedIndex].effect[toIndex] as triggerEffectV2;
             if (targetEffect && fromEffect.indent !== targetEffect.indent) {
@@ -1612,18 +1671,51 @@
         if (!canMoveEffect(fromIndex, toIndex)) return;
         
         let effects = [...value[selectedIndex].effect];
-        const movedItem = effects.splice(fromIndex, 1)[0];
-        if (!movedItem) return;
+        const fromEffect = effects[fromIndex] as triggerEffectV2;
         
-        const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
-        effects.splice(adjustedToIndex, 0, movedItem);
-        
-        if (selectedEffectIndex === fromIndex) {
-            selectedEffectIndex = adjustedToIndex;
-        } else if (fromIndex < selectedEffectIndex && adjustedToIndex >= selectedEffectIndex) {
-            selectedEffectIndex = selectedEffectIndex - 1;
-        } else if (fromIndex > selectedEffectIndex && adjustedToIndex <= selectedEffectIndex) {
-            selectedEffectIndex = selectedEffectIndex + 1;
+        // if/loop 블록인 경우 블록 전체 이동
+        if (fromEffect.type === 'v2If' || fromEffect.type === 'v2IfAdvanced' || 
+            fromEffect.type === 'v2Loop' || fromEffect.type === 'v2LoopNTimes') {
+            
+            const blockRange = getBlockRange(fromIndex);
+            const blockSize = blockRange.end - blockRange.start + 1;
+            
+            // 블록 전체를 제거
+            const movedBlock = effects.splice(blockRange.start, blockSize);
+            if (movedBlock.length === 0) return;
+            
+            // toIndex 조정 (블록 크기만큼 제거되었으므로)
+            const adjustedToIndex = blockRange.start < toIndex ? toIndex - blockSize : toIndex;
+            
+            // 블록 전체를 새 위치에 삽입
+            effects.splice(adjustedToIndex, 0, ...movedBlock);
+            
+            // selectedEffectIndex 조정
+            if (selectedEffectIndex >= blockRange.start && selectedEffectIndex <= blockRange.end) {
+                // 선택된 이펙트가 블록 내부에 있는 경우
+                const offsetInBlock = selectedEffectIndex - blockRange.start;
+                selectedEffectIndex = adjustedToIndex + offsetInBlock;
+            } else if (blockRange.start < selectedEffectIndex && adjustedToIndex >= selectedEffectIndex) {
+                selectedEffectIndex = selectedEffectIndex - blockSize;
+            } else if (blockRange.start > selectedEffectIndex && adjustedToIndex <= selectedEffectIndex) {
+                selectedEffectIndex = selectedEffectIndex + blockSize;
+            }
+            
+        } else {
+            // 일반 이펙트 이동
+            const movedItem = effects.splice(fromIndex, 1)[0];
+            if (!movedItem) return;
+            
+            const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+            effects.splice(adjustedToIndex, 0, movedItem);
+            
+            if (selectedEffectIndex === fromIndex) {
+                selectedEffectIndex = adjustedToIndex;
+            } else if (fromIndex < selectedEffectIndex && adjustedToIndex >= selectedEffectIndex) {
+                selectedEffectIndex = selectedEffectIndex - 1;
+            } else if (fromIndex > selectedEffectIndex && adjustedToIndex <= selectedEffectIndex) {
+                selectedEffectIndex = selectedEffectIndex + 1;
+            }
         }
         
         value[selectedIndex].effect = effects;
@@ -2407,7 +2499,7 @@
                                     {/if}
                                 </button>
                                 
-                                {#if effect.type !== 'v2EndIndent' && effect.type !== 'v2If' && effect.type !== 'v2IfAdvanced' && effect.type !== 'v2Loop' && effect.type !== 'v2LoopNTimes' && effect.type !== 'v2Else'}
+                                {#if effect.type !== 'v2EndIndent' && effect.type !== 'v2Else'}
                                     <div class="w-8 h-full flex items-center justify-center cursor-move opacity-30 hover:opacity-70 transition-opacity"
                                          draggable={!isMobile}
                                          onclick={(e) => {
