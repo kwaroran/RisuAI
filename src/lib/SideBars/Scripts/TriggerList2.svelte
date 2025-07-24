@@ -152,6 +152,8 @@
     let menuMode = $state(0)
     let isDragging = $state(false);
     let dragOverIndex = $state(-1);
+    let isEffectDragging = $state(false);
+    let effectDragOverIndex = $state(-1);
     let editTrigger:triggerEffectV2 = $state(null as triggerEffectV2)
     let addElse = $state(false)
     let selectMode = $state(0) //0 = trigger 1 = effect
@@ -1516,13 +1518,14 @@
             const movedItem = triggers.splice(fromIndex, 1)[0];
             if (!movedItem) return;
             
-            triggers.splice(toIndex, 0, movedItem);
+            const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+            triggers.splice(adjustedToIndex, 0, movedItem);
             
             if (selectedIndex === fromIndex) {
-                selectedIndex = toIndex;
-            } else if (fromIndex < selectedIndex && toIndex >= selectedIndex) {
+                selectedIndex = adjustedToIndex;
+            } else if (fromIndex < selectedIndex && adjustedToIndex >= selectedIndex) {
                 selectedIndex = selectedIndex - 1;
-            } else if (fromIndex > selectedIndex && toIndex <= selectedIndex) {
+            } else if (fromIndex > selectedIndex && adjustedToIndex <= selectedIndex) {
                 selectedIndex = selectedIndex + 1;
             }
             
@@ -1572,6 +1575,68 @@
         if (data === 'trigger') {
             const sourceIndex = parseInt(e.dataTransfer?.getData('triggerIndex') || '0');
             moveTrigger(sourceIndex, targetIndex);
+        }
+    }
+
+    const canMoveEffect = (fromIndex: number, toIndex: number): boolean => {
+        if (!value || !value[selectedIndex] || !value[selectedIndex].effect) return false;
+        if (fromIndex === toIndex) return false;
+        if (fromIndex < 0 || toIndex < 0) return false;
+        if (fromIndex >= value[selectedIndex].effect.length || toIndex > value[selectedIndex].effect.length) return false;
+        
+        const fromEffect = value[selectedIndex].effect[fromIndex] as triggerEffectV2;
+        if (!fromEffect) return false;
+        
+        if (fromEffect.type === 'v2EndIndent' || fromEffect.type === 'v2If' || 
+            fromEffect.type === 'v2IfAdvanced' || fromEffect.type === 'v2Loop' || 
+            fromEffect.type === 'v2LoopNTimes' || fromEffect.type === 'v2Else') {
+            return false;
+        }
+        
+        if (toIndex < value[selectedIndex].effect.length) {
+            const targetEffect = value[selectedIndex].effect[toIndex] as triggerEffectV2;
+            if (targetEffect && fromEffect.indent !== targetEffect.indent) {
+                return false;
+            }
+        } else if (toIndex > 0) {
+            const prevEffect = value[selectedIndex].effect[toIndex - 1] as triggerEffectV2;
+            if (prevEffect && fromEffect.indent !== prevEffect.indent) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    const moveEffect = (fromIndex: number, toIndex: number) => {
+        if (!canMoveEffect(fromIndex, toIndex)) return;
+        
+        let effects = [...value[selectedIndex].effect];
+        const movedItem = effects.splice(fromIndex, 1)[0];
+        if (!movedItem) return;
+        
+        const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+        effects.splice(adjustedToIndex, 0, movedItem);
+        
+        if (selectedEffectIndex === fromIndex) {
+            selectedEffectIndex = adjustedToIndex;
+        } else if (fromIndex < selectedEffectIndex && adjustedToIndex >= selectedEffectIndex) {
+            selectedEffectIndex = selectedEffectIndex - 1;
+        } else if (fromIndex > selectedEffectIndex && adjustedToIndex <= selectedEffectIndex) {
+            selectedEffectIndex = selectedEffectIndex + 1;
+        }
+        
+        value[selectedIndex].effect = effects;
+        updateGuideLines();
+    }
+
+    const handleEffectDrop = (targetIndex: number, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const data = e.dataTransfer?.getData('text');
+        if (data === 'effect') {
+            const sourceIndex = parseInt(e.dataTransfer?.getData('effectIndex') || '0');
+            moveEffect(sourceIndex, targetIndex);
         }
     }
 
@@ -2216,7 +2281,19 @@
                         </div>
                     </div> -->
                     
-                    <div class="border border-darkborderc mx-2 mb-2 rounded-md flex-1 overflow-x-hidden overflow-y-auto relative" bind:this={menu0Container}>
+                    <div class="border border-darkborderc mx-2 mb-2 rounded-md flex-1 overflow-x-hidden overflow-y-auto relative" bind:this={menu0Container}
+                         ondragleave={(e) => {
+                             if (!isMobile && isEffectDragging) {
+                                 const rect = e.currentTarget.getBoundingClientRect()
+                                 const mouseX = e.clientX
+                                 const mouseY = e.clientY
+                                 
+                                 if (mouseX < rect.left || mouseX > rect.right || 
+                                     mouseY < rect.top || mouseY > rect.bottom) {
+                                     effectDragOverIndex = -1
+                                 }
+                             }
+                         }}>
                         {#key guideLineKey}
                             {#each (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect : [] as effect, i}
                                 {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
@@ -2250,32 +2327,149 @@
                         {/key}
                         
                         {#each (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect : [] as effect, i}
-                            <button class="p-2 w-full text-start text-purple-500 relative break-all whitespace-normal overflow-hidden"
+                            <!-- 이펙트 드래그 가이드라인 -->
+                            <div class="w-full h-0.5 min-h-0.5 transition-all duration-200" 
+                                class:hover:bg-gray-600={!isMobile && !isEffectDragging}
+                                class:h-0.5={!isEffectDragging || effectDragOverIndex !== i}
+                                class:h-1={isEffectDragging && effectDragOverIndex === i}
+                                class:bg-blue-500={isEffectDragging && effectDragOverIndex === i}
+                                class:shadow-lg={isEffectDragging && effectDragOverIndex === i}
+                                role="listitem"
+                                ondragover={(e) => {
+                                    if (!isMobile && isEffectDragging) {
+                                        e.preventDefault()
+                                    }
+                                }} 
+                                ondrop={(e) => {
+                                    if (!isMobile && isEffectDragging) {
+                                        handleEffectDrop(i, e)
+                                        effectDragOverIndex = -1
+                                    }
+                                }}>
+                            </div>
+
+                            <div class="flex items-center w-full relative"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
                                 class:bg-selected={selectedEffectIndex === i}
-                                bind:this={effectElements[i]}
-                                onclick={() => {
-                                    if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
-                                        if(selectedIndex > 0) {
-                                            selectedTriggerIndex = selectedIndex;
-                                            selectedEffectIndexSaved = selectedEffectIndex;
+                                ondragover={(e) => {
+                                    if (!isMobile && isEffectDragging) {
+                                        e.preventDefault()
+                                        const rect = e.currentTarget.getBoundingClientRect()
+                                        const mouseY = e.clientY
+                                        const elementCenter = rect.top + rect.height / 2
+                                        
+                                        if (mouseY < elementCenter) {
+                                            effectDragOverIndex = i
+                                        } else {
+                                            effectDragOverIndex = i + 1
                                         }
-                                        menuMode = 1
                                     }
-
-                                    selectMode = 1
-                                    lastClickTime = Date.now()
-                                    selectedEffectIndex = i
                                 }}
-                                oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
-                            >
-                                {#if effect.type === 'v2EndIndent'}
-                                    <div class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</div>
+                                ondragleave={(e) => {
+                                    if (!isMobile && isEffectDragging) {
+                                        const rect = e.currentTarget.getBoundingClientRect()
+                                        const mouseX = e.clientX
+                                        const mouseY = e.clientY
+                                        
+                                        if (mouseX < rect.left || mouseX > rect.right || 
+                                            mouseY < rect.top || mouseY > rect.bottom) {
+                                            effectDragOverIndex = -1
+                                        }
+                                    }
+                                }}
+                                ondrop={(e) => {
+                                    if (!isMobile && isEffectDragging) {
+                                        handleEffectDrop(effectDragOverIndex, e)
+                                        effectDragOverIndex = -1
+                                    }
+                                }}>
+                                <button class="flex-1 p-2 text-start text-purple-500 relative break-all whitespace-normal overflow-hidden"
+                                    bind:this={effectElements[i]}
+                                    onclick={() => {
+                                        if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
+                                            if(selectedIndex > 0) {
+                                                selectedTriggerIndex = selectedIndex;
+                                                selectedEffectIndexSaved = selectedEffectIndex;
+                                            }
+                                            menuMode = 1
+                                        }
+
+                                        selectMode = 1
+                                        lastClickTime = Date.now()
+                                        selectedEffectIndex = i
+                                    }}
+                                    oncontextmenu={(e) => handleContextMenu(e, 1, i, effect)}
+                                >
+                                    {#if effect.type === 'v2EndIndent'}
+                                        <div class="text-textcolor" style:margin-left={effect.indent + 'rem'}>...</div>
+                                    {:else}
+                                        {@html formatEffectDisplay(effect)}
+                                    {/if}
+                                </button>
+                                
+                                {#if effect.type !== 'v2EndIndent' && effect.type !== 'v2If' && effect.type !== 'v2IfAdvanced' && effect.type !== 'v2Loop' && effect.type !== 'v2LoopNTimes' && effect.type !== 'v2Else'}
+                                    <div class="w-8 h-full flex items-center justify-center cursor-move opacity-30 hover:opacity-70 transition-opacity"
+                                         draggable={!isMobile}
+                                         onclick={(e) => {
+                                             e.stopPropagation();
+                                         }}
+                                         oncontextmenu={(e) => {
+                                             e.stopPropagation();
+                                             e.preventDefault();
+                                         }}
+                                         ondragstart={(e) => {
+                                             if (isMobile) {
+                                                 e.preventDefault()
+                                                 return
+                                             }
+                                             isEffectDragging = true
+                                             e.dataTransfer?.setData('text', 'effect')
+                                             e.dataTransfer?.setData('effectIndex', i.toString())
+                                             
+                                             const dragElement = document.createElement('div')
+                                             dragElement.textContent = formatEffectDisplay(effect).replace(/<[^>]*>/g, '') || 'Effect'
+                                             dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+                                             document.body.appendChild(dragElement)
+                                             e.dataTransfer?.setDragImage(dragElement, 10, 10)
+                                             
+                                             setTimeout(() => {
+                                                 document.body.removeChild(dragElement)
+                                             }, 0)
+                                         }}
+                                         ondragend={(e) => {
+                                             isEffectDragging = false
+                                             effectDragOverIndex = -1
+                                         }}>
+                                        <div class="text-textcolor2 text-xs select-none">⋮⋮</div>
+                                    </div>
                                 {:else}
-                                    {@html formatEffectDisplay(effect)}
+                                    <div class="w-8 h-full flex items-center justify-center">
+                                        <div class="text-textcolor2 opacity-20 text-xs select-none"></div>
+                                    </div>
                                 {/if}
-                            </button>
+                            </div>
                         {/each}
+                        
+                        <div class="w-full h-0.5 min-h-0.5 transition-all duration-200" 
+                            class:hover:bg-gray-600={!isMobile && !isEffectDragging}
+                            class:h-0.5={!isEffectDragging || effectDragOverIndex !== (value && value[selectedIndex] && value[selectedIndex].effect ? value[selectedIndex].effect.length : 0)}
+                            class:h-1={isEffectDragging && effectDragOverIndex === (value && value[selectedIndex] && value[selectedIndex].effect ? value[selectedIndex].effect.length : 0)}
+                            class:bg-blue-500={isEffectDragging && effectDragOverIndex === (value && value[selectedIndex] && value[selectedIndex].effect ? value[selectedIndex].effect.length : 0)}
+                            class:shadow-lg={isEffectDragging && effectDragOverIndex === (value && value[selectedIndex] && value[selectedIndex].effect ? value[selectedIndex].effect.length : 0)}
+                            role="listitem"
+                            ondragover={(e) => {
+                                if (!isMobile && isEffectDragging) {
+                                    e.preventDefault()
+                                }
+                            }} 
+                            ondrop={(e) => {
+                                if (!isMobile && isEffectDragging) {
+                                    handleEffectDrop(value && value[selectedIndex] && value[selectedIndex].effect ? value[selectedIndex].effect.length : 0, e)
+                                    effectDragOverIndex = -1
+                                }
+                            }}>
+                        </div>
+                        
                         <button class="p-2 w-full text-start hover:bg-selected" onclick={() => {
                             //add effect
                             if(lastClickTime + 500 > Date.now()){
