@@ -1771,10 +1771,10 @@
         })
 
         if(type === 'v2Comment') {
-            return `<div class="text-gray-500 italic break-words" style="margin-left:${(effect as triggerEffectV2).indent}rem">// ${txt}</div>`
+            return `<div class="text-gray-500 italic line-clamp-4" style="margin-left:${(effect as triggerEffectV2).indent}rem; word-break: keep-all; overflow-wrap: break-word;">// ${txt}</div>`
         }
 
-        return `<div class="text-purple-500 break-words" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</div>`
+        return `<div class="text-purple-500 line-clamp-4" style="margin-left:${(effect as triggerEffectV2).indent}rem; word-break: keep-all; overflow-wrap: break-word;">${txt}</div>`
     }
     
     const updateGuideLines = () => {
