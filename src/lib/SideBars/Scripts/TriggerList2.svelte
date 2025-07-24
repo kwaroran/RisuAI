@@ -169,6 +169,10 @@
     let guideLineKey = $state(0)
     let selectedCategory = $state('Control')
     let isMobile = $state(false)
+    
+    let autoScrollInterval = $state<number | null>(null)
+    let scrollSpeed = $state(8)
+    let scrollThreshold = $state(50)
 
 
     type VirtualClipboard = {
@@ -1924,6 +1928,42 @@
         guideLineKey += 1
     }
 
+    const stopAutoScroll = () => {
+        if (autoScrollInterval !== null) {
+            window.clearInterval(autoScrollInterval)
+            autoScrollInterval = null
+        }
+    }
+
+    const startAutoScroll = (container: HTMLElement, direction: 'up' | 'down', speed: number = scrollSpeed) => {
+        stopAutoScroll()
+        
+        autoScrollInterval = window.setInterval(() => {
+            if (!container) return
+            
+            const scrollAmount = direction === 'up' ? -speed : speed
+            container.scrollBy(0, scrollAmount)
+            
+            if ((direction === 'up' && container.scrollTop <= 0) || 
+                (direction === 'down' && container.scrollTop >= container.scrollHeight - container.clientHeight)) {
+                stopAutoScroll()
+            }
+        }, 16)
+    }
+
+    const checkAutoScrollZone = (mouseY: number, containerRect: DOMRect): 'up' | 'down' | null => {
+        const topZone = containerRect.top + scrollThreshold
+        const bottomZone = containerRect.bottom - scrollThreshold
+        
+        if (mouseY < topZone) {
+            return 'up'
+        } else if (mouseY > bottomZone) {
+            return 'down'
+        }
+        
+        return null
+    }
+
 
 
     onMount(() => {
@@ -1963,6 +2003,7 @@
     onDestroy(() => {
         window.removeEventListener('keydown', handleKeydown);
         window.removeEventListener('resize', updateGuideLines);
+        stopAutoScroll();
     })
 </script>
 
@@ -2127,6 +2168,18 @@
             {#if menuMode === 0}
                 <div class="pr-2 md:w-96 flex flex-col md:h-full mt-2 md:mt-0">
                     <div class="flex-1 flex flex-col overflow-y-auto" bind:this={triggerScrollRef} onscroll={handleTriggerScroll} 
+                         ondragover={(e) => {
+                             if (!isMobile && isDragging && triggerScrollRef) {
+                                 const rect = e.currentTarget.getBoundingClientRect()
+                                 const autoScrollDirection = checkAutoScrollZone(e.clientY, rect)
+                                 
+                                 if (autoScrollDirection) {
+                                     startAutoScroll(triggerScrollRef, autoScrollDirection)
+                                 } else {
+                                     stopAutoScroll()
+                                 }
+                             }
+                         }}
                          ondragleave={(e) => {
                              if (!isMobile) {
                                  const rect = e.currentTarget.getBoundingClientRect()
@@ -2136,6 +2189,7 @@
                                  if (mouseX < rect.left || mouseX > rect.right || 
                                      mouseY < rect.top || mouseY > rect.bottom) {
                                      dragOverIndex = -1
+                                     stopAutoScroll()
                                  }
                              }
                          }}>
@@ -2200,6 +2254,7 @@
                                     ondragend={(e) => {
                                         isDragging = false
                                         dragOverIndex = -1
+                                        stopAutoScroll()
                                     }}
                                     ondragover={(e) => {
                                         if (!isMobile) {
@@ -2360,6 +2415,18 @@
                     </div> -->
                     
                     <div class="border border-darkborderc mx-2 mb-2 rounded-md flex-1 overflow-x-hidden overflow-y-auto relative" bind:this={menu0Container}
+                         ondragover={(e) => {
+                             if (!isMobile && isEffectDragging && menu0Container) {
+                                 const rect = e.currentTarget.getBoundingClientRect()
+                                 const autoScrollDirection = checkAutoScrollZone(e.clientY, rect)
+                                 
+                                 if (autoScrollDirection) {
+                                     startAutoScroll(menu0Container, autoScrollDirection)
+                                 } else {
+                                     stopAutoScroll()
+                                 }
+                             }
+                         }}
                          ondragleave={(e) => {
                              if (!isMobile && isEffectDragging) {
                                  const rect = e.currentTarget.getBoundingClientRect()
@@ -2369,6 +2436,7 @@
                                  if (mouseX < rect.left || mouseX > rect.right || 
                                      mouseY < rect.top || mouseY > rect.bottom) {
                                      effectDragOverIndex = -1
+                                     stopAutoScroll()
                                  }
                              }
                          }}>
@@ -2516,6 +2584,7 @@
                                          ondragend={(e) => {
                                              isEffectDragging = false
                                              effectDragOverIndex = -1
+                                             stopAutoScroll()
                                          }}>
                                         <div class="text-textcolor2 text-xs select-none">⋮⋮</div>
                                     </div>
