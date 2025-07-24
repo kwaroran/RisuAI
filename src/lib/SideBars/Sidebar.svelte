@@ -36,7 +36,7 @@
     import CharConfig from "./CharConfig.svelte";
     import { language } from "../../lang";
     import { onDestroy } from "svelte";
-    import { isEqual } from "lodash";
+    import { isEqual } from "es-toolkit";
     import SidebarAvatar from "./SidebarAvatar.svelte";
     import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
     import { get } from "svelte/store";

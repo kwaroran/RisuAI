@@ -12,7 +12,7 @@
     import BarIcon from "./BarIcon.svelte";
     import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile, selectSingleFile } from "../../ts/util";
     import { onDestroy } from "svelte";
-    import {includes, isEqual} from 'lodash'
+    import {includes, isEqual} from 'es-toolkit'
     import Help from "../Others/Help.svelte";
     import { exportChar, hubURL } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";

@@ -1,4 +1,4 @@
-import { merge } from "lodash";
+import { merge } from "es-toolkit";
 import { languageChinese } from "./cn";
 import { languageGerman } from "./de";
 import { languageEnglish } from "./en";

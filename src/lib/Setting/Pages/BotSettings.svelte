@@ -30,7 +30,7 @@
   import { getModelInfo, LLMFlags, LLMFormat, LLMProvider } from "src/ts/model/modellist";
   import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
   import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
-    import { includes } from "lodash";
+    import { includes } from "es-toolkit";
 
     let tokens = $state({
         mainPrompt: 0,
