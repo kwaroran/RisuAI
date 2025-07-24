@@ -15,12 +15,12 @@ const hubURL = 'https://sv.risuai.xyz';
 
 let password = ''
 
-const savePath = path.join(process.cwd(), "save")
+const savePath = path.join(process.cwd(), 'save')
 if(!existsSync(savePath)){
     mkdirSync(savePath)
 }
 
-const passwordPath = path.join(process.cwd(), 'save', '__password')
+const passwordPath = path.join(savePath, '__password')
 if(existsSync(passwordPath)){
     password = readFileSync(passwordPath, 'utf-8')
 }
