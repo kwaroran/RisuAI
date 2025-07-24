@@ -2167,13 +2167,14 @@
                 </div>
 
                 <div class="md:flex-1 bg-darkbg flex-col flex h-svh min-h-svh md:h-auto md:min-h-0">
-                    <div class="pb-2 grid grid-cols-2" onclick={() => {
+                    <div class="mb-0 grid grid-cols-2 items-stretch" onclick={() => {
                         selectMode = 1
                         selectedEffectIndex = -1
                     }}>
-                        <div class="p-2 flex flex-col">
+                        <div class="p-2 flex flex-col h-full min-h-[4.5rem]">
                             <span class="block text-textcolor2">{language.name}</span>
-                            <TextInput value={value && value[selectedIndex] ? (value[selectedIndex].comment || '') : ''} onchange={(e) => {
+                            <div class="flex-1 min-h-[2.5rem] flex">
+                                <TextInput className="flex-1" value={value && value[selectedIndex] ? (value[selectedIndex].comment || '') : ''} onchange={(e) => {
                                 if (!value || !value[selectedIndex] || selectedIndex < 0 || selectedIndex >= value.length) return;
                                 const comment = e.currentTarget.value
                                 const prev = value[selectedIndex].comment
@@ -2188,11 +2189,13 @@
                                 }
                                 value[selectedIndex].comment = comment
                             }} />
+                            </div>
                         </div>
-                        <div class="p-2 flex flex-col">
+                        <div class="p-2 flex flex-col h-full min-h-[4.5rem]">
                             <span class="block text-textcolor2">{language.triggerOn}</span>
                             {#if value && value[selectedIndex] && selectedIndex >= 0 && selectedIndex < value.length}
-                                <SelectInput bind:value={value[selectedIndex].type}>
+                                <div class="flex-1 min-h-[2.5rem] flex">
+                                    <SelectInput className="flex-1" bind:value={value[selectedIndex].type}>
                                     <OptionInput value="start">{language.triggerStart}</OptionInput>
                                     <OptionInput value="output">{language.triggerOutput}</OptionInput>
                                     <OptionInput value="input">{language.triggerInput}</OptionInput>
@@ -2200,10 +2203,20 @@
                                     <OptionInput value="display">{language.editDisplay}</OptionInput>
                                     <OptionInput value="request">{language.editProcess}</OptionInput>
                                 </SelectInput>
+                                </div>
                             {/if}
                         </div>
                     </div>
-                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-hidden overflow-y-auto relative" bind:this={menu0Container}>
+
+                    <!-- <div class="mx-2 mb-2 p-2 bg-darkbg2 border border-darkborderc rounded-md">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
+                                TBD
+                            </button>
+                        </div>
+                    </div> -->
+                    
+                    <div class="border border-darkborderc mx-2 mb-2 rounded-md flex-1 overflow-x-hidden overflow-y-auto relative" bind:this={menu0Container}>
                         {#key guideLineKey}
                             {#each (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect : [] as effect, i}
                                 {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
