@@ -178,6 +178,34 @@
     }
     let clipboard:VirtualClipboard = $state(null)
 
+    $effect(() => {
+        if (!value || value.length === 0) {
+            value = [{
+                comment: '',
+                type: 'start',
+                conditions: [],
+                effect: []
+            }];
+        }
+    });
+
+    $effect(() => {
+        if (selectedIndex !== selectedTriggerIndex && selectedIndex >= 0 && value && value.length > selectedIndex) {
+            selectedTriggerIndex = selectedIndex
+        }
+    })
+
+    $effect(() => {
+        if (value && value.length > 0) {
+            if (selectedIndex >= value.length) {
+                selectedIndex = Math.max(0, value.length - 1)
+                selectedTriggerIndex = selectedIndex
+            } else if (selectedIndex < 0) {
+                selectedIndex = 0
+                selectedTriggerIndex = 0
+            }
+        }
+    })
     
     $effect(() => {
         if(menuMode === 0){
@@ -203,12 +231,17 @@
             if(selectedTriggerIndex > 0) {
                 setTimeout(() => {
                     try {
-                        if(value && value.length > 0) {
-                            const validIndex = selectedTriggerIndex < value.length ? selectedTriggerIndex : 1
-                            selectedIndex = validIndex
-                            if(selectedEffectIndexSaved >= 0 && value[validIndex]?.effect && selectedEffectIndexSaved < value[validIndex].effect.length) {
+                        if(value && value.length > selectedTriggerIndex) {
+                            selectedIndex = selectedTriggerIndex
+                            if(selectedEffectIndexSaved >= 0 && value[selectedTriggerIndex]?.effect && selectedEffectIndexSaved < value[selectedTriggerIndex].effect.length) {
                                 selectedEffectIndex = selectedEffectIndexSaved
                             }
+                        } else if(value && value.length > 1) {
+                            selectedIndex = 1
+                            selectedTriggerIndex = 1
+                        } else {
+                            selectedIndex = 0
+                            selectedTriggerIndex = 0
                         }
                     } catch(e) {
                         console.warn('Failed to restore trigger selection:', e)
@@ -241,14 +274,14 @@
     }
 
     $effect(() => {
-        if(menuMode === 0 && selectedIndex > 0) {
+        if(menuMode === 0 && selectedIndex >= 0 && value && value.length > selectedIndex) {
             setTimeout(() => updateGuideLines(), 10)
             setTimeout(() => updateGuideLines(), 50)
         }
     })
 
     $effect(() => {
-        if(selectedIndex > 0 && value[selectedIndex]?.effect) {
+        if(selectedIndex >= 0 && value && value[selectedIndex]?.effect) {
             value[selectedIndex].effect.length
             if(menuMode === 0) {
                 setTimeout(() => updateGuideLines(), 10)
@@ -370,6 +403,9 @@
     }
 
     const checkSupported = (e:string) => {
+        if(!value || value.length === 0 || selectedIndex < 0 || selectedIndex >= value.length || !value[selectedIndex]){
+            return false
+        }
         if(value[selectedIndex].type === 'display'){
             return displayAllowList.includes(e)
         }
@@ -2137,8 +2173,8 @@
                     }}>
                         <div class="p-2 flex flex-col">
                             <span class="block text-textcolor2">{language.name}</span>
-                            <TextInput value={value[selectedIndex]?.comment || ''} onchange={(e) => {
-                                if (!value[selectedIndex]) return;
+                            <TextInput value={value && value[selectedIndex] ? (value[selectedIndex].comment || '') : ''} onchange={(e) => {
+                                if (!value || !value[selectedIndex] || selectedIndex < 0 || selectedIndex >= value.length) return;
                                 const comment = e.currentTarget.value
                                 const prev = value[selectedIndex].comment
                                 for(let i = 1; i < value.length; i++){
@@ -2155,7 +2191,7 @@
                         </div>
                         <div class="p-2 flex flex-col">
                             <span class="block text-textcolor2">{language.triggerOn}</span>
-                            {#if value[selectedIndex]}
+                            {#if value && value[selectedIndex] && selectedIndex >= 0 && selectedIndex < value.length}
                                 <SelectInput bind:value={value[selectedIndex].type}>
                                     <OptionInput value="start">{language.triggerStart}</OptionInput>
                                     <OptionInput value="output">{language.triggerOutput}</OptionInput>
@@ -2169,12 +2205,12 @@
                     </div>
                     <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto relative" bind:this={menu0Container}>
                         {#key guideLineKey}
-                            {#each value[selectedIndex].effect as effect, i}
+                            {#each (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect : [] as effect, i}
                                 {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
                                     {@const blockIndent = (effect as triggerEffectV2).indent}
-                                    {@const endIndex = value[selectedIndex].effect.findIndex((e, idx) => 
+                                    {@const endIndex = (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect.findIndex((e, idx) => 
                                         idx > i && e.type === 'v2EndIndent' && (e as triggerEffectV2).indent === blockIndent + 1
-                                    )}
+                                    ) : -1}
                                     {#if endIndex !== -1 && effectElements[i] && effectElements[endIndex] && menu0Container}
                                         {@const startElement = effectElements[i]}
                                         {@const endElement = effectElements[endIndex]}
@@ -2200,7 +2236,7 @@
                             {/each}
                         {/key}
                         
-                        {#each value[selectedIndex].effect as effect, i}
+                        {#each (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect : [] as effect, i}
                             <button class="p-2 w-full text-start text-purple-500 relative"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
                                 class:bg-selected={selectedEffectIndex === i}
@@ -3366,6 +3402,7 @@
                     {/if}
 
                     <Button className="mt-4" onclick={() => {
+                        if(!value || !value[selectedIndex] || selectedIndex < 0 || selectedIndex >= value.length) return;
                         if(selectedEffectIndex === -1){
                             value[selectedIndex].effect.push(editTrigger)
 
