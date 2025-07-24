@@ -10,6 +10,7 @@ const htmlparser = require('node-html-parser');
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const fs = require('fs/promises');
 const crypto = require('crypto');
+const { Readable } = require('stream');
 app.use(compress());
 app.use(koaStatic(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(bodyParser({
@@ -102,9 +103,7 @@ const reverseProxyFunc = async (ctx, next) => {
         return;
     }
     const header = ctx.headers['risu-header'] ? JSON.parse(decodeURIComponent(ctx.headers['risu-header'])) : ctx.headers;
-    if(!header['x-forwarded-for']){
-        header['x-forwarded-for'] = ctx.ip
-    }
+    header['x-forwarded-for'] ??= ctx.ip;
     let originalResponse;
     try {
         // make request to original server
@@ -129,7 +128,7 @@ const reverseProxyFunc = async (ctx, next) => {
         // send response status to client
         ctx.status = originalResponse.status;
         // send response body to client
-        ctx.body = originalResponse.body;
+        ctx.body = Readable.fromWeb(originalResponse.body);
     }
     catch (err) {
         throw err;
@@ -157,9 +156,7 @@ const reverseProxyFunc_get = async (ctx, next) => {
         return;
     }
     const header = ctx.headers['risu-header'] ? JSON.parse(decodeURIComponent(ctx.headers['risu-header'])) : ctx.headers;
-    if(!header['x-forwarded-for']){
-        header['x-forwarded-for'] = ctx.ip
-    }
+    header['x-forwarded-for'] ??= ctx.ip;
     let originalResponse;
     try {
         // make request to original server
@@ -183,7 +180,7 @@ const reverseProxyFunc_get = async (ctx, next) => {
         // send response status to client
         ctx.status = originalResponse.status;
         // send response body to client
-        ctx.body = originalResponse.body;
+        ctx.body = Readable.fromWeb(originalResponse.body);
     }
     catch (err) {
         throw err;
@@ -234,7 +231,7 @@ async function hubProxyFunc(ctx) {
             return;
         }
         
-        ctx.body = response.body;
+        ctx.body = Readable.fromWeb(response.body);
         
     } catch (error) {
         console.error("[Hub Proxy] Error:", error);
