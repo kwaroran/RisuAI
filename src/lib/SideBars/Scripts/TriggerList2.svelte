@@ -1771,10 +1771,10 @@
         })
 
         if(type === 'v2Comment') {
-            return `<div class="text-gray-500 italic" style="margin-left:${(effect as triggerEffectV2).indent}rem">// ${txt}</div>`
+            return `<div class="text-gray-500 italic break-words" style="margin-left:${(effect as triggerEffectV2).indent}rem">// ${txt}</div>`
         }
 
-        return `<div class="text-purple-500" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</div>`
+        return `<div class="text-purple-500 break-words" style="margin-left:${(effect as triggerEffectV2).indent}rem">${txt}</div>`
     }
     
     const updateGuideLines = () => {
@@ -2203,7 +2203,7 @@
                             {/if}
                         </div>
                     </div>
-                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-auto overflow-y-auto relative" bind:this={menu0Container}>
+                    <div class="border border-darkborderc ml-2 rounded-md flex-1 mr-2 overflow-x-hidden overflow-y-auto relative" bind:this={menu0Container}>
                         {#key guideLineKey}
                             {#each (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect : [] as effect, i}
                                 {#if effect.type === 'v2If' || effect.type === 'v2IfAdvanced' || effect.type === 'v2Loop' || effect.type === 'v2LoopNTimes' || effect.type === 'v2Else'}
@@ -2237,7 +2237,7 @@
                         {/key}
                         
                         {#each (value && value[selectedIndex] && value[selectedIndex].effect) ? value[selectedIndex].effect : [] as effect, i}
-                            <button class="p-2 w-full text-start text-purple-500 relative"
+                            <button class="p-2 w-full text-start text-purple-500 relative break-all whitespace-normal overflow-hidden"
                                 class:hover:bg-selected={selectedEffectIndex !== i}
                                 class:bg-selected={selectedEffectIndex === i}
                                 bind:this={effectElements[i]}
