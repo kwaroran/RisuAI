@@ -1,37 +1,70 @@
-const express = require('express');
-const app = express();
+const Koa = require('koa');
+const Router = require('@koa/router');
+const koaStatic = require('koa-static');
+const { bodyParser } = require('@koa/bodyparser');
+const compress = require('koa-compress');
+const app = new Koa();
+const router = new Router();
 const path = require('path');
 const htmlparser = require('node-html-parser');
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
-const fs = require('fs/promises')
-const crypto = require('crypto')
-app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
-const {pipeline} = require('stream/promises')
+const fs = require('fs/promises');
+const crypto = require('crypto');
+app.use(compress());
+app.use(koaStatic(path.join(process.cwd(), 'dist'), {index: false}));
+app.use(bodyParser({
+    formLimit: '50mb',
+    jsonLimit: '50mb',
+    textLimit: '50mb',
+    xmlLimit: '50mb'
+}));
+app.use(async (ctx, next) => {
+    if (!ctx.is("application/octet-stream")) {
+        return await next();
+    }
+    
+    const chunks = [];
+    let totalLength = 0;
+    const maxSize = 50 * 1024 * 1024;
+  
+    for await (const chunk of ctx.req) {
+        totalLength += chunk.length;
+        
+        if (totalLength > maxSize) {
+            ctx.status = 413;
+            ctx.body = { error: 'Request entity too large.' };
+            return;
+        }
+        
+        chunks.push(chunk);
+    }
+  
+    ctx.request.body = Buffer.concat(chunks);
+    ctx.request.rawBody = ctx.request.body;
+    return await next();
+});
 const https = require('https');
 const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
 const hubURL = 'https://sv.risuai.xyz'; 
 
 let password = ''
 
-const savePath = path.join(process.cwd(), "save")
+const savePath = path.join(process.cwd(), 'save')
 if(!existsSync(savePath)){
     mkdirSync(savePath)
 }
 
-const passwordPath = path.join(process.cwd(), 'save', '__password')
+const passwordPath = path.join(savePath, '__password')
 if(existsSync(passwordPath)){
     password = readFileSync(passwordPath, 'utf-8')
 }
-const hexRegex = /^[0-9a-fA-F]+$/;
+const hexRegex = /^[\da-f]+$/i;
 function isHex(str) {
     return hexRegex.test(str.toUpperCase().trim()) || str === '__password';
 }
 
-app.get('/', async (req, res, next) => {
-
-    const clientIP = req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'Unknown IP';
+router.get('/', async (ctx, next) => {
+    const clientIP = ctx.headers['x-forwarded-for'] || ctx.ip || ctx.socket.remoteAddress || 'Unknown IP';
     const timestamp = new Date().toISOString();
     console.log(`[Server] ${timestamp} | Connection from: ${clientIP}`);
     
@@ -41,45 +74,45 @@ app.get('/', async (req, res, next) => {
         const head = root.querySelector('head')
         head.innerHTML = `<script>globalThis.__NODE__ = true</script>` + head.innerHTML
         
-        res.send(root.toString())
+        ctx.body = root.toString()
     } catch (error) {
         console.log(error)
-        next(error)
+        throw error
     }
 })
 
-const reverseProxyFunc = async (req, res, next) => {
-    const authHeader = req.headers['risu-auth'];
+const reverseProxyFunc = async (ctx, next) => {
+    const authHeader = ctx.headers['risu-auth'];
     if(!authHeader || authHeader.trim() !== password.trim()){
         console.log('incorrect', 'received:', authHeader, 'expected:', password)
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Password Incorrect'
-        });
+        };
         return
     }
     
-    const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
+    const urlParam = ctx.headers['risu-url'] ? decodeURIComponent(ctx.headers['risu-url']) : ctx.query.url;
 
     if (!urlParam) {
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'URL has no param'
-        });
+        };
         return;
     }
-    const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
+    const header = ctx.headers['risu-header'] ? JSON.parse(decodeURIComponent(ctx.headers['risu-header'])) : ctx.headers;
     if(!header['x-forwarded-for']){
-        header['x-forwarded-for'] = req.ip
+        header['x-forwarded-for'] = ctx.ip
     }
     let originalResponse;
     try {
         // make request to original server
         originalResponse = await fetch(urlParam, {
-            method: req.method,
+            method: ctx.method,
             headers: header,
-            body: JSON.stringify(req.body)
+            body: JSON.stringify(ctx.request.body)
         });
-        // get response body as stream
-        const originalBody = originalResponse.body;
         // get response headers
         const head = new Headers(originalResponse.headers);
         head.delete('content-security-policy');
@@ -92,41 +125,40 @@ const reverseProxyFunc = async (req, res, next) => {
             headObj[k] = v;
         }
         // send response headers to client
-        res.header(headObj);
+        ctx.set(headObj);
         // send response status to client
-        res.status(originalResponse.status);
+        ctx.status = originalResponse.status;
         // send response body to client
-        await pipeline(originalResponse.body, res);
-
-
+        ctx.body = originalResponse.body;
     }
     catch (err) {
-        next(err);
-        return;
+        throw err;
     }
 }
 
-const reverseProxyFunc_get = async (req, res, next) => {
-    const authHeader = req.headers['risu-auth'];
+const reverseProxyFunc_get = async (ctx, next) => {
+    const authHeader = ctx.headers['risu-auth'];
     if(!authHeader || authHeader.trim() !== password.trim()){
         console.log('incorrect', 'received:', authHeader, 'expected:', password)
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Password Incorrect'
-        });
+        };
         return
     }
     
-    const urlParam = req.headers['risu-url'] ? decodeURIComponent(req.headers['risu-url']) : req.query.url;
+    const urlParam = ctx.headers['risu-url'] ? decodeURIComponent(ctx.headers['risu-url']) : ctx.query.url;
 
     if (!urlParam) {
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'URL has no param'
-        });
+        };
         return;
     }
-    const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
+    const header = ctx.headers['risu-header'] ? JSON.parse(decodeURIComponent(ctx.headers['risu-header'])) : ctx.headers;
     if(!header['x-forwarded-for']){
-        header['x-forwarded-for'] = req.ip
+        header['x-forwarded-for'] = ctx.ip
     }
     let originalResponse;
     try {
@@ -135,8 +167,6 @@ const reverseProxyFunc_get = async (req, res, next) => {
             method: 'GET',
             headers: header
         });
-        // get response body as stream
-        const originalBody = originalResponse.body;
         // get response headers
         const head = new Headers(originalResponse.headers);
         head.delete('content-security-policy');
@@ -149,40 +179,39 @@ const reverseProxyFunc_get = async (req, res, next) => {
             headObj[k] = v;
         }
         // send response headers to client
-        res.header(headObj);
+        ctx.set(headObj);
         // send response status to client
-        res.status(originalResponse.status);
+        ctx.status = originalResponse.status;
         // send response body to client
-        await pipeline(originalResponse.body, res);
+        ctx.body = originalResponse.body;
     }
     catch (err) {
-        next(err);
-        return;
+        throw err;
     }
 }
 
-async function hubProxyFunc(req, res) {
+async function hubProxyFunc(ctx) {
 
     try {
-        const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
+        const pathAndQuery = ctx.originalUrl.replace(/^\/hub-proxy/, '');
         const externalURL = hubURL + pathAndQuery;
         
-        const headersToSend = { ...req.headers };
+        const headersToSend = { ...ctx.headers };
         delete headersToSend.host;
         delete headersToSend.connection;
         
         const response = await fetch(externalURL, {
-            method: req.method,
+            method: ctx.method,
             headers: headersToSend,
-            body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
+            body: ctx.method !== 'GET' && ctx.method !== 'HEAD' ? ctx.req : undefined,
             redirect: 'manual',
             duplex: 'half'
         });
         
         for (const [key, value] of response.headers.entries()) {
-            res.setHeader(key, value);
+            ctx.set(key, value);
         }
-        res.status(response.status);
+        ctx.status = response.status;
         
         if (response.status >= 300 && response.status < 400) {
             // Redirect handling (due to ‘/redirect/docs/lua’)
@@ -193,190 +222,200 @@ async function hubProxyFunc(req, res) {
                     
                     if (redirectUrl.startsWith(hubURL)) {
                         const newPath = redirectUrl.replace(hubURL, '/hub-proxy');
-                        res.setHeader('location', newPath);
+                        ctx.set('location', newPath);
                     }
                     
                 } else if (redirectUrl.startsWith('/')) {
                     
-                    res.setHeader('location', `/hub-proxy${redirectUrl}`);
+                    ctx.set('location', `/hub-proxy${redirectUrl}`);
                 }
             }
 
-            return res.end();
+            return;
         }
         
-        await pipeline(response.body, res);
+        ctx.body = response.body;
         
     } catch (error) {
         console.error("[Hub Proxy] Error:", error);
-        if (!res.headersSent) {
-            res.status(502).send({ error: 'Proxy request failed: ' + error.message });
-        } else {
-            res.end();
-        }
+        ctx.status = 502;
+        ctx.body = { error: 'Proxy request failed: ' + error.message };
     }
 }
 
-app.get('/proxy', reverseProxyFunc_get);
-app.get('/proxy2', reverseProxyFunc_get);
-app.get('/hub-proxy/*', hubProxyFunc);
+router.get('/proxy', reverseProxyFunc_get);
+router.get('/proxy2', reverseProxyFunc_get);
+router.get('/hub-proxy/(.*)', hubProxyFunc);
 
-app.post('/proxy', reverseProxyFunc);
-app.post('/proxy2', reverseProxyFunc);
-app.post('/hub-proxy/*', hubProxyFunc);
+router.post('/proxy', reverseProxyFunc);
+router.post('/proxy2', reverseProxyFunc);
+router.post('/hub-proxy/(.*)', hubProxyFunc);
 
-app.get('/api/password', async(req, res)=> {
+router.get('/api/password', async(ctx)=> {
     if(password === ''){
-        res.send({status: 'unset'})
+        ctx.body = {status: 'unset'}
     }
-    else if(req.headers['risu-auth']  === password){
-        res.send({status:'correct'})
+    else if(ctx.headers['risu-auth']  === password){
+        ctx.body = {status:'correct'}
     }
     else{
-        res.send({status:'incorrect'})
+        ctx.body = {status:'incorrect'}
     }
 })
 
-app.post('/api/crypto', async (req, res) => {
+router.post('/api/crypto', async (ctx) => {
     try {
         const hash = crypto.createHash('sha256')
-        hash.update(Buffer.from(req.body.data, 'utf-8'))
-        res.send(hash.digest('hex'))
+        hash.update(Buffer.from(ctx.request.body.data, 'utf-8'))
+        ctx.body = hash.digest('hex')
     } catch (error) {
-        next(error)
+        throw error
     }
 })
 
 
-app.post('/api/set_password', async (req, res) => {
+router.post('/api/set_password', async (ctx) => {
     if(password === ''){
-        password = req.body.password
+        password = ctx.request.body.password
         writeFileSync(passwordPath, password, 'utf-8')
     }
-    res.status(400).send("already set")
+    ctx.status = 400;
+    ctx.body = "already set"
 })
 
-app.get('/api/read', async (req, res, next) => {
-    if(req.headers['risu-auth'].trim() !== password.trim()){
+router.get('/api/read', async (ctx, next) => {
+    if(ctx.headers['risu-auth'].trim() !== password.trim()){
         console.log('incorrect')
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Password Incorrect'
-        });
+        };
         return
     }
-    const filePath = req.headers['file-path'];
+    const filePath = ctx.headers['file-path'] || ctx.get('file-path');
     if (!filePath) {
         console.log('no path')
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'File path required'
-        });
+        };
         return;
     }
 
     if(!isHex(filePath)){
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Invaild Path'
-        });
+        };
         return;
     }
     try {
         if(!existsSync(path.join(savePath, filePath))){
-            res.send();
+            ctx.body = null;
         }
         else{
-            res.setHeader('Content-Type','application/octet-stream');
-            res.sendFile(path.join(savePath, filePath));
+            ctx.set('Content-Type','application/octet-stream');
+            ctx.body = await fs.readFile(path.join(savePath, filePath));
         }
     } catch (error) {
-        next(error);
+        throw error;
     }
 });
 
-app.get('/api/remove', async (req, res, next) => {
-    if(req.headers['risu-auth'].trim() !== password.trim()){
+router.get('/api/remove', async (ctx, next) => {
+    if(ctx.headers['risu-auth'].trim() !== password.trim()){
         console.log('incorrect')
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Password Incorrect'
-        });
+        };
         return
     }
-    const filePath = req.headers['file-path'];
+    const filePath = ctx.headers['file-path'] || ctx.get('file-path');
     if (!filePath) {
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'File path required'
-        });
+        };
         return;
     }
     if(!isHex(filePath)){
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Invaild Path'
-        });
+        };
         return;
     }
 
     try {
         await fs.rm(path.join(savePath, filePath));
-        res.send({
+        ctx.body = {
             success: true,
-        });
+        };
     } catch (error) {
-        next(error);
+        throw error;
     }
 });
 
-app.get('/api/list', async (req, res, next) => {
-    if(req.headers['risu-auth'].trim() !== password.trim()){
+router.get('/api/list', async (ctx, next) => {
+    if(ctx.headers['risu-auth'].trim() !== password.trim()){
         console.log('incorrect')
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Password Incorrect'
-        });
+        };
         return
     }
     try {
         const data = (await fs.readdir(path.join(savePath))).map((v) => {
             return Buffer.from(v, 'hex').toString('utf-8')
         })
-        res.send({
+        ctx.body = {
             success: true,
             content: data
-        });
+        };
     } catch (error) {
-        next(error);
+        throw error;
     }
 });
 
-app.post('/api/write', async (req, res, next) => {
-    if(req.headers['risu-auth'].trim() !== password.trim()){
+router.post('/api/write', async (ctx, next) => {
+    if(ctx.headers['risu-auth'].trim() !== password.trim()){
         console.log('incorrect')
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Password Incorrect'
-        });
+        };
         return
     }
-    const filePath = req.headers['file-path'];
-    const fileContent = req.body
+    const filePath = ctx.headers['file-path'];
+    const fileContent = ctx.request.body;
     if (!filePath || !fileContent) {
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'File path required'
-        });
+        };
         return;
     }
     if(!isHex(filePath)){
-        res.status(400).send({
+        ctx.status = 400;
+        ctx.body = {
             error:'Invaild Path'
-        });
+        };
         return;
     }
 
     try {
         await fs.writeFile(path.join(savePath, filePath), fileContent);
-        res.send({
+        ctx.body = {
             success: true
-        });
+        };
     } catch (error) {
-        next(error);
+        throw error;
     }
 });
+
+app.use(router.routes()).use(router.allowedMethods());
 
 async function getHttpsOptions() {
 
@@ -410,7 +449,7 @@ async function startServer() {
 
         if (httpsOptions) {
             // HTTPS
-            https.createServer(httpsOptions, app).listen(port, () => {
+            https.createServer(httpsOptions, app.callback()).listen(port, () => {
                 console.log("[Server] HTTPS server is running.");
                 console.log(`[Server] https://localhost:${port}/`);
             });
