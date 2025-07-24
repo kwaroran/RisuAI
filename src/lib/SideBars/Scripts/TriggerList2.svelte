@@ -1428,8 +1428,31 @@
         }
         
         const targetEffect = value[selectedIndex].effect[insertIndex] as triggerEffectV2
+        const prevEffect = insertIndex > 0 ? value[selectedIndex].effect[insertIndex - 1] as triggerEffectV2 : null
+        
         if (targetEffect.type === 'v2EndIndent') {
             return targetEffect.indent
+        }
+        
+        if (targetEffect.type === 'v2Else') {
+            return targetEffect.indent
+        }
+        
+        if (prevEffect && (prevEffect.type === 'v2If' || prevEffect.type === 'v2IfAdvanced' || 
+                          prevEffect.type === 'v2Loop' || prevEffect.type === 'v2LoopNTimes')) {
+            return prevEffect.indent + 1
+        }
+        
+        if (prevEffect && prevEffect.type === 'v2Else') {
+            return prevEffect.indent + 1
+        }
+        
+        if (prevEffect && prevEffect.type === 'v2EndIndent') {
+            return prevEffect.indent - 1
+        }
+        
+        if (prevEffect) {
+            return prevEffect.indent
         }
         
         return targetEffect.indent
@@ -1649,16 +1672,47 @@
             }
         }
         
+        // Prevent insertion between if block end and else
         if (toIndex < value[selectedIndex].effect.length) {
             const targetEffect = value[selectedIndex].effect[toIndex] as triggerEffectV2;
-            if (targetEffect && fromEffect.indent !== targetEffect.indent) {
-                return false;
+            if (targetEffect && targetEffect.type === 'v2Else' && toIndex > 0) {
+                const prevEffect = value[selectedIndex].effect[toIndex - 1] as triggerEffectV2;
+                if (prevEffect && prevEffect.type === 'v2EndIndent') {
+                    // Check if this EndIndent belongs to an if block
+                    const blockIndent = prevEffect.indent - 1;
+                    for (let i = toIndex - 2; i >= 0; i--) {
+                        const checkEffect = value[selectedIndex].effect[i] as triggerEffectV2;
+                        if (checkEffect.indent === blockIndent) {
+                            if (checkEffect.type === 'v2If' || checkEffect.type === 'v2IfAdvanced') {
+                                // Forbidden: between if block end and else
+                                return false;
+                            }
+                            break;
+                        }
+                    }
+                }
             }
-        } else if (toIndex > 0) {
+        }
+
+        // Prevent insertion right after EndIndent in some cases
+        if (toIndex > 0 && toIndex < value[selectedIndex].effect.length) {
             const prevEffect = value[selectedIndex].effect[toIndex - 1] as triggerEffectV2;
-            if (prevEffect && fromEffect.indent !== prevEffect.indent) {
+            const targetEffect = value[selectedIndex].effect[toIndex] as triggerEffectV2;
+            
+            if (prevEffect && prevEffect.type === 'v2EndIndent' && 
+                targetEffect && targetEffect.type === 'v2Else') {
+                // Already handled above, but this is a double-check
                 return false;
             }
+        }
+
+        try {
+            const targetIndent = getInsertIndent(toIndex);
+            if (targetIndent < 0 || targetIndent > 10) {
+                return false;
+            }
+        } catch(e) {
+            return false;
         }
         
         return true;
@@ -1676,10 +1730,22 @@
             const blockRange = getBlockRange(fromIndex);
             const blockSize = blockRange.end - blockRange.start + 1;
             
+            // Calculate target indent before removing the block
+            const targetIndent = getInsertIndent(toIndex);
+            
             const movedBlock = effects.splice(blockRange.start, blockSize);
             if (movedBlock.length === 0) return;
                 
             const adjustedToIndex = blockRange.start < toIndex ? toIndex - blockSize : toIndex;
+            
+            // Adjust indent for entire block
+            const originalIndent = (movedBlock[0] as triggerEffectV2).indent;
+            const indentDifference = targetIndent - originalIndent;
+            
+            movedBlock.forEach((effect) => {
+                const effectV2 = effect as triggerEffectV2;
+                effectV2.indent += indentDifference;
+            });
             
             effects.splice(adjustedToIndex, 0, ...movedBlock);
             
@@ -1693,10 +1759,17 @@
             }
             
         } else {
+            // Calculate target indent before removing the item
+            const targetIndent = getInsertIndent(toIndex);
+            
             const movedItem = effects.splice(fromIndex, 1)[0];
             if (!movedItem) return;
             
             const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+            
+            // Apply calculated indent
+            (movedItem as triggerEffectV2).indent = targetIndent;
+            
             effects.splice(adjustedToIndex, 0, movedItem);
             
             if (selectedEffectIndex === fromIndex) {
@@ -1967,7 +2040,7 @@
 
 
     onMount(() => {
-        // 모바일 감지
+        // Detect mobile device
         const checkMobile = () => {
             isMobile = window.innerWidth < 768
         }
@@ -2335,7 +2408,7 @@
                             <PlusIcon />
                         </button>
                         <button class="p-2 border-t-darkborderc text-start text-textcolor2 hover:text-textcolor focus:bg-bgcolor" onclick={() => {
-                            const triggersToExport = value.slice(1); // 첫 번째 헤더 제외
+                            const triggersToExport = value.slice(1);
                             const jsonData = JSON.stringify(triggersToExport, null, 2);
                             
                             const blob = new Blob([jsonData], { type: 'application/json' });
