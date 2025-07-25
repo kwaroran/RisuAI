@@ -102,6 +102,7 @@ export async function loadLoreBookV3Prompt(){
         regex:boolean
         fullWordMatching:boolean
         all?:boolean
+        dontSearchWhenRecursive: boolean
     }) => {
         const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)
         arg.keys = arg.keys.map(key => key.trim()).filter(key => key.length > 0)
@@ -124,13 +125,14 @@ export async function loadLoreBookV3Prompt(){
                     data: msg.data
                 }
             }
-        }).concat(recursivePrompt.map((msg) => {
-            return {
-                source: 'lorebook ' + msg.source,
-                prompt: dontSearchWhenRecursive ? '' : msg.prompt,
-                data: msg.data
-            }
-        }))
+        }).concat(
+            arg.dontSearchWhenRecursive ? [] : recursivePrompt.map((msg) => {
+                return {
+                    source: 'lorebook ' + msg.source,
+                    prompt: msg.prompt,
+                    data: msg.data
+                }
+            }))    
 
         if(arg.regex){
             for(const mText of mList){
@@ -235,7 +237,6 @@ export async function loadLoreBookV3Prompt(){
     let matchTimes = 0
     let keepActivateAfterMatch = false
     let dontActivateAfterMatch = false
-    let dontSearchWhenRecursive = false
     while(matching){
         matching = false
         for(let i=0;i<fullLore.length;i++){
@@ -259,6 +260,7 @@ export async function loadLoreBookV3Prompt(){
                 all?:boolean
             }[] = []
             let fullWordMatching = fullWordMatchingSetting
+            let dontSearchWhenRecursive = false
             
             if(fullLore[i].mode === 'child'){
                 activated = false
@@ -469,7 +471,8 @@ export async function loadLoreBookV3Prompt(){
                         searchDepth: scanDepth,
                         regex: fullLore[i].useRegex,
                         fullWordMatching: fullWordMatching,
-                        all: query.all
+                        all: query.all,
+                        dontSearchWhenRecursive: dontSearchWhenRecursive
                     })
                     if(query.negative){
                         if(result){
@@ -524,7 +527,7 @@ export async function loadLoreBookV3Prompt(){
                     recursivePrompt.push({
                         prompt: content,
                         data: content,
-                        source: fullLore[i].comment || `lorebook ${i}`
+                        source: fullLore[i].comment || `lorebook ${i}`,
                     })
                 }
             }
