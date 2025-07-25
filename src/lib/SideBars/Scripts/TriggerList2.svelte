@@ -1402,9 +1402,21 @@
 
     const copyEffect = () => {
         const type = value[selectedIndex].effect[selectedEffectIndex]
-        if(type.type === 'v2If' || type.type === 'v2IfAdvanced' || type.type === 'v2Loop' || type.type === 'v2Else' || type.type === 'v2LoopNTimes'){
+        
+        if(type.type === 'v2If' || type.type === 'v2IfAdvanced' || type.type === 'v2Loop' || type.type === 'v2LoopNTimes'){
+            const blockRange = getBlockRange(selectedEffectIndex)
+            const blockEffects = value[selectedIndex].effect.slice(blockRange.start, blockRange.end + 1)
+            clipboard = {
+                type: 'effect',
+                value: safeStructuredClone(blockEffects)
+            }
             return
         }
+        
+        if(type.type === 'v2Else'){
+            return
+        }
+        
         clipboard = {
             type: 'effect',
             value: safeStructuredClone([type])
@@ -1466,12 +1478,33 @@
         let insertIndex = selectedEffectIndex === -1 ? value[selectedIndex].effect.length : selectedEffectIndex
         const targetIndent = getInsertIndent(insertIndex)
         
-        for(const effect of clipboard.value){
-            const clonedEffect = safeStructuredClone(effect) as triggerEffectV2
-            clonedEffect.indent = targetIndent
-            value[selectedIndex].effect.splice(insertIndex, 0, clonedEffect)
-            insertIndex += 1
+        const firstEffect = clipboard.value[0] as triggerEffectV2
+        const isBlock = firstEffect && (
+            firstEffect.type === 'v2If' || 
+            firstEffect.type === 'v2IfAdvanced' || 
+            firstEffect.type === 'v2Loop' || 
+            firstEffect.type === 'v2LoopNTimes'
+        )
+        
+        if (isBlock) {
+            const baseIndent = firstEffect.indent
+            const indentDifference = targetIndent - baseIndent
+            
+            for(const effect of clipboard.value){
+                const clonedEffect = safeStructuredClone(effect) as triggerEffectV2
+                clonedEffect.indent = (effect as triggerEffectV2).indent + indentDifference
+                value[selectedIndex].effect.splice(insertIndex, 0, clonedEffect)
+                insertIndex += 1
+            }
+        } else {
+            for(const effect of clipboard.value){
+                const clonedEffect = safeStructuredClone(effect) as triggerEffectV2
+                clonedEffect.indent = targetIndent
+                value[selectedIndex].effect.splice(insertIndex, 0, clonedEffect)
+                insertIndex += 1
+            }
         }
+        
         selectedEffectIndex = insertIndex - 1
         updateGuideLines()
     }
