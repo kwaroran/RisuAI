@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "164.1.2"
+export let appVer = "165.1.0"
 export let webAppSubVer = ''
 
 
@@ -1056,6 +1056,9 @@ export interface Database{
     claude1HourCaching:boolean
     rememberToolUsage:boolean
     simplifiedToolUse:boolean
+    requestLocation:string
+    newImageHandlingBeta?: boolean
+
 }
 
 interface SeparateParameters{

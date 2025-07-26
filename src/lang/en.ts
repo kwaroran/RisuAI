@@ -578,6 +578,8 @@ export const languageEnglish = {
     noBias: "No Bias",
     image: 'Image',
     name: 'Name',
+    folderName: 'Folder Name',
+    folderRemoveConfirm: 'This folder contains lorebooks. Are you sure you want to delete it and all its contents?',
     emotion: "Emotion Name",
     value: "Value",
     reroll: 'Regenerate',
@@ -1303,4 +1305,6 @@ export const languageEnglish = {
     dynamic: "Dynamic",
     assetStyle: "Asset Style",
     insertAssetPrompt: "Insert Asset Prompt",
+    requestLocation: "Request Location",
+    newImageHandlingBeta: "New Image Handling (Beta)",
 }

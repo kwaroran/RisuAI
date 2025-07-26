@@ -1949,6 +1949,62 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'iserror':{
                     return arra[1].toLocaleLowerCase().startsWith('error:') ? '1' : '0'
                 }
+
+                //simple encryption/decryption functions,
+                //for hiding stuff for users if really needed
+                //(like hiding secret of the character)
+                case 'xor':
+                case 'xorencrypt':
+                case 'xorencode':
+                case 'xore':{
+                    const buf = new TextEncoder().encode(arra[1])
+                    for(let i = 0; i < buf.length; i++){
+                        buf[i] ^= 0xFF
+                    }
+                    return Buffer.from(buf).toString('base64')
+                }
+
+                case 'xordecrypt':
+                case 'xordecode':
+                case 'xord':{
+                    const buf = Buffer.from(arra[1], 'base64')
+                    for(let i = 0; i < buf.length; i++){
+                        buf[i] ^= 0xFF
+                    }
+                    return new TextDecoder().decode(buf)
+                }
+
+                //a simple caesar cipher implementation,
+                //most recommended, since we don't need a high security encryption,
+                //with low-resource usage, and same length as the original text,
+                //with same function for encryption and decryption
+                case 'crypt':
+                case 'crypto':
+                case 'caesar':
+                case 'encrypt':
+                case 'decrypt':{
+                    let shift = arra[2] ? Number(arra[2]) : 32768
+                    if(isNaN(shift)){
+                        shift = 32768
+                    }
+
+                    let result = ''
+                    for(let i = 0; i < arra[1].length; i++){
+                        const charCode = arra[1].charCodeAt(i)
+                        if(charCode > 65535){
+                            result += arra[1][i]
+                            continue
+                        }
+                        let shiftedCode = charCode + shift
+                        if(shiftedCode > 65535){
+                            shiftedCode -= 65536
+                        }
+                        result += String.fromCharCode(shiftedCode)
+                    }
+                    return result
+                }
+
+
                 //the underlined ones are for internal use only.
                 //these doesn't support backward compatibility and breaking changes could happen easily
                 //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
