@@ -1171,5 +1171,4 @@ export const languageKorean = {
     "insertAssetPrompt": "에셋 프롬프트 삽입",
     "requestLocation": "리퀘스트 위치",
     "folderRemoveConfirm": "이 폴더에는 로어북이 포함되어 있습니다. 폴더와 그 안의 모든 항목을 삭제하시겠습니까?",
-    "folderRemoveLengthError": "폴더를 제거하려면 폴더가 비어 있어야 합니다."
 }
