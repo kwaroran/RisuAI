@@ -18,6 +18,7 @@
   import { v4 } from "uuid";
   import { MCPClient } from "src/ts/process/mcp/mcplib";
     import { getDatabase } from "src/ts/storage/database.svelte";
+    import { url } from "inspector";
 
     let estaStorage:{
         key:string,
@@ -515,9 +516,9 @@ Show Statistics
 <Button
     className="mt-4"
     onclick={async () => {
-        const db = getDatabase({
+        const db = safeStructuredClone(getDatabase({
             snapshot: true
-        })
+        }))
 
         const keyToRemove = [
             'characters', 'loreBook', 'plugins', 'account', 'personas', 'username', 'userIcon', 'userNote',
@@ -534,6 +535,13 @@ Show Statistics
             ) {
                 delete db[key]
             }
+        }
+
+        //@ts-ignore
+        db.meta = {
+            isTauri: isTauri,
+            isNodeServer: isNodeServer,
+            protocol: location.protocol
         }
 
         const json = JSON.stringify(db, null, 2)
