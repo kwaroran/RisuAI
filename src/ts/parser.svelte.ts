@@ -1964,6 +1964,8 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     return Buffer.from(buf).toString('base64')
                 }
 
+                case 'crypt':
+                case 'crypto':
                 case 'xordecrypt':
                 case 'xordecode':
                 case 'xord':{
