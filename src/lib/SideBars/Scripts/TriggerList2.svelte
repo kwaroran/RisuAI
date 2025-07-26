@@ -2024,10 +2024,10 @@
         })
 
         if(type === 'v2Comment') {
-            return `<div class="text-gray-500 italic line-clamp-4" style="margin-left:${(effect as triggerEffectV2).indent}rem; word-break: keep-all; overflow-wrap: break-word;">// ${txt}</div>`
+            return `<div class="text-gray-500 italic line-clamp-4" style="margin-left:${(effect as triggerEffectV2).indent}rem; word-break: break-all; overflow-wrap: break-word;">// ${txt}</div>`
         }
 
-        return `<div class="text-purple-500 line-clamp-4" style="margin-left:${(effect as triggerEffectV2).indent}rem; word-break: keep-all; overflow-wrap: break-word;">${txt}</div>`
+        return `<div class="text-purple-500 line-clamp-4" style="margin-left:${(effect as triggerEffectV2).indent}rem; word-break: break-all; overflow-wrap: break-word;">${txt}</div>`
     }
     
     const updateGuideLines = () => {
@@ -2634,7 +2634,7 @@
                                         effectDragOverIndex = -1
                                     }
                                 }}>
-                                <button class="flex-1 p-2 text-start text-purple-500 relative break-all whitespace-normal overflow-hidden"
+                                <button class="flex-1 min-w-0 p-2 text-start text-purple-500 relative break-all whitespace-normal overflow-hidden"
                                     bind:this={effectElements[i]}
                                     onclick={() => {
                                         if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
