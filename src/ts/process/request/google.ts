@@ -10,7 +10,6 @@ import { applyParameters, type Parameter, type RequestDataArgumentExtended, type
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 import { alertError, alertNormal, alertWait, showHypaV2Alert } from "src/ts/alert";
 import { addFetchLog } from "src/ts/globalApi.svelte"
-import { last } from "lodash"
 
 type GeminiFunctionCall = {
     id?: string;
