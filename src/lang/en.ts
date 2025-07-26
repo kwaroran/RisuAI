@@ -1307,4 +1307,5 @@ export const languageEnglish = {
     insertAssetPrompt: "Insert Asset Prompt",
     requestLocation: "Request Location",
     newImageHandlingBeta: "New Image Handling (Beta)",
+    settingsExported: "Settings for bug report exported and copied to clipboard.",
 }
