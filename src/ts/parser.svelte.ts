@@ -1964,8 +1964,6 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                     return Buffer.from(buf).toString('base64')
                 }
 
-                case 'crypt':
-                case 'crypto':
                 case 'xordecrypt':
                 case 'xordecode':
                 case 'xord':{
@@ -1980,6 +1978,8 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 //most recommended, since we don't need a high security encryption,
                 //with low-resource usage, and same length as the original text,
                 //with same function for encryption and decryption
+                case 'crypt':
+                case 'crypto':
                 case 'caesar':
                 case 'encrypt':
                 case 'decrypt':{
