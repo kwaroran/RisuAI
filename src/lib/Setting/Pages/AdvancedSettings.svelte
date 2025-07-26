@@ -18,7 +18,6 @@
   import { v4 } from "uuid";
   import { MCPClient } from "src/ts/process/mcp/mcplib";
     import { getDatabase } from "src/ts/storage/database.svelte";
-    import { url } from "inspector";
 
     let estaStorage:{
         key:string,
