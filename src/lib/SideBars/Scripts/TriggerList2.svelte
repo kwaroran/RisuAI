@@ -2634,7 +2634,7 @@
                                         effectDragOverIndex = -1
                                     }
                                 }}>
-                                <button class="flex-1 min-w-0 p-2 text-start text-purple-500 relative break-all whitespace-normal overflow-hidden"
+                                <button class="flex-1 p-2 text-start text-purple-500 relative break-all whitespace-normal overflow-hidden"
                                     bind:this={effectElements[i]}
                                     onclick={() => {
                                         if(selectedEffectIndex === i && lastClickTime + 500 > Date.now()){
