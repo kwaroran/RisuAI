@@ -6,7 +6,7 @@ import { getFileSrc, isMobile, isNodeServer, isTauri } from './globalApi.svelte'
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { SizeStore, selectedCharID } from './stores.svelte';
+import { SizeStore, selectedCharID, CurrentTriggerIdStore } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand, replaceAsync} from './util';
 import { getInlayAsset } from './process/files/inlays';
@@ -646,7 +646,7 @@ export async function ParseMarkdown(
 export function trimMarkdown(data:string){
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-id', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
     }))
 }
 
@@ -1271,6 +1271,9 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
             }
             case 'random':{
                 return Math.random().toString()
+            }
+            case 'trigger_id':{
+                return get(CurrentTriggerIdStore) ?? 'null'
             }
             case 'maxcontext':{
                 return db.maxContext.toString()
@@ -2291,6 +2294,7 @@ export function risuChatParser(da:string, arg:{
     functions?:Map<string,{data:string,arg:string[]}>
     callStack?:number
     cbsConditions?:CbsConditions
+    triggerId?:string
 } = {}):string{
     const chatID = arg.chatID ?? -1
     const db = arg.db ?? DBState.db

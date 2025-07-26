@@ -18,6 +18,8 @@ export const SizeStore = writable({
     h: 0
 })
 
+export const CurrentTriggerIdStore = writable<string | null>(null)
+
 const t = 'https://raw.githubusercontent.com/ProjectAliceDev/ProjectAliceDev.github.io/master/'
 export const loadedStore = writable(false)
 export const DynamicGUI = writable(false)

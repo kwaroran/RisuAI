@@ -3,7 +3,7 @@ import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, 
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
+import { ReloadChatPointer, ReloadGUIPointer, selectedCharID, CurrentTriggerIdStore } from "../stores.svelte";
 import { processMultiCommand } from "./command";
 import { parseKeyValue, sleep } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
@@ -14,6 +14,7 @@ import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
 import { runScripted } from "./scriptings";
 import { calcString } from "./infunctions";
+
 
 
 export interface triggerscript{
@@ -1037,6 +1038,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     additonalSysPrompt?: additonalSysPrompt
     stopSending?: boolean
     manualName?: string
+    triggerId?: string
     displayMode?: boolean
     displayData?: string
     tempVars?: Record<string, string>
@@ -1060,6 +1062,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     const db = getDatabase()
     const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
     let chat = arg.displayMode ? arg.chat : safeStructuredClone(arg.chat ?? char.chats[char.chatPage])
+    
+    // Set current trigger ID for parser access
+    const previousTriggerId = get(CurrentTriggerIdStore)
+    CurrentTriggerIdStore.set(arg.triggerId || null)
     if((!triggers) || (triggers.length === 0)){
         return null
     }
@@ -2785,6 +2791,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         currentChat.scriptstate = chat.scriptstate
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
     }
+
+    // Restore previous trigger ID
+    CurrentTriggerIdStore.set(previousTriggerId)
 
     return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending, sendAIprompt, displayData: arg.displayData, tempVars: arg.tempVars}
 

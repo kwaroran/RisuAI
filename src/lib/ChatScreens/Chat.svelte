@@ -173,6 +173,7 @@
         }
 
         const triggerName = origin.getAttribute('risu-trigger')
+        const triggerId = origin.getAttribute('risu-id')
         const btnEvent = origin.getAttribute('risu-btn')
 
         const triggerResult =
@@ -180,6 +181,7 @@
                 await runTrigger(currentChar, 'manual', {
                     chat: getCurrentChat(),
                     manualName: triggerName,
+                    triggerId: triggerId || undefined,
                 }) :
             btnEvent ?
                 await runLuaButtonTrigger(currentChar, btnEvent) :
