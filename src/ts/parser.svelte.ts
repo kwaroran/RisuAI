@@ -1949,6 +1949,27 @@ function basicMatcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string
                 case 'iserror':{
                     return arra[1].toLocaleLowerCase().startsWith('error:') ? '1' : '0'
                 }
+                case 'xor':
+                case 'xorencrypt':
+                case 'xorencode':
+                case 'xore':{
+                    const buf = new TextEncoder().encode(arra[1])
+                    for(let i = 0; i < buf.length; i++){
+                        buf[i] ^= 0xFF
+                    }
+                    return Buffer.from(buf).toString('base64')
+                }
+                
+                case 'xordecrypt':
+                case 'xordecode':
+                case 'xord':{
+                    const buf = Buffer.from(arra[1], 'base64')
+                    for(let i = 0; i < buf.length; i++){
+                        buf[i] ^= 0xFF
+                    }
+                    return new TextDecoder().decode(buf)
+                }
+
                 //the underlined ones are for internal use only.
                 //these doesn't support backward compatibility and breaking changes could happen easily
                 //these SHOULD NOT be used in any other place, and SHOULD NOT be documented 
