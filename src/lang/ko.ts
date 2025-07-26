@@ -1164,6 +1164,11 @@ export const languageKorean = {
     "escapeOutput": "출력 이스케이프",
     "claudeBatching": "Claude 배칭",
     "folderNameInput": "새 폴더 이름을 입력해주세요",
+    "folderRemoveLengthError": "폴더를 제거하려면 폴더가 비어 있어야 합니다.",
+    "static": "정적",
+    "dynamic": "동적",
+    "assetStyle": "에셋 스타일",
+    "insertAssetPrompt": "에셋 프롬프트 삽입",
+    "requestLocation": "리퀘스트 위치",
     "folderRemoveConfirm": "이 폴더에는 로어북이 포함되어 있습니다. 폴더와 그 안의 모든 항목을 삭제하시겠습니까?",
-    "folderRemoveLengthError": "폴더를 제거하려면 폴더가 비어 있어야 합니다."
 }

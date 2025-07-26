@@ -3,8 +3,8 @@
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { alertMd } from "src/ts/alert";
-    import { getRequestLog, isNodeServer, isTauri } from "src/ts/globalApi.svelte";
+    import { alertMd, alertNormal } from "src/ts/alert";
+    import { downloadFile, getRequestLog, isNodeServer, isTauri } from "src/ts/globalApi.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
@@ -17,6 +17,8 @@
   import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "lucide-svelte";
   import { v4 } from "uuid";
   import { MCPClient } from "src/ts/process/mcp/mcplib";
+    import { getDatabase } from "src/ts/storage/database.svelte";
+    import { url } from "inspector";
 
     let estaStorage:{
         key:string,
@@ -118,6 +120,15 @@
     <OptionInput value="lvh">LVH</OptionInput>
 </SelectInput>
 
+{#if !isNodeServer && !isTauri}
+    <span class="text-textcolor mt-4">{language.requestLocation}</span>
+    <SelectInput bind:value={DBState.db.requestLocation}>
+        <OptionInput value="">Default</OptionInput>
+        <OptionInput value="eu">EU (GDPR)</OptionInput>
+        <OptionInput value="fedramp">US (FedRAMP)</OptionInput>
+    </SelectInput>
+{/if}
+
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.useSayNothing} name={language.sayNothing}> <Help key="sayNothing"/></Check>
 </div>
@@ -150,6 +161,9 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.noWaitForTranslate} name={language.noWaitForTranslate}/>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.newImageHandlingBeta} name={language.newImageHandlingBeta}/>
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.allowAllExtentionFiles} name="Allow all in file select"/>
@@ -497,4 +511,46 @@
     }}
 >
 Show Statistics
+</Button>
+
+<Button
+    className="mt-4"
+    onclick={async () => {
+        const db = safeStructuredClone(getDatabase({
+            snapshot: true
+        }))
+
+        const keyToRemove = [
+            'characters', 'loreBook', 'plugins', 'account', 'personas', 'username', 'userIcon', 'userNote',
+            'modules', 'enabledModules', 'botPresets', 'characterOrder', 'webUiUrl', 'characterOrder',
+            'hordeConfig', 'novelai', 'koboldURL', 'ooba', 'ainconfig', 'personaPrompt', 'promptTemplate',
+            'deeplOptions', 'google', 'customPromptTemplateToggle', 'globalChatVariables', 'comfyConfig',
+            'comfyUiUrl', 'translatorPrompt', 'customModels', 'mcpURLs', 'authRefreshes'
+        ]
+        for(const key in db) {
+            if(
+                keyToRemove.includes(key) ||
+                key.toLowerCase().includes('key') || key.toLowerCase().includes('proxy')
+                || key.toLowerCase().includes('hypa')
+            ) {
+                delete db[key]
+            }
+        }
+
+        //@ts-ignore
+        db.meta = {
+            isTauri: isTauri,
+            isNodeServer: isNodeServer,
+            protocol: location.protocol
+        }
+
+        const json = JSON.stringify(db, null, 2)
+        await downloadFile('risuai-settings-report.json', new TextEncoder().encode(json))
+        await navigator.clipboard.writeText(json)
+        alertNormal(language.settingsExported)
+        
+
+    }}
+>
+Export Settings for Bug Report
 </Button>
