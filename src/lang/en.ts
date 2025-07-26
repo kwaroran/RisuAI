@@ -1306,4 +1306,5 @@ export const languageEnglish = {
     assetStyle: "Asset Style",
     insertAssetPrompt: "Insert Asset Prompt",
     requestLocation: "Request Location",
+    newImageHandlingBeta: "New Image Handling (Beta)",
 }

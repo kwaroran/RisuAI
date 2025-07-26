@@ -1057,6 +1057,8 @@ export interface Database{
     rememberToolUsage:boolean
     simplifiedToolUse:boolean
     requestLocation:string
+    newImageHandlingBeta?: boolean
+
 }
 
 interface SeparateParameters{

@@ -161,6 +161,9 @@
     <Check bind:check={DBState.db.noWaitForTranslate} name={language.noWaitForTranslate}/>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.newImageHandlingBeta} name={language.newImageHandlingBeta}/>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.allowAllExtentionFiles} name="Allow all in file select"/>
 </div>
 {#if DBState.db.useExperimental}
