@@ -230,6 +230,8 @@ export const languageChinese = {
     "noBias": "No Bias",
     "image": "图片",
     "name": "名称",
+    "folderName": "文件夹名称",
+    "folderRemoveConfirm": "此文件夹包含世界书。确定要删除它及其所有内容吗？",
     "emotion": "情绪名称",
     "value": "值",
     "reroll": "重新生成",

@@ -142,6 +142,8 @@ export const languageGerman = {
     noBias: "Keine Voreingenommenheit",
     image: 'Bild',
     name: 'Name',
+    folderName: 'Ordnername',
+    folderRemoveConfirm: 'Dieser Ordner enthält Lorebücher. Möchten Sie ihn und alle seine Inhalte wirklich löschen?',
     emotion: "Emotionsname",
     value: "Wert",
     reroll: 'Regenerieren',

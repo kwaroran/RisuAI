@@ -10,31 +10,42 @@
     import NumberInput from "../../UI/GUI/NumberInput.svelte";
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     import { tokenizeAccurate } from "src/ts/tokenizer";
-  import { DBState } from "src/ts/stores.svelte";
-  import LoreBookList from "./LoreBookList.svelte";
+    import { DBState } from "src/ts/stores.svelte";
+    import LoreBookList from "./LoreBookList.svelte";
 
     interface Props {
         value: loreBook;
         onRemove?: () => void;
-        onClose?: () => void;
-        onOpen?: () => void;
+        onClose?: (isDetail?: boolean) => void;
+        onOpen?: (isDetail?: boolean) => void;
         lorePlus?: boolean;
         idx: number;
         externalLoreBooks?: loreBook[];
         idgroup: string;
+        isOpen?: boolean;
+        openFolders?: number;
+        isLastInContainer?: boolean;
     }
 
     let {
         value = $bindable(),
         onRemove = () => {},
-        onClose = () => {},
-        onOpen = () => {},
+        onClose = (isDetail = true) => {},
+        onOpen = (isDetail = true) => {},
         lorePlus = false,
         idx,
         externalLoreBooks = $bindable(),
-        idgroup
+        idgroup,
+        isOpen = false,
+        openFolders = 0,
+        isLastInContainer = false
     }: Props = $props();
-    let open = $state(false)
+    
+    let open = $state(isOpen)
+    
+    $effect(() => {
+        open = isOpen
+    })
 
     async function getTokens(data:string){
         tokens = await tokenizeAccurate(data)
@@ -86,9 +97,15 @@
             }
         }
     }
-</script>
 
-<div class={"w-full flex flex-col " + (value.folder ? 'border-0 py-1' : 'pt-2  mt-2 border-t border-t-selected  first:pt-0 first:mt-0 first:border-0')}
+    
+</script>
+<div class={"w-full flex flex-col " + (
+    isLastInContainer ? 
+        'pb-0 mb-0 border-0' : // Last item in container: no border
+        'pb-2 mb-2 border-b border-b-selected last:pb-0 last:mb-0 last:border-0'
+)}
+    class:no-sort={value.mode === 'folder' && openFolders > 0}
     data-risu-idx={idx} data-risu-idgroup={idgroup}
 >
     <div class="flex items-center transition-colors w-full p-1">
@@ -97,12 +114,12 @@
         <button class="endflex valuer border-darkborderc flex items-center" onclick={() => {
             value.secondkey = value.secondkey ?? ''
             if(!open){
-                onOpen()
                 open = true
+                onOpen(value.mode !== 'folder') // If not a folder, pass true
             }
             else{
-                onClose()
                 open = false
+                onClose(value.mode !== 'folder') // If not a folder, pass true
             }
         }}>
             {#if value.mode === 'folder'}
@@ -112,7 +129,11 @@
                     <FolderIcon size={20} class="mr-1" />
                 {/if}
             {/if}
-            <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
+            {#if value.mode === 'folder'}
+                <span>{value.comment.length === 0 ? "Unnamed Folder" : value.comment}</span>
+            {:else}
+                <span>{value.comment.length === 0 ? value.key.length === 0 ? "Unnamed Lore" : value.key : value.comment}</span>
+            {/if}
         </button>
         <button
             class="mr-1"
@@ -136,22 +157,23 @@
             {/if}
         </button>
         <button class="valuer" onclick={async () => {
-
-            if(value.mode === 'folder'){
-                if(externalLoreBooks.filter(e => e.folder === value.key).length > 0){
-                    alertMd(language.folderRemoveLengthError)
-                    return
+            let shouldRemove = true;
+            if (value.mode === 'folder' && externalLoreBooks.some(e => e.folder === value.key)) {
+                const firstConfirm = await alertConfirm(language.folderRemoveConfirm);
+                if (!firstConfirm) {
+                    shouldRemove = false;
                 }
             }
 
-
-            const d = await alertConfirm(language.removeConfirm + value.comment)
-            if(d){
-                if(!open){
-                    onClose()
+            if (shouldRemove) {
+                const secondConfirm = await alertConfirm(language.removeConfirm + (value.comment || 'Unnamed Folder'));
+                if (secondConfirm) {
+                    if (!open) {
+                        onClose();
+                    }
+                    deactivateLocally(value);
+                    onRemove();
                 }
-                deactivateLocally(value)
-                onRemove()
             }
         }}>
             <XIcon size={20} />
@@ -177,7 +199,13 @@
     {#if open}
         {#if value.mode === 'folder'}
         <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
-            <LoreBookList externalLoreBooks={externalLoreBooks} showFolder={value.key} />
+            <span class="text-textcolor mt-6 mb-2">{language.folderName}</span>
+            <TextInput size="sm" bind:value={value.comment}/>
+
+            <div class="mt-4">
+                <LoreBookList externalLoreBooks={externalLoreBooks} showFolder={value.key} />
+            </div>
+            
             <div class="mt-2 flex gap-1">
                 <button class="text-textcolor2 hover:text-textcolor" onclick={() => {
                     externalLoreBooks.push({
@@ -193,13 +221,6 @@
                     })
                 }}>
                     <PlusIcon size={20} />
-                </button>
-                <button  class="text-textcolor2 hover:text-textcolor" onclick={async () => {
-                    const name = await alertInput(language.folderNameInput)
-                    value.comment = name ?? ''
-                }}>
-
-                    <PencilIcon size={20} />
                 </button>
             </div>
         </div>
@@ -282,5 +303,20 @@
         flex-grow: 1;
         cursor: pointer;
     }
-    
+
+    /* Styles for SortableJS drag-and-drop feedback */
+    :global(.risu-chosen-item) {
+        /* The item being dragged */
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid;
+        border-bottom-color: var(--risu-theme-selected);
+        opacity: 0.7;
+    }
+
+    :global(.risu-ghost-item) {
+        /* The placeholder for the drop location */
+        background-color: rgba(var(--risu-theme-selected-rgb), 0.2);
+
+    }
 </style>
