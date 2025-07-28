@@ -209,11 +209,9 @@
         }
     })
     
-    // 메뉴 모드 변경 감지 및 스크롤 위치 저장/복원
     $effect(() => {
         if(previousMenuMode !== menuMode) {
             if(menuMode === 0 && previousMenuMode !== 0){
-                // 다른 메뉴에서 메인으로 돌아올 때 - 스크롤 위치 복원
                 addElse = false
                 if(menu0Container) {
                     setTimeout(() => {
@@ -254,7 +252,6 @@
                     }, 10)
                 }
             } else if(previousMenuMode === 0 && (menuMode === 1 || menuMode === 2 || menuMode === 3)) {
-                // 메인에서 다른 메뉴로 이동할 때 - 현재 스크롤 위치 저장
                 if(menu0Container) {
                     menu0ScrollPosition = menu0Container.scrollTop
                 }
@@ -271,11 +268,9 @@
         }
     })
 
-    // 같은 메뉴모드 0 내에서 트리거 변경 시 이펙트 스크롤 초기화
     $effect(() => {
         if (menuMode === 0 && selectedIndex !== selectedTriggerIndex && selectedIndex >= 0 && value && value.length > selectedIndex) {
             selectedTriggerIndex = selectedIndex
-            // 트리거가 바뀔 때 이펙트 스크롤을 맨 위로 초기화
             selectedEffectIndex = -1
         }
     })
