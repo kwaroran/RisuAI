@@ -1948,10 +1948,16 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                     let regex = new RegExp(effect.regex, effect.flags)
                     let regexResult = regex.exec(value)
-                    let result = effect.result.replace(/\$[0-9]+/g, (match) => {
-                        let index = Number(match.slice(1))
-                        return regexResult[index]
-                    }).replace(/\$&/g, regexResult[0]).replace(/\$\$/g, '$')
+                    
+                    let result = ''
+                    if (regexResult !== null) {
+                        result = effect.result.replace(/\$[0-9]+/g, (match) => {
+                            let index = Number(match.slice(1))
+                            return regexResult[index] || ''
+                        }).replace(/\$&/g, regexResult[0] || '').replace(/\$\$/g, '$')
+                    } else {
+                        result = effect.result.replace(/\$[0-9]+/g, '').replace(/\$&/g, '').replace(/\$\$/g, '$')
+                    }
 
                     setVar(risuChatParser(effect.outputVar, {chara:char}), result)
                     break
