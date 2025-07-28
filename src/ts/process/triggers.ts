@@ -956,6 +956,8 @@ export type triggerV2ReplaceString = {
     sourceType: 'var'|'value',
     regex: string,
     regexType: 'var'|'value',
+    result: string,
+    resultType: 'var'|'value',
     replacement: string,
     replacementType: 'var'|'value',
     flags: string,
@@ -2686,11 +2688,33 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     try {
                         const source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
                         const regexPattern = effect.regexType === 'value' ? risuChatParser(effect.regex,{chara:char}) : getVar(risuChatParser(effect.regex,{chara:char}))
+                        const resultFormat = effect.resultType === 'value' ? risuChatParser(effect.result,{chara:char}) : getVar(risuChatParser(effect.result,{chara:char}))
                         const replacement = effect.replacementType === 'value' ? risuChatParser(effect.replacement,{chara:char}) : getVar(risuChatParser(effect.replacement,{chara:char}))
                         const flags = effect.flagsType === 'value' ? risuChatParser(effect.flags,{chara:char}) : getVar(risuChatParser(effect.flags,{chara:char}))
                         
                         const regex = new RegExp(regexPattern, flags)
-                        const result = source.replace(regex, replacement)
+                        const result = source.replace(regex, (...args) => {
+                            const match = args[0]
+                            const groups = args.slice(1, -2)
+                            
+                            const targetGroupMatch = resultFormat.match(/^\$(\d+)$/)
+                            if (targetGroupMatch) {
+                                const targetIndex = Number(targetGroupMatch[1])
+                                if (targetIndex === 0) {
+                                    return replacement
+                                } else {
+                                    const targetGroup = groups[targetIndex - 1]
+                                    if (targetGroup) {
+                                        return match.replace(targetGroup, replacement)
+                                    }
+                                }
+                            }
+                            
+                            return resultFormat.replace(/\$[0-9]+/g, (placeholder) => {
+                                const index = Number(placeholder.slice(1))
+                                return index === 0 ? match : (groups[index - 1] || '')
+                            }).replace(/\$&/g, match).replace(/\$\$/g, '$')
+                        })
                         setVar(effect.outputVar, result)
                     } catch (error) {
                         const source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))

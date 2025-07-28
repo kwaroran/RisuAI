@@ -1346,6 +1346,8 @@
                     sourceType: 'value',
                     regex: '',
                     regexType: 'value',
+                    result: '',
+                    resultType: 'value',
                     replacement: '',
                     replacementType: 'value',
                     flags: '',
@@ -3836,6 +3838,12 @@
                             <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
                         </SelectInput>
                         <TextInput bind:value={editTrigger.regex} />
+                        <span>{language.triggerInputLabels.resultFormat}</span>
+                        <SelectInput bind:value={editTrigger.resultType}>
+                            <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
+                            <OptionInput value="var">{language.triggerInputLabels.var}</OptionInput>
+                        </SelectInput>
+                        <TextInput bind:value={editTrigger.result} />
                         <span>{language.triggerInputLabels.replacement}</span>
                         <SelectInput bind:value={editTrigger.replacementType}>
                             <OptionInput value="value">{language.triggerInputLabels.value}</OptionInput>
