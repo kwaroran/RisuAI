@@ -2562,7 +2562,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         return
                     }
 
-                    setVar(effect.var, '{}')
+                    setVar(risuChatParser(effect.var, {chara:char}), '{}')
                     break
                 }
                 case 'v2GetDictVar':{
@@ -2588,14 +2588,14 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         let varValue = getVar(risuChatParser(effect.var,{chara:char}))
                         let dict = JSON.parse(varValue)
                         dict[key] = value
-                        setVar(effect.var, JSON.stringify(dict))
+                        setVar(risuChatParser(effect.var, {chara:char}), JSON.stringify(dict))
                     } catch (error) {
                         if(effect.varType === 'var') {
                             const value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
                             const key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
                             let dict = {}
                             dict[key] = value
-                            setVar(effect.var, JSON.stringify(dict))
+                            setVar(risuChatParser(effect.var, {chara:char}), JSON.stringify(dict))
                         }
                     }
                     break
@@ -2610,10 +2610,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         let dict = JSON.parse(varValue)
                         let key = effect.keyType === 'value' ? risuChatParser(effect.key,{chara:char}) : getVar(risuChatParser(effect.key,{chara:char}))
                         delete dict[key]
-                        setVar(effect.var, JSON.stringify(dict))
+                        setVar(risuChatParser(effect.var, {chara:char}), JSON.stringify(dict))
                     } catch (error) {
                         if(effect.varType === 'var') {
-                            setVar(effect.var, '{}')
+                            setVar(risuChatParser(effect.var, {chara:char}), '{}')
                         }
                     }
                     break
@@ -2633,7 +2633,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     if(effect.var.startsWith('{') && effect.var.endsWith('}')){
                         return
                     }
-                    setVar(effect.var, '{}')
+                    setVar(risuChatParser(effect.var, {chara:char}), '{}')
                     break
                 }
                 case 'v2GetDictSize':{
