@@ -1916,7 +1916,6 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                         break
                     }
                     let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
-                    let varName = effect.outputVar
                     let promptbody = parseChatML(value)
                     if(!promptbody){
                         promptbody = [{role:'user', content:value}]
@@ -1929,10 +1928,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     }, effect.model)
 
                     if(result.type === 'fail' || result.type === 'streaming' || result.type === 'multiline'){
-                        setVar(varName, 'null')
+                        setVar(risuChatParser(effect.outputVar, {chara:char}), 'null')
                     }
                     else{
-                        setVar(varName, result.result)
+                        setVar(risuChatParser(effect.outputVar, {chara:char}), result.result)
                     }
                     break
                 }
