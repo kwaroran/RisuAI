@@ -1042,7 +1042,7 @@ const legacyBlockMatcher = (p1:string,matcherArg:matcherArg) => {
     return null
 }
 
-type blockMatch = 'ignore'|'parse'|'nothing'|'parse-pure'|'pure'|'each'|'function'|'pure-display'|'normalize'|'escape'
+type blockMatch = 'ignore'|'parse'|'nothing'|'ifpure'|'pure'|'each'|'function'|'pure-display'|'normalize'|'escape'|'newif'|'newif-falsy'
 
 function parseArray(p1:string):string[]{
     try {
@@ -1078,9 +1078,17 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
         const statement = p1.split(' ', 2)
         const state = statement[1]
         if(state === 'true' || state === '1'){
-            return {type:p1.startsWith('#if_pure') ? 'parse-pure' : 'parse'}
+            return {
+                type:   p1.startsWith('#if_pure') ? 'ifpure' :
+                        'parse'
+            }
         }
         return {type:'ignore'}
+    }
+    if(p1.startsWith(':if')){
+        const statement = p1.split(' ', 2)
+        const state = statement[1]
+        return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
     }
     if(p1 === '#pure'){
         return {type:'pure'}
@@ -1131,9 +1139,56 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
         case 'each':{
             return trimLines(p1Trimed)
         }
-        case 'parse-pure':{
+        case 'ifpure':{
             return p1
         }
+        case 'newif':
+        case 'newif-falsy':{
+            const lines =  p1.split("\n")
+
+            if(lines.length === 1){
+                const elseIndex = p1.indexOf('{{:else}}')
+                if(elseIndex !== -1){
+                    if(type.type === 'newif'){
+                        return p1.substring(0, elseIndex)
+                    }
+                    if(type.type === 'newif-falsy'){
+                        return p1.substring(elseIndex + 9)
+                    }
+                }
+                else{
+                    if(type.type === 'newif'){
+                        return p1
+                    }
+                    if(type.type === 'newif-falsy'){
+                        return ''
+                    }
+                }
+            }
+            
+            const elseLine = lines.findIndex((v) => {
+                return v.trim() === '{{:else}}'
+            })
+
+            if(elseLine !== -1 && type.type === 'newif'){
+                lines.splice(elseLine) //else line and everything after it is removed
+            }
+            if(elseLine !== -1 && type.type === 'newif-falsy'){
+                lines.splice(0, elseLine + 1) //everything before else line is removed
+            }
+            if(elseLine === -1 && type.type === 'newif-falsy'){
+                return ''
+            }
+
+            while(lines.length > 0 && lines[0].trim() === ''){
+                lines.shift()
+            }
+            while(lines.length > 0 && lines[lines.length - 1].trim() === ''){
+                lines.pop()
+            }
+            return lines.join('\n')
+        }
+
         case 'normalize':{
             return p1Trimed.trim().replaceAll('\n','').replaceAll('\t','')
             .replaceAll(/\\u([0-9A-Fa-f]{4})/g, (match, p1) => {
@@ -1300,7 +1355,7 @@ export function risuChatParser(da:string, arg:{
                 }
                 pointer++
                 const dat = nested.shift()
-                if(dat.startsWith('#')){
+                if(dat.startsWith('#') || dat.startsWith(':')){
                     if(isPureMode()){
                         nested[0] += `{{${dat}}}`
                         nested.unshift('')

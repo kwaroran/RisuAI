@@ -2251,13 +2251,30 @@ export function registerCBS(arg:CBSRegisterArg) {
         callback: 'doc_only',
         alias: [],
         description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false. Usage: {{#if condition}}...{{/if}}',
+        deprecated: {
+            message: 'Due to several issues like whitespace handling and parsing, #if is deprecated and replaced with :if. Use :if instead.',
+        }
     })
 
     registerFunction({
         name:'#if_pure',
         callback: 'doc_only',
         alias: [],
-        description: 'Conditional statement for CBS, which has better newline handling. 1 and "true" are truty, and otherwise false. Usage: {{#if_pure condition}}...{{/if_pure}}',
+        description: 'Conditional statement for CBS, which has pure whitespace handling. 1 and "true" are truty, and otherwise false. Usage: {{#if_pure condition}}...{{/if_pure}}',
+    })
+
+    registerFunction({
+        name:':if',
+        callback: 'doc_only',
+        alias: [],
+        description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false. Usage: {{#if_pure condition}}...{{/if_pure}}',
+    })
+
+    registerFunction({
+        name:':else',
+        callback: 'doc_only',
+        alias: [],
+        description: 'Else statement for CBS. Must be used inside {{:if}}. if {{:if}} is multiline, :else must be on line without additional string. Usage: {{:else}}',
     })
 
     registerFunction({
