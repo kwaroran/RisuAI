@@ -629,7 +629,7 @@
                 editTrigger = {
                     type: 'v2LoopNTimes',
                     indent: 0,
-                    value: '10',
+                    value: '',
                     valueType: 'value'
                 }
                 break;
