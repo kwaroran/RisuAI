@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PlusIcon, XIcon, ArrowLeftIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
+    import { PlusIcon, ArrowLeftIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
@@ -159,21 +159,173 @@
     let selectMode = $state(0) //0 = trigger 1 = effect
     let contextMenu = $state(false)
     let contextMenuLoc = $state({x: 0, y: 0, style: ''})
-    let menu0Container = $state<HTMLDivElement>(null)
-    let menu0ScrollPosition = $state(0)
-    let triggerScrollRef = $state<HTMLDivElement>(null)
-    let triggerScrollPosition = $state(0)
     let selectedTriggerIndex = $state(0)
     let selectedEffectIndexSaved = $state(-1)
     let effectElements = $state<HTMLButtonElement[]>([])
     let guideLineKey = $state(0)
     let selectedCategory = $state('Control')
     let isMobile = $state(false)
-    let previousMenuMode = $state(0)
+    let previousMenuMode = $state(0)    
+    let menu0Container = $state<HTMLDivElement | null>(null)
+    let triggerScrollRef = $state<HTMLDivElement | null>(null)
     
-    let autoScrollInterval = $state<number | null>(null)
-    let scrollSpeed = $state(8)
-    let scrollThreshold = $state(50)
+    let isRestoringMode = $state(false)
+    let previousSelectedTriggerIndex = $state(-1)
+    
+    const scrollManager = $state({
+        mode0ScrollPosition: { menu0: 0, trigger: 0 },
+        otherModeScrollPositions: new Map([
+            [1, { menu0: 0, trigger: 0 }],
+            [2, { menu0: 0, trigger: 0 }],
+            [3, { menu0: 0, trigger: 0 }]
+        ]),
+        autoScrollInterval: null as number | null,
+        scrollSpeed: 8,
+        scrollThreshold: 50,
+        
+        saveMode0ScrollPositions() {
+            try {
+                if (menu0Container) {
+                    this.mode0ScrollPosition.menu0 = menu0Container.scrollTop
+                }
+                if (triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
+                    this.mode0ScrollPosition.trigger = triggerScrollRef.scrollTop
+                }
+            } catch (e) {
+                console.warn('Failed to save mode0 scroll positions:', e)
+            }
+        },
+        
+        restoreMode0ScrollPositions() {
+            try {
+                setTimeout(() => {
+                    if (menu0Container) {
+                        menu0Container.scrollTop = this.mode0ScrollPosition.menu0
+                    }
+                    if (triggerScrollRef && triggerScrollRef.scrollTop !== null && triggerScrollRef.scrollTop !== undefined) {
+                        triggerScrollRef.scrollTop = this.mode0ScrollPosition.trigger
+                    }
+                }, 10)
+            } catch (e) {
+                console.warn('Failed to restore mode0 scroll positions:', e)
+            }
+        },
+        
+        saveOtherModeScrollPositions(mode: number) {
+            try {
+                if (mode === 0) return
+                
+                const positions = this.otherModeScrollPositions.get(mode) || { menu0: 0, trigger: 0 }
+                if (menu0Container) {
+                    positions.menu0 = menu0Container.scrollTop
+                }
+                if (triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
+                    positions.trigger = triggerScrollRef.scrollTop
+                }
+                this.otherModeScrollPositions.set(mode, positions)
+            } catch (e) {
+                console.warn('Failed to save other mode scroll positions:', e)
+            }
+        },
+        
+        restoreOtherModeScrollPositions(mode: number) {
+            try {
+                if (mode === 0) return
+                
+                const positions = this.otherModeScrollPositions.get(mode) || { menu0: 0, trigger: 0 }
+                setTimeout(() => {
+                    if (menu0Container) {
+                        menu0Container.scrollTop = positions.menu0
+                    }
+                    if (triggerScrollRef && triggerScrollRef.scrollTop !== null && triggerScrollRef.scrollTop !== undefined) {
+                        triggerScrollRef.scrollTop = positions.trigger
+                    }
+                }, 10)
+            } catch (e) {
+                console.warn('Failed to restore other mode scroll positions:', e)
+            }
+        },
+        
+        resetEffectScrollInMode0() {
+            try {
+                if (menu0Container) {
+                    menu0Container.scrollTop = 0
+                    this.mode0ScrollPosition.menu0 = 0
+                }
+            } catch (e) {
+                console.warn('Failed to reset effect scroll in mode0:', e)
+            }
+        },
+        
+        handleTriggerScroll() {
+            try {
+                if (triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
+                    if (menuMode === 0) {
+                        this.mode0ScrollPosition.trigger = triggerScrollRef.scrollTop
+                    } else {
+                        const positions = this.otherModeScrollPositions.get(menuMode) || { menu0: 0, trigger: 0 }
+                        positions.trigger = triggerScrollRef.scrollTop
+                        this.otherModeScrollPositions.set(menuMode, positions)
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to handle trigger scroll:', e)
+            }
+        },
+        
+        handleMenu0Scroll() {
+            try {
+                if (menu0Container && typeof menu0Container.scrollTop === 'number') {
+                    if (menuMode === 0) {
+                        this.mode0ScrollPosition.menu0 = menu0Container.scrollTop
+                    } else {
+                        const positions = this.otherModeScrollPositions.get(menuMode) || { menu0: 0, trigger: 0 }
+                        positions.menu0 = menu0Container.scrollTop
+                        this.otherModeScrollPositions.set(menuMode, positions)
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to handle menu0 scroll:', e)
+            }
+        },
+        
+        stopAutoScroll() {
+            if (this.autoScrollInterval !== null) {
+                window.clearInterval(this.autoScrollInterval)
+                this.autoScrollInterval = null
+            }
+        },
+        
+        startAutoScroll(container: HTMLElement, direction: 'up' | 'down', speed?: number) {
+            this.stopAutoScroll()
+            const scrollSpeed = speed || this.scrollSpeed
+            
+            this.autoScrollInterval = window.setInterval(() => {
+                if (!container) return
+                
+                const scrollAmount = direction === 'up' ? -scrollSpeed : scrollSpeed
+                container.scrollBy(0, scrollAmount)
+                
+                if ((direction === 'up' && container.scrollTop <= 0) || 
+                    (direction === 'down' && container.scrollTop >= container.scrollHeight - container.clientHeight)) {
+                    this.stopAutoScroll()
+                }
+            }, 16)
+        },
+        
+        checkAutoScrollZone(mouseY: number, containerRect: DOMRect): 'up' | 'down' | null {
+            const topZone = containerRect.top + this.scrollThreshold
+            const bottomZone = containerRect.bottom - this.scrollThreshold
+            
+            if (mouseY < topZone) {
+                return 'up'
+            } else if (mouseY > bottomZone) {
+                return 'down'
+            }
+            
+            return null
+        }
+    })
 
 
     type VirtualClipboard = {
@@ -211,26 +363,18 @@
     
     $effect(() => {
         if(previousMenuMode !== menuMode) {
+            if(previousMenuMode === 0 && menuMode !== 0) {
+                scrollManager.saveMode0ScrollPositions()
+            }
+            else if(previousMenuMode !== 0) {
+                scrollManager.saveOtherModeScrollPositions(previousMenuMode)
+            }
+            
             if(menuMode === 0 && previousMenuMode !== 0){
                 addElse = false
-                if(menu0Container) {
-                    setTimeout(() => {
-                        if(menu0Container) {
-                            menu0Container.scrollTop = menu0ScrollPosition
-                        }
-                    }, 0)
-                }
-                if(triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
-                    setTimeout(() => {
-                        if(triggerScrollRef && triggerScrollRef.scrollTop !== null && triggerScrollRef.scrollTop !== undefined) {
-                            try {
-                                triggerScrollRef.scrollTop = triggerScrollPosition || 0
-                            } catch(e) {
-                                console.warn('Failed to set triggerScrollRef.scrollTop:', e)
-                            }
-                        }
-                    }, 10)
-                }
+                isRestoringMode = true
+                scrollManager.restoreMode0ScrollPositions()
+                
                 if(selectedTriggerIndex > 0) {
                     setTimeout(() => {
                         try {
@@ -249,21 +393,27 @@
                         } catch(e) {
                             console.warn('Failed to restore trigger selection:', e)
                         }
-                    }, 10)
+                        setTimeout(() => {
+                            isRestoringMode = false
+                        }, 10)
+                    }, 15)
+                } else {
+                    setTimeout(() => {
+                        isRestoringMode = false
+                    }, 25)
                 }
-            } else if(previousMenuMode === 0 && (menuMode === 1 || menuMode === 2 || menuMode === 3)) {
-                if(menu0Container) {
-                    menu0ScrollPosition = menu0Container.scrollTop
-                }
-                if(triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
-                    try {
-                        triggerScrollPosition = triggerScrollRef.scrollTop
-                    } catch(e) {
-                        console.warn('Failed to get triggerScrollRef.scrollTop:', e)
-                    }
-                }
-                clearTriggerSelection()
             }
+            else if(menuMode !== 0) {
+                scrollManager.restoreOtherModeScrollPositions(menuMode)
+                if(previousMenuMode === 0) {
+                    clearTriggerSelection()
+                }
+            }
+            
+            if (menuMode === 0) {
+                previousSelectedTriggerIndex = selectedTriggerIndex
+            }
+            
             previousMenuMode = menuMode
         }
     })
@@ -275,15 +425,12 @@
         }
     })
 
-    function handleTriggerScroll() {
-        if(triggerScrollRef && typeof triggerScrollRef.scrollTop === 'number') {
-            try {
-                triggerScrollPosition = triggerScrollRef.scrollTop
-            } catch(e) {
-                console.warn('Failed to handle trigger scroll:', e)
-            }
+    $effect(() => {
+        if (menuMode === 0 && selectedTriggerIndex >= 0 && !isRestoringMode && previousSelectedTriggerIndex !== selectedTriggerIndex) {
+            scrollManager.resetEffectScrollInMode0()
+            previousSelectedTriggerIndex = selectedTriggerIndex
         }
-    }
+    })
 
     $effect(() => {
         if(menuMode === 0 && selectedIndex >= 0 && value && value.length > selectedIndex) {
@@ -1713,19 +1860,16 @@
             }
         }
         
-        // Prevent insertion between if block end and else
         if (toIndex < value[selectedIndex].effect.length) {
             const targetEffect = value[selectedIndex].effect[toIndex] as triggerEffectV2;
             if (targetEffect && targetEffect.type === 'v2Else' && toIndex > 0) {
                 const prevEffect = value[selectedIndex].effect[toIndex - 1] as triggerEffectV2;
                 if (prevEffect && prevEffect.type === 'v2EndIndent') {
-                    // Check if this EndIndent belongs to an if block
                     const blockIndent = prevEffect.indent - 1;
                     for (let i = toIndex - 2; i >= 0; i--) {
                         const checkEffect = value[selectedIndex].effect[i] as triggerEffectV2;
                         if (checkEffect.indent === blockIndent) {
                             if (checkEffect.type === 'v2If' || checkEffect.type === 'v2IfAdvanced') {
-                                // Forbidden: between if block end and else
                                 return false;
                             }
                             break;
@@ -1735,14 +1879,12 @@
             }
         }
 
-        // Prevent insertion right after EndIndent in some cases
         if (toIndex > 0 && toIndex < value[selectedIndex].effect.length) {
             const prevEffect = value[selectedIndex].effect[toIndex - 1] as triggerEffectV2;
             const targetEffect = value[selectedIndex].effect[toIndex] as triggerEffectV2;
             
             if (prevEffect && prevEffect.type === 'v2EndIndent' && 
                 targetEffect && targetEffect.type === 'v2Else') {
-                // Already handled above, but this is a double-check
                 return false;
             }
         }
@@ -1771,7 +1913,6 @@
             const blockRange = getBlockRange(fromIndex);
             const blockSize = blockRange.end - blockRange.start + 1;
             
-            // Calculate target indent before removing the block
             const targetIndent = getInsertIndent(toIndex);
             
             const movedBlock = effects.splice(blockRange.start, blockSize);
@@ -1779,7 +1920,6 @@
                 
             const adjustedToIndex = blockRange.start < toIndex ? toIndex - blockSize : toIndex;
             
-            // Adjust indent for entire block
             const originalIndent = (movedBlock[0] as triggerEffectV2).indent;
             const indentDifference = targetIndent - originalIndent;
             
@@ -1800,7 +1940,6 @@
             }
             
         } else {
-            // Calculate target indent before removing the item
             const targetIndent = getInsertIndent(toIndex);
             
             const movedItem = effects.splice(fromIndex, 1)[0];
@@ -1808,7 +1947,6 @@
             
             const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
             
-            // Apply calculated indent
             (movedItem as triggerEffectV2).indent = targetIndent;
             
             effects.splice(adjustedToIndex, 0, movedItem);
@@ -2042,46 +2180,10 @@
         guideLineKey += 1
     }
 
-    const stopAutoScroll = () => {
-        if (autoScrollInterval !== null) {
-            window.clearInterval(autoScrollInterval)
-            autoScrollInterval = null
-        }
-    }
-
-    const startAutoScroll = (container: HTMLElement, direction: 'up' | 'down', speed: number = scrollSpeed) => {
-        stopAutoScroll()
-        
-        autoScrollInterval = window.setInterval(() => {
-            if (!container) return
-            
-            const scrollAmount = direction === 'up' ? -speed : speed
-            container.scrollBy(0, scrollAmount)
-            
-            if ((direction === 'up' && container.scrollTop <= 0) || 
-                (direction === 'down' && container.scrollTop >= container.scrollHeight - container.clientHeight)) {
-                stopAutoScroll()
-            }
-        }, 16)
-    }
-
-    const checkAutoScrollZone = (mouseY: number, containerRect: DOMRect): 'up' | 'down' | null => {
-        const topZone = containerRect.top + scrollThreshold
-        const bottomZone = containerRect.bottom - scrollThreshold
-        
-        if (mouseY < topZone) {
-            return 'up'
-        } else if (mouseY > bottomZone) {
-            return 'down'
-        }
-        
-        return null
-    }
 
 
 
     onMount(() => {
-        // Detect mobile device
         const checkMobile = () => {
             isMobile = window.innerWidth < 768
         }
@@ -2117,7 +2219,7 @@
     onDestroy(() => {
         window.removeEventListener('keydown', handleKeydown);
         window.removeEventListener('resize', updateGuideLines);
-        stopAutoScroll();
+        scrollManager.stopAutoScroll();
     })
 </script>
 
@@ -2281,16 +2383,16 @@
         >
             {#if menuMode === 0}
                 <div class="pr-2 md:w-96 flex flex-col md:h-full mt-2 md:mt-0">
-                    <div class="flex-1 flex flex-col overflow-y-auto" bind:this={triggerScrollRef} onscroll={handleTriggerScroll} 
+                    <div class="flex-1 flex flex-col overflow-y-auto" bind:this={triggerScrollRef} onscroll={scrollManager.handleTriggerScroll} 
                          ondragover={(e) => {
                              if (!isMobile && isDragging && triggerScrollRef) {
                                  const rect = e.currentTarget.getBoundingClientRect()
-                                 const autoScrollDirection = checkAutoScrollZone(e.clientY, rect)
+                                 const autoScrollDirection = scrollManager.checkAutoScrollZone(e.clientY, rect)
                                  
                                  if (autoScrollDirection) {
-                                     startAutoScroll(triggerScrollRef, autoScrollDirection)
+                                     scrollManager.startAutoScroll(triggerScrollRef, autoScrollDirection)
                                  } else {
-                                     stopAutoScroll()
+                                     scrollManager.stopAutoScroll()
                                  }
                              }
                          }}
@@ -2303,7 +2405,7 @@
                                  if (mouseX < rect.left || mouseX > rect.right || 
                                      mouseY < rect.top || mouseY > rect.bottom) {
                                      dragOverIndex = -1
-                                     stopAutoScroll()
+                                     scrollManager.stopAutoScroll()
                                  }
                              }
                          }}>
@@ -2368,7 +2470,7 @@
                                     ondragend={(e) => {
                                         isDragging = false
                                         dragOverIndex = -1
-                                        stopAutoScroll()
+                                        scrollManager.stopAutoScroll()
                                     }}
                                     ondragover={(e) => {
                                         if (!isMobile) {
@@ -2529,15 +2631,16 @@
                     </div> -->
                     
                     <div class="border border-darkborderc mx-2 mb-2 rounded-md flex-1 overflow-x-hidden overflow-y-auto relative" bind:this={menu0Container}
+                         onscroll={scrollManager.handleMenu0Scroll}
                          ondragover={(e) => {
                              if (!isMobile && isEffectDragging && menu0Container) {
                                  const rect = e.currentTarget.getBoundingClientRect()
-                                 const autoScrollDirection = checkAutoScrollZone(e.clientY, rect)
+                                 const autoScrollDirection = scrollManager.checkAutoScrollZone(e.clientY, rect)
                                  
                                  if (autoScrollDirection) {
-                                     startAutoScroll(menu0Container, autoScrollDirection)
+                                     scrollManager.startAutoScroll(menu0Container, autoScrollDirection)
                                  } else {
-                                     stopAutoScroll()
+                                     scrollManager.stopAutoScroll()
                                  }
                              }
                          }}
@@ -2550,7 +2653,7 @@
                                  if (mouseX < rect.left || mouseX > rect.right || 
                                      mouseY < rect.top || mouseY > rect.bottom) {
                                      effectDragOverIndex = -1
-                                     stopAutoScroll()
+                                     scrollManager.stopAutoScroll()
                                  }
                              }
                          }}>
@@ -2698,7 +2801,7 @@
                                          ondragend={(e) => {
                                              isEffectDragging = false
                                              effectDragOverIndex = -1
-                                             stopAutoScroll()
+                                             scrollManager.stopAutoScroll()
                                          }}>
                                         <div class="text-textcolor2 text-xs select-none">⋮⋮</div>
                                     </div>
