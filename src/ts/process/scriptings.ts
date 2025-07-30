@@ -283,10 +283,10 @@ export async function runScripted(code:string, arg:{
                 }
                 
                 if(lastRequestsCount > 5){
-                    return {
+                    return JSON.stringify({
                         status: 429,
                         data: 'Too many requests. you can request 5 times per minute'
-                    }
+                    })
                 }
 
                 lastRequestsCount++
@@ -294,17 +294,17 @@ export async function runScripted(code:string, arg:{
                 try {
                     //for security and other reasons, only get request in 120 char is allowed
                     if(url.length > 120){
-                        return {
+                        return JSON.stringify({
                             status: 413,
                             data: 'URL to large. max is 120 characters'
-                        }
+                        })
                     }
 
                     if(!url.startsWith('https://')){
-                        return {
+                        return JSON.stringify({
                             status: 400,
                             data: "Only https requests are allowed"
-                        }
+                        })
                     }
 
                     const bannedURL = [
@@ -316,10 +316,10 @@ export async function runScripted(code:string, arg:{
                     for(const burl of bannedURL){
 
                         if(url.startsWith(burl)){
-                            return {
+                            return JSON.stringify({
                                 status: 400,
                                 data: "request to " + url + ' is not allowed'
-                            }
+                            })
                         }
                     }
 
@@ -328,16 +328,16 @@ export async function runScripted(code:string, arg:{
                         method: "GET"
                     })
                     const text = await d.text()
-                    return {
+                    return JSON.stringify({
                         status: d.status,
                         data: text
-                    }
+                    })
 
                 } catch (error) {
-                    return {
+                    return JSON.stringify({
                         status: 400,
                         data: 'internal error'
-                    }
+                    })
                 }
             })
 

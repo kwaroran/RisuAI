@@ -1,17 +1,11 @@
-export interface SummaryUI {
+export interface SummaryItemState {
   originalRef: HTMLTextAreaElement;
-  isTranslating: boolean;
-  translation: string | null;
   translationRef: HTMLTextAreaElement;
-  isRerolling: boolean;
-  rerolledText: string | null;
-  isRerolledTranslating: boolean;
-  rerolledTranslation: string | null;
   rerolledTranslationRef: HTMLTextAreaElement;
   chatMemoRefs: HTMLButtonElement[];
 }
 
-export interface ExpandedMessageUI {
+export interface ExpandedMessageState {
   summaryIndex: number;
   selectedChatMemo: string;
   isTranslating: boolean;
@@ -19,7 +13,7 @@ export interface ExpandedMessageUI {
   translationRef: HTMLTextAreaElement;
 }
 
-export interface SearchUI {
+export interface SearchState {
   ref: HTMLInputElement;
   query: string;
   results: SearchResult[];
@@ -42,3 +36,11 @@ export interface ChatMemoSearchResult {
   summaryIndex: number;
   memoIndex: number;
 }
+
+export const DISPLAY_MODE = {
+  All: "All",
+  Range: "Range",
+  Recent: "Recent",
+} as const;
+
+export type DisplayMode = (typeof DISPLAY_MODE)[keyof typeof DISPLAY_MODE];

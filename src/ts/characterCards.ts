@@ -879,7 +879,7 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     let loreExt:undefined|any = undefined
     if(charbook){
         const a = convertCharbook({
-            lorebook,
+            lorebook: overrideLorebook ? [] : lorebook,
             charbook,
             loresettings,
             loreExt

@@ -84,6 +84,10 @@
                 <Button styled={selected === 2  ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 2}}>
                     {language.trash}
                 </Button>
+                <div class="flex-grow"></div>
+                <span class="text-textcolor2 text-sm">
+                    {formatChars(search, DBState.db).length} {language.character}
+                </span>
             </div>
         </div>
         {#if selected === 0}
