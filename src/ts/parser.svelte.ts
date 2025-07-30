@@ -1085,10 +1085,228 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
         }
         return {type:'ignore'}
     }
+
     if(p1.startsWith('#when')){
-        const statement = p1.split(' ', 2)
-        const state = statement[1]
-        return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
+        if(p1.startsWith('#when ')){
+            const statement = p1.split(' ', 2)
+            const state = statement[1]
+            return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
+        }
+        else if(p1.startsWith('#when::')){
+            const statement = p1.split('::').slice(1)
+            if(statement.length === 1){
+                const state = statement[0]
+                return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
+            }
+            let mode: 'normal' | 'keep' | 'legacy' = 'normal'
+
+            const isTruthy = (s:string) => {
+                return s === 'true' || s === '1'
+            }
+            while(statement.length > 1){
+                const condition = statement.pop()
+                const operator = statement.pop()
+                switch(operator){
+                    case 'not':{
+                        if(isTruthy(condition)){
+                            statement.push('0')
+                        }
+                        else{
+                            statement.push('1')
+                        }
+                        break
+                    }
+                    case 'keep':{
+                        mode = 'keep'
+                        break
+                    }
+                    case 'legacy':{
+                        mode = 'legacy'
+                        break
+                    }
+                    case 'and':{
+                        const condition2 = statement.pop()
+                        if(isTruthy(condition) && isTruthy(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'or':{
+                        const condition2 = statement.pop()
+                        if(isTruthy(condition) || isTruthy(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'is':{
+                        const condition2 = statement.pop()
+                        if(condition === condition2){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'isnot':{
+                        const condition2 = statement.pop()
+                        if(condition !== condition2){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'var':{
+                        const variable = getChatVar(condition)
+                        if(isTruthy(variable)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'toggle':{
+                        const variable = getGlobalChatVar('toggle_' + condition)
+                        if(isTruthy(variable)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'vis':{ //vis = variable is
+                        const variable = getChatVar(statement.pop())
+                        if(variable === condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'visnot':{ //visnot = variable is not
+                        const variable = getChatVar(statement.pop())
+                        if(variable !== condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                    }
+                    case 'tis':{ //tis = toggle is
+                        const variable = getGlobalChatVar('toggle_' + statement.pop())
+                        console.log('tis', variable, condition)
+                        if(variable === condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'tisnot':{ //tisnot = toggle is not
+                        const variable = getGlobalChatVar('toggle_' + statement.pop())
+                        if(variable !== condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '>':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) > parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '<':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) < parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '>=':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) >= parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '<=':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) <= parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    default:{
+                        if(isTruthy(condition)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                }
+            }
+
+            const finalCondition = statement[0]
+            if(isTruthy(finalCondition)){
+                switch(mode){
+                    case 'keep':{
+                        return {type: 'newif', type2: 'keep'}
+                    }
+                    case 'legacy':{
+                        return {type: 'parse'}
+                    }
+                    default:{
+                        return {type: 'newif'}
+                    }
+                }
+            }
+            else{
+                switch(mode){
+                    case 'keep':{
+                        return {type: 'newif-falsy', type2: 'keep'}
+                    }
+                    case 'legacy':{
+                        return {type: 'ignore'}
+                    }
+                    default:{
+                        return {type: 'newif-falsy'}
+                    }
+                }
+            }
+        }
+        else{
+            return {type: 'newif-falsy'}
+        }
     }
     if(p1 === '#pure'){
         return {type:'pure'}
@@ -1180,11 +1398,13 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
                 return ''
             }
 
-            while(lines.length > 0 && lines[0].trim() === ''){
-                lines.shift()
-            }
-            while(lines.length > 0 && lines[lines.length - 1].trim() === ''){
-                lines.pop()
+            if(type.type2 !== 'keep'){
+                while(lines.length > 0 && lines[0].trim() === ''){
+                    lines.shift()
+                }
+                while(lines.length > 0 && lines[lines.length - 1].trim() === ''){
+                    lines.pop()
+                }
             }
             return lines.join('\n')
         }

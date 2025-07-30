@@ -2252,7 +2252,8 @@ export function registerCBS(arg:CBSRegisterArg) {
         alias: [],
         description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false.\n\nUsage:: {{#if condition}}...{{/if}}.',
         deprecated: {
-            message: 'Due to several issues like whitespace handling and parsing, #if is deprecated and replaced with #when. Use #when instead.',
+            message: 'Due to limitations of adding operators, #if is deprecated and replaced with #when. Use #when instead.',
+            replacement: '#when',
         }
     })
 
@@ -2260,21 +2261,58 @@ export function registerCBS(arg:CBSRegisterArg) {
         name:'#if_pure',
         callback: 'doc_only',
         alias: [],
-        description: 'Conditional statement for CBS, which has pure whitespace handling. 1 and "true" are truty, and otherwise false.\n\nUsage:: {{#if_pure condition}}...{{/if_pure}}',
+        description: 'Conditional statement for CBS, which has keep whitespace handling. 1 and "true" are truty, and otherwise false.\n\nUsage:: {{#if_pure condition}}...{{/if_pure}}',
+        deprecated: {
+            message: 'Due to limitations of adding operators, #if_pure is deprecated and replaced with #when with keep operator. Use #when::keep::condition instead.',
+            replacement: '#when',
+        }
     })
 
     registerFunction({
         name:'#when',
         callback: 'doc_only',
         alias: [],
-        description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false.\n\nUsage:: {{#when condition}}...{{/when}}.',
+        description: `Conditional statement for CBS. 1 and "true" are truty, and otherwise false.
+
+It can add operators to condition:
+
+Basic operators:
+{{#when::A::and::B}}...{{/when}} - checks if both conditions are true.
+{{#when::A::or::B}}...{{/when}} - checks if at least one condition is true.
+{{#when::A::is::B}}...{{/when}} - checks if A is equal to B.
+{{#when::A::isnot::B}}...{{/when}} - checks if A is not equal to B.
+{{#when::A::>::B}}...{{/when}} - checks if A is greater than B.
+{{#when::A::<::B}}...{{/when}} - checks if A is less than B.
+{{#when::A::>=::B}}...{{/when}} - checks if A is greater than or equal to B.
+{{#when::A::<=::B}}...{{/when}} - checks if A is less than or equal to B.
+{{#when::not::A}}...{{/when}} - negates condition, so it will be true if A is false.
+
+Advanced operators:
+{{#when::keep::A}}...{{/when}} - keep whitespace handling, so it will not trim spaces inside block.
+{{#when::legacy::A}}...{{/when}} - legacy whitespace handling, so it will handle like deprecated #if.
+{{#when::var::A}}...{{/when}} - checks if variable A is truthy.
+{{#when::A::vis::B}}...{{/when}} - checks if variable A is equal to literal B.
+{{#when::A::vnotis::B}}...{{/when}} - checks if variable A is not equal to literal B.
+{{#when::toggle::togglename}}...{{/when}} - checks if toggle is enabled.
+{{#when::A::tis::B}}...{{/when}} - checks if toggle A is equal to literal B.
+{{#when::A::tnotis::B}}...{{/when}} - checks if toggle A is not equal to literal B.
+
+operators can be combined like:
+{{#when::keep::not::condition}}...{{/when}}
+{{#when::keep::condition1::and::condition2}}...{{/when}}
+
+You can use whitespace instead of "::" if there is no operators, like:
+{{#when condition}}...{{/when}}
+
+Usage:: {{#when condition}}...{{/when}} or {{#when::not::condition}}...{{/when}}
+`,
     })
 
     registerFunction({
         name:'#else',
         callback: 'doc_only',
         alias: [],
-        description: 'Else statement for CBS. Must be used inside {{:if}}. if {{:if}} is multiline, :else must be on line without additional string.\n\nUsage:: {{:else}}',
+        description: 'Else statement for CBS. Must be used inside {{#when}}. if {{#when}} is multiline, :else must be on line without additional string. if {{#when}} is used with operator \'legacy\', it will not work.\n\nUsage:: {{#when condition}}...{{#else}}...{{/when}} or {{#when::not::condition}}...{{#else}}...{{/when}}',
     })
 
     registerFunction({
