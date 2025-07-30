@@ -161,7 +161,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return currentChar.nickname || currentChar.name
         },
         alias: ['bot'],
-        description: 'Returns the name or nickname of the current character/bot. In consistent character mode, returns "botname". For group chats, returns the group name. Usage: {{char}}',
+        description: 'Returns the name or nickname of the current character/bot. In consistent character mode, returns "botname". For group chats, returns the group name.\n\nUsage:: {{char}}',
     });
 
     registerFunction({
@@ -173,7 +173,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return getUserName()
         },
         alias: [],
-        description: 'Returns the current user\'s name as set in user settings. In consistent character mode, returns "username". Usage: {{user}}',
+        description: 'Returns the current user\'s name as set in user settings. In consistent character mode, returns "username".\n\nUsage:: {{user}}',
     });
 
     registerFunction({
@@ -192,7 +192,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
         },
         alias: ['previouscharchat', 'lastcharmessage'],
-        description: 'Returns the last message sent by the character in the current chat. Searches backwards from the current message position to find the most recent character message. If no character messages exist, returns the first message or selected alternate greeting. Usage: {{previouscharchat}}',
+        description: 'Returns the last message sent by the character in the current chat. Searches backwards from the current message position to find the most recent character message. If no character messages exist, returns the first message or selected alternate greeting.\n\nUsage:: {{previouscharchat}}',
     });
     
     registerFunction({
@@ -215,7 +215,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return ''
         },
         alias: ['previoususerchat', 'lastusermessage'],
-        description: 'Returns the last message sent by the user in the current chat. Searches backwards from the current message position to find the most recent user message. Only works when chatID is available (not -1). Returns empty string if no user messages found. Usage: {{previoususerchat}}',
+        description: 'Returns the last message sent by the user in the current chat. Searches backwards from the current message position to find the most recent user message. Only works when chatID is available (not -1). Returns empty string if no user messages found.\n\nUsage:: {{previoususerchat}}',
     });
 
     // Character data functions
@@ -231,7 +231,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(achara.personality, matcherArg)
         },
         alias: ['charpersona'],
-        description: 'Returns the personality field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats. Usage: {{personality}}',
+        description: 'Returns the personality field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats.\n\nUsage:: {{personality}}',
     });
 
     registerFunction({
@@ -246,7 +246,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(achara.desc, matcherArg)
         },
         alias: ['chardesc'],
-        description: 'Returns the description field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats. Usage: {{description}}',
+        description: 'Returns the description field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats.\n\nUsage:: {{description}}',
     });
 
     registerFunction({
@@ -261,7 +261,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(achara.scenario, matcherArg)
         },
         alias: [],
-        description: 'Returns the scenario field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats. Usage: {{scenario}}',
+        description: 'Returns the scenario field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats.\n\nUsage:: {{scenario}}',
     });
 
     registerFunction({
@@ -276,7 +276,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(achara.exampleMessage, matcherArg)
         },
         alias: ['examplemessage', 'example_dialogue'],
-        description: 'Returns the example dialogue/message field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats. Usage: {{exampledialogue}}',
+        description: 'Returns the example dialogue/message field of the current character. The text is processed through the chat parser for variable substitution. Returns empty string for group chats.\n\nUsage:: {{exampledialogue}}',
     });
 
     // Prompt and system functions
@@ -286,7 +286,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(getPersonaPrompt(), matcherArg)
         },
         alias: ['userpersona'],
-        description: 'Returns the user persona prompt text. The text is processed through the chat parser for variable substitution. This contains the user\'s character description/personality. Usage: {{persona}}',
+        description: 'Returns the user persona prompt text. The text is processed through the chat parser for variable substitution. This contains the user\'s character description/personality.\n\nUsage:: {{persona}}',
     });
 
     registerFunction({
@@ -296,7 +296,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(db.mainPrompt, matcherArg)
         },
         alias: ['systemprompt', 'main_prompt'],
-        description: 'Returns the main system prompt that provides instructions to the AI model. The text is processed through the chat parser for variable substitution. Usage: {{mainprompt}}',
+        description: 'Returns the main system prompt that provides instructions to the AI model. The text is processed through the chat parser for variable substitution.\n\nUsage:: {{mainprompt}}',
     });
 
     registerFunction({
@@ -315,7 +315,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: ['worldinfo'],
-        description: 'Returns all active lorebook entries as a JSON array. Combines character lorebook, chat-specific lorebook, and module lorebooks. Each entry is JSON.stringify\'d. Usage: {{lorebook}}',
+        description: 'Returns all active lorebook entries as a JSON array. Combines character lorebook, chat-specific lorebook, and module lorebooks. Each entry is JSON.stringify\'d.\n\nUsage:: {{lorebook}}',
     });
 
     registerFunction({
@@ -333,7 +333,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: ['usermessages', 'user_history'],
-        description: 'Returns all user messages in the current chat as a JSON array. Each message object contains role, data, and other metadata. Data is processed through chat parser. Usage: {{userhistory}}',
+        description: 'Returns all user messages in the current chat as a JSON array. Each message object contains role, data, and other metadata. Data is processed through chat parser.\n\nUsage:: {{userhistory}}',
     });
 
     registerFunction({
@@ -351,7 +351,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: ['charmessages', 'char_history'],
-        description: 'Returns all character messages in the current chat as a JSON array. Each message object contains role, data, and other metadata. Data is processed through chat parser. Usage: {{charhistory}}',
+        description: 'Returns all character messages in the current chat as a JSON array. Each message object contains role, data, and other metadata. Data is processed through chat parser.\n\nUsage:: {{charhistory}}',
     });
 
     registerFunction({
@@ -361,7 +361,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(db.jailbreak, matcherArg)
         },
         alias: ['jailbreak'],
-        description: 'Returns the jailbreak prompt text used to modify AI behavior. The text is processed through the chat parser for variable substitution. Usage: {{jb}}',
+        description: 'Returns the jailbreak prompt text used to modify AI behavior. The text is processed through the chat parser for variable substitution.\n\nUsage:: {{jb}}',
     });
 
     registerFunction({
@@ -371,7 +371,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return risuChatParser(db.globalNote, matcherArg)
         },
         alias: ['globalnote', 'systemnote', 'ujb'],
-        description: 'Returns the global note (also called system note) that is appended to prompts. The text is processed through the chat parser for variable substitution. Usage: {{globalnote}}',
+        description: 'Returns the global note (also called system note) that is appended to prompts. The text is processed through the chat parser for variable substitution.\n\nUsage:: {{globalnote}}',
     });
 
     registerFunction({
@@ -380,7 +380,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return matcherArg.chatID.toString()
         },
         alias: ['chat_index'],
-        description: 'Returns the current message index in the chat as a string. -1 indicates no specific message context. Usage: {{chatindex}}',
+        description: 'Returns the current message index in the chat as a string. -1 indicates no specific message context.\n\nUsage:: {{chatindex}}',
     });
 
     registerFunction({
@@ -392,7 +392,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return chat.fmIndex.toString()
         },
         alias: ['firstmessageindex', 'first_msg_index'],
-        description: 'Returns the index of the selected first message/alternate greeting as a string. -1 indicates the default first message is used. Usage: {{firstmsgindex}}',
+        description: 'Returns the index of the selected first message/alternate greeting as a string. -1 indicates the default first message is used.\n\nUsage:: {{firstmsgindex}}',
     });
 
     registerFunction({
@@ -401,7 +401,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return ''
         },
         alias: ['none'],
-        description: 'Returns an empty string. Useful for clearing variables or creating conditional empty outputs. Usage: {{blank}}',
+        description: 'Returns an empty string. Useful for clearing variables or creating conditional empty outputs.\n\nUsage:: {{blank}}',
     });
 
     registerFunction({
@@ -425,7 +425,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return date.toLocaleTimeString()
         },
         alias: ['message_time'],
-        description: 'Returns the time when the current message was sent in local time format (HH:MM:SS). Returns "00:00:00" in tokenization mode or error messages for old/invalid messages. Usage: {{messagetime}}',
+        description: 'Returns the time when the current message was sent in local time format (HH:MM:SS). Returns "00:00:00" in tokenization mode or error messages for old/invalid messages.\n\nUsage:: {{messagetime}}',
     });
 
     registerFunction({
@@ -448,7 +448,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return date.toLocaleDateString()
         },
         alias: ['message_date'],
-        description: 'Returns the date when the current message was sent in local date format. Returns "00:00:00" in tokenization mode or error messages for old/invalid messages. Usage: {{messagedate}}',
+        description: 'Returns the date when the current message was sent in local date format. Returns "00:00:00" in tokenization mode or error messages for old/invalid messages.\n\nUsage:: {{messagedate}}',
     });
 
     registerFunction({
@@ -462,7 +462,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: ['message_unixtime_array'],
-        description: 'Returns all message timestamps as a JSON array of unix timestamps (in milliseconds). Messages without timestamps show as 0. Usage: {{messageunixtimearray}}',
+        description: 'Returns all message timestamps as a JSON array of unix timestamps (in milliseconds). Messages without timestamps show as 0.\n\nUsage:: {{messageunixtimearray}}',
     });
 
     registerFunction({
@@ -472,7 +472,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (now.getTime() / 1000).toFixed(0)
         },
         alias: [],
-        description: 'Returns the current unix timestamp in seconds as a string. Useful for time-based calculations and logging. Usage: {{unixtime}}',
+        description: 'Returns the current unix timestamp in seconds as a string. Useful for time-based calculations and logging.\n\nUsage:: {{unixtime}}',
     });
 
     registerFunction({
@@ -482,7 +482,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
         },
         alias: [],
-        description: 'Returns the current local time in HH:MM:SS format. Updates in real-time when the function is called. Usage: {{time}}',
+        description: 'Returns the current local time in HH:MM:SS format. Updates in real-time when the function is called.\n\nUsage:: {{time}}',
     });
 
     registerFunction({
@@ -492,7 +492,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return `${now.getUTCHours()}:${now.getUTCMinutes()}:${now.getUTCSeconds()}`
         },
         alias: [],
-        description: 'Returns the current UTC time in HH:MM:SS format. Useful for timezone-independent time references. Usage: {{isotime}}',
+        description: 'Returns the current UTC time in HH:MM:SS format. Useful for timezone-independent time references.\n\nUsage:: {{isotime}}',
     });
 
     registerFunction({
@@ -502,7 +502,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`
         },
         alias: [],
-        description: 'Returns the current UTC date in YYYY-MM-DD format (month not zero-padded). Useful for timezone-independent date references. Usage: {{isodate}}',
+        description: 'Returns the current UTC date in YYYY-MM-DD format (month not zero-padded). Useful for timezone-independent date references.\n\nUsage:: {{isodate}}',
     });
 
     // Continue with remaining utility functions
@@ -560,7 +560,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
         },
         alias: ['message_idle_duration'],
-        description: 'Returns time duration between the current and previous user messages in HH:MM:SS format. Requires valid message times. Returns error messages if no messages found or timestamps missing. Usage: {{messageidleduration}}',
+        description: 'Returns time duration between the current and previous user messages in HH:MM:SS format. Requires valid message times. Returns error messages if no messages found or timestamps missing.\n\nUsage:: {{messageidleduration}}',
     });
 
     registerFunction({
@@ -597,7 +597,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return hours.toString() + ':' + minutes.toString().padStart(2,'0') + ':' + seconds.toString().padStart(2,'0')
         },
         alias: ['idle_duration'],
-        description: 'Returns time duration since the last message in the chat in HH:MM:SS format. Calculates from current time to last message timestamp. Returns "00:00:00" in tokenization mode or error for missing timestamps. Usage: {{idleduration}}',
+        description: 'Returns time duration since the last message in the chat in HH:MM:SS format. Calculates from current time to last message timestamp. Returns "00:00:00" in tokenization mode or error for missing timestamps.\n\nUsage:: {{idleduration}}',
     });
 
     registerFunction({
@@ -606,7 +606,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\n'
         },
         alias: ['newline'],
-        description: 'Returns a literal newline character (\\n). Useful for formatting text with line breaks in templates. Usage: {{br}}',
+        description: 'Returns a literal newline character (\\n). Useful for formatting text with line breaks in templates.\n\nUsage:: {{br}}',
     });
 
     registerFunction({
@@ -616,7 +616,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return db.aiModel
         },
         alias: [],
-        description: 'Returns the ID/name of the currently selected AI model (e.g., "gpt-4", "claude-3-opus"). Usage: {{model}}',
+        description: 'Returns the ID/name of the currently selected AI model (e.g., "gpt-4", "claude-3-opus").\n\nUsage:: {{model}}',
     });
 
     registerFunction({
@@ -626,7 +626,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return db.subModel
         },
         alias: [],
-        description: 'Returns the currently selected sub/auxiliary model ID. Used for specialized tasks like embedding or secondary processing. Usage: {{axmodel}}',
+        description: 'Returns the currently selected sub/auxiliary model ID. Used for specialized tasks like embedding or secondary processing.\n\nUsage:: {{axmodel}}',
     });
 
     registerFunction({
@@ -646,7 +646,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return matcherArg.role ?? 'null'
         },
         alias: [],
-        description: 'Returns the role of the current message ("user", "char", "system"). Uses chatRole from conditions if available, "char" for first messages, or actual message role. Usage: {{role}}',
+        description: 'Returns the role of the current message ("user", "char", "system"). Uses chatRole from conditions if available, "char" for first messages, or actual message role.\n\nUsage:: {{role}}',
     });
 
     registerFunction({
@@ -658,7 +658,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '0'
         },
         alias: ['isfirstmsg', 'isfirstmessage'],
-        description: 'Returns "1" if the current context is the first message/greeting, "0" otherwise. Checks the firstmsg condition flag. Usage: {{isfirstmsg}}',
+        description: 'Returns "1" if the current context is the first message/greeting, "0" otherwise. Checks the firstmsg condition flag.\n\nUsage:: {{isfirstmsg}}',
     });
 
     registerFunction({
@@ -668,7 +668,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return db.jailbreakToggle ? '1' : '0'
         },
         alias: [],
-        description: 'Returns "1" if the jailbreak prompt is currently enabled/toggled on, "0" if disabled. Reflects the global jailbreak toggle state. Usage: {{jbtoggled}}',
+        description: 'Returns "1" if the jailbreak prompt is currently enabled/toggled on, "0" if disabled. Reflects the global jailbreak toggle state.\n\nUsage:: {{jbtoggled}}',
     });
 
     registerFunction({
@@ -678,7 +678,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return db.maxContext.toString()
         },
         alias: [],
-        description: 'Returns the maximum context length setting as a string (e.g., "4096", "8192"). This is the token limit for the current model configuration. Usage: {{maxcontext}}',
+        description: 'Returns the maximum context length setting as a string (e.g., "4096", "8192"). This is the token limit for the current model configuration.\n\nUsage:: {{maxcontext}}',
     });
 
     registerFunction({
@@ -693,7 +693,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return chat.message[chat.message.length - 1].data
         },
         alias: [],
-        description: 'Returns the content/data of the last message in the current chat, regardless of role (user/char). Returns empty string if no character selected. Usage: {{lastmessage}}',
+        description: 'Returns the content/data of the last message in the current chat, regardless of role (user/char). Returns empty string if no character selected.\n\nUsage:: {{lastmessage}}',
     });
 
     registerFunction({
@@ -708,7 +708,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (chat.message.length - 1).toString()
         },
         alias: ['lastmessageindex'],
-        description: 'Returns the index of the last message in the chat as a string (0-based indexing). Returns empty string if no character selected. Usage: {{lastmessageid}}',
+        description: 'Returns the index of the last message in the chat as a string (0-based indexing). Returns empty string if no character selected.\n\nUsage:: {{lastmessageid}}',
     });
 
     // Variable handling functions
@@ -721,7 +721,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }
         },
         alias: ['gettempvar'],
-        description: 'Gets the value of a temporary variable by name. Temporary variables only exist during the current script execution. Returns empty string if variable doesn\'t exist. Usage: {{tempvar::variableName}}',
+        description: 'Gets the value of a temporary variable by name. Temporary variables only exist during the current script execution. Returns empty string if variable doesn\'t exist.\n\nUsage:: {{tempvar::variableName}}',
     });
 
     registerFunction({
@@ -734,7 +734,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }
         },
         alias: [],
-        description: 'Sets a temporary variable to the specified value. Temporary variables only exist during current script execution. Always returns empty string. Usage: {{settempvar::variableName::value}}',
+        description: 'Sets a temporary variable to the specified value. Temporary variables only exist during current script execution. Always returns empty string.\n\nUsage:: {{settempvar::variableName::value}}',
     });
 
     registerFunction({
@@ -748,7 +748,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }
         },
         alias: [],
-        description: 'Sets the return value and immediately exits script execution. Used to return values from script functions. Sets internal __return__ and __force_return__ variables. Usage: {{return::value}}',
+        description: 'Sets the return value and immediately exits script execution. Used to return values from script functions. Sets internal __return__ and __force_return__ variables.\n\nUsage:: {{return::value}}',
     });
 
     registerFunction({
@@ -757,7 +757,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return getChatVar(args[0])
         },
         alias: [],
-        description: 'Gets the value of a persistent chat variable by name. Chat variables are saved with the chat and persist between sessions. Returns empty string if variable doesn\'t exist. Usage: {{getvar::variableName}}',
+        description: 'Gets the value of a persistent chat variable by name. Chat variables are saved with the chat and persist between sessions. Returns empty string if variable doesn\'t exist.\n\nUsage:: {{getvar::variableName}}',
     });
 
     registerFunction({
@@ -766,7 +766,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return calcString(args[0]).toString()
         },
         alias: [],
-        description: 'Evaluates a mathematical expression and returns the result as a string. Supports basic arithmetic operations (+, -, *, /, parentheses). Usage: {{calc::2+2*3}}',
+        description: 'Evaluates a mathematical expression and returns the result as a string. Supports basic arithmetic operations (+, -, *, /, parentheses).\n\nUsage:: {{calc::2+2*3}}',
     });
 
     registerFunction({
@@ -782,7 +782,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return null
         },
         alias: [],
-        description: 'Adds a numeric value to an existing chat variable. Treats the variable as a number, adds the specified amount, and saves the result. Only executes when runVar is true. Usage: {{addvar::counter::5}}',
+        description: 'Adds a numeric value to an existing chat variable. Treats the variable as a number, adds the specified amount, and saves the result. Only executes when runVar is true.\n\nUsage:: {{addvar::counter::5}}',
     });
 
     registerFunction({
@@ -798,7 +798,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return null
         },
         alias: [],
-        description: 'Sets a persistent chat variable to the specified value. Chat variables are saved with the chat and persist between sessions. Only executes when runVar is true. Usage: {{setvar::variableName::value}}',
+        description: 'Sets a persistent chat variable to the specified value. Chat variables are saved with the chat and persist between sessions. Only executes when runVar is true.\n\nUsage:: {{setvar::variableName::value}}',
     });
 
     registerFunction({
@@ -816,7 +816,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return null
         },
         alias: [],
-        description: 'Sets a chat variable to the specified value only if the variable doesn\'t already exist or is empty. Used for setting default values. Only executes when runVar is true. Usage: {{setdefaultvar::variableName::defaultValue}}',
+        description: 'Sets a chat variable to the specified value only if the variable doesn\'t already exist or is empty. Used for setting default values. Only executes when runVar is true.\n\nUsage:: {{setdefaultvar::variableName::defaultValue}}',
     });
 
     registerFunction({
@@ -825,7 +825,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return getGlobalChatVar(args[0])
         },
         alias: [],
-        description: 'Gets the value of a global chat variable by name. Global variables are shared across all chats and characters. Returns empty string if variable doesn\'t exist. Usage: {{getglobalvar::variableName}}',
+        description: 'Gets the value of a global chat variable by name. Global variables are shared across all chats and characters. Returns empty string if variable doesn\'t exist.\n\nUsage:: {{getglobalvar::variableName}}',
     });
 
     registerFunction({
@@ -834,7 +834,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return `<button class="button-default" risu-trigger="${args[1]}">${args[0]}</button>`
         },
         alias: [],
-        description: 'Creates an HTML button element with specified text and trigger action. When clicked, executes the trigger command. Returns HTML button markup. Usage: {{button::Click Me::trigger_command}}',
+        description: 'Creates an HTML button element with specified text and trigger action. When clicked, executes the trigger command. Returns HTML button markup.\n\nUsage:: {{button::Click Me::trigger_command}}',
     });
 
     registerFunction({
@@ -844,7 +844,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return `<img src="/logo2.png" style="height:${size}px;width:${size}px" />`
         },
         alias: [],
-        description: 'Displays the RisuAI logo image with specified size in pixels. Default size is 45px if no argument provided. Returns HTML img element. Usage: {{risu}} or {{risu::60}}',
+        description: 'Displays the RisuAI logo image with specified size in pixels. Default size is 45px if no argument provided. Returns HTML img element.\n\nUsage:: {{risu}} or {{risu::60}}',
     });
 
     // Comparison functions
@@ -854,7 +854,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (args[0] === args[1]) ? '1' : '0'
         },
         alias: [],
-        description: 'Compares two values for exact equality. Returns "1" if values are identical (string comparison), "0" otherwise. Case-sensitive. Usage: {{equal::value1::value2}}',
+        description: 'Compares two values for exact equality. Returns "1" if values are identical (string comparison), "0" otherwise. Case-sensitive.\n\nUsage:: {{equal::value1::value2}}',
     });
 
     registerFunction({
@@ -863,7 +863,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (args[0] !== args[1]) ? '1' : '0'
         },
         alias: ['not_equal'],
-        description: 'Compares two values for inequality. Returns "1" if values are different (string comparison), "0" if identical. Case-sensitive. Usage: {{notequal::value1::value2}}',
+        description: 'Compares two values for inequality. Returns "1" if values are different (string comparison), "0" if identical. Case-sensitive.\n\nUsage:: {{notequal::value1::value2}}',
     });
 
     registerFunction({
@@ -872,7 +872,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (Number(args[0]) > Number(args[1])) ? '1' : '0'
         },
         alias: [],
-        description: 'Compares two numeric values. Returns "1" if first number is greater than second, "0" otherwise. Converts arguments to numbers before comparison. Usage: {{greater::10::5}}',
+        description: 'Compares two numeric values. Returns "1" if first number is greater than second, "0" otherwise. Converts arguments to numbers before comparison.\n\nUsage:: {{greater::10::5}}',
     });
 
     registerFunction({
@@ -881,7 +881,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (Number(args[0]) < Number(args[1])) ? '1' : '0'
         },
         alias: [],
-        description: 'Compares two numeric values. Returns "1" if first number is less than second, "0" otherwise. Converts arguments to numbers before comparison. Usage: {{less::5::10}}',
+        description: 'Compares two numeric values. Returns "1" if first number is less than second, "0" otherwise. Converts arguments to numbers before comparison.\n\nUsage:: {{less::5::10}}',
     });
 
     registerFunction({
@@ -890,7 +890,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (Number(args[0]) >= Number(args[1])) ? '1' : '0'
         },
         alias: ['greater_equal'],
-        description: 'Compares two numeric values. Returns "1" if first number is greater than or equal to second, "0" otherwise. Converts arguments to numbers before comparison. Usage: {{greaterequal::10::10}}',
+        description: 'Compares two numeric values. Returns "1" if first number is greater than or equal to second, "0" otherwise. Converts arguments to numbers before comparison.\n\nUsage:: {{greaterequal::10::10}}',
     });
 
     registerFunction({
@@ -899,7 +899,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (Number(args[0]) <= Number(args[1])) ? '1' : '0'
         },
         alias: ['less_equal'],
-        description: 'Compares two numeric values. Returns "1" if first number is less than or equal to second, "0" otherwise. Converts arguments to numbers before comparison. Usage: {{lessequal::5::5}}',
+        description: 'Compares two numeric values. Returns "1" if first number is less than or equal to second, "0" otherwise. Converts arguments to numbers before comparison.\n\nUsage:: {{lessequal::5::5}}',
     });
 
     registerFunction({
@@ -908,7 +908,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0] === '1' && args[1] === '1' ? '1' : '0'
         },
         alias: [],
-        description: 'Performs logical AND on two boolean values. Returns "1" only if both arguments are "1", otherwise returns "0". Treats any value other than "1" as false. Usage: {{and::1::1}}',
+        description: 'Performs logical AND on two boolean values. Returns "1" only if both arguments are "1", otherwise returns "0". Treats any value other than "1" as false.\n\nUsage:: {{and::1::1}}',
     });
 
     registerFunction({
@@ -917,7 +917,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0] === '1' || args[1] === '1' ? '1' : '0'
         },
         alias: [],
-        description: 'Performs logical OR on two boolean values. Returns "1" if either argument is "1", otherwise returns "0". Treats any value other than "1" as false. Usage: {{or::1::0}}',
+        description: 'Performs logical OR on two boolean values. Returns "1" if either argument is "1", otherwise returns "0". Treats any value other than "1" as false.\n\nUsage:: {{or::1::0}}',
     });
 
     registerFunction({
@@ -926,7 +926,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0] === '1' ? '0' : '1'
         },
         alias: [],
-        description: 'Performs logical NOT on a boolean value. Returns "0" if argument is "1", returns "1" for any other value. Inverts the boolean state. Usage: {{not::1}}',
+        description: 'Performs logical NOT on a boolean value. Returns "0" if argument is "1", returns "1" for any other value. Inverts the boolean state.\n\nUsage:: {{not::1}}',
     });
 
     registerFunction({
@@ -938,7 +938,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Buffer.from(args[1], 'base64').toString('utf-8')
         },
         alias: [],
-        description: 'Handles file display or decoding. In display mode, shows filename in a formatted div. Otherwise, decodes base64 content to UTF-8 text. Usage: {{file::filename::base64content}}',
+        description: 'Handles file display or decoding. In display mode, shows filename in a formatted div. Otherwise, decodes base64 content to UTF-8 text.\n\nUsage:: {{file::filename::base64content}}',
     });
 
     // String manipulation functions
@@ -948,7 +948,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].startsWith(args[1]) ? '1' : '0'
         },
         alias: [],
-        description: 'Checks if a string starts with a specific substring. Returns "1" if the string begins with the substring, "0" otherwise. Case-sensitive. Usage: {{startswith::Hello World::Hello}}',
+        description: 'Checks if a string starts with a specific substring. Returns "1" if the string begins with the substring, "0" otherwise. Case-sensitive.\n\nUsage:: {{startswith::Hello World::Hello}}',
     });
 
     registerFunction({
@@ -957,7 +957,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].endsWith(args[1]) ? '1' : '0'
         },
         alias: [],
-        description: 'Checks if a string ends with a specific substring. Returns "1" if the string ends with the substring, "0" otherwise. Case-sensitive. Usage: {{endswith::Hello World::World}}',
+        description: 'Checks if a string ends with a specific substring. Returns "1" if the string ends with the substring, "0" otherwise. Case-sensitive.\n\nUsage:: {{endswith::Hello World::World}}',
     });
 
     registerFunction({
@@ -966,7 +966,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].includes(args[1]) ? '1' : '0'
         },
         alias: [],
-        description: 'Checks if a string contains a specific substring anywhere within it. Returns "1" if found, "0" otherwise. Case-sensitive. Usage: {{contains::Hello World::lo Wo}}',
+        description: 'Checks if a string contains a specific substring anywhere within it. Returns "1" if found, "0" otherwise. Case-sensitive.\n\nUsage:: {{contains::Hello World::lo Wo}}',
     });
 
     registerFunction({
@@ -975,7 +975,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].replaceAll(args[1], args[2])
         },
         alias: [],
-        description: 'Replaces all occurrences of a substring with a new string. Global replacement - changes every instance found. Case-sensitive. Usage: {{replace::Hello World::o::0}} → Hell0 W0rld',
+        description: 'Replaces all occurrences of a substring with a new string. Global replacement - changes every instance found. Case-sensitive.\n\nUsage:: {{replace::Hello World::o::0}} → Hell0 W0rld',
     });
 
     registerFunction({
@@ -984,7 +984,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(args[0].split(args[1]))
         },
         alias: [],
-        description: 'Splits a string into an array using the specified delimiter. Returns a JSON array of string parts. Usage: {{split::apple,banana,cherry::,}} → ["apple","banana","cherry"]',
+        description: 'Splits a string into an array using the specified delimiter. Returns a JSON array of string parts.\n\nUsage:: {{split::apple,banana,cherry::,}} → ["apple","banana","cherry"]',
     });
 
     registerFunction({
@@ -993,7 +993,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (parseArray(args[0])).join(args[1])
         },
         alias: [],
-        description: 'Joins array elements into a single string using the specified separator. Takes a JSON array and delimiter. Usage: {{join::["apple","banana"]::, }} → apple, banana',
+        description: 'Joins array elements into a single string using the specified separator. Takes a JSON array and delimiter.\n\nUsage:: {{join::["apple","banana"]::, }} → apple, banana',
     });
 
     registerFunction({
@@ -1002,7 +1002,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (parseArray(args[0])).join('::')
         },
         alias: [],
-        description: 'Joins array elements into a single string using "::" as separator. Specialized version of join for CBS array spreading. Usage: {{spread::["a","b","c"]}} → a::b::c',
+        description: 'Joins array elements into a single string using "::" as separator. Specialized version of join for CBS array spreading.\n\nUsage:: {{spread::["a","b","c"]}} → a::b::c',
     });
 
     registerFunction({
@@ -1011,7 +1011,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].trim()
         },
         alias: [],
-        description: 'Removes leading and trailing whitespace from a string. Does not affect whitespace in the middle of the string. Usage: {{trim::  hello world  }} → hello world',
+        description: 'Removes leading and trailing whitespace from a string. Does not affect whitespace in the middle of the string.\n\nUsage:: {{trim::  hello world  }} → hello world',
     });
 
     registerFunction({
@@ -1020,7 +1020,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].length.toString()
         },
         alias: [],
-        description: 'Returns the character length of a string as a number. Counts all characters including spaces and special characters. Usage: {{length::Hello}} → 5',
+        description: 'Returns the character length of a string as a number. Counts all characters including spaces and special characters.\n\nUsage:: {{length::Hello}} → 5',
     });
 
     // Array/Object manipulation functions
@@ -1030,7 +1030,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return parseArray(args[0]).length.toString()
         },
         alias: ['arraylength'],
-        description: 'Returns the number of elements in a JSON array as a string. Parses the array and counts elements. Usage: {{arraylength::["a","b","c"]}} → 3',
+        description: 'Returns the number of elements in a JSON array as a string. Parses the array and counts elements.\n\nUsage:: {{arraylength::["a","b","c"]}} → 3',
     });
 
     registerFunction({
@@ -1039,7 +1039,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].toLocaleLowerCase()
         },
         alias: [],
-        description: 'Converts all characters in a string to lowercase using locale-aware conversion. Handles international characters properly. Usage: {{lower::Hello WORLD}} → hello world',
+        description: 'Converts all characters in a string to lowercase using locale-aware conversion. Handles international characters properly.\n\nUsage:: {{lower::Hello WORLD}} → hello world',
     });
 
     registerFunction({
@@ -1048,7 +1048,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].toLocaleUpperCase()
         },
         alias: [],
-        description: 'Converts all characters in a string to uppercase using locale-aware conversion. Handles international characters properly. Usage: {{upper::Hello world}} → HELLO WORLD',
+        description: 'Converts all characters in a string to uppercase using locale-aware conversion. Handles international characters properly.\n\nUsage:: {{upper::Hello world}} → HELLO WORLD',
     });
 
     registerFunction({
@@ -1057,7 +1057,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].charAt(0).toUpperCase() + args[0].slice(1)
         },
         alias: [],
-        description: 'Capitalizes only the first character of a string, leaving the rest unchanged. Useful for sentence-case formatting. Usage: {{capitalize::hello world}} → Hello world',
+        description: 'Capitalizes only the first character of a string, leaving the rest unchanged. Useful for sentence-case formatting.\n\nUsage:: {{capitalize::hello world}} → Hello world',
     });
 
     registerFunction({
@@ -1066,7 +1066,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Math.round(Number(args[0])).toString()
         },
         alias: [],
-        description: 'Rounds a decimal number to the nearest integer using standard rounding rules (0.5 rounds up). Returns result as string. Usage: {{round::3.7}} → 4',
+        description: 'Rounds a decimal number to the nearest integer using standard rounding rules (0.5 rounds up). Returns result as string.\n\nUsage:: {{round::3.7}} → 4',
     });
 
     registerFunction({
@@ -1075,7 +1075,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Math.floor(Number(args[0])).toString()
         },
         alias: [],
-        description: 'Rounds a decimal number down to the nearest integer (floor function). Always rounds towards negative infinity. Usage: {{floor::3.9}} → 3',
+        description: 'Rounds a decimal number down to the nearest integer (floor function). Always rounds towards negative infinity.\n\nUsage:: {{floor::3.9}} → 3',
     });
 
     registerFunction({
@@ -1084,7 +1084,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Math.ceil(Number(args[0])).toString()
         },
         alias: [],
-        description: 'Rounds a decimal number up to the nearest integer (ceiling function). Always rounds towards positive infinity. Usage: {{ceil::3.1}} → 4',
+        description: 'Rounds a decimal number up to the nearest integer (ceiling function). Always rounds towards positive infinity.\n\nUsage:: {{ceil::3.1}} → 4',
     });
 
     registerFunction({
@@ -1093,7 +1093,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Math.abs(Number(args[0])).toString()
         },
         alias: [],
-        description: 'Returns the absolute value of a number (removes negative sign). Converts to positive value regardless of input sign. Usage: {{abs::-5}} → 5',
+        description: 'Returns the absolute value of a number (removes negative sign). Converts to positive value regardless of input sign.\n\nUsage:: {{abs::-5}} → 5',
     });
 
     registerFunction({
@@ -1102,7 +1102,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (Number(args[0]) % Number(args[1])).toString()
         },
         alias: [],
-        description: 'Returns the remainder after dividing first number by second (modulo operation). Useful for cycles and ranges. Usage: {{remaind::10::3}} → 1',
+        description: 'Returns the remainder after dividing first number by second (modulo operation). Useful for cycles and ranges.\n\nUsage:: {{remaind::10::3}} → 1',
     });
 
     registerFunction({
@@ -1114,7 +1114,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return chat?.message[Number(args[0])]?.data ?? 'Out of range'
         },
         alias: ['previous_chat_log'],
-        description: 'Retrieves the message content at the specified index in the chat history. Returns "Out of range" if index is invalid. Usage: {{previouschatlog::5}}',
+        description: 'Retrieves the message content at the specified index in the chat history. Returns "Out of range" if index is invalid.\n\nUsage:: {{previouschatlog::5}}',
     });
 
     registerFunction({
@@ -1125,7 +1125,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             })).join('')
         },
         alias: [],
-        description: 'Extracts only numeric characters (0-9) and decimal points from a string, removing all other characters. Usage: {{tonumber::abc123.45def}} → 123.45',
+        description: 'Extracts only numeric characters (0-9) and decimal points from a string, removing all other characters.\n\nUsage:: {{tonumber::abc123.45def}} → 123.45',
     });
 
     registerFunction({
@@ -1134,7 +1134,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Math.pow(Number(args[0]), Number(args[1])).toString()
         },
         alias: [],
-        description: 'Calculates the power of a number (base raised to exponent). Performs mathematical exponentiation. Usage: {{pow::2::3}} → 8 (2³)',
+        description: 'Calculates the power of a number (base raised to exponent). Performs mathematical exponentiation.\n\nUsage:: {{pow::2::3}} → 8 (2³)',
     });
 
     registerFunction({
@@ -1143,7 +1143,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return parseArray(args[0]).at(Number(args[1])) ?? 'null'
         },
         alias: ['arrayelement'],
-        description: 'Retrieves the element at the specified index from a JSON array. Uses 0-based indexing. Returns "null" if index is out of bounds. Usage: {{arrayelement::["a","b","c"]::1}} → b',
+        description: 'Retrieves the element at the specified index from a JSON array. Uses 0-based indexing. Returns "null" if index is out of bounds.\n\nUsage:: {{arrayelement::["a","b","c"]::1}} → b',
     });
 
     registerFunction({
@@ -1152,7 +1152,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return parseDict(args[0])[args[1]] ?? 'null'
         },
         alias: ['dictelement', 'objectelement'],
-        description: 'Retrieves the value associated with a key from a JSON object/dictionary. Returns "null" if key doesn\'t exist. Usage: {{dictelement::{"name":"John"}::name}} → John',
+        description: 'Retrieves the value associated with a key from a JSON object/dictionary. Returns "null" if key doesn\'t exist.\n\nUsage:: {{dictelement::{"name":"John"}::name}} → John',
     });
 
     registerFunction({
@@ -1165,7 +1165,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return JSON.stringify(dict)
         },
         alias: ['dictassert', 'object_assert'],
-        description: 'Sets a property in a JSON object only if the property doesn\'t already exist. Returns the modified object as JSON. Used for default values. Usage: {{objectassert::{"a":1}::b::2}} → {"a":1,"b":2}',
+        description: 'Sets a property in a JSON object only if the property doesn\'t already exist. Returns the modified object as JSON. Used for default values.\n\nUsage:: {{objectassert::{"a":1}::b::2}} → {"a":1,"b":2}',
     });
 
     registerFunction({
@@ -1190,7 +1190,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }
         },
         alias: ['ele'],
-        description: 'Retrieves a deeply nested element from a JSON structure using multiple keys/indices. Traverses the object path step by step. Returns "null" if any step fails. Usage: {{element::{"user":{"name":"John"}}::user::name}} → John',
+        description: 'Retrieves a deeply nested element from a JSON structure using multiple keys/indices. Traverses the object path step by step. Returns "null" if any step fails.\n\nUsage:: {{element::{"user":{"name":"John"}}::user::name}} → John',
     });
 
     registerFunction({
@@ -1201,7 +1201,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(arr)
         },
         alias: ['arrayshift'],
-        description: 'Removes and discards the first element from a JSON array. Returns the modified array without the first element. Usage: {{arrayshift::["a","b","c"]}} → ["b","c"]',
+        description: 'Removes and discards the first element from a JSON array. Returns the modified array without the first element.\n\nUsage:: {{arrayshift::["a","b","c"]}} → ["b","c"]',
     });
 
     registerFunction({
@@ -1212,7 +1212,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(arr)
         },
         alias: ['arraypop'],
-        description: 'Removes and discards the last element from a JSON array. Returns the modified array without the last element. Usage: {{arraypop::["a","b","c"]}} → ["a","b"]',
+        description: 'Removes and discards the last element from a JSON array. Returns the modified array without the last element.\n\nUsage:: {{arraypop::["a","b","c"]}} → ["a","b"]',
     });
 
     registerFunction({
@@ -1223,7 +1223,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(arr)
         },
         alias: ['arraypush'],
-        description: 'Adds a new element to the end of a JSON array. Returns the modified array with the new element appended. Usage: {{arraypush::["a","b"]::c}} → ["a","b","c"]',
+        description: 'Adds a new element to the end of a JSON array. Returns the modified array with the new element appended.\n\nUsage:: {{arraypush::["a","b"]::c}} → ["a","b","c"]',
     });
 
     registerFunction({
@@ -1234,7 +1234,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(arr)
         },
         alias: ['arraysplice'],
-        description: 'Modifies an array by removing elements and optionally inserting new ones at a specific index. Parameters: array, startIndex, deleteCount, newElement. Usage: {{arraysplice::["a","b","c"]::1::1::x}} → ["a","x","c"]',
+        description: 'Modifies an array by removing elements and optionally inserting new ones at a specific index. Parameters: array, startIndex, deleteCount, newElement.\n\nUsage:: {{arraysplice::["a","b","c"]::1::1::x}} → ["a","x","c"]',
     });
 
     registerFunction({
@@ -1248,7 +1248,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(arr)
         },
         alias: ['arrayassert'],
-        description: 'Sets an array element at the specified index only if the index is currently out of bounds (extends array). Fills gaps with undefined. Usage: {{arrayassert::["a"]::5::b}} → array with element "b" at index 5',
+        description: 'Sets an array element at the specified index only if the index is currently out of bounds (extends array). Fills gaps with undefined.\n\nUsage:: {{arrayassert::["a"]::5::b}} → array with element "b" at index 5',
     });
 
     registerFunction({
@@ -1257,7 +1257,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(args)
         },
         alias: ['array', 'a', 'makearray'],
-        description: 'Creates a JSON array from the provided arguments. Each argument becomes an array element. Variable number of arguments supported. Usage: {{makearray::a::b::c}} → ["a","b","c"]',
+        description: 'Creates a JSON array from the provided arguments. Each argument becomes an array element. Variable number of arguments supported.\n\nUsage:: {{makearray::a::b::c}} → ["a","b","c"]',
     });
 
     registerFunction({
@@ -1277,7 +1277,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return JSON.stringify(out)
         },
         alias: ['dict', 'd', 'makedict', 'makeobject', 'object', 'o'],
-        description: 'Creates a JSON object from key=value pair arguments. Each argument should be in "key=value" format. Invalid pairs are ignored. Usage: {{makedict::name=John::age=25}} → {"name":"John","age":"25"}',
+        description: 'Creates a JSON object from key=value pair arguments. Each argument should be in "key=value" format. Invalid pairs are ignored.\n\nUsage:: {{makedict::name=John::age=25}} → {"name":"John","age":"25"}',
     });
 
     // Missing basic functions (no arguments)
@@ -1294,7 +1294,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             })) ?? ''
         },
         alias: [],
-        description: 'Returns a JSON array of emotion image names available for the current character. Only includes the names, not the actual image data. Returns empty string if no character or no emotions. Usage: {{emotionlist}}',
+        description: 'Returns a JSON array of emotion image names available for the current character. Only includes the names, not the actual image data. Returns empty string if no character or no emotions.\n\nUsage:: {{emotionlist}}',
     });
 
     registerFunction({
@@ -1310,7 +1310,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: [],
-        description: 'Returns a JSON array of additional asset names for the current character. These are extra images/files beyond the main avatar. Returns empty string for groups or characters without assets. Usage: {{assetlist}}',
+        description: 'Returns a JSON array of additional asset names for the current character. These are extra images/files beyond the main avatar. Returns empty string for groups or characters without assets.\n\nUsage:: {{assetlist}}',
     });
 
     registerFunction({
@@ -1320,7 +1320,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return db.aiModel.startsWith('claude') ? '1' : '0'
         },
         alias: ['prefill_supported', 'prefill'],
-        description: 'Returns "1" if the current AI model supports prefill functionality (like Claude models), "0" otherwise. Prefill allows pre-filling the assistant\'s response start. Usage: {{prefillsupported}}',
+        description: 'Returns "1" if the current AI model supports prefill functionality (like Claude models), "0" otherwise. Prefill allows pre-filling the assistant\'s response start.\n\nUsage:: {{prefillsupported}}',
     });
 
     registerFunction({
@@ -1329,7 +1329,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return window.innerWidth.toString()
         },
         alias: ['screen_width'],
-        description: 'Returns the current screen/viewport width in pixels as a string. Updates dynamically with window resizing. Useful for responsive layouts. Usage: {{screenwidth}}',
+        description: 'Returns the current screen/viewport width in pixels as a string. Updates dynamically with window resizing. Useful for responsive layouts.\n\nUsage:: {{screenwidth}}',
     });
 
     registerFunction({
@@ -1338,7 +1338,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return window.innerHeight.toString()
         },
         alias: ['screen_height'],
-        description: 'Returns the current screen/viewport height in pixels as a string. Updates dynamically with window resizing. Useful for responsive layouts. Usage: {{screenheight}}',
+        description: 'Returns the current screen/viewport height in pixels as a string. Updates dynamically with window resizing. Useful for responsive layouts.\n\nUsage:: {{screenheight}}',
     });
 
     registerFunction({
@@ -1351,7 +1351,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\\n'
         },
         alias: ['cnl', 'cnewline'],
-        description: 'Returns an escaped newline character (\\\\n). With optional numeric argument, repeats the character that many times (minimum 1). Usage: {{cbr}} or {{cbr::3}}',
+        description: 'Returns an escaped newline character (\\\\n). With optional numeric argument, repeats the character that many times (minimum 1).\n\nUsage:: {{cbr}} or {{cbr::3}}',
     });
 
     registerFunction({
@@ -1360,7 +1360,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9b8'
         },
         alias: ['displayescapedcurlybracketopen'],
-        description: 'Returns a special Unicode character that displays as an opening curly bracket { but won\'t be parsed as CBS syntax. Used to display literal braces in output. Usage: {{decbo}}',
+        description: 'Returns a special Unicode character that displays as an opening curly bracket { but won\'t be parsed as CBS syntax. Used to display literal braces in output.\n\nUsage:: {{decbo}}',
     });
 
     registerFunction({
@@ -1369,7 +1369,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9b9'
         },
         alias: ['displayescapedcurlybracketclose'],
-        description: 'Returns a special Unicode character that displays as a closing curly bracket } but won\'t be parsed as CBS syntax. Used to display literal braces in output. Usage: {{decbc}}',
+        description: 'Returns a special Unicode character that displays as a closing curly bracket } but won\'t be parsed as CBS syntax. Used to display literal braces in output.\n\nUsage:: {{decbc}}',
     });
 
     registerFunction({
@@ -1378,7 +1378,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9b8\uE9b8'
         },
         alias: ['ddecbo', 'doubledisplayescapedcurlybracketopen'],
-        description: 'Returns two special Unicode characters that display as opening double curly brackets {{ but won\'t be parsed as CBS syntax. Used to display literal CBS syntax. Usage: {{bo}}',
+        description: 'Returns two special Unicode characters that display as opening double curly brackets {{ but won\'t be parsed as CBS syntax. Used to display literal CBS syntax.\n\nUsage:: {{bo}}',
     });
 
     registerFunction({
@@ -1387,7 +1387,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9b9\uE9b9'
         },
         alias: ['ddecbc', 'doubledisplayescapedcurlybracketclose'],
-        description: 'Returns two special Unicode characters that display as closing double curly brackets }} but won\'t be parsed as CBS syntax. Used to display literal CBS syntax. Usage: {{bc}}',
+        description: 'Returns two special Unicode characters that display as closing double curly brackets }} but won\'t be parsed as CBS syntax. Used to display literal CBS syntax.\n\nUsage:: {{bc}}',
     });
 
     registerFunction({
@@ -1396,7 +1396,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9BA'
         },
         alias: ['debo', '('],
-        description: 'Returns a special Unicode character that displays as an opening parenthesis ( but won\'t interfere with parsing. Used for literal parentheses in output. Usage: {{displayescapedbracketopen}}',
+        description: 'Returns a special Unicode character that displays as an opening parenthesis ( but won\'t interfere with parsing. Used for literal parentheses in output.\n\nUsage:: {{displayescapedbracketopen}}',
     });
 
     registerFunction({
@@ -1405,7 +1405,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9BB'
         },
         alias: ['debc', ')'],
-        description: 'Returns a special Unicode character that displays as a closing parenthesis ) but won\'t interfere with parsing. Used for literal parentheses in output. Usage: {{displayescapedbracketclose}}',
+        description: 'Returns a special Unicode character that displays as a closing parenthesis ) but won\'t interfere with parsing. Used for literal parentheses in output.\n\nUsage:: {{displayescapedbracketclose}}',
     });
 
     registerFunction({
@@ -1414,7 +1414,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9BC'
         },
         alias: ['deabo', '<'],
-        description: 'Returns a special Unicode character that displays as an opening angle bracket < but won\'t interfere with HTML parsing. Used for literal angle brackets. Usage: {{displayescapedanglebracketopen}}',
+        description: 'Returns a special Unicode character that displays as an opening angle bracket < but won\'t interfere with HTML parsing. Used for literal angle brackets.\n\nUsage:: {{displayescapedanglebracketopen}}',
     });
 
     registerFunction({
@@ -1423,7 +1423,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9BD'
         },
         alias: ['deabc', '>'],
-        description: 'Returns a special Unicode character that displays as a closing angle bracket > but won\'t interfere with HTML parsing. Used for literal angle brackets. Usage: {{displayescapedanglebracketclose}}',
+        description: 'Returns a special Unicode character that displays as a closing angle bracket > but won\'t interfere with HTML parsing. Used for literal angle brackets.\n\nUsage:: {{displayescapedanglebracketclose}}',
     });
 
     registerFunction({
@@ -1432,7 +1432,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9BE'
         },
         alias: ['dec', ':'],
-        description: 'Returns a special Unicode character that displays as a colon : but won\'t be parsed as CBS argument separator. Used for literal colons in output. Usage: {{displayescapedcolon}}',
+        description: 'Returns a special Unicode character that displays as a colon : but won\'t be parsed as CBS argument separator. Used for literal colons in output.\n\nUsage:: {{displayescapedcolon}}',
     });
 
     registerFunction({
@@ -1441,7 +1441,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '\uE9BF'
         },
         alias: [';'],
-        description: 'Returns a special Unicode character that displays as a semicolon ; but won\'t interfere with parsing. Used for literal semicolons in output. Usage: {{displayescapedsemicolon}}',
+        description: 'Returns a special Unicode character that displays as a semicolon ; but won\'t interfere with parsing. Used for literal semicolons in output.\n\nUsage:: {{displayescapedsemicolon}}',
     });
 
     registerFunction({
@@ -1464,7 +1464,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: [],
-        description: 'Returns a JSON array of character display asset names, filtered by prebuilt asset exclusion settings. Only includes assets not in the exclude list. Usage: {{chardisplayasset}}',
+        description: 'Returns a JSON array of character display asset names, filtered by prebuilt asset exclusion settings. Only includes assets not in the exclude list.\n\nUsage:: {{chardisplayasset}}',
     });
 
     // Missing functions with :: arguments
@@ -1498,7 +1498,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: ['messages'],
-        description: 'Returns chat history as a JSON array. With no arguments, returns full message objects. With "role" argument, prefixes each message with "role: ". Includes first message/greeting. Usage: {{history}} or {{history::role}}',
+        description: 'Returns chat history as a JSON array. With no arguments, returns full message objects. With "role" argument, prefixes each message with "role: ". Includes first message/greeting.\n\nUsage:: {{history}} or {{history::role}}',
     });
 
     registerFunction({
@@ -1517,7 +1517,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return makeArray(out)
         },
         alias: [],
-        description: 'Creates a JSON array of sequential numbers. Single argument: 0 to N-1. Two arguments: start to end-1. Three arguments: start to end-1 with step. Usage: {{range::[5]}} → [0,1,2,3,4] or {{range::[2,8,2]}} → [2,4,6]',
+        description: 'Creates a JSON array of sequential numbers. Single argument: 0 to N-1. Two arguments: start to end-1. Three arguments: start to end-1 with step.\n\nUsage:: {{range::[5]}} → [0,1,2,3,4] or {{range::[2,8,2]}} → [2,4,6]',
     });
 
     registerFunction({
@@ -1539,7 +1539,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return dateTimeFormat(args[0], t)
         },
         alias: ['datetimeformat'],
-        description: 'Formats date/time using custom format string. No arguments returns YYYY-M-D. First argument is format string, optional second argument is unix timestamp. Usage: {{date::YYYY-MM-DD}} or {{date::HH:mm:ss::1640995200000}}',
+        description: 'Formats date/time using custom format string. No arguments returns YYYY-M-D. First argument is format string, optional second argument is unix timestamp.\n\nUsage:: {{date::YYYY-MM-DD}} or {{date::HH:mm:ss::1640995200000}}',
     });
 
     registerFunction({
@@ -1561,7 +1561,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return dateTimeFormat(args[0], t)
         },
         alias: [],
-        description: 'Formats date/time using custom format string. No arguments returns h:m:s. First argument is format string, optional second argument is unix timestamp. Usage: {{date::YYYY-MM-DD}} or {{date::HH:mm:ss::1640995200000}}',
+        description: 'Formats date/time using custom format string. No arguments returns h:m:s. First argument is format string, optional second argument is unix timestamp.\n\nUsage:: {{date::YYYY-MM-DD}} or {{date::HH:mm:ss::1640995200000}}',
     });
 
     registerFunction({
@@ -1576,7 +1576,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return '0'
         },
         alias: ['module_enabled'],
-        description: 'Checks if a module with the specified namespace is currently enabled/loaded. Returns "1" if found, "0" otherwise. Usage: {{moduleenabled::mymodule}}',
+        description: 'Checks if a module with the specified namespace is currently enabled/loaded. Returns "1" if found, "0" otherwise.\n\nUsage:: {{moduleenabled::mymodule}}',
     });
 
     registerFunction({
@@ -1593,7 +1593,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: ['module_assetlist'],
-        description: 'Returns a JSON array of asset names for the specified module namespace. Returns empty string if module not found. Usage: {{moduleassetlist::mymodule}}',
+        description: 'Returns a JSON array of asset names for the specified module namespace. Returns empty string if module not found.\n\nUsage:: {{moduleassetlist::mymodule}}',
     });
 
     registerFunction({
@@ -1621,7 +1621,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: [],
-        description: 'Filters a JSON array based on the specified filter type. "all": removes empty and duplicates, "nonempty": removes empty only, "unique": removes duplicates only. Usage: {{filter::["a","","a"]::unique}} → ["a",""]',
+        description: 'Filters a JSON array based on the specified filter type. "all": removes empty and duplicates, "nonempty": removes empty only, "unique": removes duplicates only.\n\nUsage:: {{filter::["a","","a"]::unique}} → ["a",""]',
     });
 
     registerFunction({
@@ -1634,7 +1634,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return all ? '1' : '0'
         },
         alias: [],
-        description: 'Returns "1" only if all provided values are "1", otherwise returns "0". Can take array as first argument or multiple arguments. Logical AND of all values. Usage: {{all::1::1::1}} → 1',
+        description: 'Returns "1" only if all provided values are "1", otherwise returns "0". Can take array as first argument or multiple arguments. Logical AND of all values.\n\nUsage:: {{all::1::1::1}} → 1',
     });
 
     registerFunction({
@@ -1647,7 +1647,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return any ? '1' : '0'
         },
         alias: [],
-        description: 'Returns "1" if any provided value is "1", otherwise returns "0". Can take array as first argument or multiple arguments. Logical OR of all values. Usage: {{any::0::1::0}} → 1',
+        description: 'Returns "1" if any provided value is "1", otherwise returns "0". Can take array as first argument or multiple arguments. Logical OR of all values.\n\nUsage:: {{any::0::1::0}} → 1',
     });
 
     registerFunction({
@@ -1663,7 +1663,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             })).toString()
         },
         alias: [],
-        description: 'Returns the smallest numeric value from the provided values. Can take array as first argument or multiple arguments. Non-numeric values treated as 0. Usage: {{min::5::2::8}} → 2',
+        description: 'Returns the smallest numeric value from the provided values. Can take array as first argument or multiple arguments. Non-numeric values treated as 0.\n\nUsage:: {{min::5::2::8}} → 2',
     });
 
     registerFunction({
@@ -1679,7 +1679,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             })).toString()
         },
         alias: [],
-        description: 'Returns the largest numeric value from the provided values. Can take array as first argument or multiple arguments. Non-numeric values treated as 0. Usage: {{max::5::2::8}} → 8',
+        description: 'Returns the largest numeric value from the provided values. Can take array as first argument or multiple arguments. Non-numeric values treated as 0.\n\nUsage:: {{max::5::2::8}} → 8',
     });
 
     registerFunction({
@@ -1695,7 +1695,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }).reduce((a, b) => a + b, 0).toString()
         },
         alias: [],
-        description: 'Returns the sum of all numeric values provided. Can take array as first argument or multiple arguments. Non-numeric values treated as 0. Usage: {{sum::1::2::3}} → 6',
+        description: 'Returns the sum of all numeric values provided. Can take array as first argument or multiple arguments. Non-numeric values treated as 0.\n\nUsage:: {{sum::1::2::3}} → 6',
     });
 
     registerFunction({
@@ -1712,7 +1712,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (sum / val.length).toString()
         },
         alias: [],
-        description: 'Returns the arithmetic mean of all numeric values provided. Can take array as first argument or multiple arguments. Non-numeric values treated as 0. Usage: {{average::2::4::6}} → 4',
+        description: 'Returns the arithmetic mean of all numeric values provided. Can take array as first argument or multiple arguments. Non-numeric values treated as 0.\n\nUsage:: {{average::2::4::6}} → 4',
     });
 
     registerFunction({
@@ -1721,7 +1721,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Number(args[0]).toFixed(Number(args[1]))
         },
         alias: ['fixnum', 'fixnumber'],
-        description: 'Rounds a number to the specified number of decimal places. Uses toFixed() method for consistent formatting. Usage: {{fixnum::3.14159::2}} → 3.14',
+        description: 'Rounds a number to the specified number of decimal places. Uses toFixed() method for consistent formatting.\n\nUsage:: {{fixnum::3.14159::2}} → 3.14',
     });
 
     registerFunction({
@@ -1730,7 +1730,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].charCodeAt(args[1] ? Number(args[1]) : 0).toString()
         },
         alias: ['unicode_encode'],
-        description: 'Returns the Unicode code point of a character at the specified index (default 0) in the string. Returns numeric code as string. Usage: {{unicodeencode::A}} → 65',
+        description: 'Returns the Unicode code point of a character at the specified index (default 0) in the string. Returns numeric code as string.\n\nUsage:: {{unicodeencode::A}} → 65',
     });
 
     registerFunction({
@@ -1739,7 +1739,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return String.fromCharCode(Number(args[0]))
         },
         alias: ['unicode_decode'],
-        description: 'Converts a Unicode code point number back to its corresponding character. Inverse of unicodeencode. Usage: {{unicodedecode::65}} → A',
+        description: 'Converts a Unicode code point number back to its corresponding character. Inverse of unicodeencode.\n\nUsage:: {{unicodedecode::65}} → A',
     });
 
     registerFunction({
@@ -1748,7 +1748,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return String.fromCharCode(parseInt(args[0], 16))
         },
         alias: ['unicodedecodefromhex'],
-        description: 'Converts a hexadecimal Unicode code to its corresponding character. Useful for special characters and symbols. Usage: {{u::41}} → A',
+        description: 'Converts a hexadecimal Unicode code to its corresponding character. Useful for special characters and symbols.\n\nUsage:: {{u::41}} → A',
     });
 
     registerFunction({
@@ -1757,7 +1757,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return String.fromCharCode(parseInt(args[0], 16))
         },
         alias: ['unicodeencodefromhex'],
-        description: 'Converts a hexadecimal Unicode code to its corresponding character. Alias for {{u}}. Usage: {{ue::41}} → A',
+        description: 'Converts a hexadecimal Unicode code to its corresponding character. Alias for {{u}}.\n\nUsage:: {{ue::41}} → A',
     });
 
     registerFunction({
@@ -1766,7 +1766,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return ((pickHashRand(0, args[0]) * 10000000) + 1).toFixed(0).padStart(7, '0')
         },
         alias: [],
-        description: 'Generates a deterministic 7-digit number based on the input string hash. Same input always produces the same output. Useful for consistent randomization. Usage: {{hash::hello}} → 1234567',
+        description: 'Generates a deterministic 7-digit number based on the input string hash. Same input always produces the same output. Useful for consistent randomization.\n\nUsage:: {{hash::hello}} → 1234567',
     });
 
     registerFunction({
@@ -1780,7 +1780,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return (Math.floor(Math.random() * (max - min + 1)) + min).toString()
         },
         alias: [],
-        description: 'Generates a random integer between min and max values (inclusive). Returns "NaN" if arguments are not valid numbers. Usage: {{randint::1::10}} → random number 1-10',
+        description: 'Generates a random integer between min and max values (inclusive). Returns "NaN" if arguments are not valid numbers.\n\nUsage:: {{randint::1::10}} → random number 1-10',
     });
 
     registerFunction({
@@ -1799,7 +1799,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return total.toString()
         },
         alias: [],
-        description: 'Simulates dice rolling using standard RPG notation (XdY = X dice with Y sides each). Returns sum of all dice rolls. Usage: {{dice::2d6}} → random number 2-12',
+        description: 'Simulates dice rolling using standard RPG notation (XdY = X dice with Y sides each). Returns sum of all dice rolls.\n\nUsage:: {{dice::2d6}} → random number 2-12',
     });
 
     registerFunction({
@@ -1808,7 +1808,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Number.parseInt(args[0], 16).toString()
         },
         alias: [],
-        description: 'Converts a hexadecimal string to its decimal number equivalent. Parses base-16 input to base-10 output. Usage: {{fromhex::FF}} → 255',
+        description: 'Converts a hexadecimal string to its decimal number equivalent. Parses base-16 input to base-10 output.\n\nUsage:: {{fromhex::FF}} → 255',
     });
 
     registerFunction({
@@ -1817,7 +1817,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Number.parseInt(args[0]).toString(16)
         },
         alias: [],
-        description: 'Converts a decimal number to its hexadecimal string representation. Parses base-10 input to base-16 output. Usage: {{tohex::255}} → ff',
+        description: 'Converts a decimal number to its hexadecimal string representation. Parses base-10 input to base-16 output.\n\nUsage:: {{tohex::255}} → ff',
     });
 
     registerFunction({
@@ -1891,7 +1891,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }
         },
         alias: [],
-        description: 'Returns various system and application metadata. Supported keys: mobile, local, node, version, language, modelname, etc. Returns error message for invalid keys. Usage: {{metadata::version}}',
+        description: 'Returns various system and application metadata. Supported keys: mobile, local, node, version, language, modelname, etc. Returns error message for invalid keys.\n\nUsage:: {{metadata::version}}',
     });
 
     registerFunction({
@@ -1900,7 +1900,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[0].toLocaleLowerCase().startsWith('error:') ? '1' : '0'
         },
         alias: [],
-        description: 'Checks if a string starts with "error:" (case-insensitive). Returns "1" if it\'s an error message, "0" otherwise. Useful for error handling. Usage: {{iserror::Error: failed}} → 1',
+        description: 'Checks if a string starts with "error:" (case-insensitive). Returns "1" if it\'s an error message, "0" otherwise. Useful for error handling.\n\nUsage:: {{iserror::Error: failed}} → 1',
     });
 
     // Encryption/decryption functions
@@ -1914,7 +1914,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return Buffer.from(buf).toString('base64')
         },
         alias: ['xorencrypt', 'xorencode', 'xore'],
-        description: 'Encrypts a string using XOR cipher with 0xFF key and encodes result as base64. Simple obfuscation method. Reversible with xordecrypt. Usage: {{xor::hello}}',
+        description: 'Encrypts a string using XOR cipher with 0xFF key and encodes result as base64. Simple obfuscation method. Reversible with xordecrypt.\n\nUsage:: {{xor::hello}}',
     });
 
     registerFunction({
@@ -1927,7 +1927,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return new TextDecoder().decode(buf)
         },
         alias: ['xordecode', 'xord'],
-        description: 'Decrypts a base64-encoded XOR-encrypted string back to original text. Reverses the xor function using same 0xFF key. Usage: {{xordecrypt::base64string}}',
+        description: 'Decrypts a base64-encoded XOR-encrypted string back to original text. Reverses the xor function using same 0xFF key.\n\nUsage:: {{xordecrypt::base64string}}',
     });
 
     registerFunction({
@@ -1954,7 +1954,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return result
         },
         alias: ['crypto', 'caesar', 'encrypt', 'decrypt'],
-        description: 'Applies Caesar cipher encryption/decryption with custom shift value (default 32768). Shifts Unicode character codes within 16-bit range. By using default shift, it can be used for both encryption and decryption. Usage: {{crypt::hello}} or {{crypt::hello::1000}}',
+        description: 'Applies Caesar cipher encryption/decryption with custom shift value (default 32768). Shifts Unicode character codes within 16-bit range. By using default shift, it can be used for both encryption and decryption.\n\nUsage:: {{crypt::hello}} or {{crypt::hello::1000}}',
     });
 
     registerFunction({
@@ -1987,7 +1987,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[randomIndex]
         },
         alias: [],
-        description: 'Returns a random number between 0 and 1 if no arguments. With one argument, returns a random element from the provided array or string split by commas/colons. With multiple arguments, returns a random argument. Usage: {{random}} or {{random::a,b,c}} → "b"',
+        description: 'Returns a random number between 0 and 1 if no arguments. With one argument, returns a random element from the provided array or string split by commas/colons. With multiple arguments, returns a random argument.\n\nUsage:: {{random}} or {{random::a,b,c}} → "b"',
     })
 
     registerFunction({
@@ -2026,7 +2026,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return args[randomIndex]
         },
         alias: [],
-        description: 'Returns a random number between 0 and 1 if no arguments. With one argument, returns a random element from the provided array or string split by commas/colons. With multiple arguments, returns a random argument. unlike {{random}}, uses a hash-based randomization based on chat ID and character ID for consistent results across messages. Usage: {{pick}} or {{pick::a,b,c}} → "b"',
+        description: 'Returns a random number between 0 and 1 if no arguments. With one argument, returns a random element from the provided array or string split by commas/colons. With multiple arguments, returns a random argument. unlike {{random}}, uses a hash-based randomization based on chat ID and character ID for consistent results across messages.\n\nUsage:: {{pick}} or {{pick::a,b,c}} → "b"',
     })
 
     registerFunction({
@@ -2055,7 +2055,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return total.toString()
         },
         alias: [],
-        description: 'Simulates rolling dice using standard RPG notation (XdY = X dice with Y sides each). Returns sum of all dice rolls. If no arguments, defaults to 1d6. Usage: {{roll::2d6}} → random number 2-12, {{roll::20}} → random number 1-20',
+        description: 'Simulates rolling dice using standard RPG notation (XdY = X dice with Y sides each). Returns sum of all dice rolls. If no arguments, defaults to 1d6.\n\nUsage:: {{roll::2d6}} → random number 2-12, {{roll::20}} → random number 1-20',
     })
 
     registerFunction({
@@ -2090,7 +2090,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return total.toString()
         },
         alias: ['rollpick'],
-        description: 'Simulates rolling dice using standard RPG notation (XdY = X dice with Y sides each). Returns sum of all dice rolls. If no arguments, defaults to 1d6. Unlike {{roll}}, uses a hash-based randomization based on chat ID and character ID for consistent results across messages. Usage: {{rollp::2d6}} → random number 2-12, {{rollp::20}} → random number 1-20',
+        description: 'Simulates rolling dice using standard RPG notation (XdY = X dice with Y sides each). Returns sum of all dice rolls. If no arguments, defaults to 1d6. Unlike {{roll}}, uses a hash-based randomization based on chat ID and character ID for consistent results across messages.\n\nUsage:: {{rollp::2d6}} → random number 2-12, {{rollp::20}} → random number 1-20',
     })
 
     registerFunction({
@@ -2099,7 +2099,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return ''
         },
         alias: [],
-        description: 'Works as a key for activation of lores, while not being included in the model request. Usage: {{hidden_key::some_value}}',
+        description: 'Works as a key for activation of lores, while not being included in the model request.\n\nUsage:: {{hidden_key::some_value}}',
     })
 
     registerFunction({
@@ -2108,7 +2108,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             return str.split('').reverse().join('')
         },
         alias: [],
-        description: 'Reverses the input string. Usage: {{reverse::some_value}}',
+        description: 'Reverses the input string.\n\nUsage:: {{reverse::some_value}}',
     })
 
     registerFunction({
@@ -2120,21 +2120,21 @@ export function registerCBS(arg:CBSRegisterArg) {
             return `<div class="risu-comment">${args[0]}</div>`
         },
         alias: [],
-        description: 'A comment CBS for commenting out code. unlike {{//}}, this one is displayed in the chat. Usage: {{comment::this is a comment}}',
+        description: 'A comment CBS for commenting out code. unlike {{//}}, this one is displayed in the chat.\n\nUsage:: {{comment::this is a comment}}',
     })
 
     registerFunction({
         name: '//',
         callback: 'doc_only',
         alias: [],
-        description: 'A comment CBS for commenting out code. Usage: {{// this is a comment}}',
+        description: 'A comment CBS for commenting out code.\n\nUsage:: {{// this is a comment}}',
     })
 
     registerFunction({
         name: '?',
         callback: 'doc_only',
         alias: [],
-        description: 'Runs math operations on numbers. Supports +, -, *, /, %, ^ (exponentiation), % (modulo), < (less than), > (greater than), <= (less than or equal), >= (greater than or equal), == (equal), != (not equal), and brackets for grouping. Usage: {{? 1+2}} → 3, {{? (2*3)+4}} → 10',
+        description: 'Runs math operations on numbers. Supports +, -, *, /, %, ^ (exponentiation), % (modulo), < (less than), > (greater than), <= (less than or equal), >= (greater than or equal), == (equal), != (not equal), and brackets for grouping.\n\nUsage:: {{? 1+2}} → 3, {{? (2*3)+4}} → 10',
     })
 
     registerFunction({
@@ -2152,105 +2152,105 @@ export function registerCBS(arg:CBSRegisterArg) {
         name: 'asset',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays additional asset A as appropriate element type. Usage: {{asset::assetName}}',
+        description: 'Displays additional asset A as appropriate element type.\n\nUsage:: {{asset::assetName}}',
     });
 
     registerFunction({
         name: 'emotion',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays emotion image A as image element. Usage: {{emotion::emotionName}}',
+        description: 'Displays emotion image A as image element.\n\nUsage:: {{emotion::emotionName}}',
     });
 
     registerFunction({
         name: 'audio',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays audio asset A as audio element. Usage: {{audio::audioName}}',
+        description: 'Displays audio asset A as audio element.\n\nUsage:: {{audio::audioName}}',
     });
 
     registerFunction({
         name: 'bg',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays background image A as background image element. Usage: {{bg::backgroundName}}',
+        description: 'Displays background image A as background image element.\n\nUsage:: {{bg::backgroundName}}',
     });
 
     registerFunction({
         name: 'bgm',
         callback: 'doc_only',
         alias: [],
-        description: 'Inserts background music control element. Usage: {{bgm::musicName}}',
+        description: 'Inserts background music control element.\n\nUsage:: {{bgm::musicName}}',
     });
 
     registerFunction({
         name: 'video',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays video asset A as video element. Usage: {{video::videoName}}',
+        description: 'Displays video asset A as video element.\n\nUsage:: {{video::videoName}}',
     });
 
     registerFunction({
         name: 'video-img',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays video asset A as image-like element. Usage: {{video-img::videoName}}',
+        description: 'Displays video asset A as image-like element.\n\nUsage:: {{video-img::videoName}}',
     });
 
     registerFunction({
         name: 'image',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays image asset A as image element. Usage: {{image::imageName}}',
+        description: 'Displays image asset A as image element.\n\nUsage:: {{image::imageName}}',
     });
 
     registerFunction({
         name: 'img',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays A as unstyled image element. Usage: {{img::imageName}}',
+        description: 'Displays A as unstyled image element.\n\nUsage:: {{img::imageName}}',
     });
 
     registerFunction({
         name: 'path',
         callback: 'doc_only',
         alias: ['raw'],
-        description: 'Returns additional asset A\'s path data. Usage: {{path::assetName}}',
+        description: 'Returns additional asset A\'s path data.\n\nUsage:: {{path::assetName}}',
     });
 
     registerFunction({
         name: 'inlay',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays unstyled inlay asset A, which doesn\'t inserts at model request. Usage: {{inlay::inlayName}}',
+        description: 'Displays unstyled inlay asset A, which doesn\'t inserts at model request.\n\nUsage:: {{inlay::inlayName}}',
     });
 
     registerFunction({
         name: 'inlayed',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays styled inlay asset A, which doesn\'t inserts at model request. Usage: {{inlayed::inlayName}}',
+        description: 'Displays styled inlay asset A, which doesn\'t inserts at model request.\n\nUsage:: {{inlayed::inlayName}}',
     });
 
     registerFunction({
         name: 'inlayeddata',
         callback: 'doc_only',
         alias: [],
-        description: 'Displays styled inlay asset A, which inserts at model request. Usage: {{inlayeddata::inlayName}}',
+        description: 'Displays styled inlay asset A, which inserts at model request.\n\nUsage:: {{inlayeddata::inlayName}}',
     });
 
     registerFunction({
         name: 'source',
         callback: 'doc_only',
         alias: [],
-        description: 'Returns the source URL of user or character\'s profile. argument must be "user" or "char". Usage: {{source::user}} or {{source::char}}',
+        description: 'Returns the source URL of user or character\'s profile. argument must be "user" or "char".\n\nUsage:: {{source::user}} or {{source::char}}',
     });
 
     registerFunction({
         name:"#if",
         callback: 'doc_only',
         alias: [],
-        description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false. Usage: {{#if condition}}...{{/if}}',
+        description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false.\n\nUsage:: {{#if condition}}...{{/if}}.',
         deprecated: {
             message: 'Due to several issues like whitespace handling and parsing, #if is deprecated and replaced with #when. Use #when instead.',
         }
@@ -2260,28 +2260,28 @@ export function registerCBS(arg:CBSRegisterArg) {
         name:'#if_pure',
         callback: 'doc_only',
         alias: [],
-        description: 'Conditional statement for CBS, which has pure whitespace handling. 1 and "true" are truty, and otherwise false. Usage: {{#if_pure condition}}...{{/if_pure}}',
+        description: 'Conditional statement for CBS, which has pure whitespace handling. 1 and "true" are truty, and otherwise false.\n\nUsage:: {{#if_pure condition}}...{{/if_pure}}',
     })
 
     registerFunction({
         name:'#when',
         callback: 'doc_only',
         alias: [],
-        description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false. Usage: {{#if_pure condition}}...{{/if_pure}}',
+        description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false.\n\nUsage:: {{#when condition}}...{{/when}}.',
     })
 
     registerFunction({
         name:'#else',
         callback: 'doc_only',
         alias: [],
-        description: 'Else statement for CBS. Must be used inside {{:if}}. if {{:if}} is multiline, :else must be on line without additional string. Usage: {{:else}}',
+        description: 'Else statement for CBS. Must be used inside {{:if}}. if {{:if}} is multiline, :else must be on line without additional string.\n\nUsage:: {{:else}}',
     })
 
     registerFunction({
         name:'#pure',
         callback: 'doc_only',
         alias: [],
-        description: 'displays content without any CBS processing. Useful for displaying raw HTML or other content without parsing. Usage: {{#puredisplay}}...{{/puredisplay}}',
+        description: 'displays content without any CBS processing. Useful for displaying raw HTML or other content without parsing.\n\nUsage:: {{#puredisplay}}...{{/puredisplay}}',
         deprecated: {
             message: 'Due to reparsing issue, #pure is deprecated and replaced with #puredisplay. Use #puredisplay instead.',
             replacement: '#puredisplay',
@@ -2291,21 +2291,21 @@ export function registerCBS(arg:CBSRegisterArg) {
         name:'#puredisplay',
         callback: 'doc_only',
         alias: [],
-        description: 'displays content without any CBS processing. Useful for displaying raw HTML or other content without parsing. Usage: {{#puredisplay}}...{{/puredisplay}}',
+        description: 'displays content without any CBS processing. Useful for displaying raw HTML or other content without parsing.\n\nUsage:: {{#puredisplay}}...{{/puredisplay}}',
     })
 
     registerFunction({
         name:':each',
         callback: 'doc_only',
         alias: ['#each'],
-        description: 'Iterates over an array or object. Usage: {{#each array}}...{{/each}} or {{#each object as key}}... {{slot::key}}...{{/each}}',
+        description: 'Iterates over an array or object.\n\nUsage:: {{#each array}}...{{/each}} or {{#each object as key}}... {{slot::key}}...{{/each}}',
     })
 
     registerFunction({
         name: 'slot',
         callback: 'doc_only',
         alias: [],
-        description: 'Used in various CBS functions to access specific slots or properties. Usage: {{slot::propertyName}} or {{slot}}, depending on context.',
+        description: 'Used in various CBS functions to access specific slots or properties.\n\nUsage:: {{slot::propertyName}} or {{slot}}, depending on context.',
     })
 
 
