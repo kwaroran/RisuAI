@@ -12,6 +12,7 @@
     import { onDestroy } from 'svelte';
     import { get } from "svelte/store";
     import { ParseMarkdown } from "src/ts/parser.svelte";
+    import {defaultAutoSuggestPrompt} from "../../ts/storage/defaultPrompts.js";
 
     interface Props {
         send: () => any;
@@ -53,10 +54,11 @@
             let lastMessages:Message[] = messages.slice(Math.max(messages.length - 10, 0));
             if(lastMessages.length === 0)
                 return
+            const prompt = DBState.db.autoSuggestPrompt && DBState.db.autoSuggestPrompt.length > 0 ? DBState.db.autoSuggestPrompt : defaultAutoSuggestPrompt
             let promptbody:OpenAIChat[] = [
             {
                 role:'system',
-                content: replacePlaceholders(DBState.db.autoSuggestPrompt, currentChar.name)
+                content: replacePlaceholders(prompt, currentChar.name)
             }
             ,{
                 role: 'user', 
