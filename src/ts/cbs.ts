@@ -2309,10 +2309,10 @@ Usage:: {{#when condition}}...{{/when}} or {{#when::not::condition}}...{{/when}}
     })
 
     registerFunction({
-        name:'#else',
+        name:':else',
         callback: 'doc_only',
         alias: [],
-        description: 'Else statement for CBS. Must be used inside {{#when}}. if {{#when}} is multiline, :else must be on line without additional string. if {{#when}} is used with operator \'legacy\', it will not work.\n\nUsage:: {{#when condition}}...{{#else}}...{{/when}} or {{#when::not::condition}}...{{#else}}...{{/when}}',
+        description: 'Else statement for CBS. Must be used inside {{#when}}. if {{#when}} is multiline, :else must be on line without additional string. if {{#when}} is used with operator \'legacy\', it will not work.\n\nUsage:: {{#when condition}}...{{:else}}...{{/when}} or {{#when::not::condition}}...{{:else}}...{{/when}}',
     })
 
     registerFunction({

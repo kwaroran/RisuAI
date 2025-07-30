@@ -1365,7 +1365,7 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
             const lines =  p1.split("\n")
 
             if(lines.length === 1){
-                const elseIndex = p1.indexOf('{{#else}}')
+                const elseIndex = p1.indexOf('{{:else}}')
                 if(elseIndex !== -1){
                     if(type.type === 'newif'){
                         return p1.substring(0, elseIndex)
@@ -1385,7 +1385,7 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
             }
             
             const elseLine = lines.findIndex((v) => {
-                return v.trim() === '{{#else}}'
+                return v.trim() === '{{:else}}'
             })
 
             if(elseLine !== -1 && type.type === 'newif'){
