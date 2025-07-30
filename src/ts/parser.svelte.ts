@@ -1085,7 +1085,7 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
         }
         return {type:'ignore'}
     }
-    if(p1.startsWith(':if')){
+    if(p1.startsWith('#when')){
         const statement = p1.split(' ', 2)
         const state = statement[1]
         return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
@@ -1147,7 +1147,7 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
             const lines =  p1.split("\n")
 
             if(lines.length === 1){
-                const elseIndex = p1.indexOf('{{:else}}')
+                const elseIndex = p1.indexOf('{{#else}}')
                 if(elseIndex !== -1){
                     if(type.type === 'newif'){
                         return p1.substring(0, elseIndex)
@@ -1167,7 +1167,7 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
             }
             
             const elseLine = lines.findIndex((v) => {
-                return v.trim() === '{{:else}}'
+                return v.trim() === '{{#else}}'
             })
 
             if(elseLine !== -1 && type.type === 'newif'){

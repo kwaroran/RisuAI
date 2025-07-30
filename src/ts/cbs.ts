@@ -2264,14 +2264,14 @@ export function registerCBS(arg:CBSRegisterArg) {
     })
 
     registerFunction({
-        name:':if',
+        name:'#when',
         callback: 'doc_only',
         alias: [],
         description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false. Usage: {{#if_pure condition}}...{{/if_pure}}',
     })
 
     registerFunction({
-        name:':else',
+        name:'#else',
         callback: 'doc_only',
         alias: [],
         description: 'Else statement for CBS. Must be used inside {{:if}}. if {{:if}} is multiline, :else must be on line without additional string. Usage: {{:else}}',
@@ -2295,9 +2295,9 @@ export function registerCBS(arg:CBSRegisterArg) {
     })
 
     registerFunction({
-        name:'#each',
+        name:':each',
         callback: 'doc_only',
-        alias: [],
+        alias: ['#each'],
         description: 'Iterates over an array or object. Usage: {{#each array}}...{{/each}} or {{#each object as key}}... {{slot::key}}...{{/each}}',
     })
 
