@@ -707,6 +707,8 @@
                             DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = chat
                         }}
                         isLastMemory={false}
+                        currentPage={(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex ?? -1) + 2}
+                        totalPages={DBState.db.characters[$selectedCharID].alternateGreetings.length + 1}
 
                     />
                     {#if !DBState.db.characters[$selectedCharID].removedQuotes && DBState.db.characters[$selectedCharID].creatorNotes.length >= 2}
