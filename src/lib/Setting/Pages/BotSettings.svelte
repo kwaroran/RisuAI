@@ -242,6 +242,10 @@
     <div class="py-2 flex flex-col gap-2 mb-4">
         {#if modelInfo.flags.includes(LLMFlags.hasStreaming) || subModelInfo.flags.includes(LLMFlags.hasStreaming)}
             <Check bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`}/>
+            
+            {#if DBState.db.useStreaming && (modelInfo.flags.includes(LLMFlags.geminiThinking) || subModelInfo.flags.includes(LLMFlags.geminiThinking))}
+                <Check bind:check={DBState.db.streamGeminiThoughts} name={`Stream Gemini Thoughts`}/>
+            {/if}
         {/if}
 
         {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
@@ -312,7 +316,7 @@
 
     {#if modelInfo.parameters.includes('thinking_tokens')}
         <span class="text-textcolor">{language.thinkingTokens}</span>
-        <SliderInput min={0} max={64000} marginBottom step={200} bind:value={DBState.db.thinkingTokens} disableable/>
+        <SliderInput min={-1} max={64000} marginBottom step={200} bind:value={DBState.db.thinkingTokens} disableable/>
 
     {/if}
     <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>

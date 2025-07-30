@@ -952,7 +952,7 @@ export const languageEnglish = {
     download: "Download",
     edit: "Edit",
     enableGlobal: "Enable Globally",
-    chatModulesInfo: "You can enable or disable modules for this chat.",
+    chatModulesInfo: "You can enable or disable modules for this chat. You can also enable for this character by right clicking or long pressing the enable button.", 
     sideMenuRerollButton: "Side Menu Reroll Button",
     persistentStorage: "Persistent Storage",
     persistentStorageSuccess: "Storage is successfully persisted",

@@ -2346,5 +2346,12 @@ Usage:: {{#when condition}}...{{/when}} or {{#when::not::condition}}...{{/when}}
         description: 'Used in various CBS functions to access specific slots or properties.\n\nUsage:: {{slot::propertyName}} or {{slot}}, depending on context.',
     })
 
+    registerFunction({
+        name: 'position',
+        callback: 'doc_only',
+        alias: [],
+        description: 'Defines the position which can be used in various features such as @@position <positionName> decorator.\n\nUsage:: {{position::positionName}}',
+    })
+
 
 }

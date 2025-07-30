@@ -594,9 +594,24 @@ export interface simpleCharacterArgument{
 }
 
 function parseThoughtsAndTools(data:string){
-    return data.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (full, txt) => {
-        return `<details><summary>${language.cot}</summary>${txt}</details>`
-    }).replace(/<tool_call>(.+?)<\/tool_call>/gms, (full, txt:string) => {
+    let result = '', i = 0
+    while (i < data.length) {
+        if (data.substr(i, 10) === '<Thoughts>') {
+            let j = i + 10, depth = 1
+            while (j < data.length && depth > 0) {
+                if (data.substr(j, 10) === '<Thoughts>') depth++
+                if (data.substr(j, 11) === '</Thoughts>') depth--
+                j++
+            }
+            if (depth === 0) {
+                result += `<details><summary>${language.cot}</summary>${data.substring(i + 10, j - 1)}</details>`
+                i = j + 10
+                continue
+            }
+        }
+        result += data[i++]
+    }
+    return result.replace(/<tool_call>(.+?)<\/tool_call>/gms, (full, txt:string) => {
         return `<div class="x-risu-tool-call">🛠️ ${language.toolCalled.replace('{{tool}}',txt.split('\uf100')?.[1] ?? 'unknown')}</div>\n\n`
     })
 }

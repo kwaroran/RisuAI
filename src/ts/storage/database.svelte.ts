@@ -573,6 +573,7 @@ export function setDatabase(data:Database){
     data.authRefreshes ??= []
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
+    data.streamGeminiThoughts ??= false
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -1062,6 +1063,7 @@ export interface Database{
     requestLocation:string
     newImageHandlingBeta?: boolean
     showFirstMessagePages:boolean
+    streamGeminiThoughts:boolean
 }
 
 interface SeparateParameters{
@@ -1251,6 +1253,7 @@ export interface character{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 
@@ -1328,6 +1331,7 @@ export interface groupChat{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 export interface botPreset{
