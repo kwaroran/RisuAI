@@ -180,6 +180,12 @@ async function hubProxyFunc(req, res) {
         });
         
         for (const [key, value] of response.headers.entries()) {
+            // Skip encoding-related headers to prevent double decoding
+            if (key.toLowerCase() === 'content-encoding' || 
+                key.toLowerCase() === 'content-length' ||
+                key.toLowerCase() === 'transfer-encoding') {
+                continue;
+            }
             res.setHeader(key, value);
         }
         res.status(response.status);
