@@ -231,6 +231,12 @@ export async function loadLoreBookV3Prompt(){
         tokens:number
         priority:number
         source:string
+        inject:{
+            operation:'append'|'prepend'|'replace',
+            location:string,
+            param:string
+            lore:boolean
+        }|null
     }[] = []
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
@@ -248,6 +254,12 @@ export async function loadLoreBookV3Prompt(){
             }
             let activated = true
             let pos = ''
+            let inject:{
+                operation:'append'|'prepend'|'replace',
+                location:string,
+                param:string
+                lore:boolean
+            } = null
             let depth = 0
             let scanDepth = loreDepth
             let order = fullLore[i].insertorder
@@ -366,6 +378,50 @@ export async function loadLoreBookV3Prompt(){
                             return
                         }
                         return false
+                    }
+                    case 'inject_lore':{
+                        inject ??= {
+                            operation: 'append',
+                            location: '',
+                            param: '',
+                            lore: true
+                        }
+                        inject.location = arg.join(' ')
+                        inject.lore = true
+                        return
+                    }
+                    case 'inject_at':{
+                        inject??= {
+                            operation: 'append',
+                            location: '',
+                            param: '',
+                            lore: false
+                        }
+                        inject.location = arg.join(' ')
+                        inject.lore = false
+                        return
+                    }
+                    case 'inject_replace':{
+                        inject??= {
+                            operation: 'replace',
+                            location: '',
+                            param: '',
+                            lore: false
+                        }
+                        inject.operation = 'replace'
+                        inject.param = arg.join(' ')
+                        return
+                    }
+                    case 'inject_prepend':{
+                        inject??= {
+                            operation: 'prepend',
+                            location: '',
+                            param: '',
+                            lore: false
+                        }
+                        inject.operation = 'prepend'
+                        inject.param = arg.join(' ')
+                        return
                     }
                     case 'ignore_on_max_context':{
                         priority = -1000
@@ -505,7 +561,8 @@ export async function loadLoreBookV3Prompt(){
                     order: order,
                     tokens: await tokenize(content),
                     priority: priority,
-                    source: fullLore[i].comment || `lorebook ${i}`
+                    source: fullLore[i].comment || `lorebook ${i}`,
+                    inject: inject ?? null
                 })
                 activatedIndexes.push(i)
 
@@ -551,6 +608,39 @@ export async function loadLoreBookV3Prompt(){
     const activesResorted = activesFiltered.sort((a,b) => {
         return b.order - a.order
     })
+
+
+    const loreinjectionLores = activesResorted.filter((act) => {
+        return act?.inject?.lore
+    })
+
+    //I know this will make token count wrong, but performance is more important here
+
+    for(const lore of loreinjectionLores){
+        const foundLoreIndex = fullLore.findIndex((l) => {
+            return l.comment === lore.source || l.key === lore.source
+        })
+        if(foundLoreIndex !== -1){
+            const foundLore = fullLore[foundLoreIndex]
+            if(foundLore.mode === 'folder'){
+                continue
+            }
+            switch(lore.inject.operation){
+                case 'append':{
+                    foundLore.content += ' ' + lore.prompt
+                    break
+                }
+                case 'prepend':{
+                    foundLore.content = lore.prompt + ' ' + foundLore.content
+                    break
+                }
+                case 'replace':{
+                    foundLore.content = foundLore.content.replace(lore.inject.param, lore.prompt)
+                    break
+                }
+            }
+        }
+    }
 
     return {
         actives: activesResorted.reverse(),

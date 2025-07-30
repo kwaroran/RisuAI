@@ -470,7 +470,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     const lorepmt = await loadLoreBookV3Prompt()
     const normalActives = lorepmt.actives.filter(v => {
-        return v.pos === ''
+        return v.pos === '' && v.inject === null
     })
     console.log(normalActives)
 
@@ -534,6 +534,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     const postEverythingAssistantLorebooks = lorepmt.actives.filter(v => {
         return v.pos === 'depth' && v.depth === 0 && v.role === 'assistant'
     })
+
+    const injectionLorebooks = lorepmt.actives.filter(v => {
+        return v.inject && !v.inject.lore
+    })
+
+    const injectionLorePosSet = new Set<string>()
+    for(const lorebook of injectionLorebooks){
+        injectionLorePosSet.add(lorebook.pos)
+    }
+    
     for(const lorebook of postEverythingAssistantLorebooks){
         unformated.postEverything.push({
             role: lorebook.role,
@@ -549,7 +559,28 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     currentTokens += 50
     
     const positionRegex = /{{position::(.+?)}}/g
-    const positionParser = (text:string) => {
+    const positionParser = (text:string, loc:string) => {
+        if(injectionLorePosSet.has(loc)){
+            const matchings = injectionLorebooks.filter(v => {
+                return v.pos === loc
+            })
+            for(const lore of matchings){
+                switch(lore.inject.operation){
+                    case 'append':{
+                        text += ' ' + lore.prompt
+                        break
+                    }
+                    case 'prepend':{
+                        text = lore.prompt + ' ' + text
+                        break
+                    }
+                    case 'replace':{
+                        text = text.replace(lore.inject.param, lore.prompt)
+                        break
+                    }
+                }
+            }
+        }
         return text.replace(positionRegex, (match, p1) => {
             const MatchingLorebooks = lorepmt.actives.filter(v => {
                 return v.pos === ('pt_' + p1)
@@ -578,7 +609,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let pmt = safeStructuredClone(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat,card.type), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -589,7 +620,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let pmt = safeStructuredClone(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat,card.type), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                         }
                     }
 
@@ -600,7 +631,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let pmt = safeStructuredClone(unformated.authorNote)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat,card.type), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
                         }
                     }
 
@@ -637,11 +668,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         "bot": "assistant"
                     } as const
 
-                    let content = positionParser(card.text)
+                    const posType = card.type === 'plain' ? card.type2 : card.type
+                    let content = positionParser(card.text, posType)
 
                     if(card.type2 === 'globalNote'){
                         if(currentChar.replaceGlobalNote){
-                            content = positionParser(currentChar.replaceGlobalNote).replaceAll('{{original}}', content)
+                            content = positionParser(currentChar.replaceGlobalNote, posType).replaceAll('{{original}}', content)
                         }
                         
                         if(currentChar.prebuiltAssetCommand && !card.text.includes('{{//@customimageinstruction}}')){
@@ -1142,7 +1174,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let pmt = safeStructuredClone(unformated.personaPrompt)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat,card.type), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
 
                             if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
                                 pushPromptInfoBody(pmt[i].role, card.innerFormat, promptBodyformatedForChatStore)
@@ -1157,7 +1189,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let pmt = safeStructuredClone(unformated.description)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat,card.type), {chara: currentChar}).replace('{{slot}}', pmt[i].content)
                             
                             if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
                                 pushPromptInfoBody(pmt[i].role, card.innerFormat, promptBodyformatedForChatStore)
@@ -1172,7 +1204,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     let pmt = safeStructuredClone(unformated.authorNote)
                     if(card.innerFormat && pmt.length > 0){
                         for(let i=0;i<pmt.length;i++){
-                            pmt[i].content = risuChatParser(positionParser(card.innerFormat), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
+                            pmt[i].content = risuChatParser(positionParser(card.innerFormat,card.type), {chara: currentChar}).replace('{{slot}}', pmt[i].content || card.defaultText || '')
                             
                             if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
                                 pushPromptInfoBody(pmt[i].role, card.innerFormat, promptBodyformatedForChatStore)
@@ -1213,11 +1245,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         "bot": "assistant"
                     } as const
 
-                    let content = positionParser(card.text)
+                    const posType = card.type === 'plain' ? card.type2 : card.type
+                    let content = positionParser(card.text, posType)
 
                     if(card.type2 === 'globalNote'){
                         if(currentChar.replaceGlobalNote){
-                            content = positionParser(currentChar.replaceGlobalNote).replaceAll('{{original}}', content)
+                            content = positionParser(currentChar.replaceGlobalNote, posType).replaceAll('{{original}}', content)
                         }
                         if(currentChar.prebuiltAssetCommand && !card.text.includes('{{//@customimageinstruction}}')){
                             content += prebuiltAssetCommand
