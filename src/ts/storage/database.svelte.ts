@@ -1248,6 +1248,7 @@ export interface character{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 
@@ -1325,6 +1326,7 @@ export interface groupChat{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 export interface botPreset{
