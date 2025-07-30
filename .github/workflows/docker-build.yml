@@ -39,7 +39,7 @@ jobs:
         run: |
           GITHUB_REPOSITORY_OWNER_SMALLCASE=$(echo $GITHUB_REPOSITORY_OWNER | tr '[:upper:]' '[:lower:]')
           echo "GITHUB_REPOSITORY_OWNER_SMALLCASE=$GITHUB_REPOSITORY_OWNER_SMALLCASE" >> $GITHUB_ENV
-          docker build -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:$(git rev-parse --short "$GITHUB_SHA") -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:latest .
+          docker buildx build --platform linux/amd64,linux/arm64 --tag ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:$(git rev-parse --short "$GITHUB_SHA") --tag ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:latest .
 
       - name: Push Docker images
         shell: bash
