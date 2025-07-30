@@ -2252,7 +2252,7 @@ export function registerCBS(arg:CBSRegisterArg) {
         alias: [],
         description: 'Conditional statement for CBS. 1 and "true" are truty, and otherwise false. Usage: {{#if condition}}...{{/if}}',
         deprecated: {
-            message: 'Due to several issues like whitespace handling and parsing, #if is deprecated and replaced with :if. Use :if instead.',
+            message: 'Due to several issues like whitespace handling and parsing, #if is deprecated and replaced with #when. Use #when instead.',
         }
     })
 
