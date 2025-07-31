@@ -368,6 +368,10 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         arg.useStreaming = false
     }    let headers:{[key:string]:string} = {}
 
+    if(db.gptVisionQuality === 'high'){
+        body.generation_config.mediaResolution = "MEDIA_RESOLUTION_MEDIUM"
+    }
+
     const PROJECT_ID = db.google.projectId
     const REGION = db.vertexRegion
     console.log(arg.modelInfo);
