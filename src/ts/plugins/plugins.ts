@@ -11,90 +11,123 @@ import type { ScriptMode } from "../process/scripts";
 export const customProviderStore = writable([] as string[])
 
 
-interface ProviderPlugin{
-    name:string
-    displayName?:string
-    script:string
-    arguments:{[key:string]:'int'|'string'|string[]}
-    realArg:{[key:string]:number|string}
-    version?:1|2
+interface ProviderPlugin {
+    name: string
+    displayName?: string
+    script: string
+    arguments: { [key: string]: 'int' | 'string' | string[] }
+    realArg: { [key: string]: number | string }
+    version?: 1 | 2
+    customLink: ProviderPluginCustomLink[]
+}
+interface ProviderPluginCustomLink {
+    link: string
+    hoverText?: string
 }
 
 export type RisuPlugin = ProviderPlugin
 
-export async function importPlugin(){
+export async function importPlugin() {
     try {
         let db = getDatabase()
         const f = await selectSingleFile(['js'])
-        if(!f){
+        if (!f) {
             return
         }
         const jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
         const splitedJs = jsFile.split('\n')
         let name = ''
-        let displayName:string = undefined
-        let arg:{[key:string]:'int'|'string'|string[]} = {}
-        let realArg:{[key:string]:number|string} = {}
-        for(const line of splitedJs){
-            if(line.startsWith('//@risu-name')){
+        let displayName: string = undefined
+        let arg: { [key: string]: 'int' | 'string' | string[] } = {}
+        let realArg: { [key: string]: number | string } = {}
+        let customLink: ProviderPluginCustomLink[] = []
+        for (const line of splitedJs) {
+            if (line.startsWith('//@risu-name')) {
                 alertMd('V1 plugin is not supported anymore, please use V2 plugin instead. for more information, please check the documentation. `https://github.com/kwaroran/RisuAI/blob/main/plugins.md`')
                 return
             }
-            if(line.startsWith('//@risu-display-name')){
+            if (line.startsWith('//@risu-display-name')) {
                 alertMd('V1 plugin is not supported anymore, please use V2 plugin instead. for more information, please check the documentation. `https://github.com/kwaroran/RisuAI/blob/main/plugins.md`')
                 return
             }
-            if(line.startsWith('//@name')){
+            if (line.startsWith('//@name')) {
                 const provied = line.slice(7)
-                if(provied === ''){
+                if (provied === '') {
                     alertError('plugin name must be longer than 0, did you put it correctly?')
                     return
                 }
                 name = provied.trim()
             }
-            if(line.startsWith('//@display-name')){
+            if (line.startsWith('//@display-name')) {
                 const provied = line.slice('//@display-name'.length + 1)
-                if(provied === ''){
+                if (provied === '') {
                     alertError('plugin display name must be longer than 0, did you put it correctly?')
                     return
                 }
                 displayName = provied.trim()
             }
-            if(line.startsWith('//@risu-arg') || line.startsWith('//@arg')){
+
+            if (line.startsWith('//@link')) {
+                const link = line.split(" ")[1]
+                if (!link || link === '') {
+                    alertError('plugin link is empty, did you put it correctly?')
+                    return
+                }
+                if (!link.startsWith('https')) {
+                    alertError('plugin link must start with https, did you check it?')
+                    return
+                }
+                const hoverText = line.split(' ').slice(2).join(' ').trim()
+                if (hoverText === '') {
+                    // OK, no hover text. It's fine.
+                    customLink.push({
+                        link: link,
+                        hoverText: undefined
+                    });
+                }
+                else
+                    customLink.push({
+                        link: link,
+                        hoverText: hoverText || undefined
+                    });
+            }
+            if (line.startsWith('//@risu-arg') || line.startsWith('//@arg')) {
                 const provied = line.trim().split(' ')
-                if(provied.length < 3){
+                if (provied.length < 3) {
                     alertError('plugin argument is incorrect, did you put space in argument name?')
                     return
                 }
                 const provKey = provied[1]
 
-                if(provied[2] !== 'int' && provied[2] !== 'string'){
+                if (provied[2] !== 'int' && provied[2] !== 'string') {
                     alertError(`plugin argument type is "${provied[2]}", which is an unknown type.`)
                     return
                 }
-                if(provied[2] === 'int'){
+                if (provied[2] === 'int') {
                     arg[provKey] = 'int'
                     realArg[provKey] = 0
                 }
-                else if(provied[2] === 'string'){
+                else if (provied[2] === 'string') {
                     arg[provKey] = 'string'
                     realArg[provKey] = ''
                 }
             }
+
         }
 
-        if(name.length === 0){
+        if (name.length === 0) {
             alertError('plugin name not found, did you put it correctly?')
             return
         }
 
-        let pluginData:RisuPlugin = {
+        let pluginData: RisuPlugin = {
             name: name,
             script: jsFile,
             realArg: realArg,
             arguments: arg,
             displayName: displayName,
-            version: 2
+            version: 2,
+            customLink: customLink
         }
 
         db.plugins ??= []
@@ -112,9 +145,9 @@ let pluginTranslator = false
 
 export async function loadPlugins() {
     let db = getDatabase()
-        
 
-    const pluginV2 = safeStructuredClone(db.plugins).filter((a:RisuPlugin) => a.version === 2)
+
+    const pluginV2 = safeStructuredClone(db.plugins).filter((a: RisuPlugin) => a.version === 2)
 
     await loadV2Plugin(pluginV2)
 }
@@ -134,29 +167,29 @@ type PluginV2ProviderArgument = {
 
 type PluginV2ProviderOptions = {
     tokenizer?: string
-    tokenizerFunc?: (content:string) => number[]|Promise<number[]>
+    tokenizerFunc?: (content: string) => number[] | Promise<number[]>
 }
 
-type EditFunction = (content:string) => string|null|undefined|Promise<string|null|undefined>
-type ReplacerFunction = (content:OpenAIChat[], type:string) => OpenAIChat[]|Promise<OpenAIChat[]>
+type EditFunction = (content: string) => string | null | undefined | Promise<string | null | undefined>
+type ReplacerFunction = (content: OpenAIChat[], type: string) => OpenAIChat[] | Promise<OpenAIChat[]>
 
 export const pluginV2 = {
-    providers: new Map<string, (arg:PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{success:boolean,content:string|ReadableStream<string>}> >(),
+    providers: new Map<string, (arg: PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{ success: boolean, content: string | ReadableStream<string> }>>(),
     providerOptions: new Map<string, PluginV2ProviderOptions>(),
     editdisplay: new Set<EditFunction>(),
     editoutput: new Set<EditFunction>(),
     editprocess: new Set<EditFunction>(),
     editinput: new Set<EditFunction>(),
     replacerbeforeRequest: new Set<ReplacerFunction>(),
-    replacerafterRequest: new Set<(content:string, type:string) => string|Promise<string>>(),
-    unload: new Set<() => void|Promise<void>>(),
+    replacerafterRequest: new Set<(content: string, type: string) => string | Promise<string>>(),
+    unload: new Set<() => void | Promise<void>>(),
     loaded: false
 }
 
-export async function loadV2Plugin(plugins:RisuPlugin[]){
+export async function loadV2Plugin(plugins: RisuPlugin[]) {
 
-    if(pluginV2.loaded){
-        for(const unload of pluginV2.unload){
+    if (pluginV2.loaded) {
+        for (const unload of pluginV2.unload) {
             await unload()
         }
 
@@ -172,11 +205,11 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
     globalThis.__pluginApis__ = {
         risuFetch: globalFetch,
         nativeFetch: fetchNative,
-        getArg: (arg:string) => {
+        getArg: (arg: string) => {
             const db = getDatabase()
             const [name, realArg] = arg.split('::')
-            for(const plug of db.plugins){
-                if(plug.name === name){
+            for (const plug of db.plugins) {
+                if (plug.name === name) {
                     return plug.realArg[realArg]
                 }
             }
@@ -184,66 +217,66 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
         getChar: () => {
             return getCurrentCharacter()
         },
-        setChar: (char:any) => {
+        setChar: (char: any) => {
             const db = getDatabase()
             const charid = get(selectedCharID)
             db.characters[charid] = char
             setDatabaseLite(db)
         },
-        addProvider: (name:string, func:(arg:PluginV2ProviderArgument, abortSignal?:AbortSignal) => Promise<{success:boolean,content:string}>, options?:PluginV2ProviderOptions) => {
+        addProvider: (name: string, func: (arg: PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{ success: boolean, content: string }>, options?: PluginV2ProviderOptions) => {
             let provs = get(customProviderStore)
             provs.push(name)
             pluginV2.providers.set(name, func)
             pluginV2.providerOptions.set(name, options ?? {})
             customProviderStore.set(provs)
         },
-        addRisuScriptHandler: (name:ScriptMode, func:EditFunction) => {
-            if(pluginV2['edit' + name]){
+        addRisuScriptHandler: (name: ScriptMode, func: EditFunction) => {
+            if (pluginV2['edit' + name]) {
                 pluginV2['edit' + name].add(func)
             }
-            else{
+            else {
                 throw (`script handler named ${name} not found`)
             }
         },
-        removeRisuScriptHandler: (name:ScriptMode, func:EditFunction) => {
-            if(pluginV2['edit' + name]){
+        removeRisuScriptHandler: (name: ScriptMode, func: EditFunction) => {
+            if (pluginV2['edit' + name]) {
                 pluginV2['edit' + name].delete(func)
             }
-            else{
+            else {
                 throw (`script handler named ${name} not found`)
             }
         },
-        addRisuReplacer: (name:string, func:ReplacerFunction) => {
-            if(pluginV2['replacer' + name]){
+        addRisuReplacer: (name: string, func: ReplacerFunction) => {
+            if (pluginV2['replacer' + name]) {
                 pluginV2['replacer' + name].add(func)
             }
-            else{
+            else {
                 throw (`replacer handler named ${name} not found`)
             }
         },
-        removeRisuReplacer: (name:string, func:ReplacerFunction) => {
-            if(pluginV2['replacer' + name]){
+        removeRisuReplacer: (name: string, func: ReplacerFunction) => {
+            if (pluginV2['replacer' + name]) {
                 pluginV2['replacer' + name].delete(func)
             }
-            else{
+            else {
                 throw (`replacer handler named ${name} not found`)
             }
         },
-        onUnload: (func:() => void|Promise<void>) => {
+        onUnload: (func: () => void | Promise<void>) => {
             pluginV2.unload.add(func)
         },
         setArg: (arg: string, value: string | number) => {
             const db = getDatabase();
             const [name, realArg] = arg.split("::");
             for (const plug of db.plugins) {
-              if (plug.name === name) {
-                plug.realArg[realArg] = value;
-              }
+                if (plug.name === name) {
+                    plug.realArg[realArg] = value;
+                }
             }
         }
     }
 
-    for(const plugin of plugins){
+    for (const plugin of plugins) {
         const data = plugin.script
 
         const realScript = `(async () => {
@@ -271,26 +304,26 @@ export async function loadV2Plugin(plugins:RisuPlugin[]){
         }
 
         console.log('Loaded V2 Plugin', plugin.name)
-        
+
     }
 }
 
-export async function translatorPlugin(text:string, from:string, to:string) {
+export async function translatorPlugin(text: string, from: string, to: string) {
     return false
 }
 
-export async function pluginProcess(arg:{
+export async function pluginProcess(arg: {
     prompt_chat: OpenAIChat,
     temperature: number,
     max_tokens: number,
     presence_penalty: number
     frequency_penalty: number
-    bias: {[key:string]:string}
-}|{}){
+    bias: { [key: string]: string }
+} | {}) {
     return {
         success: false,
         content: "Plugin V1 is not supported anymore, please use V2 plugin instead."
-    }   
+    }
 }
 
 

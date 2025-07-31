@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "164.1.2"
+export let appVer = "165.1.0"
 export let webAppSubVer = ''
 
 
@@ -570,6 +570,7 @@ export function setDatabase(data:Database){
     data.authRefreshes ??= []
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
+    data.streamGeminiThoughts ??= false
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -1056,6 +1057,10 @@ export interface Database{
     claude1HourCaching:boolean
     rememberToolUsage:boolean
     simplifiedToolUse:boolean
+    requestLocation:string
+    newImageHandlingBeta?: boolean
+
+    streamGeminiThoughts:boolean
 }
 
 interface SeparateParameters{
@@ -1245,6 +1250,7 @@ export interface character{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 
@@ -1322,6 +1328,7 @@ export interface groupChat{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 export interface botPreset{

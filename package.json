@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 vite build --sourcemap",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "tauri": "tauri",
@@ -70,6 +70,7 @@
     "ml-distance": "^4.0.1",
     "mnemonist": "^0.40.3",
     "mobile-drag-drop": "3.0.0-rc.0",
+    "monaco-editor": "^0.52.2",
     "msgpackr": "1.10.1",
     "node-html-parser": "^6.1.12",
     "ollama": "^0.5.0",

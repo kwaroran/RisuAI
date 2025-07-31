@@ -6,8 +6,8 @@ const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const fs = require('fs/promises')
 const crypto = require('crypto')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.raw({ type: 'application/octet-stream', limit: '100mb' }));
 const {pipeline} = require('stream/promises')
 const https = require('https');
 const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
@@ -180,6 +180,12 @@ async function hubProxyFunc(req, res) {
         });
         
         for (const [key, value] of response.headers.entries()) {
+            // Skip encoding-related headers to prevent double decoding
+            if (key.toLowerCase() === 'content-encoding' || 
+                key.toLowerCase() === 'content-length' ||
+                key.toLowerCase() === 'transfer-encoding') {
+                continue;
+            }
             res.setHeader(key, value);
         }
         res.status(response.status);

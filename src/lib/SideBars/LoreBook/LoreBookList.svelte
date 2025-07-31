@@ -322,7 +322,7 @@
                     stb.destroy()
                 } catch (error) {}
             }
-        }
+    }
         if (bookRef) {
             openedRefs.add(bookRef)
             openedRefs = new Set(openedRefs) // Trigger reactivity
