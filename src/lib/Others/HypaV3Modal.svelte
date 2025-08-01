@@ -42,6 +42,8 @@
   let editingCategory = $state<{id: string, name: string} | null>(null);
   let tagManagerOpen = $state(false);
   let currentTagSummaryIndex = $state<number>(-1);
+  let isManualImportantToggle = $state(false);
+  let bulkSelectInput = $state<string>("");
   let editingTag = $state<string>("");
   let editingTagIndex = $state<number>(-1);
   let collapsedSummaries = $state<Set<number>>(new Set());
@@ -89,6 +91,83 @@
       searchState = null;
     });
   });
+
+  // 모달 열림 시 초기 필터 설정 (summaries 변경에 반응하지 않음)
+  $effect(() => {
+    if ($hypaV3ModalOpen) {
+      // untrack을 사용해서 summaries 변경이 이 effect를 다시 실행하지 않도록 함
+      const currentImportantCount = untrack(() => hypaV3DataState.summaries.filter(s => s.isImportant).length);
+
+      if (currentImportantCount > 0) {
+        // 1. 최초 로딩 시 important 체크된 요약본이 있는 경우: 카테고리 all, important 필터 on
+        selectedCategoryFilter = "all";
+        showImportantOnly = true;
+      } else {
+        // 4. 최초 로딩 시 important 요약본이 없는 경우: 카테고리 미분류, important 필터 off
+        selectedCategoryFilter = "";
+        showImportantOnly = false;
+      }
+
+      isManualImportantToggle = false;
+    }
+  });
+
+  // Important 토글 액션 처리 함수
+  function handleImportantToggle(summary: any, summaryIndex: number) {
+    const wasImportant = summary.isImportant;
+
+    // Important 토글 실행
+    summary.isImportant = !summary.isImportant;
+
+    // 수동 조작이 아닌 경우에만 로직 실행
+    if (!isManualImportantToggle) {
+      // Important를 해제하는 경우에만 체크
+      if (wasImportant && !summary.isImportant) {
+        // 해제 후 전체 Important 개수 확인
+        const remainingImportantCount = hypaV3DataState.summaries.filter(s => s.isImportant).length;
+
+        // 2. 요약본 important 체크를 전부 해제하는 경우: important 필터 off, 카테고리 ''(미분류)
+        if (remainingImportantCount === 0 && showImportantOnly) {
+          showImportantOnly = false;
+          selectedCategoryFilter = "";
+        }
+      }
+
+      // 3. 요약본을 important 체크하는 경우: important 필터, 카테고리 변화 없음
+      // (체크하는 경우에는 아무것도 하지 않음)
+    }
+  }
+
+  async function alertConfirmTwice(
+    firstMessage: string,
+    secondMessage: string
+  ): Promise<boolean> {
+    return (
+      (await alertConfirm(firstMessage)) && (await alertConfirm(secondMessage))
+    );
+  }
+
+  async function toggleSearch() {
+    if (searchUIState === null) {
+      searchUIState = {
+        ref: null,
+        query: "",
+        results: [],
+        currentResultIndex: -1,
+        requestedSearchFromIndex: -1,
+        isNavigating: false,
+      };
+
+      // Focus on search element after it's rendered
+      await tick();
+
+      if (searchUIState.ref) {
+        searchUIState.ref.focus();
+      }
+    } else {
+      searchUIState = null;
+    }
+  }
 
   function onSearch(e: KeyboardEvent) {
     if (!searchState) return;
@@ -433,6 +512,82 @@
 
   function clearSelection() {
     selectedSummaries = new Set();
+  }
+
+  function bulkToggleImportant() {
+    if (selectedSummaries.size === 0) return;
+
+    // 선택된 요약본들 중 important가 아닌 것이 하나라도 있으면 모두 important로 설정
+    // 모두 important면 모두 해제
+    const selectedIndices = Array.from(selectedSummaries);
+    const hasNonImportant = selectedIndices.some(index => !hypaV3DataState.summaries[index].isImportant);
+
+    selectedIndices.forEach(index => {
+      const summary = hypaV3DataState.summaries[index];
+
+      if (hasNonImportant) {
+        // 하나라도 important가 아닌 것이 있으면 모두 important로 설정
+        summary.isImportant = true;
+      } else {
+        // 모두 important면 모두 해제
+        summary.isImportant = false;
+      }
+    });
+
+    // 마지막 important가 해제된 경우 자동 필터 해제 로직
+    if (!hasNonImportant && !isManualImportantToggle) {
+      const remainingImportantCount = hypaV3DataState.summaries.filter(s => s.isImportant).length;
+      if (remainingImportantCount === 0 && showImportantOnly) {
+        showImportantOnly = false;
+        selectedCategoryFilter = "";
+      }
+    }
+
+    // Important 토글 완료 후 선택 해제
+    clearSelection();
+  }
+
+  function parseAndSelectSummaries() {
+    if (!bulkSelectInput.trim()) return;
+
+    const newSelection = new Set<number>();
+    const parts = bulkSelectInput.split(',').map(s => s.trim()).filter(s => s);
+
+    for (const part of parts) {
+      if (part.includes('-')) {
+        // 범위 처리 (예: "8-11")
+        const [startStr, endStr] = part.split('-').map(s => s.trim());
+        const start = parseInt(startStr);
+        const end = parseInt(endStr);
+
+        if (!isNaN(start) && !isNaN(end) && start <= end) {
+          for (let i = start; i <= end; i++) {
+            const index = i - 1; // 1-based를 0-based로 변환
+            if (index >= 0 && index < hypaV3DataState.summaries.length) {
+              // 현재 필터에서 보이는 요약본인지 확인
+              if (shouldShowSummary(hypaV3DataState.summaries[index], index)) {
+                newSelection.add(index);
+              }
+            }
+          }
+        }
+      } else {
+        // 단일 숫자 처리 (예: "8")
+        const num = parseInt(part);
+        if (!isNaN(num)) {
+          const index = num - 1; // 1-based를 0-based로 변환
+          if (index >= 0 && index < hypaV3DataState.summaries.length) {
+            // 현재 필터에서 보이는 요약본인지 확인
+            if (shouldShowSummary(hypaV3DataState.summaries[index], index)) {
+              newSelection.add(index);
+            }
+          }
+        }
+      }
+    }
+
+    selectedSummaries = newSelection;
+    bulkSelectInput = ""; // 입력 필드 초기화
   }
 
   function applyCategoryToSelected() {
@@ -889,7 +1044,15 @@
                 searchUIState.currentResultIndex = -1;
               }
 
+              const wasImportantOnly = showImportantOnly;
               showImportantOnly = !showImportantOnly;
+
+              // 수동으로 Important 필터를 켜는 경우 카테고리를 "all"로 변경
+              if (!wasImportantOnly && showImportantOnly) {
+                selectedCategoryFilter = "all";
+              }
+
+              isManualImportantToggle = true;
             }}
           >
             <StarIcon class="w-6 h-6" />
@@ -1155,7 +1318,7 @@
                         : 'text-zinc-400 hover:text-zinc-200'}"
                       tabindex="-1"
                       onclick={() => {
-                        summary.isImportant = !summary.isImportant;
+                        handleImportantToggle(summary, i);
                       }}
                     >
                       <StarIcon class="w-4 h-4" />
@@ -1617,20 +1780,42 @@
                 적용
               </button>
 
-              <!-- Select All Button -->
+              <!-- Bulk Toggle Important Button -->
               <button
-                class="px-3 py-2 rounded border border-zinc-600 hover:bg-zinc-700 text-zinc-300 text-sm transition-colors"
-                onclick={selectAllSummaries}
+                class="px-3 py-2 rounded border border-yellow-600 hover:bg-yellow-700 text-yellow-300 text-sm transition-colors flex items-center gap-2"
+                onclick={bulkToggleImportant}
+                disabled={selectedSummaries.size === 0}
               >
-                전체선택
+                <StarIcon class="w-4 h-4" />
               </button>
+
+              <!-- Bulk Select by Numbers -->
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  bind:value={bulkSelectInput}
+                  placeholder="1,3,5-8"
+                  class="w-32 px-3 py-2 text-sm bg-zinc-800 border border-zinc-600 rounded text-zinc-300 placeholder-zinc-500 focus:border-blue-500 outline-none"
+                  onkeydown={(e) => {
+                    if (e.key === 'Enter') {
+                      parseAndSelectSummaries();
+                    }
+                  }}
+                />
+                <button
+                  class="px-3 py-2 rounded border border-blue-600 hover:bg-blue-700 text-blue-300 text-sm transition-colors"
+                  onclick={parseAndSelectSummaries}
+                >
+                  선택
+                </button>
+              </div>
 
               <!-- Clear Selection Button -->
               <button
-                class="px-3 py-2 rounded border border-zinc-600 hover:bg-zinc-700 text-zinc-300 text-sm transition-colors"
+                class="px-3 py-2 rounded text-red-300 border border-red-600 hover:bg-zinc-700 text-zinc-300 text-sm transition-colors"
                 onclick={clearSelection}
               >
-                선택해제
+                해제
               </button>
             </div>
           </div>

@@ -1714,6 +1714,7 @@ export async function summarize(oaiMessages: OpenAIChat[], isResummarize: boolea
         bias: {},
         useStreaming: false,
         noMultiGen: true,
+        skipTransformApi: true,
       },
       "memory"
     );
