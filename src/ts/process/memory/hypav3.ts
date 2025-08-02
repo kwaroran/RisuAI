@@ -67,22 +67,6 @@ interface HypaV3Data {
 
 export interface SerializableHypaV3Data extends Omit<HypaV3Data, "summaries"> {
   summaries: SerializableSummary[];
-export interface SerializableHypaV3Data {
-  summaries: {
-    text: string;
-    chatMemos: string[];
-    isImportant: boolean;
-    categoryId?: string;
-    tags?: string[];
-  }[];
-  categories?: { id: string; name: string }[];
-  lastSelectedSummaries?: number[]; // legacy
-  metrics?: {
-    lastImportantSummaries: number[];
-    lastRecentSummaries: number[];
-    lastSimilarSummaries: number[];
-    lastRandomSummaries: number[];
-  };
 }
 
 interface Summary {
@@ -1714,7 +1698,6 @@ export async function summarize(oaiMessages: OpenAIChat[], isResummarize: boolea
         bias: {},
         useStreaming: false,
         noMultiGen: true,
-        skipTransformApi: true,
       },
       "memory"
     );
