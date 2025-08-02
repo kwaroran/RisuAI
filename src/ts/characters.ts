@@ -221,7 +221,7 @@ export async function exportChat(page:number){
         if(mode === '0'){
             let folders = []
             if(chat.folderId) {
-                folders = db.characters[selectedID].chatFolders.filter(f => f.id === chat.folderId)
+                folders = db.characters[selectedID].chatFolders?.filter(f => f.id === chat.folderId)
             }
             const stringl = Buffer.from(JSON.stringify({
                 type: 'risuChat',
@@ -427,7 +427,7 @@ export async function importChat(){
                 let db = getDatabase()
                 let folderIdMap = {}
                 folders.forEach(folder => {
-                    if(db.characters[selectedID].chatFolders.some(f => f.id === folder.id)){
+                    if(db.characters[selectedID].chatFolders?.some(f => f.id === folder.id)){
                         const newId = uuidv4()
                         folderIdMap[folder.id] = newId
                         folder.id = newId
@@ -435,7 +435,7 @@ export async function importChat(){
                         folderIdMap[folder.id] = folder.id
                     }
                 })
-                db.characters[selectedID].chatFolders.push(...folders)
+                db.characters[selectedID].chatFolders?.push(...folders)
                 chats.forEach(chat => {
                     if(chat.folderId && folderIdMap[chat.folderId]){
                         chat.folderId = folderIdMap[chat.folderId]
