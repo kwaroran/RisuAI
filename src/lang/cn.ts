@@ -772,6 +772,7 @@ export const languageChinese = {
     "seperateParameters": "分离参数",
     "seperateParametersEnabled": "激活分离参数",
     "summarizationPrompt": "摘要提示词",
+    "reSummarizationPrompt": "重新摘要提示词",
     "translatorPrompt": "翻译提示词",
     "translateBeforeHTMLFormatting": "於 HTML 格式化前翻译",
     "retranslate": "重新翻译",

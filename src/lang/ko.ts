@@ -1078,6 +1078,7 @@ export const languageKorean = {
     "seperateParameters": "파라미터 분리",
     "seperateParametersEnabled": "파라미터 분리 활성화",
     "summarizationPrompt": "요약 프롬프트",
+    "reSummarizationPrompt": "재요약 프롬프트",
     "translatorPrompt": "번역 프롬프트",
     "translateBeforeHTMLFormatting": "HTML 포맷 전 번역",
     "retranslate": "다시 번역",

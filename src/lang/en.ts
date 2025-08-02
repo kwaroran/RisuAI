@@ -1127,6 +1127,7 @@ export const languageEnglish = {
     seperateParameters: "Separate Parameters",
     seperateParametersEnabled: "Enable Separate Parameters",
     summarizationPrompt: "Summarization Prompt",
+    reSummarizationPrompt: "Re-Summarizaion Prompt",
     translatorPrompt: "Translation Prompt",
     translateBeforeHTMLFormatting: "Translate Before HTML Formatting",
     retranslate: "Retranslate",

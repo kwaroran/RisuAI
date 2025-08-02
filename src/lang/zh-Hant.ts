@@ -778,6 +778,7 @@ export const languageChineseTraditional = {
     "seperateParameters": "分離參數",
     "seperateParametersEnabled": "啟用分離參數",
     "summarizationPrompt": "摘要提示詞",
+    "reSummarizationPrompt": "重新摘要提示詞",
     "translatorPrompt": "翻譯提示詞",
     "translateBeforeHTMLFormatting": "於 HTML 格式化前翻譯",
     "retranslate": "重新翻譯",
