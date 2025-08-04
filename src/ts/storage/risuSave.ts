@@ -60,11 +60,20 @@ export async function encodeRisuSaveCompressionStream(data:any) {
     return result
 }
 
+export type toSaveType = {
+    character: string[];
+    chat: [string, string][];
+    botPreset: boolean;
+    modules: boolean;
+}
+
 enum RisuSaveType {
     CONFIG = 0,
     ROOT = 1,
     CHARACTERWITHCHAT = 2,
     CHAT = 3,
+    BOTPRESET = 4,
+    MODULES = 5
 }
 
 export class RisuSaveEncoder {
@@ -80,7 +89,7 @@ export class RisuSaveEncoder {
         let obj:Record<any,any> = {}
         let keys = Object.keys(data)
         for(const key of keys){
-            if(key !== 'characters'){
+            if(key !== 'characters' && key !== 'botPresets' && key !== 'modules'){
                 obj[key] = data[key]
             }
         }
@@ -89,6 +98,18 @@ export class RisuSaveEncoder {
             data: JSON.stringify(obj),
             type: RisuSaveType.ROOT,
             name: 'root'
+        });
+        this.blocks['preset'] = await this.encodeBlock({
+            compression,
+            data: JSON.stringify(obj),
+            type: RisuSaveType.BOTPRESET,
+            name: 'preset'
+        });
+        this.blocks['modules'] = await this.encodeBlock({
+            compression,
+            data: JSON.stringify(data.modules),
+            type: RisuSaveType.MODULES,
+            name: 'modules'
         });
         for( const character of data.characters) {
             this.blocks[character.chaId] = await this.encodeBlock({
@@ -100,29 +121,20 @@ export class RisuSaveEncoder {
         }
     }
 
-    async set(data:Database, toSave:{
-        character: string[];
-        chat: [string, string][];
-        botPreset: string[];
-    }){
-        const perf = performance.now();
+    async set(data:Database, toSave:toSaveType){
         let obj:Record<any,any> = {}
         let keys = Object.keys(data)
         for(const key of keys){
-            if(key !== 'characters'){
+            if(key !== 'characters' && key !== 'botPresets'){
                 obj[key] = data[key]
             }
         }
-        const findPerf = performance.now() - perf;
-        console.log(`Data find time: ${findPerf}ms`);
         this.blocks['root'] = await this.encodeBlock({
             compression: this.compression,
             data: JSON.stringify(obj),
             type: RisuSaveType.ROOT,
             name: 'root'
         });
-        const rootPerf = performance.now() - perf;
-        console.log(`Root data encoding time: ${rootPerf}ms`);
 
         for(const character of data.characters) {
             const index = toSave.character.indexOf(character.chaId);
@@ -144,9 +156,6 @@ export class RisuSaveEncoder {
                 });
             }
         }
-        const chaPerf = performance.now() - perf;
-        console.log(`Character data encoding time: ${chaPerf}ms`);
-
         if(toSave.character.length > 0){
             console.log(`Deleting character data: ${toSave.character.join(', ')}`);
             //probably deleted characters
@@ -154,8 +163,23 @@ export class RisuSaveEncoder {
                 delete this.blocks[chaId];
             }
         }
-        const deletedPerf = performance.now() - perf;
-        console.log(`Deleted character data encoding time: ${deletedPerf}ms`);
+
+        if(toSave.botPreset){
+            this.blocks['preset'] = await this.encodeBlock({
+                compression: this.compression,
+                data: JSON.stringify(data.botPresets),
+                type: RisuSaveType.BOTPRESET,
+                name: 'preset'
+            });
+        }
+        if(toSave.modules){
+            this.blocks['modules'] = await this.encodeBlock({
+                compression: this.compression,
+                data: JSON.stringify(data.modules),
+                type: RisuSaveType.MODULES,
+                name: 'modules'
+            });
+        }
     }
 
     encode(arg:{
@@ -281,6 +305,14 @@ export class RisuSaveDecoder {
                     const character = JSON.parse(this.blocks[key].content);
                     db.characters.push(character);
                     break
+                }
+                case RisuSaveType.BOTPRESET:{
+                    db.botPresets = JSON.parse(this.blocks[key].content);
+                    break;
+                }
+                case RisuSaveType.MODULES:{
+                    db.modules = JSON.parse(this.blocks[key].content);
+                    break;
                 }
                 default:{
                     console.warn(`Not Implemented RisuSaveType: ${this.blocks[key].type} for ${this.blocks[key].name}`);

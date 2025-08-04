@@ -24,7 +24,7 @@ import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSaveCompressionStream, encodeRisuSaveLegacy, RisuSaveEncoder } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveCompressionStream, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
@@ -348,14 +348,11 @@ export async function saveDb(){
         }
     }
 
-    const changeTracker:{
-        character: string[]
-        chat: [string,string][]
-        botPreset: string[]
-    } = {
+    const changeTracker:toSaveType = {
         character: [],
         chat: [],
-        botPreset: [],
+        botPreset: false,
+        modules: false
     }
 
     let encoder = new RisuSaveEncoder()
@@ -374,9 +371,29 @@ export async function saveDb(){
             selIdState = v
         })
 
+        function saveTimeoutExecute() {
+            if (saveTimeout) {
+                clearTimeout(saveTimeout);
+            }
+            saveTimeout = setTimeout(() => {
+                changed = true;
+            }, debounceTime);
+        }
+
+        $effect(() => {
+            DBState.db.botPresetsId
+            DBState.db.botPresets.length
+            changeTracker.botPreset = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
+            $state.snapshot(DBState.db.modules)
+            changeTracker.modules = true
+            saveTimeoutExecute()
+        })
         $effect(() => {
             for(const key in DBState.db){
-                if(key !== 'characters' && key !== 'botPresets'){
+                if(key !== 'characters' && key !== 'botPresets' && key !== 'modules'){
                     $state.snapshot(DBState.db[key])
                 }
             }
@@ -397,12 +414,7 @@ export async function saveDb(){
                     changeTracker.chat.unshift([DBState.db.characters[selIdState]?.chaId, DBState.db.characters[selIdState]?.chats[DBState.db.characters[selIdState]?.chatPage].id])
                 }
             }
-            if (saveTimeout) {
-                clearTimeout(saveTimeout);
-            }
-            saveTimeout = setTimeout(() => {
-                changed = true;
-            }, debounceTime);
+            saveTimeoutExecute()
         })
     })
 
@@ -430,7 +442,8 @@ export async function saveDb(){
             let toSave = safeStructuredClone(changeTracker)
             changeTracker.character = changeTracker.character.length === 0 ? [] : [changeTracker.character[0]]
             changeTracker.chat = changeTracker.chat.length === 0 ? [] : [changeTracker.chat[0]]
-            changeTracker.botPreset = changeTracker.botPreset.length === 0 ? [] : [changeTracker.botPreset[0]]
+            changeTracker.botPreset = false
+            changeTracker.modules = false
             if(gotChannel){
                 //Data is saved in other tab
                 await sleep(1000)
