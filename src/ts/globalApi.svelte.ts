@@ -350,6 +350,10 @@ export async function saveDb(){
 
         let selIdState = $state(0)
         let oldSaveHash = ''
+        
+        // Debounce time for saving the database
+        const debounceTime = 1000; // 1 second
+        let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
         selectedCharID.subscribe((v) => {
             selIdState = v
@@ -362,8 +366,12 @@ export async function saveDb(){
                     $state.snapshot(DBState.db[key])
                 }
             }
-
-            changed = true
+            if (saveTimeout) {
+                clearTimeout(saveTimeout);
+            }
+            saveTimeout = setTimeout(() => {
+                changed = true;
+            }, debounceTime);
         })
     })
 
