@@ -1,6 +1,7 @@
 import { Packr, Unpackr, decode } from "msgpackr";
 import * as fflate from "fflate";
 import { AppendableBuffer, isTauri } from "../globalApi.svelte";
+import type { Database } from "./database.svelte";
 
 const packr = new Packr({
     useRecords:false
@@ -14,6 +15,7 @@ const unpackr = new Unpackr({
 const magicHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 7]); 
 const magicCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 8]);
 const magicStreamCompressedHeader = new Uint8Array([0, 82, 73, 83, 85, 83, 65, 86, 69, 0, 9]);
+const magicRisuSaveHeader = new TextEncoder().encode("RISUSAVE\0");
 
 
 async function checkCompressionStreams(){
@@ -44,7 +46,7 @@ export function encodeRisuSaveLegacy(data:any, compression:'noCompression'|'comp
     }
 }
 
-export async function encodeRisuSave(data:any) {
+export async function encodeRisuSaveCompressionStream(data:any) {
     await checkCompressionStreams()
     let encoded:Uint8Array = packr.encode(data)
     const cs = new CompressionStream('gzip');
@@ -58,9 +60,242 @@ export async function encodeRisuSave(data:any) {
     return result
 }
 
+enum RisuSaveType {
+    CONFIG = 0,
+    ROOT = 1,
+    CHARACTERWITHCHAT = 2,
+    CHAT = 3,
+}
+
+export class RisuSaveEncoder {
+
+    private blocks: { [key: string]: Uint8Array } = {};
+    private compression: boolean = false;
+
+    async init(data:Database,arg:{
+        compression?: boolean
+    } = {}){
+        const { compression = false } = arg;
+        this.compression = compression;
+        let obj:Record<any,any> = {}
+        let keys = Object.keys(data)
+        for(const key of keys){
+            if(key !== 'characters'){
+                obj[key] = data[key]
+            }
+        }
+        this.blocks['root'] = await this.encodeBlock({
+            compression,
+            data: JSON.stringify(obj),
+            type: RisuSaveType.ROOT,
+            name: 'root'
+        });
+        for( const character of data.characters) {
+            this.blocks[character.chaId] = await this.encodeBlock({
+                compression,
+                data: JSON.stringify(character),
+                type: RisuSaveType.CHARACTERWITHCHAT,
+                name: character.chaId
+            });
+        }
+    }
+
+    async set(data:Database, toSave:{
+        character: string[];
+        chat: [string, string][];
+        botPreset: string[];
+    }){
+        const perf = performance.now();
+        let obj:Record<any,any> = {}
+        let keys = Object.keys(data)
+        for(const key of keys){
+            if(key !== 'characters'){
+                obj[key] = data[key]
+            }
+        }
+        const findPerf = performance.now() - perf;
+        console.log(`Data find time: ${findPerf}ms`);
+        this.blocks['root'] = await this.encodeBlock({
+            compression: this.compression,
+            data: JSON.stringify(obj),
+            type: RisuSaveType.ROOT,
+            name: 'root'
+        });
+        const rootPerf = performance.now() - perf;
+        console.log(`Root data encoding time: ${rootPerf}ms`);
+
+        for(const character of data.characters) {
+            const index = toSave.character.indexOf(character.chaId);
+            if (index !== -1) {
+                this.blocks[character.chaId] = await this.encodeBlock({
+                    compression: this.compression,
+                    data: JSON.stringify(character),
+                    type: RisuSaveType.CHARACTERWITHCHAT,
+                    name: character.chaId
+                });
+                toSave.character.splice(index, 1);
+            }
+            else if(!this.blocks[character.chaId]){
+                this.blocks[character.chaId] = await this.encodeBlock({
+                    compression: this.compression,
+                    data: JSON.stringify(character),
+                    type: RisuSaveType.CHARACTERWITHCHAT,
+                    name: character.chaId
+                });
+            }
+        }
+        const chaPerf = performance.now() - perf;
+        console.log(`Character data encoding time: ${chaPerf}ms`);
+
+        if(toSave.character.length > 0){
+            console.log(`Deleting character data: ${toSave.character.join(', ')}`);
+            //probably deleted characters
+            for(const chaId of toSave.character){
+                delete this.blocks[chaId];
+            }
+        }
+        const deletedPerf = performance.now() - perf;
+        console.log(`Deleted character data encoding time: ${deletedPerf}ms`);
+    }
+
+    encode(arg:{
+        compression?: boolean
+    } = {}){
+        let totalLength = 0
+        for(const key in this.blocks){
+            totalLength += this.blocks[key].length;
+        }
+        totalLength += magicRisuSaveHeader.length;
+        const arrayBuf = new ArrayBuffer(totalLength);
+        const view = new Uint8Array(arrayBuf);
+        let offset = 0;
+        view.set(magicRisuSaveHeader, offset);
+        offset += magicRisuSaveHeader.length;
+        for(const key in this.blocks){
+            view.set(this.blocks[key], offset);
+            offset += this.blocks[key].length;
+        }
+        console.log(Object.keys(this.blocks).length, 'blocks encoded');
+        return arrayBuf;
+    }
+
+    async encodeBlock(arg:{
+        compression:boolean
+        data:string
+        type:RisuSaveType
+        name:string
+    }){
+        const buf = new AppendableBuffer();
+        buf.append(new Uint8Array([arg.type, arg.compression ? 1 : 0]));
+        let databuf: Uint8Array;
+        if(arg.compression){
+            await checkCompressionStreams();
+            const cs = new CompressionStream('gzip');
+            const writer = cs.writable.getWriter();
+            writer.write(new TextEncoder().encode(arg.data));
+            writer.close();
+            const compressedData = await new Response(cs.readable).arrayBuffer();
+            databuf = (new Uint8Array(compressedData));
+        }
+        else{
+            databuf = (new TextEncoder().encode(arg.data));
+        }
+        const nameBuf = new TextEncoder().encode(arg.name);
+        buf.append(new Uint8Array([nameBuf.length]));
+        buf.append(nameBuf);
+        
+        // buf.append(new Uint8Array(new Uint32Array([databuf.length])));
+
+        const lengthBuf = new ArrayBuffer(4);
+        new Uint32Array(lengthBuf)[0] = databuf.length;
+        buf.append(new Uint8Array(lengthBuf));
+        buf.append(databuf);
+        return buf.buffer;
+
+    }
+}
+
+export class RisuSaveDecoder {
+    private blocks: {
+        name: string;
+        type: RisuSaveType;
+        compression: boolean;
+        content: string;
+    }[] = []
+    async decode(data: Uint8Array): Promise<Database> {
+        console.log('Decoding RisuSave data');
+        let offset = magicRisuSaveHeader.length;
+        //@ts-ignore
+        let db:Database = {}
+        while (offset < data.length) {
+            const type = data[offset];
+            const compression = data[offset + 1] === 1;
+            offset += 2;
+
+            const nameLength = data[offset];
+            offset += 1;
+            const name = new TextDecoder().decode(data.subarray(offset, offset + nameLength));
+            offset += nameLength;
+
+            const newArrayBuf = new ArrayBuffer(4);
+            const lengthSubUint8Buf = data.slice(offset, offset + 4);
+            new Uint8Array(newArrayBuf).set(lengthSubUint8Buf);
+            const length = new Uint32Array(newArrayBuf)[0];
+            offset += 4;
+
+            let blockData = data.subarray(offset, offset + length);
+            offset += length;
+
+            if (compression) {
+                //decode using DecompressionStream
+                await checkCompressionStreams();
+                const cs = new DecompressionStream('gzip');
+                const writer = cs.writable.getWriter();
+                writer.write(blockData);
+                writer.close();
+                const buf = await new Response(cs.readable).arrayBuffer();
+                blockData = new Uint8Array(buf);
+            }
+
+            this.blocks.push({
+                name,
+                type,
+                compression,
+                content: new TextDecoder().decode(blockData)
+            })
+        }
+        console.log('blocks',this.blocks)
+        for(const key in this.blocks){
+            switch(this.blocks[key].type){
+                case RisuSaveType.ROOT:{
+                    const rootData = JSON.parse(this.blocks[key].content);
+                    for(const rootKey in rootData){
+                        if(!db[rootKey]){
+                            db[rootKey] = rootData[rootKey];
+                        }
+                    }
+                    break;
+                }
+                case RisuSaveType.CHARACTERWITHCHAT:{
+                    db.characters ??= [];
+                    const character = JSON.parse(this.blocks[key].content);
+                    db.characters.push(character);
+                    break
+                }
+                default:{
+                    console.warn(`Not Implemented RisuSaveType: ${this.blocks[key].type} for ${this.blocks[key].name}`);
+                }
+            }
+        }
+        console.log('Decoded RisuSave data', db);
+        return db;
+    }
+}
+
 export async function decodeRisuSave(data:Uint8Array){
     try {
-        switch(checkHeader(data)){
+        const header = checkHeader(data)
+        switch(header){
             case "compressed":
                 data = data.slice(magicCompressedHeader.length)
                 return decode(fflate.decompressSync(data))
@@ -77,10 +312,15 @@ export async function decodeRisuSave(data:Uint8Array){
                 const buf = await new Response(cs.readable).arrayBuffer()
                 return unpackr.decode(new Uint8Array(buf))
             }
+            case "risusave":{
+                const decoder = new RisuSaveDecoder();
+                return await decoder.decode(data);
+            }
         }
         return unpackr.decode(data)
     }
     catch (error) {
+        console.error('Error decoding RisuSave data:', error);
         try {
             console.log('risudecode')
             const risuSaveHeader = new Uint8Array(Buffer.from("\u0000\u0000RISU",'utf-8'))
@@ -100,7 +340,7 @@ export async function decodeRisuSave(data:Uint8Array){
 
 function checkHeader(data: Uint8Array) {
 
-    let header:'none'|'compressed'|'raw'|'stream' = 'raw'
+    let header:'none'|'compressed'|'raw'|'stream'|'risusave' = 'raw'
 
     if (data.length < magicHeader.length) {
       return false;
@@ -127,6 +367,16 @@ function checkHeader(data: Uint8Array) {
         header = 'stream'
         for (let i = 0; i < magicStreamCompressedHeader.length; i++) {
             if (data[i] !== magicStreamCompressedHeader[i]) {
+                header = 'none'
+                break
+            }
+        }
+    }
+
+    if(header === 'none'){
+        header = 'risusave'
+        for (let i = 0; i < magicRisuSaveHeader.length; i++) {
+            if (data[i] !== magicRisuSaveHeader[i]) {
                 header = 'none'
                 break
             }

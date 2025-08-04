@@ -141,7 +141,7 @@
         const len = chara.chats.length
         let chats = chara.chats
         chats.unshift({
-            message:[], note:'', name:`New Chat ${len + 1}`, localLore:[], fmIndex: -1
+            message:[], note:'', name:`New Chat ${len + 1}`, localLore:[], fmIndex: -1, id: v4()
         })
         if(cha.type === 'group'){
             cha.characters.map((c) => {
@@ -266,6 +266,7 @@
                                     case 0:{
                                         const newChat = safeStructuredClone($state.snapshot(chara.chats[chara.chats.indexOf(chat)]))
                                         newChat.name = `Copy of ${newChat.name}`
+                                        newChat.id = v4()
                                         chara.chats.unshift(newChat)
                                         chara.chatPage = 0
                                         chara.chats = chara.chats
@@ -376,6 +377,7 @@
                             case 0:{
                                 const newChat = safeStructuredClone($state.snapshot(chara.chats[i]))
                                 newChat.name = `Copy of ${newChat.name}`
+                                newChat.id = v4()
                                 chara.chats.unshift(newChat)
                                 chara.chatPage = 0
                                 chara.chats = chara.chats
