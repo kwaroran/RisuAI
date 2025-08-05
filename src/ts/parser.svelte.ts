@@ -680,9 +680,11 @@ export async function postTranslationParse(data:string){
     return data
 }
 
-export function parseMarkdownSafe(data:string) {
+export function parseMarkdownSafe(data:string, arg:{
+    forbidTags?: string[],
+} = {}) {
     return DOMPurify.sanitize(renderMarkdown(md, data), {
-        FORBID_TAGS: ["a", "style"],
+        FORBID_TAGS: ["a", "style", ...(arg.forbidTags || [])],
         FORBID_ATTR: ["style", "href", "class"]
     })
 }

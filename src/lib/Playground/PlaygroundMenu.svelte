@@ -18,6 +18,7 @@
   import PlaygroundImageTrans from "./PlaygroundImageTrans.svelte";
   import PlaygroundTranslation from "./PlaygroundTranslation.svelte";
   import PlaygroundMcp from "./PlaygroundMCP.svelte";
+    import PlaygroundDocs from "./PlaygroundDocs.svelte";
 
     let easterEggTouch = $state(0)
 
@@ -56,6 +57,11 @@
                 playgroundChat()
             }}>
                 <h1 class="text-2xl font-bold text-start">{language.Chat}</h1>
+            </button>
+            <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
+                PlaygroundStore.set(13)
+            }}>
+                <h1 class="text-2xl font-bold text-start">CBS Doc</h1>
             </button>
             <button class="bg-darkbg rounded-md p-6 flex flex-col transition-shadow hover:ring-1" onclick={() => {
                 PlaygroundStore.set(3)
@@ -174,6 +180,9 @@
             {/if}
             {#if $PlaygroundStore === 12}
                 <PlaygroundMcp/>
+            {/if}
+            {#if $PlaygroundStore === 13}
+                <PlaygroundDocs/>
             {/if}
             {#if $PlaygroundStore === 101}
                 <ToolConvertion/>
