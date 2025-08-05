@@ -435,7 +435,10 @@ export async function importChat(){
                         folderIdMap[folder.id] = folder.id
                     }
                 })
-                db.characters[selectedID].chatFolders?.push(...folders)
+                if(db.characters[selectedID].chatFolders === undefined){
+                    db.characters[selectedID].chatFolders = []
+                }
+                db.characters[selectedID].chatFolders.push(...folders)
                 chats.forEach(chat => {
                     if(chat.folderId && folderIdMap[chat.folderId]){
                         chat.folderId = folderIdMap[chat.folderId]
