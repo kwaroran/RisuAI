@@ -209,8 +209,6 @@ export class RisuSaveEncoder {
         type:RisuSaveType
         name:string
     }){
-        const buf = new AppendableBuffer();
-        buf.append(new Uint8Array([arg.type, arg.compression ? 1 : 0]));
         let databuf: Uint8Array;
         if(arg.compression){
             await checkCompressionStreams();
@@ -225,17 +223,16 @@ export class RisuSaveEncoder {
             databuf = (new TextEncoder().encode(arg.data));
         }
         const nameBuf = new TextEncoder().encode(arg.name);
-        buf.append(new Uint8Array([nameBuf.length]));
-        buf.append(nameBuf);
-        
-        // buf.append(new Uint8Array(new Uint32Array([databuf.length])));
-
         const lengthBuf = new ArrayBuffer(4);
         new Uint32Array(lengthBuf)[0] = databuf.length;
-        buf.append(new Uint8Array(lengthBuf));
-        buf.append(databuf);
-        return buf.buffer;
-
+        const arrayBuf = new ArrayBuffer(2 + 1 + nameBuf.length + 4 + databuf.length);
+        const buf = new Uint8Array(arrayBuf);
+        buf.set(new Uint8Array([arg.type, arg.compression ? 1 : 0]), 0);
+        buf.set(new Uint8Array([nameBuf.length]), 2);
+        buf.set(nameBuf, 3);
+        buf.set(new Uint8Array(lengthBuf), 3 + nameBuf.length);
+        buf.set(databuf, 7 + nameBuf.length);
+        return buf;
     }
 }
 

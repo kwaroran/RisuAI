@@ -2094,7 +2094,7 @@ export function registerCBS(arg:CBSRegisterArg) {
     })
 
     registerFunction({
-        name: 'hidden_key',
+        name: 'hiddenkey',
         callback: (str, matcherArg, args, vars) => {
             return ''
         },
