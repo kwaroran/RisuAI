@@ -541,7 +541,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     const injectionLorePosSet = new Set<string>()
     for(const lorebook of injectionLorebooks){
-        injectionLorePosSet.add(lorebook.pos)
+        injectionLorePosSet.add(lorebook.inject.location)
     }
     
     for(const lorebook of postEverythingAssistantLorebooks){
@@ -560,9 +560,10 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     
     const positionRegex = /{{position::(.+?)}}/g
     const positionParser = (text:string, loc:string) => {
+        console.log(injectionLorePosSet)
         if(injectionLorePosSet.has(loc)){
             const matchings = injectionLorebooks.filter(v => {
-                return v.pos === loc
+                return v.inject.location === loc
             })
             for(const lore of matchings){
                 switch(lore.inject.operation){

@@ -605,7 +605,7 @@ export async function loadLoreBookV3Prompt(){
         return false
     })
 
-    const activesResorted = activesFiltered.sort((a,b) => {
+    let activesResorted = activesFiltered.sort((a,b) => {
         return b.order - a.order
     })
 
@@ -614,28 +614,30 @@ export async function loadLoreBookV3Prompt(){
         return act?.inject?.lore
     })
 
+    activesResorted = activesResorted.filter((act) => {
+        return !act?.inject?.lore
+    })
+
     //I know this will make token count wrong, but performance is more important here
 
+    console.log('loreinjectionLores', loreinjectionLores)
     for(const lore of loreinjectionLores){
-        const foundLoreIndex = fullLore.findIndex((l) => {
-            return l.comment === lore.source || l.key === lore.source
+        const foundLoreIndex = activesResorted.findIndex((l) => {
+            return l.source === lore.inject.location
         })
         if(foundLoreIndex !== -1){
-            const foundLore = fullLore[foundLoreIndex]
-            if(foundLore.mode === 'folder'){
-                continue
-            }
+            const foundLore = activesResorted[foundLoreIndex]
             switch(lore.inject.operation){
                 case 'append':{
-                    foundLore.content += ' ' + lore.prompt
+                    foundLore.prompt += ' ' + lore.prompt
                     break
                 }
                 case 'prepend':{
-                    foundLore.content = lore.prompt + ' ' + foundLore.content
+                    foundLore.prompt = lore.prompt + ' ' + foundLore.prompt
                     break
                 }
                 case 'replace':{
-                    foundLore.content = foundLore.content.replace(lore.inject.param, lore.prompt)
+                    foundLore.prompt = foundLore.prompt.replace(lore.inject.param, lore.prompt)
                     break
                 }
             }
