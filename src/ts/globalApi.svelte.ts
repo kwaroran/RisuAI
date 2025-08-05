@@ -1346,6 +1346,12 @@ async function checkNewFormat(): Promise<void> {
         //migration removed due to issues
         db.formatversion = 4;
     }
+    if(db.formatversion < 5){
+        if(db.loreBookToken < 8000){
+            db.loreBookToken = 8000;
+        }
+        db.formatversion = 5;
+    }
     if (!db.characterOrder) {
         db.characterOrder = [];
     }
