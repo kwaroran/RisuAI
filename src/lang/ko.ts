@@ -665,6 +665,7 @@ export const languageKorean = {
     "SuperMemory": "수파메모리",
     "useExperimental": "실험적 요소 보이기",
     "showMemoryLimit": "기억 한계치 보이기",
+    "showFirstMessagePages": "퍼스트 메시지 페이지 보이기",
     "roundIcons": "둥근 아이콘",
     "streaming": "스트리밍",
     "chatBot": "채팅 봇",
