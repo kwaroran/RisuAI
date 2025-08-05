@@ -458,16 +458,8 @@ export async function saveDb(){
                 continue
             }
 
-            const testSave = true
 
-            if(testSave){
-                await encoder.set(db, toSave)
-                const encoded = encoder.encode()
-                const encodedUint8Array = new Uint8Array(encoded)
-                await forageStorage.setItem('database/database.bin', encodedUint8Array)
-
-            }
-            else if(isTauri){
+            if(isTauri){
                 await encoder.set(db, toSave)
                 const dbData = new Uint8Array(encoder.encode())
                 await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData});
