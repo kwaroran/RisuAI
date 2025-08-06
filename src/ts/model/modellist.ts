@@ -858,6 +858,20 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
+        name: 'Claude 4.1 Opus (20250805) v1',
+        id: 'anthropic.claude-opus-4-1-20250805-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
         name: 'Claude 4 Opus (20250514) v1',
         id: 'anthropic.claude-opus-4-20250514-v1:0',
         provider: LLMProvider.AWS,
