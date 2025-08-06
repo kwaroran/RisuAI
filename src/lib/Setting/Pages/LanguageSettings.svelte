@@ -72,6 +72,7 @@
     <OptionInput value="zh" >Chinese</OptionInput>
     {#if DBState.db.translatorType === 'google'}
         <OptionInput value="zh-TW" >Chinese (Traditional)</OptionInput>
+	<OptionInput value="fa" >Persian (Farsi)</OptionInput>
     {/if}
     <OptionInput value="ja" >Japanese</OptionInput>
     <OptionInput value="fr" >French</OptionInput>
