@@ -190,25 +190,27 @@ async function hubProxyFunc(req, res) {
         }
         res.status(response.status);
         
-        if (response.status >= 300 && response.status < 400) {
-            // Redirect handling (due to ‘/redirect/docs/lua’)
+        if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
             const redirectUrl = response.headers.get('location');
-            if (redirectUrl) {
-                
-                if (redirectUrl.startsWith('http')) {
-                    
-                    if (redirectUrl.startsWith(hubURL)) {
-                        const newPath = redirectUrl.replace(hubURL, '/hub-proxy');
-                        res.setHeader('location', newPath);
-                    }
-                    
-                } else if (redirectUrl.startsWith('/')) {
-                    
-                    res.setHeader('location', `/hub-proxy${redirectUrl}`);
+            const newHeaders = { ...headersToSend };
+            const redirectResponse = await fetch(redirectUrl, {
+                method: req.method,
+                headers: newHeaders,
+                body: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : undefined,
+                redirect: 'manual',
+                duplex: 'half'
+            });
+            for (const [key, value] of redirectResponse.headers.entries()) {
+                if (key.toLowerCase() === 'content-encoding' || 
+                    key.toLowerCase() === 'content-length' ||
+                    key.toLowerCase() === 'transfer-encoding') {
+                    continue;
                 }
+                res.setHeader(key, value);
             }
-
-            return res.end();
+            res.status(redirectResponse.status);
+            await pipeline(redirectResponse.body, res);
+            return;
         }
         
         await pipeline(response.body, res);
