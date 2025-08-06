@@ -8,6 +8,7 @@ const crypto = require('crypto')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(express.json({ limit: '100mb' }));
 app.use(express.raw({ type: 'application/octet-stream', limit: '100mb' }));
+app.use(express.text({ limit: '100mb' }));
 const {pipeline} = require('stream/promises')
 const https = require('https');
 const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
@@ -162,6 +163,11 @@ const reverseProxyFunc_get = async (req, res, next) => {
 }
 
 async function hubProxyFunc(req, res) {
+    const excludedHeaders = [
+        'content-encoding',
+        'content-length',
+        'transfer-encoding'
+    ];
 
     try {
         const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
@@ -170,20 +176,19 @@ async function hubProxyFunc(req, res) {
         const headersToSend = { ...req.headers };
         delete headersToSend.host;
         delete headersToSend.connection;
+        delete headersToSend['content-length'];
         
         const response = await fetch(externalURL, {
             method: req.method,
             headers: headersToSend,
-            body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
+            body: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : undefined,
             redirect: 'manual',
             duplex: 'half'
         });
         
         for (const [key, value] of response.headers.entries()) {
             // Skip encoding-related headers to prevent double decoding
-            if (key.toLowerCase() === 'content-encoding' || 
-                key.toLowerCase() === 'content-length' ||
-                key.toLowerCase() === 'transfer-encoding') {
+            if (excludedHeaders.includes(key.toLowerCase())) {
                 continue;
             }
             res.setHeader(key, value);
@@ -201,9 +206,7 @@ async function hubProxyFunc(req, res) {
                 duplex: 'half'
             });
             for (const [key, value] of redirectResponse.headers.entries()) {
-                if (key.toLowerCase() === 'content-encoding' || 
-                    key.toLowerCase() === 'content-length' ||
-                    key.toLowerCase() === 'transfer-encoding') {
+                if (excludedHeaders.includes(key.toLowerCase())) {
                     continue;
                 }
                 res.setHeader(key, value);
