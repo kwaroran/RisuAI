@@ -1973,14 +1973,14 @@ export function registerCBS(arg:CBSRegisterArg) {
                 else{
                     arr = args[0].replace(/\\,/g, '§X').split(/\:|\,/g)
                 }
-                const randomIndex = Math.floor(Math.random() * (arr.length - 1)) + 1
+                const randomIndex = Math.floor(Math.random() * arr.length)
                 if(matcherArg.tokenizeAccurate){
                     return arr[0]
                 }
                 return arr[randomIndex]?.replace(/§X/g, ',') ?? ''
             }
 
-            const randomIndex = Math.floor(Math.random() * (args.length - 1)) + 1
+            const randomIndex = Math.floor(Math.random() * args.length)
             if(matcherArg.tokenizeAccurate){
                 return args[0]
             }
@@ -2012,14 +2012,14 @@ export function registerCBS(arg:CBSRegisterArg) {
                 else{
                     arr = args[0].replace(/\\,/g, '§X').split(/\:|\,/g)
                 }
-                const randomIndex = Math.floor(hashRand * (arr.length - 1)) + 1
+                const randomIndex = Math.floor(hashRand * arr.length)
                 if(matcherArg.tokenizeAccurate){
                     return arr[0]
                 }
                 return arr[randomIndex]?.replace(/§X/g, ',') ?? ''
             }
 
-            const randomIndex = Math.floor(hashRand * (args.length - 1)) + 1
+            const randomIndex = Math.floor(hashRand * args.length)
             if(matcherArg.tokenizeAccurate){
                 return args[0]
             }
