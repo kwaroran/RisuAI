@@ -117,6 +117,7 @@ const ProviderNames = new Map<LLMProvider, string>([
 ])
 
 const OpenAIParameters:Parameter[] = ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
+const GPT5Parameters:Parameter[] = ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'reasoning_effort','verbosity']
 const ClaudeParameters:Parameter[] = ['temperature', 'top_k', 'top_p']
 
 function makeDeepInfraModels(id:string[]):LLMModel[]{
@@ -179,7 +180,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasFullSystemPrompt,
             LLMFlags.hasStreaming
         ],
-        recommended: true,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -195,7 +195,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.OAICompletionTokens
         ],
-        recommended: true,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -211,7 +210,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.OAICompletionTokens
         ],
-        recommended: false,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -226,7 +224,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasFullSystemPrompt,
             LLMFlags.hasStreaming
         ],
-        recommended: true,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -522,6 +519,123 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
     {
+        id: 'gpt-5',
+        internalID: 'gpt-5',
+        name: 'GPT 5',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5',
+        internalID: 'gpt-5-2025-08-07',
+        name: 'GPT 5 (2025-08-07)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
+        id: 'gpt-5-mini',
+        internalID: 'gpt-5-mini',
+        name: 'GPT 5 Mini',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5-mini-2025-08-07',
+        internalID: 'gpt-5-mini-2025-08-07',
+        name: 'GPT 5 Mini (2025-08-07)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
+        id: 'gpt-5-nano',
+        internalID: 'gpt-5-nano',
+        name: 'GPT 5 Nano',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5-nano-2025-08-07',
+        internalID: 'gpt-5-nano-2025-08-07',
+        name: 'GPT 5 Nano (2025-08-07)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+        {
+        id: 'gpt-5-chat-latest',
+        internalID: 'gpt-5-chat-latest',
+        name: 'GPT 5 Chat',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        //Note: this is special case
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
         id: 'o1',
         internalID: 'o1',
         name: 'o1',
@@ -614,7 +728,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.claudeThinking
         ],
-        recommended: true,
         parameters: [...ClaudeParameters, 'thinking_tokens'],
         tokenizer: LLMTokenizer.Claude
     },

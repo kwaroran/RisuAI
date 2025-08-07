@@ -1064,6 +1064,7 @@ export interface Database{
     newImageHandlingBeta?: boolean
     showFirstMessagePages:boolean
     streamGeminiThoughts:boolean
+    verbosity:number
 }
 
 interface SeparateParameters{
@@ -1078,6 +1079,7 @@ interface SeparateParameters{
     reasoning_effort?:number
     thinking_tokens?:number
     outputImageModal?:boolean
+    verbosity?:number
 }
 
 type OutputModal = 'image'|'audio'|'video'
@@ -1425,6 +1427,7 @@ export interface botPreset{
         model: string[]
     }
     fallbackWhenBlankResponse?: boolean
+    verbosity:number
 }
 
 
@@ -1738,6 +1741,7 @@ export const presetTemplate:botPreset = {
     },
     top_p: 1,
     useInstructPrompt: false,
+    verbosity: 1
 }
 
 const defaultSdData:[string,string][] = [
@@ -1830,6 +1834,7 @@ export function saveCurrentPreset(){
         modelTools: safeStructuredClone(db.modelTools),
         fallbackModels: safeStructuredClone(db.fallbackModels),
         fallbackWhenBlankResponse: db.fallbackWhenBlankResponse ?? false,
+        verbosity: db.verbosity ?? 1,
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1962,6 +1967,7 @@ export function setPreset(db:Database, newPres: botPreset){
         db.fallbackWhenBlankResponse = newPres.fallbackWhenBlankResponse ?? false
     }
     db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
+    db.verbosity = newPres.verbosity ?? 1
 
     return db
 }
