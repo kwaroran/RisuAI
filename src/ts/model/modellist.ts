@@ -761,6 +761,23 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.claudeThinking
         ],
+        recommended: false,
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: "Claude 4.1 Opus (20250805)",
+        id: 'claude-opus-4-1-20250805',
+        shortName: "4 Opus",
+        provider: LLMProvider.Anthropic,
+        format: LLMFormat.Anthropic,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.claudeThinking
+        ],
         recommended: true,
         parameters: [...ClaudeParameters, 'thinking_tokens'],
         tokenizer: LLMTokenizer.Claude
