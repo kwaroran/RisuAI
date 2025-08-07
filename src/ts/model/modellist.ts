@@ -1237,7 +1237,6 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
         parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
     },
         {
         name: "Gemini Pro 2.5 Preview (06/05)",
@@ -1247,7 +1246,6 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
         parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
     },
     {
         name: "Gemini Pro 2.5",
@@ -1276,7 +1274,6 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
         parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
     },
     {
         name: "Gemini Flash 2.5",
@@ -1334,7 +1331,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Flash Lite Preview 2.0 0205",
@@ -1344,7 +1341,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.noCivilIntegrity],
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Pro 2.0 Exp 0128",
@@ -1363,7 +1360,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.noCivilIntegrity],
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Flash 2.0 Thinking 0121",
@@ -1373,7 +1370,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiThinking, LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.geminiThinking, LLMFlags.requiresAlternateRole],
         parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Pro 1.5",
