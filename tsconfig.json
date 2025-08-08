@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2023",
     "useDefineForClassFields": true,
-    "module": "esnext",
+    "module": "ES2022",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "baseUrl": ".",
