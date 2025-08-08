@@ -5,7 +5,7 @@ import { language } from "../lang";
 import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
 import { v4 as uuidv4, v4 } from 'uuid';
 import { MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores.svelte";
-import { AppendableBuffer, checkCharOrder, downloadFile, getFileSrc } from "./globalApi.svelte";
+import { AppendableBuffer, checkCharOrder, downloadFile, getFileSrc, requiresFullEncoderReload } from "./globalApi.svelte";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { checkImageType, parseMarkdownSafe } from "./parser.svelte";
 import { translateHTML } from "./translator/translator";
@@ -826,6 +826,7 @@ export async function removeChar(index:number,name:string, type:'normal'|'perman
     }
     checkCharOrder()
     db.characters = chars
+    requiresFullEncoderReload.state = true
     setDatabase(db)
     selectedCharID.set(-1)
 }
