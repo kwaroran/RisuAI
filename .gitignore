@@ -9,7 +9,7 @@ lerna-debug.log*
 package-lock.json
 node_modules
 dist/
-save/
+save
 dist-web/
 dist-ssr
 *.local
