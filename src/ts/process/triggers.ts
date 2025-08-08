@@ -1097,11 +1097,24 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         if (!currentScope) {
             return
         }
-        if (!currentScope[indent]) {
-            currentScope[indent] = {}
-        }
+        
         const finalValue = (value === null || value === undefined) ? 'null' : value
-        currentScope[indent][key] = finalValue
+        
+        let foundIndent = -1
+        for (let i = indent; i >= 0; i--) {
+            if (currentScope[i] && currentScope[i][key] !== undefined) {
+                foundIndent = i
+                break
+            }
+        }
+        
+        const targetIndent = foundIndent !== -1 ? foundIndent : indent
+        
+        if (!currentScope[targetIndent]) {
+            currentScope[targetIndent] = {}
+        }
+        
+        currentScope[targetIndent][key] = finalValue
     }
     
     function declareLocalVar(key: string, value: string, indent: number) {
