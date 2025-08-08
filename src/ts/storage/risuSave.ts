@@ -21,10 +21,12 @@ const magicRisuSaveHeader = new TextEncoder().encode("RISUSAVE\0");
 async function checkCompressionStreams(){
     if(!CompressionStream){
         const {makeCompressionStream} = await import('compression-streams-polyfill/ponyfill');
+        //@ts-ignore
         globalThis.CompressionStream = makeCompressionStream(TransformStream);
     }
     if(!DecompressionStream){
         const {makeDecompressionStream} = await import('compression-streams-polyfill/ponyfill');
+        //@ts-ignore
         globalThis.DecompressionStream = makeDecompressionStream(TransformStream);
     }
 }
@@ -51,7 +53,7 @@ export async function encodeRisuSaveCompressionStream(data:any) {
     let encoded:Uint8Array = packr.encode(data)
     const cs = new CompressionStream('gzip');
     const writer = cs.writable.getWriter();
-    writer.write(encoded);
+    writer.write(encoded as any);
     writer.close();
     const buf = await new Response(cs.readable).arrayBuffer()
     const result = new Uint8Array(new Uint8Array(buf).length + magicStreamCompressedHeader.length);
@@ -136,6 +138,7 @@ export class RisuSaveEncoder {
             name: 'root'
         });
 
+        const savedId = new Set<string>();
         for(const character of data.characters) {
             const index = toSave.character.indexOf(character.chaId);
             if (index !== -1) {
@@ -145,6 +148,7 @@ export class RisuSaveEncoder {
                     type: RisuSaveType.CHARACTERWITHCHAT,
                     name: character.chaId
                 });
+                savedId.add(character.chaId);
                 toSave.character.splice(index, 1);
             }
             else if(!this.blocks[character.chaId]){
@@ -154,13 +158,16 @@ export class RisuSaveEncoder {
                     type: RisuSaveType.CHARACTERWITHCHAT,
                     name: character.chaId
                 });
+                savedId.add(character.chaId);
             }
         }
         if(toSave.character.length > 0){
             console.log(`Deleting character data: ${toSave.character.join(', ')}`);
             //probably deleted characters
             for(const chaId of toSave.character){
-                delete this.blocks[chaId];
+                if(!savedId.has(chaId)){
+                    delete this.blocks[chaId];
+                }
             }
         }
 
@@ -272,7 +279,7 @@ export class RisuSaveDecoder {
                 await checkCompressionStreams();
                 const cs = new DecompressionStream('gzip');
                 const writer = cs.writable.getWriter();
-                writer.write(blockData);
+                writer.write(blockData as any);
                 writer.close();
                 const buf = await new Response(cs.readable).arrayBuffer();
                 blockData = new Uint8Array(buf);
@@ -336,7 +343,7 @@ export async function decodeRisuSave(data:Uint8Array){
                 data = data.slice(magicStreamCompressedHeader.length)
                 const cs = new DecompressionStream('gzip');
                 const writer = cs.writable.getWriter();
-                writer.write(data);
+                writer.write(data as any);
                 writer.close();
                 const buf = await new Response(cs.readable).arrayBuffer()
                 return unpackr.decode(new Uint8Array(buf))
