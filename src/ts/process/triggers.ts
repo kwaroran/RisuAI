@@ -1154,6 +1154,13 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
             tempVars[key] = value
             return
         }
+        
+        const localVar = getLocalVar(key)
+        if(localVar !== null){
+            setLocalVar(key, value, currentIndent)
+            return
+        }
+        
         const selectedCharId = get(selectedCharID)
         const currentCharacter = getCurrentCharacter()
         const db = getDatabase()
