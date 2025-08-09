@@ -1,8 +1,10 @@
 type HighlightType = 'decorator'|'deprecated'|'cbsnest0'|'cbsnest1'|'cbsnest2'|'cbsnest3'|'cbsnest4'|'cbsdisplay'|'comment'
 
-type HighlightInt = [Range, HighlightType]
+type HighLightRange = [number, number]
+type HighlightInt = [HighLightRange, HighlightType]
+type HighlightIntRanged = [Range, HighlightType]
 
-let highLights = new Map<number, HighlightInt[]>();
+let highLights = new Map<number, HighlightIntRanged[]>();
 
 export const highlighter = (highlightDom:HTMLElement, id:number) => {
     try {
@@ -14,37 +16,81 @@ export const highlighter = (highlightDom:HTMLElement, id:number) => {
     
             const walker = document.createTreeWalker(highlightDom, NodeFilter.SHOW_TEXT)
             const nodes:Node[] = []
+            const nodePointers:number[] = []
             let currentNode = walker.nextNode();
+            let fullText = ''
+            let pointer = 0
             while (currentNode) {
+                pointer += currentNode.textContent.length;
                 nodes.push(currentNode);
+                nodePointers.push(pointer);
+                fullText += currentNode.textContent;
                 currentNode = walker.nextNode();
             }
-            const str = "{{char}}"
-            if (!str) {
-                return;
+
+            //this is because we need to match the text content case-insensitively
+            fullText = fullText.toLocaleLowerCase()
+    
+            const ranges:HighlightIntRanged[] = []
+            const parsed = simpleCBSHighlightParser(fullText)
+
+            const convertToDomRange = (start:number, end:number):Range[] => {
+                const startNodeIndex = nodePointers.findIndex((pointer) => pointer >= start);
+                const endNodeIndex = nodePointers.findIndex((pointer) => pointer >= end);
+
+                if (startNodeIndex === -1 || endNodeIndex === -1) {
+                    return [];
+                }
+
+                const startNode = nodes[startNodeIndex];
+                const endNode = nodes[endNodeIndex];
+
+                // const range = new Range();
+                // range.setStart(startNode, start - (startNodeIndex > 0 ? nodePointers[startNodeIndex - 1] : 0));
+                // range.setEnd(endNode, end - (endNodeIndex > 0 ? nodePointers[endNodeIndex - 1] : 0));
+
+                // return [range];
+
+                if(startNode === endNode){
+                    const range = new Range();
+                    range.setStart(startNode, start - (startNodeIndex > 0 ? nodePointers[startNodeIndex - 1] : 0));
+                    range.setEnd(endNode, end - (endNodeIndex > 0 ? nodePointers[endNodeIndex - 1] : 0));
+                    return [range];
+                }
+                else{
+                    const startNodeRange = new Range();
+                    const endNodeRange = new Range();
+                    startNodeRange.setStart(startNode, start - (startNodeIndex > 0 ? nodePointers[startNodeIndex - 1] : 0));
+                    startNodeRange.setEnd(startNode, startNode.textContent.length);
+                    endNodeRange.setStart(endNode, 0);
+                    endNodeRange.setEnd(endNode, end - (endNodeIndex > 0 ? nodePointers[endNodeIndex - 1] : 0));
+                    return [startNodeRange, endNodeRange];
+                }
             }
-    
-            const ranges:HighlightInt[] = []
-    
-            nodes.map((el) => {
-                const text = el.textContent.toLowerCase()
-    
-                const cbsParsed = simpleCBSHighlightParser(el,text)
-                ranges.push(...cbsParsed)
-    
-                for(const syntax of highlighterSyntax){
-                    const regex = syntax.regex
-                    let match:RegExpExecArray | null;
-                    while ((match = regex.exec(text)) !== null) {
-                        const length = match[0].length;
-                        const index = match.index;
-                        const range = new Range();
-                        range.setStart(el, index);
-                        range.setEnd(el, index + length);
-                        ranges.push([range, syntax.type])
+            
+            for(let i=0;i<parsed.length;i++){
+                const rinit = parsed[i]
+                const r = rinit[0]
+                const domRange = convertToDomRange(r[0], r[1]);
+                for(const range of domRange){
+                    ranges.push([range, rinit[1]]);
+                }
+            }
+
+            for(const syntax of highlighterSyntax){
+                const regex = syntax.regex
+                let match:RegExpExecArray | null;
+                while ((match = regex.exec(fullText)) !== null) {
+                    const length = match[0].length;
+                    const index = match.index;
+                    const converted = convertToDomRange(index, index + length);
+                    if (converted) {
+                        for(const range of converted){
+                            ranges.push([range, syntax.type]);
+                        }
                     }
                 }
-            });
+            }
     
             highLights.set(id, ranges)
     
@@ -156,7 +202,7 @@ const highlighterSyntax = [
 ] as const
 
 
-function simpleCBSHighlightParser(node:Node,text:string){
+function simpleCBSHighlightParser(text:string){
     let depth = 0
     let pointer = 0
     let depthStarts = new Uint8Array(100)
@@ -236,9 +282,7 @@ function simpleCBSHighlightParser(node:Node,text:string){
 
     const colorHighlight = () => {
         if(highlightMode[depth] !== 10){
-            const range = new Range();
-            range.setStart(node, depthStarts[depth] - 2);
-            range.setEnd(node, pointer + 2);
+            const range:HighLightRange = [depthStarts[depth] - 2, pointer + 2]
             switch(highlightMode[depth]){
                 case 1:
                     ranges.push([range, `cbsnest${depth % 5}` as HighlightType])
