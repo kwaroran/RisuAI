@@ -24,6 +24,8 @@
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
 
+    let showDetails = $state(false);
+
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
@@ -36,6 +38,7 @@
         content:string,
     } = $state(null)
     $effect.pre(() => {
+        showDetails = false;
         if(btn){
             btn.focus()
         }
@@ -102,6 +105,22 @@
                 <span class="text-gray-300">{$alertStore.msg}</span>
                 {#if $alertStore.submsg && $alertStore.type !== 'progress'}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
+                {/if}
+
+                {#if $alertStore.type === 'error' && $alertStore.stackTrace}
+                    <div class="mt-4">
+                        <Button styled="outlined" size="sm" onclick={() => showDetails = !showDetails}>
+                            {showDetails ? language.hideErrorDetails : language.showErrorDetails}
+                            {#if showDetails}
+                                <XIcon class="inline ml-2" />
+                            {:else}
+                                <ChevronRightIcon class="inline ml-2" />
+                            {/if}
+                        </Button>
+                        {#if showDetails}
+                            <pre class="stack-trace">{@html $alertStore.stackTrace}</pre>
+                        {/if}
+                    </div>
                 {/if}
             {/if}
             {#if $alertStore.type === 'progress'}
@@ -743,5 +762,20 @@
     .vis{
         opacity: 1 !important;
         --tw-bg-opacity: 1 !important;
+    }
+
+    .stack-trace {
+        background-color: var(--risu-theme-bgcolor);
+        color: var(--risu-theme-textcolor2);
+        border: 1px solid var(--risu-theme-darkborderc);
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        font-family: monospace;
+        font-size: 0.75rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 200px;
+        overflow-y: auto;
     }
 </style>

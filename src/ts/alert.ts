@@ -14,6 +14,7 @@ export interface alertData{
     msg: string,
     submsg?: string
     datalist?: [string, string][],
+    stackTrace?: string;
 }
 
 type AlertGenerationInfoStoreData = {
@@ -31,9 +32,12 @@ export function alertError(msg: string | Error) {
     console.error(msg)
     const db = getDatabase()
 
+    let stackTrace: string | undefined = undefined; 
+
     if (typeof(msg) !== 'string') {
         try{
             if (msg instanceof Error) {
+                stackTrace = msg.stack
                 msg = msg.message
             } else {
                 msg = JSON.stringify(msg)
@@ -64,7 +68,8 @@ export function alertError(msg: string | Error) {
     alertStoreImported.set({
         'type': 'error',
         'msg': msg,
-        'submsg': submsg
+        'submsg': submsg,
+        'stackTrace': stackTrace
     })
 }
 
