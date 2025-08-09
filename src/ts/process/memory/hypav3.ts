@@ -27,6 +27,7 @@ export interface HypaV3Preset {
 export interface HypaV3Settings {
   summarizationModel: string;
   summarizationPrompt: string;
+  reSummarizationPrompt: string;
   memoryTokensRatio: number;
   extraSummarizationRatio: number;
   maxChatsPerSummary: number;
@@ -46,6 +47,7 @@ export interface HypaV3Settings {
 
 interface HypaV3Data {
   summaries: Summary[];
+  categories?: { id: string; name: string }[];
   lastSelectedSummaries?: number[]; // legacy
   metrics?: {
     lastImportantSummaries: number[];
@@ -71,6 +73,8 @@ interface Summary {
   text: string;
   chatMemos: Set<string>;
   isImportant: boolean;
+  categoryId?: string;
+  tags?: string[];
 }
 
 export interface SerializableSummary extends Omit<Summary, "chatMemos"> {
@@ -439,6 +443,8 @@ async function hypaMemoryV3MainExp(
         text: summaryText,
         chatMemos: new Set(toSummarizeArray[i].map((chat) => chat.memo)),
         isImportant: false,
+        categoryId: undefined,
+        tags: [],
       });
     }
   }
@@ -1134,6 +1140,8 @@ async function hypaMemoryV3Main(
           text: summarizeResult,
           chatMemos: new Set(toSummarize.map((chat) => chat.memo)),
           isImportant: false,
+          categoryId: undefined,
+          tags: [],
         });
       } catch (error) {
         console.log(logPrefix, "Summarization failed:", `\n${error}`);
@@ -1653,7 +1661,7 @@ function wrapWithXml(tag: string, content: string): string {
   return `<${tag}>\n${content}\n</${tag}>`;
 }
 
-export async function summarize(oaiMessages: OpenAIChat[]): Promise<string> {
+export async function summarize(oaiMessages: OpenAIChat[], isResummarize: boolean = false): Promise<string> {
   const db = getDatabase();
   const settings = getCurrentHypaV3Preset().settings;
 
@@ -1661,8 +1669,9 @@ export async function summarize(oaiMessages: OpenAIChat[]): Promise<string> {
     .map((chat) => `${chat.role}: ${chat.content}`)
     .join("\n");
 
-  const summarizationPrompt =
-    settings.summarizationPrompt.trim() === ""
+  const summarizationPrompt = isResummarize
+    ? (settings.reSummarizationPrompt.trim() === "" ? "Re-summarize this summaries." : settings.reSummarizationPrompt)
+    : settings.summarizationPrompt.trim() === ""
       ? "[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output.]"
       : settings.summarizationPrompt;
 
@@ -1745,6 +1754,7 @@ export function createHypaV3Preset(
   const settings: HypaV3Settings = {
     summarizationModel: "subModel",
     summarizationPrompt: "",
+    reSummarizationPrompt: "",
     memoryTokensRatio: 0.2,
     extraSummarizationRatio: 0,
     maxChatsPerSummary: 6,
