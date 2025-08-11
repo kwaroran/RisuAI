@@ -650,6 +650,8 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
          
             for(let i=0;i<parts.length;i++){
                 const part = parts[i]
+                if (!part)
+                    continue;
 
                 if(part.text){
                     rDatas.push({
@@ -699,7 +701,7 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         parts = parts.concat(p)
     }
 
-    const calls = parts.filter((p) => !!p.functionCall).map((p) => p.functionCall as GeminiFunctionCall)
+    const calls = parts.filter((p) => p && p.functionCall).map((p) => p.functionCall as GeminiFunctionCall)
 
     // If there are function calls, handle calls and send next request
     if(calls.length > 0){
@@ -895,6 +897,8 @@ function getTranStream():TransformStream<Uint8Array, StreamResponseChunk> {
                         if (jsonData.candidates?.[0]?.content?.parts) {
                             const parts = jsonData.candidates[0].content.parts;
                             for (const part of parts) {
+                                if (!part)
+                                    continue;
                                 if (part.text) {
                                     readed["__thoughts"] += readed["__last_thought"];
                                     readed["__last_thought"] = "";
