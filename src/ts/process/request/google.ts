@@ -699,7 +699,9 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         parts = parts.concat(p)
     }
 
-    const calls = parts.filter((p) => !!p.functionCall).map((p) => p.functionCall as GeminiFunctionCall)
+    parts = parts.filter((p) => p)
+
+    const calls = parts.filter((p) => !!p?.functionCall).map((p) => p?.functionCall as GeminiFunctionCall)
 
     // If there are function calls, handle calls and send next request
     if(calls.length > 0){
