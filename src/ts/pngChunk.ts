@@ -132,7 +132,11 @@ export const PngChunk = {
         {key:string,value:string}|AppendableBuffer,null
     >{
         if (data instanceof File) {
-            data = data.stream();
+            if (typeof data.stream === 'function') {
+                data = data.stream();
+            } else {
+                data = await blobToUint8Array(data);
+            }
         }
         const reader = data instanceof ReadableStream ? data.getReader() : null
         let readableStreamData = new AppendableBuffer()
