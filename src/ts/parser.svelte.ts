@@ -1700,8 +1700,8 @@ export function risuChatParser(da:string, arg:{
                 else{
                     nested[0] += mc.text
                     tempVar = mc.var
-                    if(tempVar['__force_return__']){
-                        return tempVar['__return__'] ?? 'null'
+                    if(tempVar?.['__force_return__']){
+                        return tempVar?.['__return__'] ?? 'null'
                     }
                 }
                 break
