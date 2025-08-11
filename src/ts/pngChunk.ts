@@ -131,6 +131,9 @@ export const PngChunk = {
     readGenerator: async function*(data:File|Uint8Array|ReadableStream<Uint8Array>, arg:{checkCrc?:boolean,returnTrimed?:boolean} = {}):AsyncGenerator<
         {key:string,value:string}|AppendableBuffer,null
     >{
+        if (data instanceof File) {
+            data = data.stream();
+        }
         const reader = data instanceof ReadableStream ? data.getReader() : null
         let readableStreamData = new AppendableBuffer()
         const trimedData = new AppendableBuffer()
@@ -142,10 +145,7 @@ export const PngChunk = {
         }
 
         async function slice(start:number,end:number):Promise<Uint8Array> {
-            if(data instanceof File){
-                return await blobToUint8Array (data.slice(start,end))
-            }
-            else if(data instanceof Uint8Array){
+            if(data instanceof Uint8Array){
                 return data.slice(start,end)
             }
             else{
@@ -173,7 +173,7 @@ export const PngChunk = {
 
         await appendTrimed(await slice(0,8))
         let pos = 8
-        const size = data instanceof File ? data.size : data instanceof Uint8Array ? data.length : Infinity
+        const size = data instanceof Uint8Array ? data.length : Infinity
         while(pos < size){
             const dataPart = await slice(pos,pos+4)
             const len = dataPart[0] * 0x1000000 + dataPart[1] * 0x10000 + dataPart[2] * 0x100 + dataPart[3]
