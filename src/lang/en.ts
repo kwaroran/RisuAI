@@ -178,6 +178,13 @@ export const languageEnglish = {
         automaticCachePoint: "Automatically creates cache point after the chat ends, if the caching point doesn't exist.",
         experimentalChatCompressionDesc: "Compresses the unused chat data and saves in seperate file. this greatly reduces the size of the chat data, and greatly improves the performance, however its experimental and can be unstable, causing issues in backup feature and more.",
         promptInfoInsideChatDesc: "When enabled, this stores prompt preset information in the chat metadata. The stored data includes the preset name, active toggles, and the prompt text. This may slightly increase processing time and storage usage.",
+        autoAdjustSchema: "When enabled, it will automatically adjust the JSON schema for Dynamic Output.",
+        dynamicMessages: "When enabled, it will allow the assistant to send multiple messages in a row, instead of one at a time.",
+        dynamicMemory: "When enabled, assistant will make memory notes on response time. additional prompting is required to utilize this feature.",
+        dynamicResponseTiming: "When enabled, it will adjust the response timing dynamically.",
+        dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
+        showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
+        dynamicOutputPrompt: "When enabled, the schema information will be included in the request."
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -1315,4 +1322,12 @@ export const languageEnglish = {
     settingsExported: "Settings for bug report exported and copied to clipboard.",
     hideErrorDetails: "Hide Error Details",
     showErrorDetails: "Show Error Details",
+    dynamicOutput: "Dynamic Output",
+    autoAdjustSchema: "Auto Adjust Schema",
+    dynamicMessages: "Dynamic Messages",
+    dynamicMemory: "Dynamic Memory",
+    dynamicResponseTiming: "Dynamic Response Timing",
+    showTypingEffect: "Show Typing Effect",
+    dynamicRequest: "Dynamic Request",
+    dynamicOutputPrompt: "Dynamic Output Prompt"
 }

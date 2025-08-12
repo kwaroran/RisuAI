@@ -187,7 +187,7 @@ export async function getFileSrc(loc:string) {
                         const f:Uint8Array = await forageStorage.getItem(loc) as unknown as Uint8Array
                         await fetch("/sw/register/" + encoded, {
                             method: "POST",
-                            body: f 
+                            body: f as any
                         })
                         fileCache.res[ind] = 'done'
                         await sleep(10)
@@ -1963,7 +1963,7 @@ const pipeFetchLog = (fetchLogIndex: number, readableStream: ReadableStream<Uint
             readableStream.pipeTo(new WritableStream({
                 write(chunk) {
                     controller.enqueue(chunk)
-                    writer.write(chunk)
+                    writer.write(chunk as any)
                 },
                 close() {
                     controller.close()
@@ -2038,7 +2038,7 @@ export async function fetchNative(url:string, arg:{
     })
     if(window.userScriptFetch){
         return await window.userScriptFetch(url,{
-            body: realBody,
+            body: realBody as any,
             headers: headers,
             method: arg.method,
             signal: arg.signal
@@ -2142,7 +2142,7 @@ export async function fetchNative(url:string, arg:{
     else if(throughProxy){
 
         const r = await fetch(hubURL + `/proxy2`, {
-            body: realBody,
+            body: realBody as any,
             headers: arg.useRisuTk ? {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
                 "risu-url": encodeURIComponent(url),
@@ -2168,7 +2168,7 @@ export async function fetchNative(url:string, arg:{
     }
     else{
         return await fetch(url, {
-            body: realBody,
+            body: realBody as any,
             headers: headers,
             method: arg.method,
             signal: arg.signal,

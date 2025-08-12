@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "166.1.1"
+export let appVer = "166.2.1"
 export let webAppSubVer = ''
 
 
@@ -641,6 +641,16 @@ export function setCurrentChat(chat:Chat){
     setCurrentCharacter(char)
 }
 
+export interface DynamicOutput {
+    autoAdjustSchema: boolean
+    dynamicMessages: boolean
+    dynamicMemory: boolean
+    dynamicResponseTiming: boolean
+    dynamicOutputPrompt: boolean
+    showTypingEffect: boolean
+    dynamicRequest: boolean
+}
+
 export interface Database{
     characters: (character|groupChat)[],
     apiType: string
@@ -1065,6 +1075,7 @@ export interface Database{
     showFirstMessagePages:boolean
     streamGeminiThoughts:boolean
     verbosity:number
+    dynamicOutput?:DynamicOutput
 }
 
 interface SeparateParameters{
@@ -1428,6 +1439,7 @@ export interface botPreset{
     }
     fallbackWhenBlankResponse?: boolean
     verbosity:number
+    dynamicOutput?:DynamicOutput
 }
 
 
@@ -1835,6 +1847,7 @@ export function saveCurrentPreset(){
         fallbackModels: safeStructuredClone(db.fallbackModels),
         fallbackWhenBlankResponse: db.fallbackWhenBlankResponse ?? false,
         verbosity: db.verbosity ?? 1,
+        dynamicOutput: db.dynamicOutput ?? null
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1968,6 +1981,7 @@ export function setPreset(db:Database, newPres: botPreset){
     }
     db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
     db.verbosity = newPres.verbosity ?? 1
+    db.dynamicOutput = newPres.dynamicOutput
 
     return db
 }

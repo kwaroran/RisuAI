@@ -2,7 +2,7 @@ import { get } from "svelte/store"
 import { getDatabase, saveImage, setDatabase } from "./storage/database.svelte"
 import { getUserName, selectSingleFile, sleep } from "./util"
 import { alertError, alertNormal, alertStore } from "./alert"
-import { downloadFile, readImage } from "./globalApi.svelte"
+import { AppendableBuffer, downloadFile, readImage } from "./globalApi.svelte"
 import { language } from "src/lang"
 import { reencodeImage } from "./process/files/inlays"
 import { PngChunk } from "./pngChunk"
@@ -101,7 +101,19 @@ export async function exportUserPersona() {
 export async function importUserPersona() {
     try {
         const v = await selectSingleFile(['png'])
-        const decoded = PngChunk.read(v.data, ['persona'])?.persona
+        if (!v) {
+            return
+        }
+        const readGenerator = PngChunk.readGenerator(v.data)
+        let decoded: string | undefined;
+
+        for await (const chunk of readGenerator) {
+            if (chunk && !(chunk instanceof AppendableBuffer) && chunk.key === 'persona') {
+                decoded = chunk.value
+                break
+            }
+        }
+
         if (!decoded) {
             alertError(language.errors.noData)
             return

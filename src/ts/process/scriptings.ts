@@ -223,6 +223,17 @@ export async function runScripted(code:string, arg:{
                 return data
             })
 
+            declareAPI('sleep', (id:string, time:number) => {
+                if(!ScriptingSafeIds.has(id)){
+                    return
+                }
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve(true)
+                    }, time)
+                })
+            })
+
             declareAPI('cbs', (value) => {
                 return risuChatParser(value, { chara: getCurrentCharacter() })
             })
