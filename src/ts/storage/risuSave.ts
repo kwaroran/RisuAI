@@ -1,7 +1,7 @@
 import { Packr, Unpackr, decode } from "msgpackr";
 import * as fflate from "fflate";
 import { AppendableBuffer, isTauri } from "../globalApi.svelte";
-import type { Database } from "./database.svelte";
+import { presetTemplate, type Database } from "./database.svelte";
 
 const packr = new Packr({
     useRecords:false
@@ -324,8 +324,9 @@ export class RisuSaveDecoder {
             }
         }
         //to fix botpreset bugs
-        if(!Array.isArray(db.botPresets)){
-            db.botPresets ??= []
+        if(!Array.isArray(db.botPresets) || db.botPresets.length === 0){
+            db.botPresets ??= [presetTemplate]
+            db.botPresetsId = 0
         }
         console.log('Decoded RisuSave data', db);
         return db;
