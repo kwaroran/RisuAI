@@ -103,7 +103,7 @@ export class RisuSaveEncoder {
         });
         this.blocks['preset'] = await this.encodeBlock({
             compression,
-            data: JSON.stringify(obj),
+            data: JSON.stringify(data.botPresets),
             type: RisuSaveType.BOTPRESET,
             name: 'preset'
         });
@@ -322,6 +322,10 @@ export class RisuSaveDecoder {
                     console.warn(`Not Implemented RisuSaveType: ${this.blocks[key].type} for ${this.blocks[key].name}`);
                 }
             }
+        }
+        //to fix botpreset bugs
+        if(!Array.isArray(db.botPresets)){
+            db.botPresets ??= []
         }
         console.log('Decoded RisuSave data', db);
         return db;
