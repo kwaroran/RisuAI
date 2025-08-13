@@ -4,21 +4,16 @@
     import Hub from "./Realm/RealmMain.svelte";
     import { OpenRealmStore } from "src/ts/stores.svelte";
     import { ArrowLeft } from "lucide-svelte";
-    import { isNodeServer, isTauri, openURL } from "src/ts/globalApi.svelte";
+    import { getVersionString, isNodeServer, isTauri, openURL } from "src/ts/globalApi.svelte";
     import { language } from "src/lang";
     import { getRisuHub, hubAdditionalHTML } from "src/ts/characterCards";
     import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
     import Title from "./Title.svelte";
-
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !$OpenRealmStore}
       <Title />
-      {#if (!isTauri) && (!isNodeServer)}
-        <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
-      {:else}
-        <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
-      {/if}
+      <h3 class="text-textcolor2 mt-1">Version {getVersionString()}</h3>
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !$OpenRealmStore}

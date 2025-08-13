@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "166.2.1"
+export let appVer = "166.2.3"
 export let webAppSubVer = ''
 
 
@@ -1773,7 +1773,7 @@ export const defaultSdDataFunc = () =>{
 export function saveCurrentPreset(){
     let db = getDatabase()
     let pres = db.botPresets
-    pres[db.botPresetsId] = {
+    const savedPreset:botPreset =  {
         name: pres[db.botPresetsId].name,
         apiType: db.apiType,
         openAIKey: db.openAIKey,
@@ -1848,6 +1848,17 @@ export function saveCurrentPreset(){
         fallbackWhenBlankResponse: db.fallbackWhenBlankResponse ?? false,
         verbosity: db.verbosity ?? 1,
         dynamicOutput: db.dynamicOutput ?? null
+    }
+    
+    if(!Array.isArray(pres)){
+        pres = []
+    }
+    //if out of bounds, create a new preset
+    if(db.botPresetsId >= pres.length){
+        pres.push(savedPreset)
+    }
+    else{
+        pres[db.botPresetsId] = savedPreset
     }
     db.botPresets = pres
     setDatabase(db)
@@ -2207,6 +2218,9 @@ export async function importPreset(f:{
         return
     }
     pre.name ??= "Imported"
+    if(!Array.isArray(db.botPresets)){
+        db.botPresets = []
+    }
     db.botPresets.push(pre)
     setDatabase(db)
 }

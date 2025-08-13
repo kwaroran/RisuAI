@@ -13,12 +13,12 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/plugin-shell'
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase, type character } from "./storage/database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase, type character, appVer } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
 import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "./alert";
+import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait, waitAlert } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
 import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
@@ -721,6 +721,12 @@ export async function loadData() {
             updateHeightMode()
             updateErrorHandling()
             updateGuisize()
+            if(!localStorage.getItem('nightlyWarned') && window.location.hostname === 'nightly.risuai.xyz'){
+                alertMd(language.nightlyWarning)
+                await waitAlert()
+                //for testing, leave empty
+                localStorage.setItem('nightlyWarned', '')
+            }
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
@@ -2417,4 +2423,15 @@ export function getLanguageCodes(){
     }).sort((a, b) => a.name.localeCompare(b.name))
 
     return languageCodes
+}
+
+export function getVersionString(): string {
+    let versionString = appVer
+    if(window.location.hostname === 'nightly.risuai.xyz'){
+        versionString = 'Nightly Build'
+    }
+    if(window.location.hostname === 'stable.risuai.xyz'){
+        versionString += ' (Stable)';
+    }
+    return versionString
 }
