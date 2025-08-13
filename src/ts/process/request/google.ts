@@ -689,7 +689,7 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
 
     // traverse responded data if it contains multipart contents
     let parts:GeminiPart[] = []
-    const p = await processDataItem(parts)
+    const p = await processDataItem(res.data)
     parts = parts.concat(p)
 
     parts = parts.filter((p) => p)
