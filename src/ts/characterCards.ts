@@ -40,7 +40,7 @@ export async function importCharacter() {
             checkCharOrder()
         }
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
         return null
     }
 }
@@ -1459,7 +1459,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
     }
     catch(e){
         console.error(e, e.stack)
-        alertError(`${e}`)
+        alertError(e)
     }
 }
 
@@ -1671,7 +1671,7 @@ export async function shareRisuHub2(char:character, arg:{
             setCurrentCharacter(currentChar)
         }   
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 
 }

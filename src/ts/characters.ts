@@ -365,7 +365,7 @@ export async function exportChat(page:number){
         }
         alertNormal(language.successExport)
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -506,7 +506,7 @@ export async function importChat(){
             }
         }
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -527,7 +527,7 @@ export async function exportAllChats() {
         await downloadFile(`${char.name}_all_chats_${date}`.replace(/[<>:"/\\|?*.,]/g, "") + '.json', stringl)
         alertNormal(language.successExport)
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -795,7 +795,7 @@ export async function makeGroupImage() {
             msg: ''
         })
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 

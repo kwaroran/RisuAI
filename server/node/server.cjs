@@ -178,6 +178,9 @@ async function hubProxyFunc(req, res) {
         delete headersToSend.connection;
         delete headersToSend['content-length'];
         
+        const hubOrigin = new URL(hubURL).origin;
+        headersToSend.origin = hubOrigin;
+        
         const response = await fetch(externalURL, {
             method: req.method,
             headers: headersToSend,

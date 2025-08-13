@@ -749,7 +749,7 @@ export async function loadData() {
                 })
             }
         } catch (error) {
-            alertError(`${error}`)
+            alertError(error)
         }
     }
 }

@@ -230,7 +230,7 @@
             }
         } catch (error) {
             console.error(error)
-            alertError(`${error}`)
+            alertError(error)
         }
         lastCharId = $selectedCharID
         $doingChat = false

@@ -3,7 +3,7 @@ import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
-import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
+import { alertSelect, alertError, alertInput, alertNormal, alertConfirm } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
@@ -141,6 +141,12 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 return alertSelect(value)
+            })
+            declareAPI('alertConfirm', (id:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
+                    return
+                }
+                return alertConfirm(value).then(res => res ? true : false)
             })
 
             declareAPI('getChatMain', (id:string, index:number) => {
