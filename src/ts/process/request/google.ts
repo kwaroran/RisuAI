@@ -689,9 +689,16 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
 
     // traverse responded data if it contains multipart contents
     let parts:GeminiPart[] = []
-    const p = await processDataItem(res.data)
-    parts = parts.concat(p)
-
+    if(Array.isArray(res.data)){
+        for(const data of res.data){
+            const p = await processDataItem(data)
+            parts = parts.concat(p)
+        }
+    }
+    else{
+        const p = await processDataItem(res.data)
+        parts = parts.concat(p)
+    }
     parts = parts.filter((p) => p)
 
     const calls = parts.filter((p) => !!p?.functionCall).map((p) => p?.functionCall as GeminiFunctionCall)
