@@ -242,6 +242,10 @@
     <div class="py-2 flex flex-col gap-2 mb-4">
         {#if modelInfo.flags.includes(LLMFlags.hasStreaming) || subModelInfo.flags.includes(LLMFlags.hasStreaming)}
             <Check bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`}/>
+            
+            {#if DBState.db.useStreaming && (modelInfo.flags.includes(LLMFlags.geminiThinking) || subModelInfo.flags.includes(LLMFlags.geminiThinking))}
+                <Check bind:check={DBState.db.streamGeminiThoughts} name={`Stream Gemini Thoughts`}/>
+            {/if}
         {/if}
 
         {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
@@ -312,7 +316,7 @@
 
     {#if modelInfo.parameters.includes('thinking_tokens')}
         <span class="text-textcolor">{language.thinkingTokens}</span>
-        <SliderInput min={0} max={64000} marginBottom step={200} bind:value={DBState.db.thinkingTokens} disableable/>
+        <SliderInput min={-1} max={64000} marginBottom step={200} bind:value={DBState.db.thinkingTokens} disableable/>
 
     {/if}
     <span class="text-textcolor">{language.temperature} <Help key="tempature"/></span>
@@ -337,7 +341,11 @@
     {/if}
     {#if modelInfo.parameters.includes('reasoning_effort')}
         <span class="text-textcolor">Reasoning Effort</span>
-        <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.reasoningEffort} disableable/>
+        <SliderInput min={-1} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.reasoningEffort} disableable/>
+    {/if}
+    {#if modelInfo.parameters.includes('verbosity')}
+        <span class="text-textcolor">Verbosity</span>
+    <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.verbosity} disableable/>
     {/if}
     {#if DBState.db.aiModel === 'textgen_webui' || DBState.db.aiModel === 'mancer' || DBState.db.aiModel.startsWith('local_') || DBState.db.aiModel.startsWith('hf:::')}
         <span class="text-textcolor">Repetition Penalty</span>
@@ -509,6 +517,8 @@
                     <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].presence_penalty} disableable/>
                     <span class="text-textcolor">{language.thinkingTokens}</span>
                     <SliderInput min={0} max={64000} marginBottom step={200} fixed={0} bind:value={DBState.db.seperateParameters[param].thinking_tokens} disableable/>
+                    <span class="text-textcolor">Verbosity</span>
+                    <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.seperateParameters[param].verbosity} disableable/>
                 </Arcodion>
             {/each}
 
@@ -705,6 +715,7 @@
             const canvas = document.createElement('canvas')
             const ctx = canvas.getContext('2d')
             const img = new Image()
+            //@ts-ignore, works fine, don't touch
             const blob = new Blob([sel.data], {type: "image/png"})
             img.src = URL.createObjectURL(blob)
             await img.decode()

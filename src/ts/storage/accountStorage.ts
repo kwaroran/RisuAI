@@ -40,7 +40,7 @@ export class AccountStorage{
                 method: "POST",
                 body: value,
                 headers: {
-                    'content-type': 'application/json',
+                    'content-type': 'application/octet-stream',
                     'x-risu-key': key,
                     'x-risu-auth': this.auth,
                     'X-Format': 'nocheck',

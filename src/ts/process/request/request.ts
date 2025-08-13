@@ -92,7 +92,7 @@ export type requestDataResponse = {
 
 export interface StreamResponseChunk{[key:string]:string}
 
-export type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'|'reasoning_effort'|'thinking_tokens'
+export type Parameter = 'temperature'|'top_k'|'repetition_penalty'|'min_p'|'top_a'|'top_p'|'frequency_penalty'|'presence_penalty'|'reasoning_effort'|'thinking_tokens'|'verbosity'
 export type ModelModeExtended = 'model'|'submodel'|'memory'|'emotion'|'otherAx'|'translate'
 type ParameterMap = {
     [key in Parameter]?: string;
@@ -121,6 +121,26 @@ export function applyParameters(data: { [key: string]: any }, parameters: Parame
 
     function getEffort(effort:number){
         switch(effort){
+            case -1:{
+                return 'minimal'
+            }
+            case 0:{
+                return 'low'
+            }
+            case 1:{
+                return 'medium'
+            }
+            case 2:{
+                return 'high'
+            }
+            default:{
+                return 'medium'
+            }
+        }
+    }
+
+    function getVerbosity(verbosity:number){
+        switch(verbosity){
             case 0:{
                 return 'low'
             }
@@ -189,6 +209,10 @@ export function applyParameters(data: { [key: string]: any }, parameters: Parame
                     value = getEffort(db.seperateParameters[ModelMode].reasoning_effort)
                     break
                 }
+                case 'verbosity':{
+                    value = getVerbosity(db.seperateParameters[ModelMode].verbosity)
+                    break
+                }
             }
 
             if(value === -1000 || value === undefined){
@@ -233,6 +257,10 @@ export function applyParameters(data: { [key: string]: any }, parameters: Parame
             }
             case 'reasoning_effort':{
                 value = getEffort(db.reasoningEffort)
+                break
+            }
+            case 'verbosity':{
+                value = getVerbosity(db.verbosity)
                 break
             }
             case 'frequency_penalty':{

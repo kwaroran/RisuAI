@@ -18,7 +18,8 @@ A plugin is a js file with a header. for example:
 
 - `@name <name>` - The name of the plugin. This is used to identify the plugin. required.
 - `@display-name <display_name>` - The display name of the plugin. This is used to display the plugin in the UI.
-- `@arg <name> <type>` Argument definition. This is used to define the arguments that the plugin takes. The type can be `int` or `string`.
+- `@arg <name> <type>` Argument definition. This is used to define the arguments that the plugin takes. The type can be `int` or `string`. If name starts with `hidden_`, it will be hidden from the UI while still being available in the code.
+- `@link <url> [hoverText]` A link to the plugin documentation or repository. Link shouldn't contain space character. The hover text is optional and will be displayed when hovering over the link in the UI. Recommend to use this to link to the plugin documentation, repository, publish page, etc.
 
 ## API Reference
 

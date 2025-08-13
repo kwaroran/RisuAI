@@ -6,8 +6,9 @@ const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const fs = require('fs/promises')
 const crypto = require('crypto')
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.raw({ type: 'application/octet-stream', limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.raw({ type: 'application/octet-stream', limit: '100mb' }));
+app.use(express.text({ limit: '100mb' }));
 const {pipeline} = require('stream/promises')
 const https = require('https');
 const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
@@ -162,6 +163,11 @@ const reverseProxyFunc_get = async (req, res, next) => {
 }
 
 async function hubProxyFunc(req, res) {
+    const excludedHeaders = [
+        'content-encoding',
+        'content-length',
+        'transfer-encoding'
+    ];
 
     try {
         const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
@@ -170,39 +176,47 @@ async function hubProxyFunc(req, res) {
         const headersToSend = { ...req.headers };
         delete headersToSend.host;
         delete headersToSend.connection;
+        delete headersToSend['content-length'];
+        
+        const hubOrigin = new URL(hubURL).origin;
+        headersToSend.origin = hubOrigin;
         
         const response = await fetch(externalURL, {
             method: req.method,
             headers: headersToSend,
-            body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
+            body: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : undefined,
             redirect: 'manual',
             duplex: 'half'
         });
         
         for (const [key, value] of response.headers.entries()) {
+            // Skip encoding-related headers to prevent double decoding
+            if (excludedHeaders.includes(key.toLowerCase())) {
+                continue;
+            }
             res.setHeader(key, value);
         }
         res.status(response.status);
         
-        if (response.status >= 300 && response.status < 400) {
-            // Redirect handling (due to ‘/redirect/docs/lua’)
+        if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
             const redirectUrl = response.headers.get('location');
-            if (redirectUrl) {
-                
-                if (redirectUrl.startsWith('http')) {
-                    
-                    if (redirectUrl.startsWith(hubURL)) {
-                        const newPath = redirectUrl.replace(hubURL, '/hub-proxy');
-                        res.setHeader('location', newPath);
-                    }
-                    
-                } else if (redirectUrl.startsWith('/')) {
-                    
-                    res.setHeader('location', `/hub-proxy${redirectUrl}`);
+            const newHeaders = { ...headersToSend };
+            const redirectResponse = await fetch(redirectUrl, {
+                method: req.method,
+                headers: newHeaders,
+                body: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : undefined,
+                redirect: 'manual',
+                duplex: 'half'
+            });
+            for (const [key, value] of redirectResponse.headers.entries()) {
+                if (excludedHeaders.includes(key.toLowerCase())) {
+                    continue;
                 }
+                res.setHeader(key, value);
             }
-
-            return res.end();
+            res.status(redirectResponse.status);
+            await pipeline(redirectResponse.body, res);
+            return;
         }
         
         await pipeline(response.body, res);

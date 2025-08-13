@@ -294,10 +294,14 @@ let lastModules = ''
 let lastModuleData:RisuModule[] = []
 export function getModules(){
     const currentChat = getCurrentChat()
+    const character = getCurrentCharacter()
     const db = getDatabase()
     let ids = db.enabledModules ?? []
     if (currentChat){
         ids = ids.concat(currentChat.modules ?? [])
+    }
+    if(character && character.modules){
+        ids = ids.concat(character.modules)
     }
     if(db.moduleIntergration){
         const intList = db.moduleIntergration.split(',').map((s) => s.trim())

@@ -117,6 +117,7 @@ const ProviderNames = new Map<LLMProvider, string>([
 ])
 
 const OpenAIParameters:Parameter[] = ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
+const GPT5Parameters:Parameter[] = ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'reasoning_effort','verbosity']
 const ClaudeParameters:Parameter[] = ['temperature', 'top_k', 'top_p']
 
 function makeDeepInfraModels(id:string[]):LLMModel[]{
@@ -179,7 +180,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasFullSystemPrompt,
             LLMFlags.hasStreaming
         ],
-        recommended: true,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -195,7 +195,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.OAICompletionTokens
         ],
-        recommended: true,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -211,7 +210,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.OAICompletionTokens
         ],
-        recommended: false,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -226,7 +224,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasFullSystemPrompt,
             LLMFlags.hasStreaming
         ],
-        recommended: true,
         parameters: OpenAIParameters,
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
@@ -522,6 +519,123 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.tiktokenO200Base
     },
     {
+        id: 'gpt-5',
+        internalID: 'gpt-5',
+        name: 'GPT 5',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5',
+        internalID: 'gpt-5-2025-08-07',
+        name: 'GPT 5 (2025-08-07)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
+        id: 'gpt-5-mini',
+        internalID: 'gpt-5-mini',
+        name: 'GPT 5 Mini',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5-mini-2025-08-07',
+        internalID: 'gpt-5-mini-2025-08-07',
+        name: 'GPT 5 Mini (2025-08-07)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
+        id: 'gpt-5-nano',
+        internalID: 'gpt-5-nano',
+        name: 'GPT 5 Nano',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5-nano-2025-08-07',
+        internalID: 'gpt-5-nano-2025-08-07',
+        name: 'GPT 5 Nano (2025-08-07)',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5Parameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+        {
+        id: 'gpt-5-chat-latest',
+        internalID: 'gpt-5-chat-latest',
+        name: 'GPT 5 Chat',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        //Note: this is special case
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
         id: 'o1',
         internalID: 'o1',
         name: 'o1',
@@ -614,7 +728,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.hasStreaming,
             LLMFlags.claudeThinking
         ],
-        recommended: true,
         parameters: [...ClaudeParameters, 'thinking_tokens'],
         tokenizer: LLMTokenizer.Claude
     },
@@ -638,6 +751,23 @@ export const LLMModels: LLMModel[] = [
     {
         name: "Claude 4 Opus (20250514)",
         id: 'claude-opus-4-20250514',
+        shortName: "4 Opus",
+        provider: LLMProvider.Anthropic,
+        format: LLMFormat.Anthropic,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.hasStreaming,
+            LLMFlags.claudeThinking
+        ],
+        recommended: false,
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
+        name: "Claude 4.1 Opus (20250805)",
+        id: 'claude-opus-4-1-20250805',
         shortName: "4 Opus",
         provider: LLMProvider.Anthropic,
         format: LLMFormat.Anthropic,
@@ -1086,8 +1216,8 @@ export const LLMModels: LLMModel[] = [
         id: 'gemini-2.5-pro-exp',
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
-        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasImageOutput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        flags: [LLMFlags.geminiThinking, LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasImageOutput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
     },
     {
@@ -1096,7 +1226,7 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
     },
     {
@@ -1105,9 +1235,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
     },
         {
         name: "Gemini Pro 2.5 Preview (06/05)",
@@ -1115,9 +1244,8 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
     },
     {
         name: "Gemini Pro 2.5",
@@ -1125,7 +1253,7 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
         recommended: true
     },
@@ -1135,7 +1263,7 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
     },
     {
@@ -1144,7 +1272,35 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+    },
+    {
+        name: "Gemini Flash 2.5",
+        id: 'gemini-2.5-flash',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
+    {
+        name: "Gemini Flash Lite 2.5 preview (06/17)",
+        id: 'gemini-2.5-flash-lite-preview-06-17',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+    },
+    {
+        name: "Gemini Flash Lite 2.5",
+        id: 'gemini-2.5-flash-lite',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
         recommended: true
     },
@@ -1164,7 +1320,7 @@ export const LLMModels: LLMModel[] = [
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
         flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.geminiThinking, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
     },
     {
@@ -1175,7 +1331,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole],
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Flash Lite Preview 2.0 0205",
@@ -1185,7 +1341,7 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.noCivilIntegrity],
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Pro 2.0 Exp 0128",
@@ -1204,17 +1360,17 @@ export const LLMModels: LLMModel[] = [
         flags: [LLMFlags.geminiBlockOff,LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.noCivilIntegrity],
         parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Flash 2.0 Thinking 0121",
         id: 'gemini-2.0-flash-thinking-exp-01-21',
         provider: LLMProvider.GoogleCloud,
         format: LLMFormat.GoogleCloud,
-        flags: [LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.geminiThinking, LLMFlags.requiresAlternateRole],
-        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        flags: [LLMFlags.geminiThinking, LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.geminiThinking, LLMFlags.requiresAlternateRole],
+        parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
-        recommended: true
+        recommended: false
     },
     {
         name: "Gemini Pro 1.5",

@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "165.1.0"
+export let appVer = "166.3.0"
 export let webAppSubVer = ''
 
 
@@ -229,6 +229,9 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.showMemoryLimit)){
         data.showMemoryLimit = false
+    }
+    if(checkNullish(data.showFirstMessagePages)){
+        data.showFirstMessagePages = false
     }
     if(checkNullish(data.supaMemoryKey)){
         data.supaMemoryKey = ""
@@ -570,6 +573,7 @@ export function setDatabase(data:Database){
     data.authRefreshes ??= []
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
+    data.streamGeminiThoughts ??= false
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -635,6 +639,16 @@ export function setCurrentChat(chat:Chat){
     const char = getCurrentCharacter()
     char.chats[char.chatPage] = chat
     setCurrentCharacter(char)
+}
+
+export interface DynamicOutput {
+    autoAdjustSchema: boolean
+    dynamicMessages: boolean
+    dynamicMemory: boolean
+    dynamicResponseTiming: boolean
+    dynamicOutputPrompt: boolean
+    showTypingEffect: boolean
+    dynamicRequest: boolean
 }
 
 export interface Database{
@@ -1058,7 +1072,10 @@ export interface Database{
     simplifiedToolUse:boolean
     requestLocation:string
     newImageHandlingBeta?: boolean
-
+    showFirstMessagePages:boolean
+    streamGeminiThoughts:boolean
+    verbosity:number
+    dynamicOutput?:DynamicOutput
 }
 
 interface SeparateParameters{
@@ -1073,6 +1090,7 @@ interface SeparateParameters{
     reasoning_effort?:number
     thinking_tokens?:number
     outputImageModal?:boolean
+    verbosity?:number
 }
 
 type OutputModal = 'image'|'audio'|'video'
@@ -1248,6 +1266,7 @@ export interface character{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 
@@ -1325,6 +1344,7 @@ export interface groupChat{
     prebuiltAssetCommand?:boolean
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
+    modules?:string[]
 }
 
 export interface botPreset{
@@ -1418,6 +1438,8 @@ export interface botPreset{
         model: string[]
     }
     fallbackWhenBlankResponse?: boolean
+    verbosity:number
+    dynamicOutput?:DynamicOutput
 }
 
 
@@ -1733,6 +1755,7 @@ export const presetTemplate:botPreset = {
     },
     top_p: 1,
     useInstructPrompt: false,
+    verbosity: 1
 }
 
 const defaultSdData:[string,string][] = [
@@ -1752,7 +1775,7 @@ export const defaultSdDataFunc = () =>{
 export function saveCurrentPreset(){
     let db = getDatabase()
     let pres = db.botPresets
-    pres[db.botPresetsId] = {
+    const savedPreset:botPreset =  {
         name: pres[db.botPresetsId].name,
         apiType: db.apiType,
         openAIKey: db.openAIKey,
@@ -1825,6 +1848,19 @@ export function saveCurrentPreset(){
         modelTools: safeStructuredClone(db.modelTools),
         fallbackModels: safeStructuredClone(db.fallbackModels),
         fallbackWhenBlankResponse: db.fallbackWhenBlankResponse ?? false,
+        verbosity: db.verbosity ?? 1,
+        dynamicOutput: db.dynamicOutput ?? null
+    }
+    
+    if(!Array.isArray(pres)){
+        pres = []
+    }
+    //if out of bounds, create a new preset
+    if(db.botPresetsId >= pres.length){
+        pres.push(savedPreset)
+    }
+    else{
+        pres[db.botPresetsId] = savedPreset
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1957,6 +1993,8 @@ export function setPreset(db:Database, newPres: botPreset){
         db.fallbackWhenBlankResponse = newPres.fallbackWhenBlankResponse ?? false
     }
     db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
+    db.verbosity = newPres.verbosity ?? 1
+    db.dynamicOutput = newPres.dynamicOutput
 
     return db
 }
@@ -2182,6 +2220,9 @@ export async function importPreset(f:{
         return
     }
     pre.name ??= "Imported"
+    if(!Array.isArray(db.botPresets)){
+        db.botPresets = []
+    }
     db.botPresets.push(pre)
     setDatabase(db)
 }

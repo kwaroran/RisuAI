@@ -60,7 +60,7 @@ export async function importRegex(o?:customscript[]):Promise<customscript[]>{
         }
 
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
     return o
 }

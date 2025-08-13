@@ -13,22 +13,22 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import {open} from '@tauri-apps/plugin-shell'
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase, type character } from "./storage/database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase, type character, appVer } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
 import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "./alert";
+import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait, waitAlert } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
 import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSave, encodeRisuSaveLegacy } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveCompressionStream, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
-import { saveDbKei } from "./kei/backup";
+import { autoServerBackup, saveDbKei } from "./kei/backup";
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import * as CapFS from '@capacitor/filesystem'
 import { save } from "@tauri-apps/plugin-dialog";
@@ -187,7 +187,7 @@ export async function getFileSrc(loc:string) {
                         const f:Uint8Array = await forageStorage.getItem(loc) as unknown as Uint8Array
                         await fetch("/sw/register/" + encoded, {
                             method: "POST",
-                            body: f 
+                            body: f as any
                         })
                         fileCache.res[ind] = 'done'
                         await sleep(10)
@@ -322,6 +322,9 @@ export let saving = $state({
  * 
  * @returns {Promise<void>} - A promise that resolves when the database has been saved.
  */
+export let requiresFullEncoderReload = $state({
+    state: false
+})
 export async function saveDb(){
     let changed = false
     syncDrive()
@@ -345,25 +348,73 @@ export async function saveDb(){
         }
     }
 
+    const changeTracker:toSaveType = {
+        character: [],
+        chat: [],
+        botPreset: false,
+        modules: false
+    }
+
+    let encoder = new RisuSaveEncoder()
+    await encoder.init(getDatabase(), {
+        compression: forageStorage.isAccount
+    })
 
     $effect.root(() => {
 
         let selIdState = $state(0)
-        let oldSaveHash = ''
+
+        const debounceTime = 500; // 500 milliseconds
+        let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
         selectedCharID.subscribe((v) => {
             selIdState = v
         })
 
+        function saveTimeoutExecute() {
+            if (saveTimeout) {
+                clearTimeout(saveTimeout);
+            }
+            saveTimeout = setTimeout(() => {
+                changed = true;
+            }, debounceTime);
+        }
+
         $effect(() => {
-            $state.snapshot(DBState?.db?.characters?.[selIdState])
+            DBState.db.botPresetsId
+            DBState.db.botPresets.length
+            changeTracker.botPreset = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
+            $state.snapshot(DBState.db.modules)
+            changeTracker.modules = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
             for(const key in DBState.db){
-                if(key !== 'characters'){
+                if(key !== 'characters' && key !== 'botPresets' && key !== 'modules'){
                     $state.snapshot(DBState.db[key])
                 }
             }
-
-            changed = true
+            if(DBState?.db?.characters?.[selIdState]){
+                for(const key in DBState.db.characters[selIdState]){
+                    if(key !== 'chats'){
+                        $state.snapshot(DBState.db.characters[selIdState][key])
+                    }
+                }
+                $state.snapshot(DBState.db.characters[selIdState].chats)
+                if(changeTracker.character[0] !== DBState.db.characters[selIdState]?.chaId){
+                    changeTracker.character.unshift(DBState.db.characters[selIdState]?.chaId)
+                }
+                if(
+                    changeTracker.chat[0]?.[0] !== DBState.db.characters[selIdState]?.chaId ||
+                    changeTracker.chat[0]?.[1] !== DBState.db.characters[selIdState]?.chats[DBState.db.characters[selIdState]?.chatPage].id
+                ){
+                    changeTracker.chat.unshift([DBState.db.characters[selIdState]?.chaId, DBState.db.characters[selIdState]?.chats[DBState.db.characters[selIdState]?.chatPage].id])
+                }
+            }
+            saveTimeoutExecute()
         })
     })
 
@@ -378,8 +429,21 @@ export async function saveDb(){
 
         saving.state = true
         changed = false
-
         try {
+
+            if(requiresFullEncoderReload.state){
+                encoder = new RisuSaveEncoder()
+                await encoder.init(getDatabase(), {
+                    compression: forageStorage.isAccount
+                })
+                requiresFullEncoderReload.state = false
+            }
+
+            let toSave = safeStructuredClone(changeTracker)
+            changeTracker.character = changeTracker.character.length === 0 ? [] : [changeTracker.character[0]]
+            changeTracker.chat = changeTracker.chat.length === 0 ? [] : [changeTracker.chat[0]]
+            changeTracker.botPreset = false
+            changeTracker.modules = false
             if(gotChannel){
                 //Data is saved in other tab
                 await sleep(1000)
@@ -393,49 +457,29 @@ export async function saveDb(){
                 await sleep(1000)
                 continue
             }
+
+
             if(isTauri){
-                const dbData = encodeRisuSaveLegacy(db)
+                await encoder.set(db, toSave)
+                const dbData = new Uint8Array(encoder.encode())
                 await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData});
                 await writeFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {baseDir: BaseDirectory.AppData});
             }
             else{
+                await encoder.set(db, toSave)
+                const dbData = new Uint8Array(encoder.encode())
+                await forageStorage.setItem('database/database.bin', dbData)
                 if(!forageStorage.isAccount){
-                    const dbData = encodeRisuSaveLegacy(db)
-                    await forageStorage.setItem('database/database.bin', dbData)
                     await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
                 }
                 if(forageStorage.isAccount){
-                    const dbData = await encodeRisuSave(db)
-                    
-                    if(lastDbData.length === dbData.length){
-                        let same = true
-                        for(let i = 20; i < dbData.length; i++){
-                            if(dbData[i] !== lastDbData[i]){
-                                same = false
-                                break
-                            }
-                        }   
-
-                        if(same){
-                            await sleep(500)
-                            continue
-                        }
-                    }
-
-                    lastDbData = dbData
-                    const z:Database = await decodeRisuSave(dbData)
-                    if(z.formatversion){
-                        await forageStorage.setItem('database/database.bin', dbData)
-                    }
-
                     await sleep(3000)
                 }
             }
             if(!forageStorage.isAccount){
                 await getDbBackups()
             }
-            savetrys = 0
-            
+            savetrys = 0            
             await saveDbKei()
             await sleep(500)
         } catch (error) {
@@ -585,7 +629,7 @@ export async function loadData() {
                         } catch (error) {}
                     }
                     if(!backupLoaded){
-                        throw "Your save file is corrupted"
+                        throw "Forage: Your save file is corrupted"
                     }
                 }
 
@@ -616,7 +660,9 @@ export async function loadData() {
                             } catch (error) {}
                         }
                         if(!backupLoaded){
-                            throw "Your save file is corrupted"
+                            // throw "Your save file is corrupted"
+                            await autoServerBackup()
+                            await sleep(10000)
                         }
                     }
                 }
@@ -675,6 +721,12 @@ export async function loadData() {
             updateHeightMode()
             updateErrorHandling()
             updateGuisize()
+            if(!localStorage.getItem('nightlyWarned') && window.location.hostname === 'nightly.risuai.xyz'){
+                alertMd(language.nightlyWarning)
+                await waitAlert()
+                //for testing, leave empty
+                localStorage.setItem('nightlyWarned', '')
+            }
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
@@ -685,6 +737,7 @@ export async function loadData() {
             loadedStore.set(true)
             selectedCharID.set(-1)
             startObserveDom()
+            assignIds()
             makeColdData()
             saveDb()
             moduleUpdate()
@@ -696,7 +749,7 @@ export async function loadData() {
                 })
             }
         } catch (error) {
-            alertError(`${error}`)
+            alertError(error)
         }
     }
 }
@@ -1291,6 +1344,12 @@ async function checkNewFormat(): Promise<void> {
         //migration removed due to issues
         db.formatversion = 4;
     }
+    if(db.formatversion < 5){
+        if(db.loreBookToken < 8000){
+            db.loreBookToken = 8000;
+        }
+        db.formatversion = 5;
+    }
     if (!db.characterOrder) {
         db.characterOrder = [];
     }
@@ -1472,6 +1531,37 @@ function formDataToString(formData: FormData): string {
     }
   
     return params.join('&');
+}
+
+//Assigns unique IDs to chara and chat
+function assignIds(){
+    if(!DBState?.db?.characters){
+        return
+    }
+    const assignedIds = new Set<string>()
+    for(let i=0;i<DBState.db.characters.length;i++){
+        const cha = DBState.db.characters[i]
+        if(!cha.chaId){
+            cha.chaId = uuidv4()
+        }
+        if(assignedIds.has(cha.chaId)){
+            console.warn(`Duplicate chaId found: ${cha.chaId}. Assigning new ID.`);
+            cha.chaId = uuidv4();
+        }
+        assignedIds.add(cha.chaId)
+        for(let i2=0;i2<cha.chats.length;i2++){
+            const chat = cha.chats[i2]
+            if(!chat.id){
+                chat.id = uuidv4()
+            }
+            if(assignedIds.has(chat.id)){
+                console.warn(`Duplicate chat ID found: ${chat.id}. Assigning new ID.`);
+                chat.id = uuidv4();
+            }
+            assignedIds.add(chat.id)
+        }
+    }
+
 }
 
 /**
@@ -1879,7 +1969,7 @@ const pipeFetchLog = (fetchLogIndex: number, readableStream: ReadableStream<Uint
             readableStream.pipeTo(new WritableStream({
                 write(chunk) {
                     controller.enqueue(chunk)
-                    writer.write(chunk)
+                    writer.write(chunk as any)
                 },
                 close() {
                     controller.close()
@@ -1954,7 +2044,7 @@ export async function fetchNative(url:string, arg:{
     })
     if(window.userScriptFetch){
         return await window.userScriptFetch(url,{
-            body: realBody,
+            body: realBody as any,
             headers: headers,
             method: arg.method,
             signal: arg.signal
@@ -2058,7 +2148,7 @@ export async function fetchNative(url:string, arg:{
     else if(throughProxy){
 
         const r = await fetch(hubURL + `/proxy2`, {
-            body: realBody,
+            body: realBody as any,
             headers: arg.useRisuTk ? {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
                 "risu-url": encodeURIComponent(url),
@@ -2084,7 +2174,7 @@ export async function fetchNative(url:string, arg:{
     }
     else{
         return await fetch(url, {
-            body: realBody,
+            body: realBody as any,
             headers: headers,
             method: arg.method,
             signal: arg.signal,
@@ -2333,4 +2423,15 @@ export function getLanguageCodes(){
     }).sort((a, b) => a.name.localeCompare(b.name))
 
     return languageCodes
+}
+
+export function getVersionString(): string {
+    let versionString = appVer
+    if(window.location.hostname === 'nightly.risuai.xyz'){
+        versionString = 'Nightly Build'
+    }
+    if(window.location.hostname === 'stable.risuai.xyz'){
+        versionString += ' (Stable)';
+    }
+    return versionString
 }

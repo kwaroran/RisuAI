@@ -594,9 +594,24 @@ export interface simpleCharacterArgument{
 }
 
 function parseThoughtsAndTools(data:string){
-    return data.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (full, txt) => {
-        return `<details><summary>${language.cot}</summary>${txt}</details>`
-    }).replace(/<tool_call>(.+?)<\/tool_call>/gms, (full, txt:string) => {
+    let result = '', i = 0
+    while (i < data.length) {
+        if (data.substr(i, 10) === '<Thoughts>') {
+            let j = i + 10, depth = 1
+            while (j < data.length && depth > 0) {
+                if (data.substr(j, 10) === '<Thoughts>') depth++
+                if (data.substr(j, 11) === '</Thoughts>') depth--
+                j++
+            }
+            if (depth === 0) {
+                result += `<details><summary>${language.cot}</summary>${data.substring(i + 10, j - 1)}</details>`
+                i = j + 10
+                continue
+            }
+        }
+        result += data[i++]
+    }
+    return result.replace(/<tool_call>(.+?)<\/tool_call>/gms, (full, txt:string) => {
         return `<div class="x-risu-tool-call">🛠️ ${language.toolCalled.replace('{{tool}}',txt.split('\uf100')?.[1] ?? 'unknown')}</div>\n\n`
     })
 }
@@ -665,9 +680,11 @@ export async function postTranslationParse(data:string){
     return data
 }
 
-export function parseMarkdownSafe(data:string) {
+export function parseMarkdownSafe(data:string, arg:{
+    forbidTags?: string[],
+} = {}) {
     return DOMPurify.sanitize(renderMarkdown(md, data), {
-        FORBID_TAGS: ["a", "style"],
+        FORBID_TAGS: ["a", "style", ...(arg.forbidTags || [])],
         FORBID_ATTR: ["style", "href", "class"]
     })
 }
@@ -931,6 +948,10 @@ function matcher (p1:string,matcherArg:matcherArg,vars:{[key:string]:string}|nul
     initMatcher()
 
     try {
+        if(p1.startsWith('? ')){
+            const substring = p1.substring(2)
+            return calcString(substring).toString()
+        }
         const colonIndex = p1.indexOf(':')
         let splited: string[]
         if(colonIndex !== -1 && p1[colonIndex + 1] === ':'){
@@ -1085,10 +1106,228 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
         }
         return {type:'ignore'}
     }
-    if(p1.startsWith(':if')){
-        const statement = p1.split(' ', 2)
-        const state = statement[1]
-        return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
+
+    if(p1.startsWith('#when')){
+        if(p1.startsWith('#when ')){
+            const statement = p1.split(' ', 2)
+            const state = statement[1]
+            return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
+        }
+        else if(p1.startsWith('#when::')){
+            const statement = p1.split('::').slice(1)
+            if(statement.length === 1){
+                const state = statement[0]
+                return {type: (state === 'true' || state === '1') ? 'newif' : 'newif-falsy'}
+            }
+            let mode: 'normal' | 'keep' | 'legacy' = 'normal'
+
+            const isTruthy = (s:string) => {
+                return s === 'true' || s === '1'
+            }
+            while(statement.length > 1){
+                const condition = statement.pop()
+                const operator = statement.pop()
+                switch(operator){
+                    case 'not':{
+                        if(isTruthy(condition)){
+                            statement.push('0')
+                        }
+                        else{
+                            statement.push('1')
+                        }
+                        break
+                    }
+                    case 'keep':{
+                        mode = 'keep'
+                        break
+                    }
+                    case 'legacy':{
+                        mode = 'legacy'
+                        break
+                    }
+                    case 'and':{
+                        const condition2 = statement.pop()
+                        if(isTruthy(condition) && isTruthy(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'or':{
+                        const condition2 = statement.pop()
+                        if(isTruthy(condition) || isTruthy(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'is':{
+                        const condition2 = statement.pop()
+                        if(condition === condition2){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'isnot':{
+                        const condition2 = statement.pop()
+                        if(condition !== condition2){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'var':{
+                        const variable = getChatVar(condition)
+                        if(isTruthy(variable)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'toggle':{
+                        const variable = getGlobalChatVar('toggle_' + condition)
+                        if(isTruthy(variable)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'vis':{ //vis = variable is
+                        const variable = getChatVar(statement.pop())
+                        if(variable === condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'visnot':{ //visnot = variable is not
+                        const variable = getChatVar(statement.pop())
+                        if(variable !== condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                    }
+                    case 'tis':{ //tis = toggle is
+                        const variable = getGlobalChatVar('toggle_' + statement.pop())
+                        console.log('tis', variable, condition)
+                        if(variable === condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case 'tisnot':{ //tisnot = toggle is not
+                        const variable = getGlobalChatVar('toggle_' + statement.pop())
+                        if(variable !== condition){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '>':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) > parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '<':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) < parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '>=':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) >= parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    case '<=':{
+                        const condition2 = statement.pop()
+                        if(parseFloat(condition) <= parseFloat(condition2)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                    default:{
+                        if(isTruthy(condition)){
+                            statement.push('1')
+                        }
+                        else{
+                            statement.push('0')
+                        }
+                        break
+                    }
+                }
+            }
+
+            const finalCondition = statement[0]
+            if(isTruthy(finalCondition)){
+                switch(mode){
+                    case 'keep':{
+                        return {type: 'newif', type2: 'keep'}
+                    }
+                    case 'legacy':{
+                        return {type: 'parse'}
+                    }
+                    default:{
+                        return {type: 'newif'}
+                    }
+                }
+            }
+            else{
+                switch(mode){
+                    case 'keep':{
+                        return {type: 'newif-falsy', type2: 'keep'}
+                    }
+                    case 'legacy':{
+                        return {type: 'ignore'}
+                    }
+                    default:{
+                        return {type: 'newif-falsy'}
+                    }
+                }
+            }
+        }
+        else{
+            return {type: 'newif-falsy'}
+        }
     }
     if(p1 === '#pure'){
         return {type:'pure'}
@@ -1180,11 +1419,13 @@ function blockEndMatcher(p1:string,type:{type:blockMatch,type2?:string},matcherA
                 return ''
             }
 
-            while(lines.length > 0 && lines[0].trim() === ''){
-                lines.shift()
-            }
-            while(lines.length > 0 && lines[lines.length - 1].trim() === ''){
-                lines.pop()
+            if(type.type2 !== 'keep'){
+                while(lines.length > 0 && lines[0].trim() === ''){
+                    lines.shift()
+                }
+                while(lines.length > 0 && lines[lines.length - 1].trim() === ''){
+                    lines.pop()
+                }
             }
             return lines.join('\n')
         }
@@ -1459,8 +1700,8 @@ export function risuChatParser(da:string, arg:{
                 else{
                     nested[0] += mc.text
                     tempVar = mc.var
-                    if(tempVar['__force_return__']){
-                        return tempVar['__return__'] ?? 'null'
+                    if(tempVar?.['__force_return__']){
+                        return tempVar?.['__return__'] ?? 'null'
                     }
                 }
                 break

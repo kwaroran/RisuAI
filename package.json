@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build --sourcemap",
+    "tauribuild": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "tauri": "tauri",
@@ -109,7 +110,7 @@
     "@types/libsodium-wrappers-sumo": "^0.7.8",
     "@types/lodash": "^4.14.202",
     "@types/lodash.isequal": "^4.5.8",
-    "@types/node": "^18.19.7",
+    "@types/node": "^22.17.0",
     "@types/showdown": "^2.0.6",
     "@types/sortablejs": "^1.15.7",
     "@types/streamsaver": "^2.0.4",
