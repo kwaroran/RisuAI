@@ -378,7 +378,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
 
     async function generateToken(email:string,key:string){
         if (!window.crypto || !window.crypto.subtle) {
-            throw new Error("Web Crypto API is not available in this environment.");
+            throw new Error("Web Crypto API is not available in this environment. Please ensure you are using HTTPS.");
         }
         // Input validation
         if (!email.includes("gserviceaccount.com")) {
