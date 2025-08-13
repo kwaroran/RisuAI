@@ -683,7 +683,7 @@ export async function importLoreBook(mode:'global'|'local'|'sglobal'){
             DBState.db.characters[selectedID].chats[page].localLore = lore
         }
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -747,6 +747,6 @@ export async function exportLoreBook(mode:'global'|'local'|'sglobal'){
 
         alertNormal(language.successExport)
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }

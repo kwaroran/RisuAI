@@ -134,7 +134,7 @@ export async function importUserPersona() {
             alertError(language.errors.noData)
         }
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
         return
     }
 }

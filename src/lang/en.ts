@@ -1320,6 +1320,8 @@ export const languageEnglish = {
     requestLocation: "Request Location",
     newImageHandlingBeta: "New Image Handling (Beta)",
     settingsExported: "Settings for bug report exported and copied to clipboard.",
+    hideErrorDetails: "Hide Error Details",
+    showErrorDetails: "Show Error Details",
     dynamicOutput: "Dynamic Output",
     autoAdjustSchema: "Auto Adjust Schema",
     dynamicMessages: "Dynamic Messages",
