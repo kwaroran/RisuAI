@@ -68,6 +68,15 @@ export function alertError(msg: string | Error) {
     })
 }
 
+export async function waitAlert(){
+    while(true){
+        if (get(alertStoreImported).type === 'none'){
+            break
+        }
+        await sleep(10)
+    }
+}
+
 export function alertNormal(msg:string){
     alertStoreImported.set({
         'type': 'normal',
@@ -80,12 +89,7 @@ export async function alertNormalWait(msg:string){
         'type': 'normal',
         'msg': msg
     })
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 }
 
 export async function alertAddCharacter() {
@@ -93,12 +97,7 @@ export async function alertAddCharacter() {
         'type': 'addchar',
         'msg': language.addCharacter
     })
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return get(alertStoreImported).msg
 }
@@ -108,12 +107,7 @@ export async function alertChatOptions() {
         'type': 'chatOptions',
         'msg': language.chatOptions
     })
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return parseInt(get(alertStoreImported).msg)
 }
@@ -123,12 +117,7 @@ export async function alertLogin(){
         'type': 'login',
         'msg': 'login'
     })
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return get(alertStoreImported).msg
 }
@@ -140,12 +129,7 @@ export async function alertSelect(msg:string[], display?:string){
         'msg': message
     })
 
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return get(alertStoreImported).msg
 }
@@ -155,12 +139,7 @@ export async function alertErrorWait(msg:string){
         'type': 'wait2',
         'msg': msg
     })
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 }
 
 export function alertMd(msg:string){
@@ -203,12 +182,7 @@ export async function alertSelectChar(){
         'msg': ''
     })
 
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return get(alertStoreImported).msg
 }
@@ -220,12 +194,7 @@ export async function alertConfirm(msg:string){
         'msg': msg
     })
 
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return get(alertStoreImported).msg === 'yes'
 }
@@ -238,12 +207,7 @@ export async function alertCardExport(type:string = ''){
         'submsg': type
     })
 
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return JSON.parse(get(alertStoreImported).msg) as {
         type: string,
@@ -262,12 +226,7 @@ export async function alertTOS(){
         'msg': 'tos'
     })
 
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     if(get(alertStoreImported).msg === 'yes'){
         localStorage.setItem('tos2', 'true')
@@ -285,12 +244,7 @@ export async function alertInput(msg:string, datalist?:[string, string][]) {
         'datalist': datalist ?? []
     })
 
-    while(true){
-        if (get(alertStoreImported).type === 'none'){
-            break
-        }
-        await sleep(10)
-    }
+    await waitAlert()
 
     return get(alertStoreImported).msg
 }

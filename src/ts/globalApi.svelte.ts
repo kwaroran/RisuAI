@@ -18,7 +18,7 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
 import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
-import { alertConfirm, alertError, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait } from "./alert";
+import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait, waitAlert } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
 import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
@@ -721,6 +721,12 @@ export async function loadData() {
             updateHeightMode()
             updateErrorHandling()
             updateGuisize()
+            if(!localStorage.getItem('nightlyWarned') && window.location.hostname === 'nightly.risuai.xyz'){
+                alertMd(language.nightlyWarning)
+                await waitAlert()
+                //for testing, leave empty
+                localStorage.setItem('nightlyWarned', '')
+            }
             if(db.botSettingAtStart){
                 botMakerMode.set(true)
             }
