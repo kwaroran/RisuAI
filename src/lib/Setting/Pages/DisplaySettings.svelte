@@ -233,196 +233,188 @@
 {/if}
 
 {#if submenu === 2 || submenu === -1}
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>
+    <div class="border border-darkborderc p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold mb-2">{language.general}</h3>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.fullScreen} onChange={changeFullscreen} name={language.fullscreen}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.showMemoryLimit} name={language.showMemoryLimit}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.showFirstMessagePages} name={language.showFirstMessagePages}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.hideRealm} name={language.hideRealm}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.showFolderName} name={language.showFolderNameInIcon}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.showSavingIcon} name={language.showSavingIcon}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.showPromptComparison} name={language.showPromptComparison}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.useAdditionalAssetsPreview} name={language.useAdditionalAssetsPreview}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.hideApiKey} name={language.hideApiKeys}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.menuSideBar} name={language.menuSideBar}/>
+        </div>
     </div>
 
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.showMemoryLimit} name={language.showMemoryLimit}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.showFirstMessagePages} name={language.showFirstMessagePages}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.hideRealm} name={language.hideRealm}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.showFolderName} name={language.showFolderNameInIcon}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check check={DBState.db.customBackground !== ''} onChange={async (check) => {
-            if(check){
-                DBState.db.customBackground = '-'
-                const d = await selectSingleFile(['png', 'webp', 'gif'])
-                if(!d){
+    <div class="border border-darkborderc p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold mb-2">{language.background}</h3>
+        <div class="flex items-center mt-2">
+            <Check check={DBState.db.customBackground !== ''} onChange={async (check) => {
+                if(check){
+                    DBState.db.customBackground = '-'
+                    const d = await selectSingleFile(['png', 'webp', 'gif'])
+                    if(!d){
+                        DBState.db.customBackground = ''
+                        return
+                    }
+                    const img = await saveImage(d.data)
+                    DBState.db.customBackground = img
+                }
+                else{
                     DBState.db.customBackground = ''
+                }
+            }} name={language.useCustomBackground}></Check>
+        </div>
+    </div>
+
+    <div class="border border-darkborderc p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold mb-2">{language.sound}</h3>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.playMessage} name={language.playMessage}/>
+            <span> <Help key="msgSound" name={language.playMessage}/></span>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.playMessageOnTranslateEnd } name={language.playMessageOnTranslateEnd}/>
+        </div>
+    </div>
+
+    <div class="border border-darkborderc p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold mb-2">{language.chatbox}</h3>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.roundIcons} name={language.roundIcons}/>
+        </div>
+        {#if DBState.db.textScreenColor}
+            <div class="flex items-center mt-2">
+                <Check check={true} onChange={() => {
+                    DBState.db.textScreenColor = null
+                }} name={language.textBackgrounds} hiddenName/>
+                <input type="color" class="style2 text-sm mr-2" bind:value={DBState.db.textScreenColor} >
+                <span>{language.textBackgrounds}</span>
+            </div>
+        {:else}
+            <div class="flex items-center mt-2">
+                <Check check={false} onChange={() => {
+                    DBState.db.textScreenColor = "#121212"
+                }} name={language.textBackgrounds}/>
+            </div>
+        {/if}
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.textBorder} name={language.textBorder}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.textScreenRounded} name={language.textScreenRound}/>
+        </div>
+        {#if DBState.db.textScreenBorder}
+            <div class="flex items-center mt-2">
+                <Check check={true} onChange={() => {
+                    DBState.db.textScreenBorder = null
+                }} name={language.textScreenBorder} hiddenName/>
+                <input type="color" class="style2 text-sm mr-2" bind:value={DBState.db.textScreenBorder} >
+                <span>{language.textScreenBorder}</span>
+            </div>
+        {:else}
+            <div class="flex items-center mt-2">
+                <Check check={false} onChange={() => {
+                    DBState.db.textScreenBorder = "#121212"
+                }} name={language.textScreenBorder}/>
+            </div>
+        {/if}
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.useChatCopy} name={language.useChatCopy}/>
+        </div>
+    </div>
+
+    <div class="border border-darkborderc p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold mb-2">{language.quotes}</h3>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.unformatQuotes} name={language.unformatQuotes}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.customQuotes} name={language.customQuotes}/>
+        </div>
+        {#if DBState.db.customQuotes}
+            <span class="text-textcolor mt-4">{language.leadingDoubleQuote}</span>
+            <TextInput bind:value={DBState.db.customQuotesData[0]} />
+
+            <span class="text-textcolor mt-4">{language.trailingDoubleQuote}</span>
+            <TextInput bind:value={DBState.db.customQuotesData[1]} />
+
+            <span class="text-textcolor mt-4">{language.leadingSingleQuote}</span>
+            <TextInput bind:value={DBState.db.customQuotesData[2]} />
+
+            <span class="text-textcolor mt-4">{language.trailingSingleQuote}</span>
+            <TextInput bind:value={DBState.db.customQuotesData[3]} />
+        {/if}
+    </div>
+
+    <div class="border border-darkborderc p-4 rounded-lg mb-4">
+        <h3 class="text-lg font-semibold mb-2">{language.advanced}</h3>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.useLegacyGUI} name={language.useLegacyGUI}/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.betaMobileGUI} name={language.betaMobileGUI}/>
+            <Help key="betaMobileGUI"/>
+        </div>
+        <div class="flex items-center mt-2">
+            <Check bind:check={DBState.db.notification} name={language.notification} onChange={async (e) => {
+                let hasPermission = {state: 'denied'}
+                try {
+                    hasPermission = await navigator.permissions.query({name: 'notifications'})                
+                } catch (error) {
+                    //for browsers that do not support permissions api
+                }
+                if(!DBState.db.notification){
                     return
                 }
-                const img = await saveImage(d.data)
-                DBState.db.customBackground = img
-            }
-            else{
-                DBState.db.customBackground = ''
-            }
-        }} name={language.useCustomBackground}></Check>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.playMessage} name={language.playMessage}/>
-        <span> <Help key="msgSound" name={language.playMessage}/></span>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.playMessageOnTranslateEnd } name={language.playMessageOnTranslateEnd}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.roundIcons} name={language.roundIcons}/>
-    </div>
-
-    {#if DBState.db.textScreenColor}
-        <div class="flex items-center mt-2">
-            <Check check={true} onChange={() => {
-                DBState.db.textScreenColor = null
-            }} name={language.textBackgrounds} hiddenName/>
-            <input type="color" class="style2 text-sm mr-2" bind:value={DBState.db.textScreenColor} >
-            <span>{language.textBackgrounds}</span>
-        </div>
-    {:else}
-        <div class="flex items-center mt-2">
-            <Check check={false} onChange={() => {
-                DBState.db.textScreenColor = "#121212"
-            }} name={language.textBackgrounds}/>
-        </div>
-
-
-    {/if}
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.textBorder} name={language.textBorder}/>
-    </div>
-
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.textScreenRounded} name={language.textScreenRound}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.showSavingIcon} name={language.showSavingIcon}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.showPromptComparison} name={language.showPromptComparison}/>
-    </div>
-
-    {#if DBState.db.textScreenBorder}
-        <div class="flex items-center mt-2">
-            <Check check={true} onChange={() => {
-                DBState.db.textScreenBorder = null
-            }} name={language.textScreenBorder} hiddenName/>
-            <input type="color" class="style2 text-sm mr-2" bind:value={DBState.db.textScreenBorder} >
-            <span>{language.textScreenBorder}</span>
-        </div>
-    {:else}
-        <div class="flex items-center mt-2">
-            <Check check={false} onChange={() => {
-                DBState.db.textScreenBorder = "#121212"
-            }} name={language.textScreenBorder}/>
-        </div>
-    {/if}
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.useChatCopy} name={language.useChatCopy}/>
-    </div>
-
-    <!-- <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.logShare} name={language.logShare}/>
-    </div> -->
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.useAdditionalAssetsPreview} name={language.useAdditionalAssetsPreview}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.useLegacyGUI} name={language.useLegacyGUI}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.hideApiKey} name={language.hideApiKeys}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.unformatQuotes} name={language.unformatQuotes}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.customQuotes} name={language.customQuotes}/>
-    </div>
-
-    {#if DBState.db.customQuotes}
-        <span class="text-textcolor mt-4">{language.leadingDoubleQuote}</span>
-        <TextInput bind:value={DBState.db.customQuotesData[0]} />
-
-        <span class="text-textcolor mt-4">{language.trailingDoubleQuote}</span>
-        <TextInput bind:value={DBState.db.customQuotesData[1]} />
-
-        <span class="text-textcolor mt-4">{language.leadingSingleQuote}</span>
-        <TextInput bind:value={DBState.db.customQuotesData[2]} />
-
-        <span class="text-textcolor mt-4">{language.trailingSingleQuote}</span>
-        <TextInput bind:value={DBState.db.customQuotesData[3]} />
-    {/if}
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.betaMobileGUI} name={language.betaMobileGUI}/>
-        <Help key="betaMobileGUI"/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.menuSideBar} name={language.menuSideBar}/>
-    </div>
-
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.notification} name={language.notification} onChange={async (e) => {
-            let hasPermission = {state: 'denied'}
-            try {
-                hasPermission = await navigator.permissions.query({name: 'notifications'})                
-            } catch (error) {
-                //for browsers that do not support permissions api
-            }
-            if(!DBState.db.notification){
-                return
-            }
-            if(hasPermission.state === 'denied'){
-                const permission = await Notification.requestPermission()
-                if(permission === 'denied'){
-                    alertError(language.permissionDenied)
-                    DBState.db.notification = false
+                if(hasPermission.state === 'denied'){
+                    const permission = await Notification.requestPermission()
+                    if(permission === 'denied'){
+                        alertError(language.permissionDenied)
+                        DBState.db.notification = false
+                    }
                 }
-            }
-        }}/>
+            }}/>
+        </div>
+        {#if DBState.db.showUnrecommended}
+            <div class="flex items-center mt-2">
+                <Check bind:check={DBState.db.useChatSticker} name={language.useChatSticker}/>
+                <Help key="unrecommended" name={language.useChatSticker} unrecommended/>
+            </div>
+
+            <div class="flex items-center mt-2">
+                <Check bind:check={DBState.db.useAdvancedEditor} name={language.useAdvancedEditor}/>
+                <Help key="unrecommended" unrecommended/>
+            </div>    
+        {/if}
     </div>
 
-    {#if DBState.db.showUnrecommended}
-        <div class="flex items-center mt-2">
-            <Check bind:check={DBState.db.useChatSticker} name={language.useChatSticker}/>
-            <Help key="unrecommended" name={language.useChatSticker} unrecommended/>
-        </div>
-
-        <div class="flex items-center mt-2">
-            <Check bind:check={DBState.db.useAdvancedEditor} name={language.useAdvancedEditor}/>
-            <Help key="unrecommended" unrecommended/>
-        </div>    
-    {/if}
-
-    <span class="text-textcolor mt-4">{language.customCSS}<Help key="customCSS" /></span>
-    <TextAreaInput bind:value={DBState.db.customCSS} onInput={() => {
-        updateTextThemeAndCSS()
-    }} />
-
+    <div class="border border-darkborderc p-4 rounded-lg">
+        <h3 class="text-lg font-semibold mb-2">{language.customCSS}</h3>
+        <span class="text-textcolor mt-4">{language.customCSS}<Help key="customCSS" /></span>
+        <TextAreaInput bind:value={DBState.db.customCSS} onInput={() => {
+            updateTextThemeAndCSS()
+        }} />
+    </div>
 {/if}
