@@ -1176,4 +1176,5 @@ export const languageKorean = {
     "insertAssetPrompt": "에셋 프롬프트 삽입",
     "requestLocation": "리퀘스트 위치",
     "folderRemoveConfirm": "이 폴더에는 로어북이 포함되어 있습니다. 폴더와 그 안의 모든 항목을 삭제하시겠습니까?",
+    "nightlyWarning": "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**"
 }
