@@ -20,8 +20,11 @@ import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
 
 const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz';
+const NIGHTLY_HUB_URL = 'https://nightly.sv.risuai.xyz'
 export const hubURL = typeof window !== 'undefined' && (window as any).__NODE__ === true
     ? '/hub-proxy'
+    : (window.location.hostname === 'nightly.risuai.xyz')
+    ? NIGHTLY_HUB_URL 
     : EXTERNAL_HUB_URL;
 
 export async function importCharacter() {
