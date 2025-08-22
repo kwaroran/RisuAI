@@ -20,6 +20,7 @@
     let output = $state('')
     let loading = $state(false);
     let aspectRatio = 1;
+    let fontFamily = $state('Arial');
 
     async function selectFile(){
         const file = await selectSingleFile(['png', 'jpg', 'jpeg','gif','webp','avif']);
@@ -197,7 +198,9 @@
                     bg_hex_color: resultParsed.bg_hex_color,
                     text_hex_color: resultParsed.text_hex_color,
                     content: resultParsed.content,
-                    translation: resultParsed.translation
+                    translation: resultParsed.translation,
+                    center: true,
+                    fontSize: 0, //0 = auto
                 });
                 console.log(outputObj)
                 output = JSON.stringify(outputObj, null, 2);
@@ -257,9 +260,13 @@
             let lineHeight = 0;
             let fillText:[string,number,number][] = []
             for(let i = 0; i < textSizes.length; i++){
-                ctx.font = `${textSizes[i]}px Arial`;
+                let fontSize = textSizes[i];
+                if(item.fontSize && item.fontSize < fontSize){
+                    fontSize = item.fontSize;
+                }
+                ctx.font = `${fontSize}px ${fontFamily}`;
                 fillText = [];
-                lineHeight = textSizes[i] * 1.2;
+                lineHeight = fontSize * 1.2;
                 let words = text.split(/[\n\r\s]+/);
                 let line = '';
                 let y = y_min + lineHeight;
@@ -274,7 +281,11 @@
                     }
                     if (testWidth > maxWidth && n > 0) {
                         ctx.fillStyle = item.text_hex_color;
-                        fillText.push([line, x_min, y]);
+                        let x = x_min
+                        if(item.center){
+                            x = x_min + (maxWidth - ctx.measureText(line).width) / 2;
+                        }
+                        fillText.push([line, x, y]);
                         line = words[n] + ' ';
                         y += lineHeight;
                     } else {
@@ -285,7 +296,11 @@
                     continue
                 }
                 ctx.fillStyle = item.text_hex_color;
-                fillText.push([line, x_min, y]);
+                let x = x_min;
+                if(item.center){
+                    x = x_min + (maxWidth - ctx.measureText(line).width) / 2;
+                }
+                fillText.push([line, x, y]);
                 break
             }
 
@@ -321,6 +336,10 @@
 
 <span class="text-textcolor text-lg mt-4">{language.prompt}</span>
 <TextAreaInput bind:value={prompt} />
+
+
+<span class="text-textcolor text-lg mt-4">{language.font}</span>
+<TextAreaInput bind:value={fontFamily} />
 
 {#if mode === 'manual'}
     <Button className="mt-4" onclick={selectFile}>
