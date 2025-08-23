@@ -1,5 +1,5 @@
 import { BaseDirectory, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
-import { alertError, alertNormal, alertStore, alertWait } from "../alert";
+import { alertError, alertNormal, alertStore, alertWait, alertMd, waitAlert } from "../alert";
 import { LocalWriter, forageStorage, isTauri, requiresFullEncoderReload } from "../globalApi.svelte";
 import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
 import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
@@ -36,30 +36,100 @@ export async function SaveLocalBackup(){
         return
     }
 
+    const db = getDatabase()
+    const assetMap = new Map<string, { charName: string, assetName: string }>()
+    if (db.characters) {
+        for (const char of db.characters) {
+            if (!char) continue
+            const charName = char.name ?? 'Unknown Character'
+            
+            if (char.image) assetMap.set(char.image, { charName: charName, assetName: 'Main Image' })
+            
+            if (char.emotionImages) {
+                for (const em of char.emotionImages) {
+                    if (em && em[1]) assetMap.set(em[1], { charName: charName, assetName: em[0] })
+                }
+            }
+            if (char.type !== 'group') {
+                if (char.additionalAssets) {
+                    for (const em of char.additionalAssets) {
+                        if (em && em[1]) assetMap.set(em[1], { charName: charName, assetName: em[0] })
+                    }
+                }
+                if (char.vits) {
+                    const keys = Object.keys(char.vits.files)
+                    for (const key of keys) {
+                        const vit = char.vits.files[key]
+                        if (vit) assetMap.set(vit, { charName: charName, assetName: key })
+                    }
+                }
+                if (char.ccAssets) {
+                    for (const asset of char.ccAssets) {
+                        if (asset && asset.uri) assetMap.set(asset.uri, { charName: charName, assetName: asset.name })
+                    }
+                }
+            }
+        }
+    }
+    if (db.userIcon) {
+        assetMap.set(db.userIcon, { charName: 'User Settings', assetName: 'User Icon' })
+    }
+    if (db.customBackground) {
+        assetMap.set(db.customBackground, { charName: 'User Settings', assetName: 'Custom Background' })
+    }
+    const missingAssets: string[] = []
+
     if(isTauri){
         const assets = await readDir('assets', {baseDir: BaseDirectory.AppData})
         let i = 0;
         for(let asset of assets){
             i += 1;
-            alertWait(`Saving local Backup... (${i} / ${assets.length})`)
+            let message = `Saving local Backup... (${i} / ${assets.length})`
+            if (missingAssets.length > 0) {
+                const skippedItems = missingAssets.map(key => {
+                    const assetInfo = assetMap.get(key);
+                    return assetInfo ? `'${assetInfo.assetName}' from ${assetInfo.charName}` : `'${key}'`;
+                }).join(', ');
+                message += `\n(Skipping... ${skippedItems})`;
+            }
+            alertWait(message)
+
             const key = asset.name
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.writeBackup(key, await readFile('assets/' + asset.name, {baseDir: BaseDirectory.AppData}))
+            const data = await readFile('assets/' + asset.name, {baseDir: BaseDirectory.AppData})
+            if (data) {
+                await writer.writeBackup(key, data)
+            } else {
+                missingAssets.push(key)
+            }
         }
     }
     else{
         const keys = await forageStorage.keys()
 
         for(let i=0;i<keys.length;i++){
-            alertWait(`Saving local Backup... (${i} / ${keys.length})`)
-
             const key = keys[i]
+            let message = `Saving local Backup... (${i + 1} / ${keys.length})`
+            if (missingAssets.length > 0) {
+                const skippedItems = missingAssets.map(key => {
+                    const assetInfo = assetMap.get(key);
+                    return assetInfo ? `'${assetInfo.assetName}' from ${assetInfo.charName}` : `'${key}'`;
+                }).join(', ');
+                message += `\n(Skipping... ${skippedItems})`;
+            }
+            alertWait(message)
+
             if(!key || !key.endsWith('.png')){
                 continue
             }
-            await writer.writeBackup(key, await forageStorage.getItem(key) as unknown as Uint8Array)
+            const data = await forageStorage.getItem(key) as unknown as Uint8Array
+            if (data) {
+                await writer.writeBackup(key, data)
+            } else {
+                missingAssets.push(key)
+            }
             if(forageStorage.isAccount){
                 await sleep(1000)
             }
@@ -68,13 +138,25 @@ export async function SaveLocalBackup(){
 
     const dbData = encodeRisuSaveLegacy(getDatabase(), 'compression')
 
-    alertWait(`Saving local Backup... (Saving database)`)
+    alertWait(`Saving local Backup... (Saving database)`) 
 
     await writer.writeBackup('database.risudat', dbData)
-
-    alertNormal('Success')
-
     await writer.close()
+
+    if (missingAssets.length > 0) {
+        let message = 'Backup Successful, but the following assets were missing and skipped:\n\n'
+        for (const key of missingAssets) {
+            const assetInfo = assetMap.get(key)
+            if (assetInfo) {
+                message += `* **${assetInfo.assetName}** (from *${assetInfo.charName}*)  \n  *File: ${key}*\n`
+            } else {
+                message += `* **Unknown Asset**  \n  *File: ${key}*\n`
+            }
+        }
+        alertMd(message)
+    } else {
+        alertNormal('Success')
+    }
 }
 
 export async function LoadLocalBackup(){
