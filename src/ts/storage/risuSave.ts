@@ -122,6 +122,14 @@ export class RisuSaveEncoder {
                 name: character.chaId
             });
         }
+        this.blocks['config'] = await this.encodeBlock({
+            compression,
+            data: JSON.stringify({
+                version: 1
+            }),
+            type: RisuSaveType.CONFIG,
+            name: "config"
+        })
     }
 
     async set(data:Database, toSave:toSaveType){
@@ -193,6 +201,9 @@ export class RisuSaveEncoder {
     encode(arg:{
         compression?: boolean
     } = {}){
+        if(!this.blocks['config']){
+            return null
+        }
         let totalLength = 0
         for(const key in this.blocks){
             totalLength += this.blocks[key].length;

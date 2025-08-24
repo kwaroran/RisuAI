@@ -9,7 +9,7 @@ export class NodeStorage{
         await this.checkAuth()
         const da = await fetch('/api/write', {
             method: "POST",
-            body: value,
+            body: value as any,
             headers: {
                 'content-type': 'application/octet-stream',
                 'file-path': Buffer.from(key, 'utf-8').toString('hex'),

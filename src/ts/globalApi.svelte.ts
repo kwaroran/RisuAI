@@ -463,35 +463,31 @@ export async function saveDb(){
                 continue
             }
 
+            await encoder.set(db, toSave)
+            const encoded = encoder.encode()
+            if(!encoded){
+                await sleep(1000)
+                continue
+            }
+            const dbData = new Uint8Array(encoded)
 
             if(isTauri){
-                await encoder.set(db, toSave)
-                const dbData = new Uint8Array(encoder.encode())
                 await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData});
                 await writeFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {baseDir: BaseDirectory.AppData});
             }
             else{
-                if(!forageStorage.isAccount){      
+                if(!forageStorage.isAccount){
+                    let saved = false
                     if (supportsPatchSync) {
                         const patchData = await patcher.set(db, toSave)
-                        const saved = await forageStorage.patchItem('database/database.bin', patchData);
-
-                        if (!saved) {
-                            const dbData = encodeRisuSaveLegacy(db)
-                            await forageStorage.setItem('database/database.bin', dbData);
-                            await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
-                        } 
+                        saved = await forageStorage.patchItem('database/database.bin', patchData);
                     }
-                    else {
-                        encoder.set(db, toSave)
-                        const dbData = new Uint8Array(encoder.encode())
-                        await forageStorage.setItem('database/database.bin', dbData)
+                    if (!saved) {
+                        await forageStorage.setItem('database/database.bin', dbData);
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
                     }
                 }
                 if(forageStorage.isAccount){
-                    encoder.set(db, toSave)
-                    const dbData = new Uint8Array(encoder.encode())
                     await forageStorage.setItem('database/database.bin', dbData)
                     await sleep(3000)
                 }
