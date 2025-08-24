@@ -2,6 +2,7 @@ import { Packr, Unpackr, decode } from "msgpackr";
 import * as fflate from "fflate";
 import { AppendableBuffer, isTauri } from "../globalApi.svelte";
 import { presetTemplate, type Database } from "./database.svelte";
+import { compare } from 'fast-json-patch'
 
 const packr = new Packr({
     useRecords:false
@@ -426,4 +427,215 @@ function checkHeader(data: Uint8Array) {
 
     // All bytes matched
     return header;
-  }
+}
+
+const PRIME_MULTIPLIER = 31;
+
+const SEED_OBJECT = 17;
+const SEED_ARRAY = 19;
+const SEED_STRING = 23;
+const SEED_NUMBER = 29;
+const SEED_BOOLEAN = 31;
+const SEED_NULL = 37;
+
+function calculateHash(node: any): number {
+    if (node === null || node === undefined) return SEED_NULL;
+    switch (typeof node) {
+        case 'object':
+            if (Array.isArray(node)) {
+                let arrayHash = SEED_ARRAY;
+                for (const item of node)
+                    arrayHash = (Math.imul(arrayHash, PRIME_MULTIPLIER) + calculateHash(item)) >>> 0;
+                return arrayHash;
+            } else {
+                // Independent of key order
+                let objectHash = SEED_OBJECT;
+                for (const key in node)
+                    objectHash += (Math.imul(calculateHash(key), PRIME_MULTIPLIER) + calculateHash(node[key]));
+                return objectHash >>> 0;
+            }
+        case 'string':
+            let strHash = 2166136261;
+            for (let i = 0; i < node.length; i++)
+                strHash = Math.imul(strHash ^ node.charCodeAt(i), 16777619);
+            return Math.imul(SEED_STRING, PRIME_MULTIPLIER) + (strHash >>> 0);
+        case 'number':
+            let numHash;
+            if (Number.isInteger(node) && node >= -2147483648 && node <= 2147483647) 
+                numHash = node >>> 0; 
+            else {
+                const str = node.toString();
+                numHash = 2166136261;
+                for (let i = 0; i < str.length; i++) 
+                    numHash = Math.imul(numHash ^ str.charCodeAt(i), 16777619);
+                numHash = numHash >>> 0;
+            }
+            return Math.imul(SEED_NUMBER, PRIME_MULTIPLIER) + numHash;
+        case 'boolean':
+            return Math.imul(SEED_BOOLEAN, PRIME_MULTIPLIER) + (node ? 1 : 0);
+            
+        default:
+            return 0;
+    }
+}
+
+function normalizeJSON(value: any): any {
+    if (value === null || value === undefined) return null;
+    if (typeof value !== 'object') {
+        if (typeof value === 'number' && !isFinite(value)) return null;
+        if (typeof value === 'function' || 
+            typeof value === 'symbol' || 
+            typeof value === 'bigint') 
+            return undefined; 
+        return value;
+    }
+    if (value instanceof Date) return value.toISOString();
+    if (value instanceof RegExp || value instanceof Error) return {};
+    if (Array.isArray(value)) {
+        const result = [];
+        for (const item of value) {
+            if (item === undefined) {
+                result.push(null);
+            } else {
+                const normalized = normalizeJSON(item);
+                result.push(normalized === undefined ? null : normalized);
+            }
+        }
+        return result;
+    }
+    const result = {};
+    for (const key in value) {
+        if (Object.prototype.hasOwnProperty.call(value, key)) {
+            const propValue = value[key];
+            if (propValue !== undefined) {
+                const normalized = normalizeJSON(propValue);
+                if (normalized !== undefined) 
+                    result[key] = normalized;
+            }
+        }
+    }
+    return result;
+}
+
+export class RisuSavePatcher {
+    private lastSyncedDb: any;
+    private hashBlocks: { [key: string]: number } = {};
+    private curPatch: any[] = [];
+
+    hash(): string {
+        
+        this.hashBlocks['characters'] = SEED_ARRAY;
+        for (const character of this.lastSyncedDb.characters) {
+            this.hashBlocks['characters'] = (Math.imul(this.hashBlocks['characters'], PRIME_MULTIPLIER) + this.hashBlocks[character.chaId]) >>> 0;
+        }
+        
+        const keys = Object.keys(this.lastSyncedDb)
+        
+        let rootHash = SEED_OBJECT;
+        for (const key of keys) {
+            rootHash += (Math.imul(calculateHash(key), PRIME_MULTIPLIER) + this.hashBlocks[key])
+        }
+        return (rootHash >>> 0).toString(16);
+    }
+
+    async init(data: any) {
+        this.lastSyncedDb = normalizeJSON(data);
+        this.hashBlocks = {};
+
+        const keys = Object.keys(this.lastSyncedDb)
+
+        for(const key of keys){
+            if(key !== 'characters'){
+                this.hashBlocks[key] = calculateHash(this.lastSyncedDb[key]);
+            }
+        }
+
+        for(const character of this.lastSyncedDb.characters) {
+            this.hashBlocks[character.chaId] = calculateHash(character);
+        }
+    }
+
+    async set(data: any, toSave: toSaveType): Promise<{ patch: any[]; expectedHash: string }> {
+        const expectedHash: string = this.hash();
+        const patch: any[] = []
+
+        const { 
+            characters: lastCharacters, 
+            botPresets: lastBotPresets, 
+            modules: lastModules, 
+            ...lastRoot 
+        } = this.lastSyncedDb
+
+        const { 
+            characters: curCharacters, 
+            botPresets: curBotPresets, 
+            modules: curModules, 
+            ...curRoot 
+        } = data
+
+        const normRoot = normalizeJSON(curRoot)
+        patch.push(...compare(lastRoot, normRoot))
+        const keys = Object.keys(normRoot)
+        for(const key of keys) {
+            this.hashBlocks[key] = calculateHash(normRoot[key]);
+        }
+
+        if(toSave.botPreset) {
+            const normBotPresets = normalizeJSON(curBotPresets)
+            patch.push(...compare({botPresets: lastBotPresets}, {botPresets: normBotPresets}))
+            this.hashBlocks['botPresets'] = calculateHash(normBotPresets);
+            this.lastSyncedDb.botPresets = normBotPresets;
+        }
+
+        if(toSave.modules) {
+            const normModules = normalizeJSON(curModules)
+            patch.push(...compare({modules: lastModules}, {modules: normModules}))
+            this.hashBlocks['modules'] = calculateHash(normModules);
+            this.lastSyncedDb.modules = normModules;
+        }
+
+        for(let i = 0; i < Math.max(lastCharacters.length, curCharacters.length); i++) {
+            const lastChar = lastCharacters[i]
+            const curChar = curCharacters[i]
+
+            if(toSave.character.includes(curChar?.chaId ?? '') ||
+               toSave.character.includes(lastChar?.chaId ?? '') ||
+               lastChar?.chaId != curChar?.chaId) 
+            {
+                const normChar = normalizeJSON(curChar)
+
+                if(!normChar) {
+                    patch.push({op: 'remove', path: `/characters/${i}`})
+                    this.lastSyncedDb.characters[i] = null;
+                }
+                else if(!lastChar) {
+                    patch.push({op: 'add', path: `/characters/${i}`, value: normChar})
+                    this.hashBlocks[normChar.chaId] = calculateHash(normChar);
+                    this.lastSyncedDb.characters[i] = normChar;
+                }
+                else {
+                    let charPatch = compare(lastChar, normChar).map((v) => {
+                        v.path = `/characters/${i}` + v.path;
+                        return v;
+                    })
+                    patch.push(...charPatch);
+                    this.hashBlocks[normChar.chaId] = calculateHash(normChar);
+                    this.lastSyncedDb.characters[i] = normChar;
+                }
+            }
+        }
+        this.lastSyncedDb.characters = this.lastSyncedDb.characters.filter(Boolean);
+
+        this.lastSyncedDb = {
+            characters: this.lastSyncedDb.characters,
+            botPresets: this.lastSyncedDb.botPresets,
+            modules: this.lastSyncedDb.modules,
+            ...normRoot
+        }
+
+        return {
+            patch,
+            expectedHash
+        }
+    }
+}

@@ -5,6 +5,14 @@ const htmlparser = require('node-html-parser');
 const { existsSync, mkdirSync, readFileSync, writeFileSync } = require('fs');
 const fs = require('fs/promises')
 const crypto = require('crypto')
+const { applyPatch } = require('fast-json-patch')
+const { 
+    decodeRisuSave, 
+    encodeRisuSaveLegacy, 
+    calculateHash,
+    normalizeJSON,
+} = require('./utils.cjs')
+
 app.use(express.static(path.join(process.cwd(), 'dist'), {index: false}));
 app.use(express.json({ limit: '100mb' }));
 app.use(express.raw({ type: 'application/octet-stream', limit: '100mb' }));
@@ -15,6 +23,20 @@ const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
 const hubURL = 'https://sv.risuai.xyz'; 
 
 let password = ''
+
+// Configuration flags for patch-based sync
+let enablePatchSync = true
+const [major, minor, patch] = process.version.slice(1).split('.').map(Number);
+// v22.7.0, v23 and above have a bug with msgpackr that causes it to crash on encoding risu saves
+if (major >= 23 || (major === 22 && minor === 7 && patch === 0)) {
+    console.log(`[Server] Detected problematic Node.js version ${process.version}. Disabling patch-based sync.`);
+    enablePatchSync = false;
+}
+
+// In-memory database cache for patch-based sync
+let dbCache = {}
+let saveTimers = {}
+const SAVE_INTERVAL = 5000 // Save to disk after 5 seconds of inactivity
 
 const savePath = path.join(process.cwd(), "save")
 if(!existsSync(savePath)){
@@ -40,7 +62,7 @@ app.get('/', async (req, res, next) => {
         const mainIndex = await fs.readFile(path.join(process.cwd(), 'dist', 'index.html'))
         const root = htmlparser.parse(mainIndex)
         const head = root.querySelector('head')
-        head.innerHTML = `<script>globalThis.__NODE__ = true</script>` + head.innerHTML
+        head.innerHTML = `<script>globalThis.__NODE__ = true; globalThis.__PATCH_SYNC__ = ${enablePatchSync}</script>` + head.innerHTML
         
         res.send(root.toString())
     } catch (error) {
@@ -294,6 +316,26 @@ app.get('/api/read', async (req, res, next) => {
         return;
     }
     try {
+        const fullPath = path.join(savePath, filePath);
+        
+        // Stop any pending save timer for this file
+        if (saveTimers[filePath]) {
+            clearTimeout(saveTimers[filePath]);
+            delete saveTimers[filePath];
+        }
+        
+        // write to disk if available in cache
+        if (dbCache[filePath]) {
+            try {
+                let dataToSave = await encodeRisuSaveLegacy(dbCache[filePath]);
+                await fs.writeFile(fullPath, dataToSave);
+            } catch (error) {
+                console.error(`[Read] Error saving ${filePath}:`, error);
+            }
+            delete dbCache[filePath];
+        }
+
+        // read from disk
         if(!existsSync(path.join(savePath, filePath))){
             res.send();
         }
@@ -347,9 +389,10 @@ app.get('/api/list', async (req, res, next) => {
         return
     }
     try {
-        const data = (await fs.readdir(path.join(savePath))).map((v) => {
-            return Buffer.from(v, 'hex').toString('utf-8')
-        })
+        const data = (await fs.readdir(path.join(savePath)))
+            .map((v) => { return Buffer.from(v, 'hex').toString('utf-8') })
+            .filter((v) => { return v.startsWith(req.headers['key-prefix'].trim()) })
+
         res.send({
             success: true,
             content: data
@@ -384,11 +427,124 @@ app.post('/api/write', async (req, res, next) => {
 
     try {
         await fs.writeFile(path.join(savePath, filePath), fileContent);
+        
+        // Clear any pending save timer for this file
+        if (saveTimers[filePath]) {
+            clearTimeout(saveTimers[filePath]);
+            delete saveTimers[filePath];
+        }
+
+        // Clear cache for this file since it was directly written
+        if (dbCache[filePath]) delete dbCache[filePath];
+
         res.send({
             success: true
         });
     } catch (error) {
         next(error);
+    }
+});
+
+app.post('/api/patch', async (req, res, next) => {
+    // Check if patch sync is enabled
+    if (!enablePatchSync) {
+        res.status(404).send({
+            error: 'Patch sync is not enabled'
+        });
+        return;
+    }
+    
+    if(req.headers['risu-auth'].trim() !== password.trim()){
+        console.log('incorrect')
+        res.status(400).send({
+            error:'Password Incorrect'
+        });
+        return
+    }
+    const filePath = req.headers['file-path'];
+    const patch = req.body.patch;
+    const expectedHash = req.body.expectedHash;
+    
+    if (!filePath || !patch || !expectedHash) {
+        res.status(400).send({
+            error:'File path, patch, and expected hash required'
+        });
+        return;
+    }
+    if(!isHex(filePath)){
+        res.status(400).send({
+            error:'Invaild Path'
+        });
+        return;
+    }
+
+    try {
+        const decodedFilePath = Buffer.from(filePath, 'hex').toString('utf-8');
+        
+        // Load database into memory if not already cached
+        if (!dbCache[filePath]) {
+            const fullPath = path.join(savePath, filePath);
+            if (existsSync(fullPath)) {
+                const fileContent = await fs.readFile(fullPath);
+                dbCache[filePath] = normalizeJSON(await decodeRisuSave(fileContent));
+            } 
+            else {
+                dbCache[filePath] = {};
+            }
+        }
+        
+        const serverHash = calculateHash(dbCache[filePath]).toString(16);
+        
+        if (expectedHash !== serverHash) {
+            console.log(`[Patch] Hash mismatch for ${decodedFilePath}: expected=${expectedHash}..., server=${serverHash}...`);
+            res.status(409).send({
+                error: 'Hash mismatch - data out of sync',
+            });
+            return;
+        }
+        
+        // Apply patch to in-memory database
+        const result = applyPatch(dbCache[filePath], patch, true);
+
+        // Schedule save to disk (debounced)
+        if (saveTimers[filePath]) {
+            clearTimeout(saveTimers[filePath]);
+        }
+        saveTimers[filePath] = setTimeout(async () => {
+            try {
+                const fullPath = path.join(savePath, filePath);
+                let dataToSave = await encodeRisuSaveLegacy(dbCache[filePath]);
+                await fs.writeFile(fullPath, dataToSave);
+                // Create backup for database files after successful save
+                if (decodedFilePath.includes('database/database.bin')) {
+                    try {
+                        const timestamp = Math.floor(Date.now() / 100).toString();
+                        const backupFileName = `database/dbbackup-${timestamp}.bin`;
+                        const backupFilePath = Buffer.from(backupFileName, 'utf-8').toString('hex');
+                        const backupFullPath = path.join(savePath, backupFilePath);
+                        // Create backup using the same data that was just saved
+                        await fs.writeFile(backupFullPath, dataToSave);
+                    } catch (backupError) {
+                        console.error(`[Patch] Error creating backup:`, backupError);
+                    }
+                }
+            } catch (error) {
+                dbCache[filePath] = {}; // trigger hash mismatch on next patch and fallback to full save
+                console.error(`[Patch] Error saving ${filePath}:`, error);
+            } finally {
+                delete saveTimers[filePath];
+            }
+        }, SAVE_INTERVAL);
+
+        res.send({
+            success: true,
+            appliedOperations: result.length,
+        });
+    } catch (error) {
+        console.error(`[Patch] Error applying patch to ${filePath}:`, error.name);
+        res.status(500).send({
+            error: 'Patch application failed: ' + (error && error.message ? error.message : error)
+        });
     }
 });
 
@@ -427,12 +583,14 @@ async function startServer() {
             https.createServer(httpsOptions, app).listen(port, () => {
                 console.log("[Server] HTTPS server is running.");
                 console.log(`[Server] https://localhost:${port}/`);
+                console.log(`[Server] Patch sync: ${enablePatchSync ? 'ENABLED' : 'DISABLED'}`);
             });
         } else {
             // HTTP
             app.listen(port, () => {
                 console.log("[Server] HTTP server is running.");
                 console.log(`[Server] http://localhost:${port}/`);
+                console.log(`[Server] Patch sync: ${enablePatchSync ? 'ENABLED' : 'DISABLED'}`);
             });
         }
     } catch (error) {

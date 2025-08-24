@@ -24,7 +24,7 @@ import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSaveCompressionStream, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveCompressionStream, encodeRisuSaveLegacy, RisuSaveEncoder, RisuSavePatcher, type toSaveType } from "./storage/risuSave";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
@@ -49,6 +49,8 @@ import { makeColdData } from "./process/coldstorage.svelte";
 export const isTauri = !!window.__TAURI_INTERNALS__
 //@ts-ignore
 export const isNodeServer = !!globalThis.__NODE__
+//@ts-ignore
+export const supportsPatchSync = !!globalThis.__PATCH_SYNC__
 export const forageStorage = new AutoStorage()
 export const googleBuild = false
 export const isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
@@ -360,6 +362,9 @@ export async function saveDb(){
         compression: forageStorage.isAccount
     })
 
+    let patcher = new RisuSavePatcher()
+    await patcher.init(getDatabase())
+
     $effect.root(() => {
 
         let selIdState = $state(0)
@@ -466,13 +471,28 @@ export async function saveDb(){
                 await writeFile(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData, {baseDir: BaseDirectory.AppData});
             }
             else{
-                await encoder.set(db, toSave)
-                const dbData = new Uint8Array(encoder.encode())
-                await forageStorage.setItem('database/database.bin', dbData)
-                if(!forageStorage.isAccount){
-                    await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData)
+                if(!forageStorage.isAccount){      
+                    if (supportsPatchSync) {
+                        const patchData = await patcher.set(db, toSave)
+                        const saved = await forageStorage.patchItem('database/database.bin', patchData);
+
+                        if (!saved) {
+                            const dbData = encodeRisuSaveLegacy(db)
+                            await forageStorage.setItem('database/database.bin', dbData);
+                            await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
+                        } 
+                    }
+                    else {
+                        encoder.set(db, toSave)
+                        const dbData = new Uint8Array(encoder.encode())
+                        await forageStorage.setItem('database/database.bin', dbData)
+                        await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
+                    }
                 }
                 if(forageStorage.isAccount){
+                    encoder.set(db, toSave)
+                    const dbData = new Uint8Array(encoder.encode())
+                    await forageStorage.setItem('database/database.bin', dbData)
                     await sleep(3000)
                 }
             }
@@ -524,7 +544,7 @@ async function getDbBackups() {
         return backups
     }
     else{
-        const keys = await forageStorage.keys()
+        const keys = await forageStorage.keys('database/dbbackup-')
 
         const backups = keys
           .filter(key => key.startsWith('database/dbbackup-'))
