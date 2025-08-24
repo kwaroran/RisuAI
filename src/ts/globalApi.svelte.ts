@@ -481,6 +481,7 @@ export async function saveDb(){
                     if (supportsPatchSync) {
                         const patchData = await patcher.set(db, toSave)
                         saved = await forageStorage.patchItem('database/database.bin', patchData);
+                        if(!saved) await patcher.init(db)
                     }
                     if (!saved) {
                         await forageStorage.setItem('database/database.bin', dbData);
