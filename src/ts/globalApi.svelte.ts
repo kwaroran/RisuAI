@@ -463,7 +463,7 @@ export async function saveDb(){
                 continue
             }
 
-            await encoder.set(db, toSave)
+            await encoder.set(db, safeStructuredClone(toSave))
             const encoded = encoder.encode()
             if(!encoded){
                 await sleep(1000)
@@ -479,7 +479,7 @@ export async function saveDb(){
                 if(!forageStorage.isAccount){
                     let saved = false
                     if (supportsPatchSync) {
-                        const patchData = await patcher.set(db, toSave)
+                        const patchData = await patcher.set(db, safeStructuredClone(toSave))
                         saved = await forageStorage.patchItem('database/database.bin', patchData);
                         if(!saved) await patcher.init(db)
                     }

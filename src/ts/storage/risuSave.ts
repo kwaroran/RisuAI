@@ -531,7 +531,6 @@ function normalizeJSON(value: any): any {
 export class RisuSavePatcher {
     private lastSyncedDb: any;
     private hashBlocks: { [key: string]: number } = {};
-    private curPatch: any[] = [];
 
     hash(): string {
         
