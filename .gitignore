@@ -33,6 +33,7 @@ src-others/
 pycache/
 test.ts
 .wrangler/
+.qoder/*
 
 
 vite.config.js.timestamp-*

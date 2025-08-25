@@ -5,7 +5,7 @@
   <img alt="text" src="https://github.com/kwaroran/RisuAI/assets/116663078/bc28e5a3-c6da-4a42-bfc1-f3ab3debdf65">
 </picture>
 
-[![Svelte](https://img.shields.io/badge/svelte-4-red?logo=svelte)](https://svelte.dev/) [![Typescript](https://img.shields.io/badge/typescript-5-blue?logo=typescript)](https://www.typescriptlang.org/) [![Tauri](https://img.shields.io/badge/tauri-1.5-%2324C8D8?logo=tauri)](https://tauri.app/)
+[![Svelte](https://img.shields.io/badge/svelte-5-red?logo=svelte)](https://svelte.dev/) [![Typescript](https://img.shields.io/badge/typescript-5.6-blue?logo=typescript)](https://www.typescriptlang.org/) [![Tauri](https://img.shields.io/badge/tauri-2.5-%2324C8D8?logo=tauri)](https://tauri.app/)
 
 RisuAI, or Risu for short, is a cross platform AI chatting software / web application with powerful features such as multiple API support, assets in the chat, regex functions and much more.
 
@@ -23,7 +23,7 @@ RisuAI, or Risu for short, is a cross platform AI chatting software / web applic
 
 ## Features
 
-- **Multiple API Supports**: Supports OAI, Claude, Ooba, OpenRouter... and More!
+- **Multiple API Supports**: Supports OpenAI, Claude, Gemini, DeepInfra, Ooba, OpenRouter... and More!
 - **Emotion Images**: Display the image of the current character, according to his/her expressions!
 - **Group Chats**: Multiple characters in one chat.
 - **Plugins**: Add your features and providers, and simply share.
@@ -35,13 +35,14 @@ RisuAI, or Risu for short, is a cross platform AI chatting software / web applic
 - **Customizable, Friendly UI**: Great Accessibility and mobile friendly
 - **TTS**: Use TTS to make the output text into voice.
 - **Additonal Assets**: Embed your images, audios and videos to bot, and make it display at chat or background!
+- **Long-term Memory**: Advanced memory systems including HypaMemoryV2/V3 memory compression, SupaMemory for context management to maintain long-term conversation context.
 - And More!
 
 You can get detailed information on https://github.com/kwaroran/RisuAI/wiki (Work in Progress)
 
-## Discord
+## Community
 
-- https://discord.gg/JzP8tB9ZK8
+- [Discord Server](https://discord.gg/JzP8tB9ZK8)
 
 ## Installation
 
