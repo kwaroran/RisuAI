@@ -668,7 +668,14 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                         await writeInlayImage(imgHTML, {
                             id: id
                         })
-                        rDatas[rDatas.length-1].text += (`\n{{inlayeddata::${id}}}\n`)
+                        if(rDatas[rDatas.length-1]) {
+                            rDatas[rDatas.length-1].text += (`\n{{inlayeddata::${id}}}\n`)
+                        }
+                        else {
+                            rDatas.push({
+                                text: `{{inlayeddata::${id}}}`
+                            })
+                        }
                     }
                     else{
                         const id = v4()
