@@ -13,9 +13,9 @@ import { v4 } from "uuid";
 import { getModuleLorebooks, getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
 import { tokenize } from "../tokenizer";
-import { fetchNative } from "../globalApi.svelte";
+import { fetchNative, readImage } from "../globalApi.svelte";
 import { loadLoreBookV3Prompt } from './lorebook.svelte';
-import { getPersonaPrompt, getUserName } from '../util';
+import { getPersonaPrompt, getUserName, getUserIcon } from '../util';
 let luaFactory:LuaFactory
 let ScriptingSafeIds = new Set<string>()
 let ScriptingEditDisplayIds = new Set<string>()
@@ -370,6 +370,68 @@ export async function runScripted(code:string, arg:{
                 imgHTML.src = gen
                 const inlay = await writeInlayImage(imgHTML)
                 return `{{inlay::${inlay}}}`
+            })
+
+            declareAPI('getCharacterImageMain', async (id:string) => {
+                try {
+                    const db = getDatabase()
+                    const selectedChar = get(selectedCharID)
+
+                    if (selectedChar < 0 || selectedChar >= db.characters.length) {
+                        return null
+                    }
+
+                    const character = db.characters[selectedChar]
+                    
+                    if (!character || character.type === 'group' || !character.image) {
+                        return null
+                    }
+                    
+                    const img = await readImage(character.image)
+                    const imgObj = new Image()
+                    const extention = character.image.split('.').at(-1)
+
+                    imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/${extention}`}))
+
+                    const imgid = await writeInlayImage(imgObj, { name: character.image, ext: extention, id: character.image})
+
+                    if (imgid) {
+                        return `{{inlayed::${imgid}}}`
+                    }
+                    console.warn('Failed to create character image inlay')
+                    return null
+                } catch (error) {
+                    console.error('Error in getCharacterImageMain:', error)
+                    return null
+                }
+            })
+
+            declareAPI('getPersonaImageMain', async (id:string) => {
+                try {
+                    const icon = getUserIcon()
+
+                    if(!icon) {
+                        return null
+                    }
+
+                    const img = await readImage(icon)
+                    const imgObj = new Image()
+                    const extention = icon.split('.').at(-1)
+
+                    imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/${extention}`}))
+
+                    const imgid = await writeInlayImage(imgObj, { name: icon, ext: extention, id: icon})
+
+                    if (imgid) {
+                        return `{{inlayed::${imgid}}}`
+                    }
+                    
+                    console.warn('Failed to create character image inlay')
+                    return null
+                } catch (error) {
+                    console.error('Error in getCharacterImageMain:', error)
+                    return null
+                }
             })
 
             declareAPI('hash', async (id:string, value:string) => {
@@ -1043,6 +1105,14 @@ end
 
 function axLLM(id, prompt)
     return json.decode(axLLMMain(id, json.encode(prompt)):await())
+end
+
+function getCharacterImage(id)
+    return getCharacterImageMain(id):await()
+end
+
+function getPersonaImage(id)
+    return getPersonaImageMain(id):await()
 end
 
 local editRequestFuncs = {}
