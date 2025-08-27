@@ -1073,14 +1073,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             return {
                 role: 'system',
                 content: '',
-            } as const
+            } as OpenAIChat
         }
         else{
             v.content = `<Previous Conversation>${v.content}</Previous Conversation>`
         }
         return v
     }).filter((v) => {
-        return v.content !== ''
+        return v.content.trim() !== '' || (v.multimodals && v.multimodals.length > 0)
     })
 
     for(const depthPrompt of depthPrompts){
@@ -1132,7 +1132,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     function pushPrompts(cha:OpenAIChat[]){
         for(const chat of cha){
-            if(!chat.content.trim()){
+            if(!chat.content.trim() && !(chat.multimodals && chat.multimodals.length > 0)){
                 continue
             }
             if(!(DBState.db.aiModel.startsWith('gpt') || DBState.db.aiModel.startsWith('claude') || DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'reverse_proxy')){
