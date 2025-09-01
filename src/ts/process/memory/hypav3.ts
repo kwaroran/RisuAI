@@ -1705,7 +1705,10 @@ export async function summarize(oaiMessages: OpenAIChat[]): Promise<string> {
       throw new Error("Empty summary returned");
     }
 
-    return response.result.trim();
+    // Remove thoughts content for API
+    const thoughtsRegex = /<Thoughts>[\s\S]*?<\/Thoughts>/g;
+
+    return response.result.replace(thoughtsRegex, "").trim();
   }
 
   // Local
@@ -1721,11 +1724,10 @@ export async function summarize(oaiMessages: OpenAIChat[]): Promise<string> {
     throw new Error("Empty summary returned");
   }
 
-  // Remove think content and thoughts content
+  // Remove think content
   const thinkRegex = /<think>[\s\S]*?<\/think>/g;
-  const thoughtsRegex = /<Thoughts>[\s\S]*?<\/Thoughts>/g;
 
-  return content.replace(thinkRegex, "").replace(thoughtsRegex, "").trim();
+  return content.replace(thinkRegex, "").trim();
 }
 
 export function getCurrentHypaV3Preset(): HypaV3Preset {
