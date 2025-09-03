@@ -56,6 +56,12 @@
         }
     });
 
+    $effect(() => {
+        if (DBState.db.aiModel === 'openrouter' || DBState.db.subModel === 'openrouter') {
+            openrouterSearchQuery = ""
+        }
+    });
+
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
     let modelInfo = $derived(getModelInfo(DBState.db.aiModel))
     let subModelInfo = $derived(getModelInfo(DBState.db.subModel))
