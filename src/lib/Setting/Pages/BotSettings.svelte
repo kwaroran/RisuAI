@@ -59,6 +59,7 @@
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
     let modelInfo = $derived(getModelInfo(DBState.db.aiModel))
     let subModelInfo = $derived(getModelInfo(DBState.db.subModel))
+    let openrouterSearchQuery = $state("")
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
@@ -194,6 +195,13 @@
                 <OptionInput value="">Loading..</OptionInput>
             </SelectInput>
         {:then m}
+            {#if m && m.length > 0}
+                <TextInput 
+                    bind:value={openrouterSearchQuery} 
+                    placeholder="Search models..." 
+                    size="sm" 
+                />
+            {/if}
             <SelectInput className="mt-2 mb-4" bind:value={DBState.db.openrouterRequestModel}>
                 {#if (!m) || (m.length === 0)}
                     <OptionInput value="openai/gpt-3.5-turbo">GPT 3.5</OptionInput>
@@ -209,7 +217,11 @@
                 {:else}
                     <OptionInput value={"risu/free"}>Free Auto</OptionInput>
                     <OptionInput value={"openrouter/auto"}>Openrouter Auto</OptionInput>
-                    {#each m as model}
+                    {#each m.filter(model => 
+                        openrouterSearchQuery === "" || 
+                        model.name.toLowerCase().includes(openrouterSearchQuery.toLowerCase()) ||
+                        model.id.toLowerCase().includes(openrouterSearchQuery.toLowerCase())
+                    ) as model}
                         <OptionInput value={model.id}>{model.name}</OptionInput>
                     {/each}
                 {/if}
