@@ -6,8 +6,8 @@ import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.s
 import { alertSelect, alertError, alertInput, alertNormal, alertConfirm } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
-import { writeInlayImage } from "./files/inlays";
-import type { OpenAIChat } from "./index.svelte";
+import { writeInlayImage, getInlayAsset } from "./files/inlays";
+import type { OpenAIChat, MultiModal } from "./index.svelte";
 import { requestChatData } from "./request/request";
 import { v4 } from "uuid";
 import { getModuleLorebooks, getModuleTriggers } from "./modules";
@@ -438,7 +438,7 @@ export async function runScripted(code:string, arg:{
                 return await hasher(new TextEncoder().encode(value))
             })
 
-            declareAPI('LLMMain', async (id:string, promptStr:string) => {
+            declareAPI('LLMMain', async (id:string, promptStr:string, useMultimodal: boolean = false) => {
                 let prompt:{
                     role: string,
                     content: string
@@ -469,6 +469,43 @@ export async function runScripted(code:string, arg:{
                         role: role,
                     }
                 })
+
+                if(useMultimodal) {
+                    for(const msg of promptbody) {
+                        const inlays:string[] = []
+                        msg.content = msg.content.replace(/{{(inlay|inlayed|inlayeddata)::(.+?)}}/g, (
+                            match: string,
+                            p1: string,
+                            p2: string
+                        ) => {
+                            if(msg.role === 'assistant') {
+                                if(p2 && p1 === 'inlayeddata') {
+                                    inlays.push(p2)
+                                }
+                            }
+                            else {
+                                if(p2) {
+                                    inlays.push(p2)
+                                }
+                            }
+                            return ''
+                        })
+                        
+                        const multimodals: MultiModal[] = []
+                        for(const inlay of inlays) {
+                            const inlayData = await getInlayAsset(inlay)
+                            multimodals.push({
+                                type: inlayData?.type,
+                                base64: inlayData?.data,
+                                width: inlayData?.width,
+                                height: inlayData?.height
+                            })
+                        }
+
+                        msg.multimodals = multimodals.length > 0 ? multimodals : undefined
+                    }
+                }
+
                 const result = await requestChatData({
                     formated: promptbody,
                     bias: {},
@@ -743,7 +780,7 @@ export async function runScripted(code:string, arg:{
                 return JSON.stringify(loreBooks)
             })
 
-            declareAPI('axLLMMain', async (id:string, promptStr:string) => {
+            declareAPI('axLLMMain', async (id:string, promptStr:string, useMultimodal: boolean = false) => {
                 let prompt:{
                     role: string,
                     content: string
@@ -774,6 +811,43 @@ export async function runScripted(code:string, arg:{
                         role: role,
                     }
                 })
+
+                if(useMultimodal) {
+                    for(const msg of promptbody) {
+                        const inlays:string[] = []
+                        msg.content = msg.content.replace(/{{(inlay|inlayed|inlayeddata)::(.+?)}}/g, (
+                            match: string,
+                            p1: string,
+                            p2: string
+                        ) => {
+                            if(msg.role === 'assistant') {
+                                if(p2 && p1 === 'inlayeddata') {
+                                    inlays.push(p2)
+                                }
+                            }
+                            else {
+                                if(p2) {
+                                    inlays.push(p2)
+                                }
+                            }
+                            return ''
+                        })
+                        
+                        const multimodals: MultiModal[] = []
+                        for(const inlay of inlays) {
+                            const inlayData = await getInlayAsset(inlay)
+                            multimodals.push({
+                                type: inlayData?.type,
+                                base64: inlayData?.data,
+                                width: inlayData?.width,
+                                height: inlayData?.height
+                            })
+                        }
+
+                        msg.multimodals = multimodals.length > 0 ? multimodals : undefined
+                    }
+                }
+
                 const result = await requestChatData({
                     formated: promptbody,
                     bias: {},
@@ -1099,12 +1173,14 @@ function loadLoreBooks(id)
     return json.decode(loadLoreBooksMain(id):await())
 end
 
-function LLM(id, prompt)
-    return json.decode(LLMMain(id, json.encode(prompt)):await())
+function LLM(id, prompt, useMultimodal)
+    useMultimodal = useMultimodal or false
+    return json.decode(LLMMain(id, json.encode(prompt), useMultimodal):await())
 end
 
-function axLLM(id, prompt)
-    return json.decode(axLLMMain(id, json.encode(prompt)):await())
+function axLLM(id, prompt, useMultimodal)
+    useMultimodal = useMultimodal or false
+    return json.decode(axLLMMain(id, json.encode(prompt), useMultimodal):await())
 end
 
 function getCharacterImage(id)
