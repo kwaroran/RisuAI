@@ -361,7 +361,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         ]
         arg.useStreaming = false
     }
-    if(arg.imageResponse){
+    if(arg.imageResponse || arg.modelInfo.flags.includes(LLMFlags.hasImageOutput)){ 
         body.generation_config.responseModalities = [
             'TEXT', 'IMAGE'
         ]
