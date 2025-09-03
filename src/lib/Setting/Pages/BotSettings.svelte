@@ -217,11 +217,12 @@
                 {:else}
                     <OptionInput value={"risu/free"}>Free Auto</OptionInput>
                     <OptionInput value={"openrouter/auto"}>Openrouter Auto</OptionInput>
-                    {#each m.filter(model => 
-                        openrouterSearchQuery === "" || 
-                        model.name.toLowerCase().includes(openrouterSearchQuery.toLowerCase()) ||
-                        model.id.toLowerCase().includes(openrouterSearchQuery.toLowerCase())
-                    ) as model}
+                    {#each m.filter(model => {
+                        if (openrouterSearchQuery === "") return true;
+                        const searchTerms = openrouterSearchQuery.toLowerCase().trim().split(/\s+/);
+                        const modelText = (model.name + " " + model.id).toLowerCase();
+                        return searchTerms.every(term => modelText.includes(term));
+                    }) as model}
                         <OptionInput value={model.id}>{model.name}</OptionInput>
                     {/each}
                 {/if}
