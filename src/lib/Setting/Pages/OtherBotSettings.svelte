@@ -173,6 +173,7 @@
             <OptionInput value="stability" >Stability API</OptionInput>
             <OptionInput value="fal" >Fal.ai</OptionInput>
             <OptionInput value="comfyui" >ComfyUI</OptionInput>
+            <OptionInput value="Imagen" >Imagen</OptionInput>
 
             <!-- Legacy -->
             {#if DBState.db.sdProvider === 'comfy'}
@@ -590,6 +591,43 @@
             {/if}
 
 
+        {/if}
+
+        {#if DBState.db.sdProvider === 'Imagen'}
+            <span class="text-textcolor mt-2">GoogleAI API Key</span>
+            <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.google.accessToken}/>
+            
+            <span class="text-textcolor">Model</span>
+            <SelectInput className="mb-4" bind:value={DBState.db.ImagenModel}>
+                <OptionInput value="imagen-4.0-generate-001" >Imagen 4</OptionInput>
+                <OptionInput value="imagen-4.0-ultra-generate-001" >Imagen 4 Ultra</OptionInput>
+                <OptionInput value="imagen-4.0-fast-generate-001" >Imagen 4 Fast</OptionInput>
+                <OptionInput value="imagen-3.0-generate-002" >Imagen 3.0</OptionInput>
+            </SelectInput>
+
+            {#if DBState.db.ImagenModel === 'imagen-4.0-generate-001' || DBState.db.ImagenModel === 'imagen-4.0-ultra-generate-001'}
+                <span class="text-textcolor">Image size</span>
+                <SelectInput className="mb-4" bind:value={DBState.db.ImagenImageSize}>
+                    <OptionInput value="1K" >1K</OptionInput>
+                    <OptionInput value="2K" >2K</OptionInput>
+                </SelectInput>
+            {/if}
+
+            <span class="text-textcolor">Aspect ratio</span>
+            <SelectInput className="mb-4" bind:value={DBState.db.ImagenAspectRatio}>
+                <OptionInput value="1:1" >1:1</OptionInput>
+                <OptionInput value="3:4" >3:4</OptionInput>
+                <OptionInput value="4:3" >4:3</OptionInput>
+                <OptionInput value="9:16" >9:16</OptionInput>
+                <OptionInput value="16:9" >16:9</OptionInput>
+            </SelectInput>
+
+            <span class="text-textcolor">Person generation</span>
+            <SelectInput className="mb-4" bind:value={DBState.db.ImagenPersonGeneration}>
+                <OptionInput value="allow_all" >Allow all</OptionInput>
+                <OptionInput value="allow_adult" >Allow adult</OptionInput>
+                <OptionInput value="dont_allow" >Don't allow</OptionInput>
+            </SelectInput>
         {/if}
     </Arcodion>
 {/if}

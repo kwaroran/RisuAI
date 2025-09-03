@@ -574,6 +574,10 @@ export function setDatabase(data:Database){
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
     data.streamGeminiThoughts ??= false
+    data.ImagenModel ??= 'imagen-4.0-generate-001'
+    data.ImagenImageSize ??= '1K'
+    data.ImagenAspectRatio ??= '1:1'
+    data.ImagenPersonGeneration ??= 'allow_all'
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -1076,6 +1080,10 @@ export interface Database{
     streamGeminiThoughts:boolean
     verbosity:number
     dynamicOutput?:DynamicOutput
+    ImagenModel:string
+    ImagenImageSize:string
+    ImagenAspectRatio:string
+    ImagenPersonGeneration:string
 }
 
 interface SeparateParameters{
