@@ -899,7 +899,7 @@ export async function runScripted(code:string, arg:{
             declareAPI('getUserLastMessage', (id: string) => {
                 const chat = ScriptingEngineState.chat
                 if (!chat) {
-                    return null
+                    return ''
                 }
 
                 let pointer = chat.message.length - 1
@@ -911,7 +911,7 @@ export async function runScripted(code:string, arg:{
                     pointer--
                 }
 
-                return null
+                return ''
             })
 
             declareAPI('getCharacterLastMessage', (id: string) => {
