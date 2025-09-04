@@ -378,13 +378,13 @@ export async function runScripted(code:string, arg:{
                     const selectedChar = get(selectedCharID)
 
                     if (selectedChar < 0 || selectedChar >= db.characters.length) {
-                        return null
+                        return ''
                     }
 
                     const character = db.characters[selectedChar]
                     
                     if (!character || character.type === 'group' || !character.image) {
-                        return null
+                        return ''
                     }
                     
                     const img = await readImage(character.image)
@@ -399,10 +399,10 @@ export async function runScripted(code:string, arg:{
                         return `{{inlayed::${imgid}}}`
                     }
                     console.warn('Failed to create character image inlay')
-                    return null
+                    return ''
                 } catch (error) {
                     console.error('Error in getCharacterImageMain:', error)
-                    return null
+                    return ''
                 }
             })
 
@@ -411,7 +411,7 @@ export async function runScripted(code:string, arg:{
                     const icon = getUserIcon()
 
                     if(!icon) {
-                        return null
+                        return ''
                     }
 
                     const img = await readImage(icon)
@@ -427,10 +427,10 @@ export async function runScripted(code:string, arg:{
                     }
                     
                     console.warn('Failed to create character image inlay')
-                    return null
+                    return ''
                 } catch (error) {
                     console.error('Error in getCharacterImageMain:', error)
-                    return null
+                    return ''
                 }
             })
 
