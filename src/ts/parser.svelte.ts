@@ -1376,7 +1376,7 @@ function blockEndMatcher(p1: string, type: { type: blockMatch, type2?: string },
         case 'pure':
         case 'pure-display':
         case 'function': {
-            return p1Trimed
+            return p1
         }
         case 'parse':
         case 'each': {
@@ -1410,8 +1410,10 @@ function blockEndMatcher(p1: string, type: { type: blockMatch, type2?: string },
             }
 
             const elseLine = lines.findIndex((v) => {
-                return v.trim() === '{{:else}}'
+                console.log(`Checking line for else: "${v}" | Trimmed: "${v.trim()}"`);
+                return v.includes('{{:else}}');
             })
+            console.log(`Found else at line: ${elseLine}`);
 
             if (elseLine !== -1 && type.type === 'newif') {
                 lines.splice(elseLine) //else line and everything after it is removed
@@ -1650,7 +1652,14 @@ export function risuChatParser(da: string, arg: {
                 // This must be checked before Pure Mode to allow blocks to terminate correctly.
                 if (dat.startsWith('/') && !dat.startsWith('//')) {
                     log(`Content is a block ender: "${dat}"`);
-
+                    if (dat === '/when') {
+                        const isInFunction = [...blockNestType.values()].some(block => block.type === 'function');
+                        if (isInFunction) {
+                            log('Inside function definition, treating /when as literal');
+                            nested[0] += `{{${dat}}}`;
+                            break;
+                        }
+                    }
                     if (stackType[nested.length] === 5) { // Check if we are actually inside a block.
                         const blockType = blockNestType.get(nested.length);
                         log(`Matching block end for type:`, blockType);
@@ -1743,6 +1752,15 @@ export function risuChatParser(da: string, arg: {
                 // Priority 3: Check for block starting tags (e.g., `{{#if}}`, `{{:var=1}}`).
                 if (dat.startsWith('#') || dat.startsWith(':')) {
                     log(`Content is a block starter: "${dat}"`);
+                    if (dat.startsWith('#when')) {
+                        const isInFunction = [...blockNestType.values()].some(block => block.type === 'function');
+                        if (isInFunction) {
+                            log('Inside function definition, treating #when as literal');
+                            nested[0] += `{{${dat}}}`;
+                            break;
+                        }
+                    }
+
                     const matchResult = blockStartMatcher(dat, matcherObj);
                     log('Block start match result:', matchResult);
 
