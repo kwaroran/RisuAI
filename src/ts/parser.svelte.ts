@@ -1666,7 +1666,7 @@ export function risuChatParser(da: string, arg: {
 
                         // If this block type initiated Pure Mode, exit it now.
                         if (blockType.type === 'ignore' || blockType.type === 'pure' ||
-                            blockType.type === 'each' ||
+                            blockType.type === 'each' ||  blockType.type === 'function' ||
                             blockType.type === 'pure-display' || blockType.type === 'escape'
                         ) {
                             log(`Exiting PURE MODE.`);
@@ -1775,7 +1775,7 @@ export function risuChatParser(da: string, arg: {
 
                         // If this block type requires it, enter Pure Mode.
                         if (matchResult.type === 'ignore' || matchResult.type === 'pure' ||
-                            matchResult.type === 'each' ||
+                            matchResult.type === 'each' ||  matchResult.type === 'function' ||
                             matchResult.type === 'pure-display' || matchResult.type === 'escape'
                         ) {
                             log(`Entering PURE MODE for block type '${matchResult.type}'.`);
