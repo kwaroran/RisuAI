@@ -377,6 +377,9 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     console.log(arg.modelInfo);
 
     async function generateToken(email:string,key:string){
+        if (!window.crypto || !window.crypto.subtle) {
+            throw new Error("Web Crypto API is not available in this environment. Please ensure you are using HTTPS.");
+        }
         // Input validation
         if (!email.includes("gserviceaccount.com")) {
             throw new Error("Invalid Vertex project id. Must include gserviceaccount.com");
@@ -475,6 +478,10 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     
     if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         if(db.vertexAccessTokenExpires < Date.now()){
+            if (!db.vertexClientEmail || !db.vertexPrivateKey) {
+                alertError(language.vertexAuthError || "Vertex AI authentication details are missing.");
+                return { type: 'fail', result: 'Vertex AI authentication details are missing.' };
+            }
             headers['Authorization'] = "Bearer " + await generateToken(db.vertexClientEmail, db.vertexPrivateKey)
         }
         else{
