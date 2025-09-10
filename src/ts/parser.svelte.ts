@@ -572,7 +572,7 @@ async function parseInlayAssets(data:string){
 
             const asset = await getInlayAssetBlob(id)
             let url = blobUrlCache.get(id)
-            if(!url){
+            if(!url && asset?.data){
                 url = URL.createObjectURL(asset.data)
                 blobUrlCache.set(id, url)
             } 
