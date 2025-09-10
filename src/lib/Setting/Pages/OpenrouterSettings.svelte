@@ -9,6 +9,9 @@
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
 
     const openrouterProviders = [
+        // An alphabetically separate set of very-dead providers is kept at the top of the list in the docs.
+        // These do not appear outside the docs: Anyscale, Cent-ML, HuggingFace ... SF Compute, Together 2, 01.AI
+        // As a visual check, AI21 is the topmost provider in the sidebar of https://openrouter.ai/models, thus we want to copy from this point and below.
         "AI21",
         "AionLabs",
         "Alibaba",
