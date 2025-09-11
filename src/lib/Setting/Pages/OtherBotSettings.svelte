@@ -21,53 +21,6 @@
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
 
-    $effect.pre(() => {
-        DBState.db.NAIImgConfig ??= {
-            width: 512,
-            height: 512,
-            sampler: 'k_euler',
-            noise_schedule: 'native',
-            steps: 100,
-            scale: 1,
-            cfg_rescale: 0,
-            sm: false,
-            sm_dyn: false,
-            strength: 0.5,
-            noise: 0.5,
-            image: '',
-            base64image: '',
-            InfoExtracted: 0.5,
-            autoSmea:false,
-            legacy_uc:false,
-            use_coords:false,
-            v4_prompt:{
-                caption:{
-                    base_caption:'',
-                    char_captions:[]
-                },
-                use_coords:false,
-                use_order:true
-            },
-            v4_negative_prompt:{
-                caption:{
-                    base_caption:'',
-                    char_captions:[]
-                },
-                legacy_uc:false,
-            },
-            reference_image_multiple: [],
-            reference_strength_multiple: [0.7],
-            vibe_data: undefined,
-            vibe_model_selection: undefined,
-            variety_plus: false,
-            decrisp: false,
-        }
-        if (DBState.db.NAIImgConfig.sampler === 'ddim_v3'){
-            DBState.db.NAIImgConfig.sm = false
-            DBState.db.NAIImgConfig.sm_dyn = false
-        }
-    });
-
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0);
 
     // HypaV3
@@ -123,16 +76,6 @@
         return parseFloat(maxMemoryRatio.toFixed(2));
     }
     // End HypaV3
-
-    let imageModel = $state('');
-
-    // add init NAI V4
-    // if(DBState.db.NAIImgConfig.autoSmea === undefined) DBState.db.NAIImgConfig.autoSmea = false;
-    // if(DBState.db.NAIImgConfig.use_coords === undefined) DBState.db.NAIImgConfig.use_coords = false;
-    // if(DBState.db.NAIImgConfig.v4_prompt.use_coords === undefined) DBState.db.NAIImgConfig.v4_prompt.use_coords = false;
-    // if(DBState.db.NAIImgConfig.v4_prompt.use_order === undefined) DBState.db.NAIImgConfig.v4_prompt.use_order = false;
-    // if(DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc === undefined) DBState.db.NAIImgConfig.v4_negative_prompt.legacy_uc = false;
-
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.otherBots}</h2>
 
@@ -221,11 +164,7 @@
             <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={DBState.db.NAIApiKey}/>
 
             <span class="text-textcolor">Model</span>
-            <TextInput size="sm" marginBottom placeholder="nai-diffusion-4-full" bind:value={DBState.db.NAIImgModel}/>
-            <SelectInput className="mt-2 mb-4" bind:value={imageModel} onchange={(e)=>{
-                DBState.db.NAIImgModel = imageModel;
-            }}>
-                <OptionInput value="" >Choose...</OptionInput>
+            <SelectInput className="mb-4" bind:value={DBState.db.NAIImgModel} >
                 <OptionInput value="nai-diffusion-4-5-full" >nai-diffusion-4-5-full</OptionInput>
                 <OptionInput value="nai-diffusion-4-5-curated" >nai-diffusion-4-5-curated</OptionInput>
                 <OptionInput value="nai-diffusion-4-full" >nai-diffusion-4-full</OptionInput>
@@ -246,29 +185,28 @@
             || DBState.db.NAIImgModel === 'nai-diffusion-4-curated-preview'
             || DBState.db.NAIImgModel === 'nai-diffusion-4-5-full'
             || DBState.db.NAIImgModel === 'nai-diffusion-4-5-curated'}
-                <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
-                    <OptionInput value="k_euler_ancestral" >(Recommended)Euler Ancestral</OptionInput>
-                    <OptionInput value="k_dpmpp_2s_ancestral" >(Recommended)DPM++ 2S Ancestral</OptionInput>
-                    <OptionInput value="k_dpmpp_2m_sde" >(Recommended)DPM++ 2M SDE</OptionInput>
-                    <OptionInput value="k_euler" >(Other)Euler</OptionInput>
-                    <OptionInput value="k_dpmpp_2m" >(Other)DPM++ 2M</OptionInput>
-                    <OptionInput value="k_dpmpp_sde" >(Other)DPM++ SDE</OptionInput>
-                </SelectInput>
-            {:else}
-                <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
-                    <OptionInput value="k_euler" >Euler</OptionInput>
+                <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
                     <OptionInput value="k_euler_ancestral" >Euler Ancestral</OptionInput>
                     <OptionInput value="k_dpmpp_2s_ancestral" >DPM++ 2S Ancestral</OptionInput>
+                    <OptionInput value="k_dpmpp_2m_sde" >DPM++ 2M SDE</OptionInput>
+                    <OptionInput value="k_euler" >Euler</OptionInput>
                     <OptionInput value="k_dpmpp_2m" >DPM++ 2M</OptionInput>
                     <OptionInput value="k_dpmpp_sde" >DPM++ SDE</OptionInput>
+                </SelectInput>
+            {:else}
+                <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.sampler}>
+                    <OptionInput value="k_euler_ancestral" >Euler Ancestral</OptionInput>
+                    <OptionInput value="k_dpmpp_2s_ancestral" >DPM++ 2S Ancestral</OptionInput>
+                    <OptionInput value="k_dpmpp_sde" >DPM++ SDE</OptionInput>
+                    <OptionInput value="k_euler" >Euler</OptionInput>
+                    <OptionInput value="k_dpmpp_2m" >DPM++ 2M</OptionInput>
                     <OptionInput value="k_dpmpp_2s" >DPM++ 2S</OptionInput>
                     <OptionInput value="ddim_v3" >DDIM</OptionInput>
                 </SelectInput>
             {/if}
 
             <span class="text-textcolor">Noise Schedule</span>
-            <SelectInput className="mt-2 mb-4" bind:value={DBState.db.NAIImgConfig.noise_schedule}>
-                <OptionInput value="" >Choose...</OptionInput>
+            <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.noise_schedule}>
                 <OptionInput value="native" >native</OptionInput>
                 <OptionInput value="karras" >karras</OptionInput>
                 <OptionInput value="exponential" >exponential</OptionInput>
@@ -281,6 +219,192 @@
             <NumberInput size="sm" marginBottom min={0} max={2048} bind:value={DBState.db.NAIImgConfig.scale}/>
             <span class="text-textcolor">CFG rescale</span>
             <NumberInput size="sm" marginBottom min={0} max={1} bind:value={DBState.db.NAIImgConfig.cfg_rescale}/>
+
+            <span class="text-textcolor">Image Reference</span>
+            <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.reference_mode}>
+                <OptionInput value="" >None</OptionInput>
+                <OptionInput value="vibe" >Vibe Trasfer</OptionInput>
+                {#if DBState.db.NAIImgModel === 'nai-diffusion-4-5-full' || DBState.db.NAIImgModel === 'nai-diffusion-4-5-curated'}
+                    <OptionInput value="character" >Character Reference</OptionInput>
+                {/if}
+            </SelectInput>
+
+            {#if DBState.db.NAIImgConfig.reference_mode === 'vibe'}
+                <div class="relative">
+                <button class="mb-4" onclick={async () => {
+                    const file = await selectSingleFile(['naiv4vibe'])
+                    if(!file){
+                        return null
+                    }
+                    try {
+                        const vibeData = JSON.parse(new TextDecoder().decode(file.data))
+                        if (vibeData.version !== 1 || vibeData.identifier !== "novelai-vibe-transfer") {
+                            alertError("Invalid vibe file. Version must be 1.")
+                            return
+                        }
+
+                        // Store the vibe data
+                        DBState.db.NAIImgConfig.vibe_data = vibeData
+
+                        // Set the thumbnail as preview image for display
+                        if (vibeData.thumbnail) {
+                            // Clear the array and add the thumbnail
+                            DBState.db.NAIImgConfig.reference_image_multiple = [];
+
+                            // Set default model selection based on current model
+                            if (DBState.db.NAIImgModel.includes('nai-diffusion-4-full')) {
+                                DBState.db.NAIImgConfig.vibe_model_selection = 'v4full';
+                            } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-curated')) {
+                                DBState.db.NAIImgConfig.vibe_model_selection = 'v4curated';
+                            } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-5-full')) { 
+                                DBState.db.NAIImgConfig.vibe_model_selection = 'v4-5full';
+                            } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-5-curated')) {
+                                DBState.db.NAIImgConfig.vibe_model_selection = 'v4-5curated';
+                            }
+
+                            // Set InfoExtracted to the first value for the selected model
+                            const selectedModel = DBState.db.NAIImgConfig.vibe_model_selection;
+                            if (selectedModel && vibeData.encodings[selectedModel]) {
+                                const encodings = vibeData.encodings[selectedModel];
+                                const firstKey = Object.keys(encodings)[0];
+                                if (firstKey) {
+                                    DBState.db.NAIImgConfig.InfoExtracted = Number(encodings[firstKey].params.information_extracted);
+                                }
+                            }
+                        }
+
+                        // Initialize reference_strength_multiple if not set
+                        if (!DBState.db.NAIImgConfig.reference_strength_multiple || !Array.isArray(DBState.db.NAIImgConfig.reference_strength_multiple)) {
+                            DBState.db.NAIImgConfig.reference_strength_multiple = [0.7];
+                        }
+                    } catch (error) {
+                        alertError("Error parsing vibe file: " + error)
+                    }
+                }}>
+                    {#if !DBState.db.NAIImgConfig.vibe_data || !DBState.db.NAIImgConfig.vibe_data.thumbnail}
+                        <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                            <span class="text-sm">Upload<br />Vibe</span>
+                        </div>
+                    {:else}
+                        <img src={DBState.db.NAIImgConfig.vibe_data.thumbnail} alt="Vibe Preview" class="rounded-md h-40 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
+                    {/if}
+                </button>
+
+                {#if DBState.db.NAIImgConfig.vibe_data}
+                    <button 
+                        onclick={() => {
+                            DBState.db.NAIImgConfig.vibe_data = undefined;
+                            DBState.db.NAIImgConfig.vibe_model_selection = undefined;
+                        }}
+                        class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                    >
+                        Delete
+                    </button>
+                {/if}
+
+                </div>
+
+                {#if DBState.db.NAIImgConfig.vibe_data}
+
+                    <span class="text-textcolor">Vibe Model</span>
+                    <SelectInput className="mb-2" bind:value={DBState.db.NAIImgConfig.vibe_model_selection} onchange={(e) => {
+                        // When vibe model changes, set InfoExtracted to the first value
+                        if (DBState.db.NAIImgConfig.vibe_data?.encodings &&
+                            DBState.db.NAIImgConfig.vibe_model_selection &&
+                            DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]) {
+                            const encodings = DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection];
+                            const firstKey = Object.keys(encodings)[0];
+                            if (firstKey) {
+                                DBState.db.NAIImgConfig.InfoExtracted = Number(encodings[firstKey].params.information_extracted);
+                            }
+                        }
+                    }}>
+                        {#if DBState.db.NAIImgConfig.vibe_data.encodings?.v4full}
+                            <OptionInput value="v4full">nai-diffusion-4-full</OptionInput>
+                        {/if}
+                        {#if DBState.db.NAIImgConfig.vibe_data.encodings?.v4curated}
+                            <OptionInput value="v4curated">nai-diffusion-4-curated</OptionInput>
+                        {/if}
+                        {#if DBState.db.NAIImgConfig.vibe_data.encodings?.['v4-5full']}
+                            <OptionInput value="v4-5full">nai-diffusion-4-5-full</OptionInput>
+                        {/if}
+                        {#if DBState.db.NAIImgConfig.vibe_data.encodings?.['v4-5curated']}
+                            <OptionInput value="v4-5curated">nai-diffusion-4-5-curated</OptionInput>
+                        {/if}
+                    </SelectInput>
+
+                    <span class="text-textcolor">Information Extracted</span>
+                    <SelectInput className="mb-2" bind:value={DBState.db.NAIImgConfig.InfoExtracted}>
+                        {#if DBState.db.NAIImgConfig.vibe_model_selection && DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]}
+                            {#each Object.entries(DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]) as [key, value]}
+                                <OptionInput value={value.params.information_extracted}>{value.params.information_extracted}</OptionInput>
+                            {/each}
+                        {/if}
+                    </SelectInput>
+
+                    <span class="text-textcolor">Reference Strength Multiple</span>
+                    <SliderInput marginBottom min={0} max={1} step={0.1} fixed={2} bind:value={DBState.db.NAIImgConfig.reference_strength_multiple[0]} />
+                {/if}
+            {/if}
+
+            {#if DBState.db.NAIImgConfig.reference_mode === 'character' && 
+                (DBState.db.NAIImgModel === 'nai-diffusion-4-5-full' || DBState.db.NAIImgModel === 'nai-diffusion-4-5-curated')}
+                
+                <div class="relative">
+                    <button class="mb-2" onclick={async () => {
+                        const img = await selectSingleFile([
+                            'jpg',
+                            'jpeg',
+                            'png',
+                            'webp'
+                        ])
+                        if(!img){
+                            return null
+                        }
+                        
+                        const imageData = img.data;
+                        
+                        DBState.db.NAIImgConfig.character_base64image = Buffer.from(imageData).toString('base64');
+                        const saveId = await saveAsset(imageData)
+                        DBState.db.NAIImgConfig.character_image = saveId
+                        console.log('Character image set:', DBState.db.NAIImgConfig.character_image)
+                    }}>
+                        {#if !DBState.db.NAIImgConfig.character_image || DBState.db.NAIImgConfig.character_image === ''}
+                            <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                                <span class="text-sm">Upload<br />Image</span>
+                            </div>
+                        {:else}
+                            {#await getCharImage(DBState.db.NAIImgConfig.character_image, 'plain')}
+                                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
+                                    <span class="text-sm">Uploading<br />Image..</span>
+                                </div>
+                            {:then im}
+                                <img src={im} class="rounded-md h-40 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" alt="Base Preview"/>
+                            {/await}
+                        {/if}
+                    </button>
+
+                    {#if DBState.db.NAIImgConfig.character_image && DBState.db.NAIImgConfig.character_image !== ''}
+                        <button 
+                            onclick={() => {
+                                DBState.db.NAIImgConfig.character_image = undefined;
+                                DBState.db.NAIImgConfig.character_base64image = undefined;
+                            }}
+                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                        >
+                            Delete
+                        </button>
+                    {/if}
+                </div>
+                
+                <span class="text-textcolor2 text-xs mb-2 block">Leave blank to use the character's default image.</span>
+
+                <Check className="mb-4" bind:check={DBState.db.NAIImgConfig.style_aware} name="Style Aware"/>
+
+            {/if}
+
+            
+            
 
             {#if (DBState.db.NAIImgModel === 'nai-diffusion-3' || DBState.db.NAIImgModel === 'nai-diffusion-furry-3' || DBState.db.NAIImgModel === 'nai-diffusion-2')
             && DBState.db.NAIImgConfig.sampler !== 'ddim_v3'}
@@ -306,14 +430,11 @@
                 <Check bind:check={DBState.db.NAIImgConfig.legacy_uc} name='Use legacy uc'/>
             {/if}
                 
-                <Check bind:check={DBState.db.NAII2I} name="Enable I2I"/>
+            <Check className="mt-4 mb-4" bind:check={DBState.db.NAII2I} name="Enable I2I"/>
             
             {#if DBState.db.NAII2I}
-            
-                <span class="text-textcolor mt-4">Base image</span>
-                <span class="text-textcolor2 text-xs mb-2 block">Leave blank to use the character's default image.</span>
                 <div class="relative">
-                    <button onclick={async () => {
+                    <button class="mb-2" onclick={async () => {
                         const img = await selectSingleFile([
                             'jpg',
                             'jpeg',
@@ -354,134 +475,20 @@
                         </button>
                     {/if}
                 </div>
+                <span class="text-textcolor2 text-xs block">Leave blank to use the character's default image.</span>
 
-                <span class="text-textcolor mt-4">Strength</span>
+
+                <span class="text-textcolor mt-2">Strength</span>
                 <SliderInput min={0} max={0.99} step={0.01} fixed={2} bind:value={DBState.db.NAIImgConfig.strength}/>
-                <span class="text-textcolor mt-4">Noise</span>
+                <span class="text-textcolor mt-2">Noise</span>
                 <SliderInput min={0} max={0.99} step={0.01} fixed={2} bind:value={DBState.db.NAIImgConfig.noise}/>
 
 
             {/if}
-
-            <span class="text-textcolor mt-4">Vibe</span>
-            <div class="relative">
-            <button onclick={async () => {
-                const file = await selectSingleFile(['naiv4vibe'])
-                if(!file){
-                    return null
-                }
-                try {
-                    const vibeData = JSON.parse(new TextDecoder().decode(file.data))
-                    if (vibeData.version !== 1 || vibeData.identifier !== "novelai-vibe-transfer") {
-                        alertError("Invalid vibe file. Version must be 1.")
-                        return
-                    }
-
-                    // Store the vibe data
-                    DBState.db.NAIImgConfig.vibe_data = vibeData
-
-                    // Set the thumbnail as preview image for display
-                    if (vibeData.thumbnail) {
-                        // Clear the array and add the thumbnail
-                        DBState.db.NAIImgConfig.reference_image_multiple = [];
-
-                        // Set default model selection based on current model
-                        if (DBState.db.NAIImgModel.includes('nai-diffusion-4-full')) {
-                            DBState.db.NAIImgConfig.vibe_model_selection = 'v4full';
-                        } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-curated')) {
-                            DBState.db.NAIImgConfig.vibe_model_selection = 'v4curated';
-                        } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-5-full')) { 
-                            DBState.db.NAIImgConfig.vibe_model_selection = 'v4-5full';
-                        } else if (DBState.db.NAIImgModel.includes('nai-diffusion-4-5-curated')) {
-                            DBState.db.NAIImgConfig.vibe_model_selection = 'v4-5curated';
-                        }
-
-                        // Set InfoExtracted to the first value for the selected model
-                        const selectedModel = DBState.db.NAIImgConfig.vibe_model_selection;
-                        if (selectedModel && vibeData.encodings[selectedModel]) {
-                            const encodings = vibeData.encodings[selectedModel];
-                            const firstKey = Object.keys(encodings)[0];
-                            if (firstKey) {
-                                DBState.db.NAIImgConfig.InfoExtracted = Number(encodings[firstKey].params.information_extracted);
-                            }
-                        }
-                    }
-
-                    // Initialize reference_strength_multiple if not set
-                    if (!DBState.db.NAIImgConfig.reference_strength_multiple || !Array.isArray(DBState.db.NAIImgConfig.reference_strength_multiple)) {
-                        DBState.db.NAIImgConfig.reference_strength_multiple = [0.7];
-                    }
-                } catch (error) {
-                    alertError("Error parsing vibe file: " + error)
-                }
-            }}>
-                {#if !DBState.db.NAIImgConfig.vibe_data || !DBState.db.NAIImgConfig.vibe_data.thumbnail}
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500 flex items-center justify-center">
-                        <span class="text-sm">Upload<br />Vibe</span>
-                    </div>
-                {:else}
-                    <img src={DBState.db.NAIImgConfig.vibe_data.thumbnail} alt="Vibe Preview" class="rounded-md h-40 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" />
-                {/if}
-            </button>
-
-            {#if DBState.db.NAIImgConfig.vibe_data}
-                <button 
-                    onclick={() => {
-                        DBState.db.NAIImgConfig.vibe_data = undefined;
-                        DBState.db.NAIImgConfig.vibe_model_selection = undefined;
-                    }}
-                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-                >
-                    Delete
-                </button>
-            {/if}
-
-            </div>
-
-            {#if DBState.db.NAIImgConfig.vibe_data}
-
-                <span class="text-textcolor mt-4">Vibe Model</span>
-                <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.vibe_model_selection} onchange={(e) => {
-                    // When vibe model changes, set InfoExtracted to the first value
-                    if (DBState.db.NAIImgConfig.vibe_data?.encodings &&
-                        DBState.db.NAIImgConfig.vibe_model_selection &&
-                        DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]) {
-                        const encodings = DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection];
-                        const firstKey = Object.keys(encodings)[0];
-                        if (firstKey) {
-                            DBState.db.NAIImgConfig.InfoExtracted = Number(encodings[firstKey].params.information_extracted);
-                        }
-                    }
-                }}>
-                    {#if DBState.db.NAIImgConfig.vibe_data.encodings?.v4full}
-                        <OptionInput value="v4full">nai-diffusion-4-full</OptionInput>
-                    {/if}
-                    {#if DBState.db.NAIImgConfig.vibe_data.encodings?.v4curated}
-                        <OptionInput value="v4curated">nai-diffusion-4-curated</OptionInput>
-                    {/if}
-                    {#if DBState.db.NAIImgConfig.vibe_data.encodings?.['v4-5full']}
-                        <OptionInput value="v4-5full">nai-diffusion-4-5-full</OptionInput>
-                    {/if}
-                    {#if DBState.db.NAIImgConfig.vibe_data.encodings?.['v4-5curated']}
-                        <OptionInput value="v4-5curated">nai-diffusion-4-5-curated</OptionInput>
-                    {/if}
-                </SelectInput>
-
-                <span class="text-textcolor">Information Extracted</span>
-                <SelectInput className="mb-4" bind:value={DBState.db.NAIImgConfig.InfoExtracted}>
-                    {#if DBState.db.NAIImgConfig.vibe_model_selection && DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]}
-                        {#each Object.entries(DBState.db.NAIImgConfig.vibe_data.encodings[DBState.db.NAIImgConfig.vibe_model_selection]) as [key, value]}
-                            <OptionInput value={value.params.information_extracted}>{value.params.information_extracted}</OptionInput>
-                        {/each}
-                    {/if}
-                </SelectInput>
-
-                <span class="text-textcolor">Reference Strength Multiple</span>
-                <SliderInput marginBottom min={0} max={1} step={0.1} fixed={2} bind:value={DBState.db.NAIImgConfig.reference_strength_multiple[0]} />
-            {/if}
         {/if}
 
-
+         
+        
         {#if DBState.db.sdProvider === 'dalle'}
             <span class="text-textcolor">OpenAI API Key</span>
             <TextInput size="sm" marginBottom placeholder="sk-..." bind:value={DBState.db.openAIKey}/>
