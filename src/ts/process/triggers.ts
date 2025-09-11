@@ -2081,7 +2081,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2GetPersonaDesc':{
                     const db = getDatabase()
-                    setVar(risuChatParser(effect.outputVar, {chara:char}), db.personas[db.selectedPersona]?.personaPrompt ?? '')
+                    const currentPersonaPrompt = db.personaPrompt ?? ''
+                    const savedPersonaPrompt = db.personas[db.selectedPersona]?.personaPrompt ?? ''
+                    setVar(risuChatParser(effect.outputVar, {chara:char}), currentPersonaPrompt || savedPersonaPrompt)
                     break
                 }
                 case 'v2SetPersonaDesc':{
