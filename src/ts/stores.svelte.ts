@@ -121,6 +121,12 @@ ReloadGUIPointer.subscribe(() => {
 $effect.root(() => {
     selectedCharID.subscribe((v) => {
         selIdState.selId = v
+
+        if (DBState?.db?.characters?.[selIdState.selId]) {
+            if (DBState.db.hypaV3 && DBState.db.hypaV3Presets?.[DBState.db.hypaV3PresetId]?.settings?.alwaysToggleOn) {
+                DBState.db.characters[selIdState.selId].supaMemory = true;
+            }
+        }
     })
     $effect(() => {
         $state.snapshot(DBState.db.modules)
