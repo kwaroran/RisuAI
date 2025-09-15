@@ -875,6 +875,9 @@
                     <div class="mb-2">
                         <Check name="Use Experimental Implementation" bind:check={settings.useExperimentalImpl} />
                     </div>
+                    <div class="mb-2">
+                        <Check name="Always Toggle On" bind:check={settings.alwaysToggleOn} />
+                    </div>
                     {#if settings.useExperimentalImpl}
                         <span class="text-textcolor">Summarization Requests Per Minute</span>
                         <NumberInput marginBottom size="sm" min={1} bind:value={settings.summarizationRequestsPerMinute} />

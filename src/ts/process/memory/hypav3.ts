@@ -42,6 +42,7 @@ export interface HypaV3Settings {
   summarizationMaxConcurrent: number;
   embeddingRequestsPerMinute: number;
   embeddingMaxConcurrent: number;
+  alwaysToggleOn: boolean;
 }
 
 interface HypaV3Data {
@@ -1760,6 +1761,7 @@ export function createHypaV3Preset(
     summarizationMaxConcurrent: 1,
     embeddingRequestsPerMinute: 100,
     embeddingMaxConcurrent: 1,
+    alwaysToggleOn: false,
   };
 
   if (
