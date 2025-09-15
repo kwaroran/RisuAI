@@ -1894,17 +1894,20 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2ExtractRegex':{
                     let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
-                    let regex = new RegExp(effect.regex, effect.flags)
+                    let regexValue = effect.regexType === 'value' ? risuChatParser(effect.regex,{chara:char}) : getVar(risuChatParser(effect.regex,{chara:char}))
+                    let flagsValue = effect.flagsType === 'value' ? risuChatParser(effect.flags,{chara:char}) : getVar(risuChatParser(effect.flags,{chara:char}))
+                    let regex = new RegExp(regexValue, flagsValue)
                     let regexResult = regex.exec(value)
+                    let resultValue = effect.resultType === 'value' ? risuChatParser(effect.result,{chara:char}) : getVar(risuChatParser(effect.result,{chara:char}))
                     
                     let result = ''
                     if (regexResult !== null) {
-                        result = effect.result.replace(/\$[0-9]+/g, (match) => {
+                        result = resultValue.replace(/\$[0-9]+/g, (match) => {
                             let index = Number(match.slice(1))
                             return regexResult[index] || ''
                         }).replace(/\$&/g, regexResult[0] || '').replace(/\$\$/g, '$')
                     } else {
-                        result = effect.result.replace(/\$[0-9]+/g, '').replace(/\$&/g, '').replace(/\$\$/g, '$')
+                        result = resultValue.replace(/\$[0-9]+/g, '').replace(/\$&/g, '').replace(/\$\$/g, '$')
                     }
 
                     setVar(risuChatParser(effect.outputVar, {chara:char}), result)
@@ -2078,7 +2081,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2GetPersonaDesc':{
                     const db = getDatabase()
-                    setVar(risuChatParser(effect.outputVar, {chara:char}), db.personas[db.selectedPersona]?.personaPrompt ?? '')
+                    const currentPersonaPrompt = db.personaPrompt ?? ''
+                    const savedPersonaPrompt = db.personas[db.selectedPersona]?.personaPrompt ?? ''
+                    setVar(risuChatParser(effect.outputVar, {chara:char}), currentPersonaPrompt || savedPersonaPrompt)
                     break
                 }
                 case 'v2SetPersonaDesc':{
