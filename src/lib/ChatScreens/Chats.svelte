@@ -12,7 +12,8 @@
         unReroll,
         currentUsername,
         userIcon,
-        loadPages
+        loadPages,
+        userIconPortrait
     }:{
         messages: Message[]
         currentCharacter: character|groupChat
@@ -21,6 +22,7 @@
         currentUsername: string
         userIcon: string
         loadPages: number
+        userIconPortrait?: boolean
         
     } = $props();
 
@@ -51,7 +53,8 @@
         for(let i=messages.length - 1 ; i >= messages.length - loadPages; i--){
             if(i < 0) break; // Prevent out of bounds
             const message = messages[i];
-            let hashd = message.data + (message.chatId ?? '') + i.toString()
+            const messageLargePortrait = message.role === 'user' ? (userIconPortrait ?? false) : (currentCharacter as character).largePortrait;
+            let hashd = message.data + (message.chatId ?? '') + i.toString() + messageLargePortrait.toString()
             const currentHash = hashCode(hashd);
             currentHashes.add(currentHash);
             if(!hashes.has(currentHash)){
@@ -70,7 +73,7 @@
                         unReroll: unReroll,
                         rerollIcon: 'dynamic',
                         character: simpleChar,
-                        largePortrait: (currentCharacter as character).largePortrait,
+                        largePortrait: message.role === 'user' ? (userIconPortrait ?? false) : (currentCharacter as character).largePortrait,
                         messageGenerationInfo: message.generationInfo,
                         role: message.role,
                         name: message.role === 'user' ? currentUsername : currentCharacter.name
