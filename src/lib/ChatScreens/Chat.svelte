@@ -8,7 +8,7 @@
     import { risuChatParser } from "src/ts/process/scripts"
     import { runTrigger } from 'src/ts/process/triggers'
     import { sayTTS } from "src/ts/process/tts"
-    import { DBState, ReloadChatPointer } from 'src/ts/stores.svelte'
+    import { DBState, ReloadChatPointer, CurrentTriggerIdStore } from 'src/ts/stores.svelte'
     import { ConnectionOpenStore } from "src/ts/sync/multiuser"
     import { capitalize, getUserIcon, getUserName } from "src/ts/util"
     import { onDestroy, onMount } from "svelte"
@@ -177,6 +177,7 @@
         }
 
         const triggerName = origin.getAttribute('risu-trigger')
+        const triggerId = origin.getAttribute('risu-id')
         const btnEvent = origin.getAttribute('risu-btn')
 
         const triggerResult =
@@ -184,6 +185,7 @@
                 await runTrigger(currentChar, 'manual', {
                     chat: getCurrentChat(),
                     manualName: triggerName,
+                    triggerId: triggerId || undefined,
                 }) :
             btnEvent ?
                 await runLuaButtonTrigger(currentChar, btnEvent) :
@@ -195,6 +197,12 @@
                 v[idx] = (v[idx] ?? 0) + 1
                 return v
             })
+        }
+        
+        if(triggerName && triggerId) {
+            setTimeout(() => {
+                CurrentTriggerIdStore.set(null)
+            }, 100) // Small delay to allow display mode to complete
         }
     }
 </script>

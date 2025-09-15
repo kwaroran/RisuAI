@@ -8,8 +8,9 @@ import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
 import { SizeStore, selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
-import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand, replaceAsync } from './util';
-import { getInlayAsset } from './process/files/inlays';
+import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand, replaceAsync} from './util';
+import { getInlayAsset, getInlayAssetBlob } from './process/files/inlays';
+
 import { getModuleAssets, getModuleLorebooks, getModules, type RisuModule } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
@@ -96,8 +97,10 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 })
 
 DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
-    if (['IMG', 'SOURCE', 'STYLE'].includes(node.nodeName) && data.attrName === 'src' && data.attrValue.startsWith('asset://localhost/')) {
-        data.forceKeepAttr = true;
+    if (['IMG', 'SOURCE', 'VIDEO', 'AUDIO', 'STYLE'].includes(node.nodeName) && data.attrName === 'src') {
+        if (data.attrValue.startsWith('blob:')) {
+            data.forceKeepAttr = true;
+        }
     }
 });
 
@@ -561,24 +564,32 @@ function trimmer(str: string) {
     return str.trim().replace(/[_ -.]/g, '')
 }
 
-async function parseInlayAssets(data: string) {
+const blobUrlCache = new Map<string, string>()
+
+async function parseInlayAssets(data:string){
     const inlayMatch = data.match(/{{(inlay|inlayed|inlayeddata)::(.+?)}}/g)
     if (inlayMatch) {
         for (const inlay of inlayMatch) {
             const inlayType = inlay.startsWith('{{inlayed') ? 'inlayed' : 'inlay'
             const id = inlay.substring(inlay.indexOf('::') + 2, inlay.length - 2)
-            const asset = await getInlayAsset(id)
             let prefix = inlayType !== 'inlay' ? `<div class="risu-inlay-image">` : ''
             let postfix = inlayType !== 'inlay' ? `</div>\n\n` : ''
-            switch (asset?.type) {
+
+            const asset = await getInlayAssetBlob(id)
+            let url = blobUrlCache.get(id)
+            if(!url && asset?.data){
+                url = URL.createObjectURL(asset.data)
+                blobUrlCache.set(id, url)
+            } 
+            switch(asset?.type){
                 case 'image':
-                    data = data.replace(inlay, `${prefix}<img src="${asset.data}"/>${postfix}`)
+                    data = data.replace(inlay, `${prefix}<img src="${url}"/>${postfix}`)
                     break
                 case 'video':
-                    data = data.replace(inlay, `${prefix}<video controls><source src="${asset.data}" type="video/mp4"></video>${postfix}`)
+                    data = data.replace(inlay, `${prefix}<video controls><source src="${url}" type="video/mp4"></video>${postfix}`)
                     break
                 case 'audio':
-                    data = data.replace(inlay, `${prefix}<audio controls><source src="${asset.data}" type="audio/mpeg"></audio>${postfix}`)
+                    data = data.replace(inlay, `${prefix}<audio controls><source src="${url}" type="audio/mpeg"></audio>${postfix}`)
                     break
             }
 
@@ -666,7 +677,7 @@ export async function ParseMarkdown(
 export function trimMarkdown(data: string) {
     return decodeStyle(DOMPurify.sanitize(data, {
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl", "risu-btn", 'risu-trigger', 'risu-mark', 'x-hl-lang', 'x-hl-text'],
+        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
     }))
 }
 
