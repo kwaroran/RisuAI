@@ -671,5 +671,54 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             CharEmotion.set(charemotions)
         }
     }
+    if(db.sdProvider === 'Imagen') {
+        const model = db.ImagenModel
+        const size = db.ImagenImageSize
+        const aspect = db.ImagenAspectRatio
+        const person = db.ImagenPersonGeneration
+
+        let body:any = {
+            instances: [{
+                prompt: genPrompt
+            }],
+            parameters: {
+                sampleCount: 1,
+                aspectRatio: aspect,
+                personGeneration: person,
+            }
+        }
+
+        if(model === 'imagen-4.0-generate-001' || model === 'imagen-4.0-ultra-generate-001') {
+            body.parameters = {
+                ...body.parameters,
+                sampleImageSize: size
+            }
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${db.google.accessToken}`
+
+        const res = await globalFetch(url, {
+            headers: {
+                "Content-Type": "application/json"
+            },
+            method: 'POST',
+            body: body,
+        })
+
+        if(!res.ok) {
+            alertError(JSON.stringify(res.data))
+            return false
+        }
+
+        const img64 = res.data?.predictions?.[0]?.bytesBase64Encoded
+
+        if(!img64) {
+            alertError(JSON.stringify(res.data))
+            return false
+        }
+        
+        const mimeType = res.data?.predictions?.[0]?.mimeType || 'image/png'
+        return `data:${mimeType};base64,${img64}`
+    }
     return ''
 }
