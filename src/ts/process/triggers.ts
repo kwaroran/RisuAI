@@ -3,7 +3,7 @@ import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, 
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
+import { ReloadChatPointer, ReloadGUIPointer, selectedCharID, CurrentTriggerIdStore } from "../stores.svelte";
 import { processMultiCommand } from "./command";
 import { parseKeyValue, sleep } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
@@ -1039,6 +1039,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     additonalSysPrompt?: additonalSysPrompt
     stopSending?: boolean
     manualName?: string
+    triggerId?: string
     displayMode?: boolean
     displayData?: string
     tempVars?: Record<string, string>
@@ -1062,7 +1063,17 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     const db = getDatabase()
     const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
     let chat = arg.displayMode ? arg.chat : safeStructuredClone(arg.chat ?? char.chats[char.chatPage])
+    
+    const previousTriggerId = get(CurrentTriggerIdStore)
+    const shouldSetTriggerId = !arg.displayMode && mode !== 'display'
+    if (shouldSetTriggerId) {
+        CurrentTriggerIdStore.set(arg.triggerId || null)
+    }
+    
     if((!triggers) || (triggers.length === 0)){
+        if (shouldSetTriggerId) {
+            CurrentTriggerIdStore.set(previousTriggerId)
+        }
         return null
     }
 
@@ -2775,6 +2786,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
     }
 
+    if (shouldSetTriggerId && mode !== 'manual') {
+        CurrentTriggerIdStore.set(previousTriggerId)
+    }
+    
     return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending, sendAIprompt, displayData: arg.displayData, tempVars: arg.tempVars}
 
 }
