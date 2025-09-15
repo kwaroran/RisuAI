@@ -361,7 +361,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         ]
         arg.useStreaming = false
     }
-    if(arg.imageResponse){
+    if(arg.imageResponse || arg.modelInfo.flags.includes(LLMFlags.hasImageOutput)){ 
         body.generation_config.responseModalities = [
             'TEXT', 'IMAGE'
         ]
@@ -675,7 +675,9 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                         await writeInlayImage(imgHTML, {
                             id: id
                         })
-                        rDatas[rDatas.length-1].text += (`\n{{inlayeddata::${id}}}\n`)
+                        rDatas.push({
+                            text: `{{inlayeddata::${id}}}`
+                        })
                     }
                     else{
                         const id = v4()
