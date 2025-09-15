@@ -1706,7 +1706,10 @@ export async function summarize(oaiMessages: OpenAIChat[]): Promise<string> {
       throw new Error("Empty summary returned");
     }
 
-    return response.result.trim();
+    // Remove thoughts content for API
+    const thoughtsRegex = /<Thoughts>[\s\S]*?<\/Thoughts>/g;
+
+    return response.result.replace(thoughtsRegex, "").trim();
   }
 
   // Local
