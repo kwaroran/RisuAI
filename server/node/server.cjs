@@ -26,6 +26,8 @@ const passwordPath = path.join(process.cwd(), 'save', '__password')
 if(existsSync(passwordPath)){
     password = readFileSync(passwordPath, 'utf-8')
 }
+
+const authCodePath = path.join(process.cwd(), 'save', '__authcode')
 const hexRegex = /^[0-9a-fA-F]+$/;
 function isHex(str) {
     return hexRegex.test(str.toUpperCase().trim()) || str === '__password';
@@ -71,6 +73,16 @@ const reverseProxyFunc = async (req, res, next) => {
     const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
     if(!header['x-forwarded-for']){
         header['x-forwarded-for'] = req.ip
+    }
+
+    if(req.headers['authorization']?.startsWith('X-SERVER-REGISTER')){
+        if(!existsSync(authCodePath)){
+            delete header['authorization']
+        }
+        else{
+            const authCode = fs.readFileSync(authCodePath, 'utf-8')
+            header['authorization'] = `Bearer ${authCode}`
+        }
     }
     let originalResponse;
     try {
@@ -428,7 +440,9 @@ app.get('/api/oauth_login', async (req, res) => {
                 redirect_uris: [redirect_uri],
                 response_types: ['code'],
                 grant_types: ['authorization_code'],
-                scope: 'openid profile email'
+                scope: 'risuai risuai:node',
+                token_endpoint_auth_method: 'client_secret_basic',
+                client_name: 'Risuai Node Server',
             })
         });
 
@@ -450,16 +464,15 @@ app.get('/api/oauth_login', async (req, res) => {
 
         let code_verifier = openid.randomPKCECodeVerifier();
         let code_challenge = await openid.calculatePKCECodeChallenge(code_verifier);
-        
-        let parameters = {
+
+        oauthData.code_verifier = code_verifier;
+        let redirectTo = openid.buildAuthorizationUrl(oauthData.config, {
             redirect_uri,
             scope: 'openid profile email',
             code_challenge,
             code_challenge_method: 'S256',
-        }
-
-        oauthData.code_verifier = code_verifier;
-        let redirectTo = openid.buildAuthorizationUrl(oauthData.config, parameters)
+            scope: 'risuai risuai:node',
+        })
 
         res.redirect(redirectTo.toString());
 
@@ -493,6 +506,8 @@ app.get('/api/oauth_callback', async (req, res) => {
             pkceCodeVerifier: oauthData.code_verifier,
         },
     )
+
+    fs.writeFileSync(authCodePath, tokens.access_token, 'utf-8')
 
     res.send(tokens)
             
