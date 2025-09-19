@@ -75,6 +75,7 @@
     "msgpackr": "1.10.1",
     "node-html-parser": "^6.1.12",
     "ollama": "^0.5.0",
+    "openid-client": "^6.8.0",
     "pdfjs-dist": "^4.2.67",
     "peerjs": "^1.5.2",
     "png-chunk-text": "^1.0.0",
