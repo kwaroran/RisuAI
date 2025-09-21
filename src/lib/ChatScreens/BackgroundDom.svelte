@@ -13,7 +13,7 @@
 {#if backgroundHTML || $moduleBackgroundEmbedding}
     {#if selIdState.selId > -1}
         {#key $ReloadGUIPointer}
-            <div class="absolute top-0 left-0 w-full h-full">
+            <div class="absolute top-0 left-0 w-full h-full chattext">
                 {#await ParseMarkdown(risuChatParser((backgroundHTML || '') + '\n' + ($moduleBackgroundEmbedding || ''), {chara:currentChar}), currentChar, 'back') then md} 
                     {@html md}
                 {/await}
