@@ -469,6 +469,28 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     const lorepmt = await loadLoreBookV3Prompt()
+    
+    const loreinjectRegex = /{{(?:loreinject|lore_inject)::(.+?)}}/g
+    const loreinjectParser = (text: string) => {
+        return text.replace(loreinjectRegex, (match, targetName) => {
+            if (!targetName || targetName.trim() === '') {
+                return ''
+            }
+            
+            // find inject.operation == 'insert' && inject.location == {targetName}
+            const matchingLorebooks = lorepmt.actives.filter(v => {
+                return v.inject && v.inject.operation === 'insert' && v.inject.location === targetName
+            })
+
+            // return matching lorebooks            
+            if (matchingLorebooks.length > 0) {
+                return matchingLorebooks.map(v => v.prompt).join('\n')
+            }
+            
+            return ''
+        })
+    }
+    
     const normalActives = lorepmt.actives.filter(v => {
         return v.pos === '' && v.inject === null
     })
@@ -477,7 +499,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const lorebook of normalActives){
         unformated.lorebook.push({
             role: lorebook.role,
-            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+            content: risuChatParser(loreinjectParser(lorebook.prompt), {chara: currentChar})
         })
     }
 
@@ -488,7 +510,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const lorebook of descActives){
         const c = {
             role: lorebook.role,
-            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+            content: risuChatParser(loreinjectParser(lorebook.prompt), {chara: currentChar})
         }
         if(lorebook.pos === 'before_desc'){
             unformated.description.unshift(c)
@@ -526,7 +548,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const lorebook of postEverythingLorebooks){
         unformated.postEverything.push({
             role: lorebook.role,
-            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+            content: risuChatParser(loreinjectParser(lorebook.prompt), {chara: currentChar})
         })
     }
 
@@ -547,7 +569,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const lorebook of postEverythingAssistantLorebooks){
         unformated.postEverything.push({
             role: lorebook.role,
-            content: risuChatParser(lorebook.prompt, {chara: currentChar})
+            content: risuChatParser(loreinjectParser(lorebook.prompt), {chara: currentChar})
         })
     }
 
@@ -958,7 +980,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const depthPrompt of depthPrompts){
         const chat:OpenAIChat = {
             role: depthPrompt.role,
-            content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
+            content: risuChatParser(loreinjectParser(depthPrompt.prompt), {chara: currentChar})
         }
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
@@ -1086,7 +1108,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     for(const depthPrompt of depthPrompts){
         const chat:OpenAIChat = {
             role: depthPrompt.role,
-            content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
+            content: risuChatParser(loreinjectParser(depthPrompt.prompt), {chara: currentChar})
         }
         const depth = depthPrompt.pos === 'depth' ? (depthPrompt.depth) : (unformated.chats.length - depthPrompt.depth)
         unformated.chats.splice(depth,0,chat)
@@ -1387,7 +1409,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         const depthPrompt = currentChar.depth_prompt
         formated.splice(formated.length - depthPrompt.depth, 0, {
             role: 'system',
-            content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
+            content: risuChatParser(loreinjectParser(depthPrompt.prompt), {chara: currentChar})
         })
     }
 

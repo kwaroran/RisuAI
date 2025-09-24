@@ -232,7 +232,7 @@ export async function loadLoreBookV3Prompt(){
         priority:number
         source:string
         inject:{
-            operation:'append'|'prepend'|'replace',
+            operation:'append'|'prepend'|'replace'|'insert',
             location:string,
             param:string
             lore:boolean
@@ -255,7 +255,7 @@ export async function loadLoreBookV3Prompt(){
             let activated = true
             let pos = ''
             let inject:{
-                operation:'append'|'prepend'|'replace',
+                operation:'append'|'prepend'|'replace'|'insert',
                 location:string,
                 param:string
                 lore:boolean
@@ -392,11 +392,12 @@ export async function loadLoreBookV3Prompt(){
                     }
                     case 'inject_at':{
                         inject??= {
-                            operation: 'append',
+                            operation: 'insert',
                             location: '',
                             param: '',
                             lore: false
                         }
+                        inject.operation = 'insert'
                         inject.location = arg.join(' ')
                         inject.lore = false
                         return

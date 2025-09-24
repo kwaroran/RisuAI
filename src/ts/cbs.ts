@@ -328,7 +328,7 @@ export function registerCBS(arg:CBSRegisterArg) {
             }))
         },
         alias: ['worldinfo'],
-        description: 'Returns all active lorebook entries as a JSON array. Combines character lorebook, chat-specific lorebook, and module lorebooks. Each entry is JSON.stringify\'d.\n\nUsage:: {{lorebook}}',
+        description: 'Returns all lorebook entries as a JSON array. Combines character lorebook, chat-specific lorebook, and module lorebooks. Each entry is JSON.stringify\'d.\n\nUsage:: {{lorebook}}',
     });
 
     registerFunction({
@@ -2366,5 +2366,11 @@ Usage:: {{#when condition}}...{{/when}} or {{#when::not::condition}}...{{/when}}
         description: 'Defines the position which can be used in various features such as @@position <positionName> decorator.\n\nUsage:: {{position::positionName}}',
     })
 
+    registerFunction({
+        name: 'loreinject',
+        callback: 'doc_only',
+        alias: ['lore_inject'],
+        description: 'Injects content from lorebook entries that have @@inject_at decorators matching the specified target name. Searches through active lorebooks for entries with @@inject_at <targetName> decorator and returns their content. Only works with lorebooks that are currently active based on their keywords.\n\nUsage:: {{loreinject::targetName}}\n\nExample:\nLorebook entry with "@@inject_at myTarget" at the beginning will be injected when using {{loreinject::myTarget}}',
+    })
 
 }
