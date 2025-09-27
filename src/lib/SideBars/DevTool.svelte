@@ -19,6 +19,7 @@
     import OptionInput from "../UI/GUI/OptionInput.svelte";
   import { loadLoreBookV3Prompt } from "src/ts/process/lorebook.svelte";
   import { getModules } from "src/ts/process/modules";
+  import { language } from "src/lang";
 
     let previewMode = $state('chat')
     let previewJoin = $state('yes')
@@ -110,7 +111,7 @@
     const addVariable = async () => {
         try {
             // Get variable name
-            const variableName = await alertInput("Enter variable name:");
+            const variableName = await alertInput(language.devToolVariables.enterVariableName);
             if (!variableName || variableName.trim() === "") {
                 return;
             }
@@ -120,13 +121,13 @@
             // Check for duplicate variable names
             const currentVariables = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate || {};
             if (currentVariables.hasOwnProperty('$' + trimmedName)) {
-                alertError(`Variable "${trimmedName}" already exists!`);
+                alertError(language.devToolVariables.variableAlreadyExists.replace('{name}', trimmedName));
                 return;
             }
 
             // Get variable type
             const typeOptions = ['text', 'number', 'boolean'];
-            const selectedIndex = await alertSelect(typeOptions, "Select variable type:");
+            const selectedIndex = await alertSelect(typeOptions, language.devToolVariables.selectVariableType);
             if (selectedIndex === null || selectedIndex === undefined) {
                 return;
             }
@@ -207,7 +208,6 @@
                                 DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate = 
                                     {...DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].scriptstate};
                             }}
-                            title="Delete variable"
                         >
                             <TrashIcon size={18} />
                         </button>
@@ -222,7 +222,6 @@
         <button 
             class="text-textcolor2 hover:text-textcolor rounded"
             onclick={addVariable}
-            title="Add new variable"
         >
             <PlusIcon size={24} />
         </button>
