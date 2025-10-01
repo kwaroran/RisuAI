@@ -109,7 +109,6 @@ class RisuSaveDecoder {
     }
 
     async decode(data) {
-        console.log('Decoding RisuSave data');
         let offset = magicRisuSaveHeader.length;
         let db = {};
         
@@ -149,8 +148,6 @@ class RisuSaveDecoder {
                 content: new TextDecoder().decode(blockData)
             });
         }
-
-        console.log('blocks', this.blocks);
         
         for (const key in this.blocks) {
             switch (this.blocks[key].type) {
@@ -178,18 +175,19 @@ class RisuSaveDecoder {
                     break;
                 }
                 default: {
-                    console.warn(`Not Implemented RisuSaveType: ${this.blocks[key].type} for ${this.blocks[key].name}`);
+                    //console.warn(`Not Implemented RisuSaveType: ${this.blocks[key].type} for ${this.blocks[key].name}`);
                 }
             }
         }
-
+        if(!Array.isArray(db.characters)){
+            db.characters = [];
+        }
         // Fix botpreset bugs
         if (!Array.isArray(db.botPresets) || db.botPresets.length === 0) {
             db.botPresets = [presetTemplate];
             db.botPresetsId = 0;
         }
 
-        console.log('Decoded RisuSave data', db);
         return db;
     }
 }
@@ -228,7 +226,6 @@ async function decodeRisuSave(data) {
     } catch (error) {
         console.error('Error decoding RisuSave data:', error);
         try {
-            console.log('risudecode');
             const risuSaveHeader = new Uint8Array(Buffer.from("\u0000\u0000RISU", 'utf-8'));
             const realData = data.subarray(risuSaveHeader.length);
             const dec = unpackr.decode(realData);

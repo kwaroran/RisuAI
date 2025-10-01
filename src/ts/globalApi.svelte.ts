@@ -481,11 +481,16 @@ export async function saveDb(){
                     if (supportsPatchSync) {
                         const patchData = await patcher.set(db, safeStructuredClone(toSave))
                         saved = await forageStorage.patchItem('database/database.bin', patchData);
-                        if(!saved) await patcher.init(db)
                     }
                     if (!saved) {
                         await forageStorage.setItem('database/database.bin', dbData);
                         await forageStorage.setItem(`database/dbbackup-${(Date.now()/100).toFixed()}.bin`, dbData);
+
+                        if (supportsPatchSync) {
+                            const decodedDb = await decodeRisuSave(dbData);
+                            globalThis.decoded = decodedDb
+                            await patcher.init(decodedDb);
+                        }
                     }
                 }
                 if(forageStorage.isAccount){

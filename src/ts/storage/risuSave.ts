@@ -335,6 +335,9 @@ export class RisuSaveDecoder {
                 }
             }
         }
+        if(!Array.isArray(db.characters)){
+            db.characters = [];
+        }
         //to fix botpreset bugs
         if(!Array.isArray(db.botPresets) || db.botPresets.length === 0){
             db.botPresets = [presetTemplate]
