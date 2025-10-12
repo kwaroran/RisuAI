@@ -302,6 +302,7 @@ export const languageChinese = {
     "SpacedView": "多角色模式",
     "emphasizedView": "双角色模式",
     "pluginWarn": "但安装恶意插件可能导致问题。",
+    "pluginConfirm": "你真的要导入这个插件吗？只从可信的来源导入插件。",
     "createGroupImg": "产生群组头像",
     "waifuWidth": "角色对话框宽度",
     "savebackup": "备份至 Google",

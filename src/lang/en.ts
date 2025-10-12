@@ -661,6 +661,7 @@ export const languageEnglish = {
     SpacedView: "Multiple Character View",
     emphasizedView: "Double Character View",
     pluginWarn: "Installing malicious plugins can cause problems.",
+    pluginConfirm: "Do you really want to import this plugin? Only import plugins from trusted sources.",
     createGroupImg: "Generate group icon",
     waifuWidth: "Waifu Chat Width",
     savebackup: "Save Backup to google",

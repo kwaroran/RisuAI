@@ -185,6 +185,7 @@ export const LanguageVietnamese = {
     "SpacedView": "Xem nhiều ký tự",
     "emphasizedView": "Chế độ xem nhân vật đôi",
     "pluginWarn": "Các plugin có thể gây ra sự cố khi cài đặt các plugin độc hại.",
+    "pluginConfirm": "Bạn có thực sự muốn nhập plugin này không? Chỉ nhập plugin từ các nguồn đáng tin cậy.",
     "createGroupImg": "Tạo biểu tượng nhóm",
     "waifuWidth": "Chiều rộng trò chuyện Waifu",
     "savebackup": "Lưu Sao lưu vào google",

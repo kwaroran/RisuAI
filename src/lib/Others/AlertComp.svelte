@@ -82,6 +82,8 @@
                 <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
             {:else if $alertStore.type === 'ask'}
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Confirm</h2>
+            {:else if $alertStore.type === 'pluginconfirm'}
+                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Plugin Import</h2>
             {:else if $alertStore.type === 'selectChar'}
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Select</h2>
             {:else if $alertStore.type === 'input'}
@@ -132,7 +134,7 @@
                 </div>
             {/if}
 
-            {#if $alertStore.type === 'ask'}
+            {#if $alertStore.type === 'ask' || $alertStore.type === 'pluginconfirm'}
                 <div class="flex gap-2 w-full">
                     <Button className="mt-4 flex-grow" onclick={() => {
                         alertStore.set({

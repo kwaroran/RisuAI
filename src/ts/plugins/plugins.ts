@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { language } from "../../lang";
-import { alertError, alertMd } from "../alert";
+import { alertError, alertMd, alertPluginConfirm } from "../alert";
 import { getCurrentCharacter, getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
@@ -34,6 +34,11 @@ export async function importPlugin() {
         if (!f) {
             return
         }
+
+        if (!await alertPluginConfirm(language.pluginConfirm)) {
+            return
+        }
+
         const jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
         const splitedJs = jsFile.split('\n')
         let name = ''

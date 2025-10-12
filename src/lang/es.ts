@@ -264,6 +264,7 @@ export const languageSpanish = {
     SpacedView: "Vista de Múltiples Personajes",
     emphasizedView: "Vista de Personajes Doble",
     pluginWarn: "Instalar plugins maliciosos puede causar problemas.",
+    pluginConfirm: "¿Realmente quieres importar este plugin? Solo importa plugins de fuentes confiables.",
     createGroupImg: "Generar icono de grupo",
     waifuWidth: "Ancho del Chat Waifu",
     savebackup: "Guardar Respaldo en Google",
