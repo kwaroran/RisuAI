@@ -308,6 +308,7 @@ export const languageChineseTraditional = {
     "emphasizedView": "雙角色模式",
     "pluginWarn": "但安裝惡意外掛可能導致問題。",
     "pluginConfirm": "您真的要導入這個插件嗎？只從可信的來源導入插件。",
+    "pluginContainsExternalMedia": "此插件包含外部媒體。",
     "createGroupImg": "產生群組頭像",
     "waifuWidth": "角色對話框寬度",
     "savebackup": "備份至 Google",

@@ -45,7 +45,16 @@ export async function importPlugin() {
             }
         }
 
-        if (!await alertPluginConfirm(`${name}\n${language.pluginConfirm}`)) {
+        const mediaRegex = /(https?):\/\/[^\s'"]+\.(?:png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|mp4|webm)/gi;
+        const hasExternalMedia = mediaRegex.test(jsFile);
+
+        let confirmMessage = `${name}`;
+        if (hasExternalMedia) {
+            confirmMessage += `\n${language.pluginContainsExternalMedia}`;
+        }
+        confirmMessage += `\n\n${language.pluginConfirm}`;
+
+        if (!await alertPluginConfirm(confirmMessage)) {
             return
         }
         let displayName: string = undefined
@@ -219,9 +228,9 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         getArg: (arg: string) => {
             const db = getDatabase()
             const [name, realArg] = arg.split('::')
-            for (const plug of db.plugins) {
-                if (plug.name === name) {
-                    return plug.realArg[realArg]
+            for (const plugin of db.plugins) {
+                if (plugin.name === name) {
+                    return plugin.realArg[realArg]
                 }
             }
         },
@@ -279,9 +288,9 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         setArg: (arg: string, value: string | number) => {
             const db = getDatabase();
             const [name, realArg] = arg.split("::");
-            for (const plug of db.plugins) {
-                if (plug.name === name) {
-                    plug.realArg[realArg] = value;
+            for (const plugin of db.plugins) {
+                if (plugin.name === name) {
+                    plugin.realArg[realArg] = value;
                 }
             }
         }

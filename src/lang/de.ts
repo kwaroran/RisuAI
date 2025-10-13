@@ -215,6 +215,7 @@ export const languageGerman = {
     emphasizedView: "Doppelte Charakteransicht",
     pluginWarn: "Installieren von Plugins unbekannter Herkunft könnte Probleme verursachen oder sogar schädlichen Code enthalten",
     pluginConfirm: "Möchten Sie dieses Plugin wirklich importieren? Importieren Sie nur Plugins aus vertrauenswürdigen Quellen.",
+    pluginContainsExternalMedia: "Dieses Plugin enthält externe Medien.",
     createGroupImg: "Gruppenicon generieren",
     waifuWidth: "Breite des Waifu Chat-Bereichs",
     savebackup: "Erstellen und laden Sie ein Backup auf Google hoch",
