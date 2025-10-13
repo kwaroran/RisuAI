@@ -35,13 +35,19 @@ export async function importPlugin() {
             return
         }
 
-        if (!await alertPluginConfirm(language.pluginConfirm)) {
-            return
-        }
-
         const jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
         const splitedJs = jsFile.split('\n')
         let name = ''
+        for (const line of splitedJs) {
+            if (line.startsWith('//@name')) {
+                name = line.slice(7).trim()
+                break
+            }
+        }
+
+        if (!await alertPluginConfirm(`${name}\n${language.pluginConfirm}`)) {
+            return
+        }
         let displayName: string = undefined
         let arg: { [key: string]: 'int' | 'string' | string[] } = {}
         let realArg: { [key: string]: number | string } = {}
