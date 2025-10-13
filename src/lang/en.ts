@@ -1309,6 +1309,7 @@ export const languageEnglish = {
     folderNameInput: "Please input the new folder name",
     folderRemoveLengthError: "To remove a folder, it must not contain any entries.",
     personaNote: "Persona Note",
+    moduleCustomSort: "Module Custom Sort",
     mcpAccessPrompt: "{{tool}} is trying to \"{{action}}\". do you want to allow this?",
     rememberToolUsage: "Remember tool usage",
     simplifiedToolUse: "Simplified tool usage",

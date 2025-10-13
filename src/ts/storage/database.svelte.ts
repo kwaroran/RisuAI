@@ -440,6 +440,14 @@ export function setDatabase(data:Database){
     data.memoryLimitThickness ??= 1
     data.modules ??= []
     data.enabledModules ??= []
+    data.moduleCustomSort ??= false
+    data.modulesCustomOrder ??= []
+    // Populate modulesCustomOrder with existing module IDs if not present
+    for (const module of data.modules) {
+        if (!data.modulesCustomOrder.includes(module.id)) {
+            data.modulesCustomOrder.push(module.id)
+        }
+    }
     data.additionalParams ??= []
     data.heightMode ??= 'normal'
     data.antiClaudeOverload ??= false
@@ -890,6 +898,8 @@ export interface Database{
     memoryLimitThickness?:number
     modules: RisuModule[]
     enabledModules: string[]
+    moduleCustomSort?: boolean
+    modulesCustomOrder?: string[]
     sideMenuRerollButton?:boolean
     requestInfoInsideChat?:boolean
     additionalParams:[string, string][]

@@ -5,7 +5,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, importModule, refreshModules, type RisuModule } from "src/ts/process/modules";
-    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints } from "lucide-svelte";
+    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints, ChevronUp, ChevronDown } from "lucide-svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
     import { alertCardExport, alertConfirm, alertError } from "src/ts/alert";
@@ -21,16 +21,90 @@
     let mode = $state(0)
     let editModuleIndex = $state(-1)
     let moduleSearch = $state('')
+    let draggedModuleId = $state<string|null>(null)
 
     function sortModules(modules:RisuModule[], search:string){
-        return modules.filter((v) => {
+        const filtered = modules.filter((v) => {
             if(search === '') return true
             return v.name.toLowerCase().includes(search.toLowerCase())
-        
-        }).sort((a, b) => {
-            let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-            return score
         })
+
+        if(DBState.db.moduleCustomSort){
+            const customOrder = DBState.db.modulesCustomOrder ?? []
+            return filtered.sort((a, b) => {
+                const indexA = customOrder.indexOf(a.id)
+                const indexB = customOrder.indexOf(b.id)
+
+                // Both not in custom order - keep original relative order
+                if(indexA === -1 && indexB === -1) return 0
+
+                // New modules (not in order array) appear at top
+                if(indexA === -1) return -1
+                if(indexB === -1) return 1
+
+                // Both in custom order - sort by position
+                return indexA - indexB
+            })
+        }
+        else{
+            return filtered.sort((a, b) => {
+                let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+                return score
+            })
+        }
+    }
+
+    function moveModule(moduleId: string, direction: 'up' | 'down') {
+        const currentIndex = DBState.db.modulesCustomOrder.indexOf(moduleId)
+        if (currentIndex === -1) return
+
+        if (direction === 'up' && currentIndex > 0) {
+            // Swap with previous
+            const temp = DBState.db.modulesCustomOrder[currentIndex - 1]
+            DBState.db.modulesCustomOrder[currentIndex - 1] = moduleId
+            DBState.db.modulesCustomOrder[currentIndex] = temp
+        } else if (direction === 'down' && currentIndex < DBState.db.modulesCustomOrder.length - 1) {
+            // Swap with next
+            const temp = DBState.db.modulesCustomOrder[currentIndex + 1]
+            DBState.db.modulesCustomOrder[currentIndex + 1] = moduleId
+            DBState.db.modulesCustomOrder[currentIndex] = temp
+        }
+
+        // Trigger reactivity
+        DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder
+    }
+
+    function onDragStart(e: DragEvent, moduleId: string) {
+        draggedModuleId = moduleId
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move'
+        }
+    }
+
+    function onDragOver(e: DragEvent) {
+        e.preventDefault()
+        if (e.dataTransfer) {
+            e.dataTransfer.dropEffect = 'move'
+        }
+    }
+
+    function onDrop(e: DragEvent, targetModuleId: string) {
+        e.preventDefault()
+        if (!draggedModuleId || draggedModuleId === targetModuleId) return
+
+        const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedModuleId)
+        const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetModuleId)
+
+        if (draggedIndex === -1 || targetIndex === -1) return
+
+        // Remove from old position
+        DBState.db.modulesCustomOrder.splice(draggedIndex, 1)
+        // Insert at new position
+        DBState.db.modulesCustomOrder.splice(targetIndex, 0, draggedModuleId)
+
+        // Trigger reactivity
+        DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder
+        draggedModuleId = null
     }
 
     onDestroy(() => {
@@ -51,7 +125,36 @@
                     <div class="border-t-1 border-selected"></div>
                 {/if}
 
-                <div class="pl-3 pt-3 text-left flex items-center">
+                <div
+                    draggable={DBState.db.moduleCustomSort}
+                    ondragstart={(e) => onDragStart(e, rmodule.id)}
+                    ondragover={onDragOver}
+                    ondrop={(e) => onDrop(e, rmodule.id)}
+                    class={DBState.db.moduleCustomSort ? 'cursor-move' : ''}
+                >
+                    <div class="pl-3 pt-3 text-left flex items-center">
+                    {#if DBState.db.moduleCustomSort}
+                        <div class="flex flex-col mr-2">
+                            <button
+                                class="text-textcolor2 hover:text-green-500 cursor-pointer"
+                                onclick={(e) => {
+                                    e.stopPropagation()
+                                    moveModule(rmodule.id, 'up')
+                                }}
+                            >
+                                <ChevronUp size={16}/>
+                            </button>
+                            <button
+                                class="text-textcolor2 hover:text-green-500 cursor-pointer"
+                                onclick={(e) => {
+                                    e.stopPropagation()
+                                    moveModule(rmodule.id, 'down')
+                                }}
+                            >
+                                <ChevronDown size={16}/>
+                            </button>
+                        </div>
+                    {/if}
                     {#if rmodule.mcp}
                         <Waypoints size={18} class="mr-2" />
                     {/if}
@@ -110,6 +213,11 @@
                                 const index = DBState.db.modules.findIndex((v) => v.id === rmodule.id)
                                 DBState.db.modules.splice(index, 1)
                                 DBState.db.modules = DBState.db.modules
+                                // Remove from custom order array
+                                const orderIndex = DBState.db.modulesCustomOrder.indexOf(rmodule.id)
+                                if (orderIndex !== -1) {
+                                    DBState.db.modulesCustomOrder.splice(orderIndex, 1)
+                                }
                             }
                         }}>
                             <TrashIcon size={18}/>
@@ -118,6 +226,7 @@
                 </div>
                 <div class="mt-1 mb-3 pl-3">
                     <span class="text-sm text-textcolor2">{rmodule.description || 'No description provided'}</span>
+                </div>
                 </div>
             {/each}
         {/if}
@@ -131,6 +240,7 @@
                 id: v4(),
             }
             DBState.db.modules.push(tempModule)
+            DBState.db.modulesCustomOrder.unshift(tempModule.id)
             mode = 1
         }}>
             <PlusIcon />

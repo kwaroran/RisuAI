@@ -250,6 +250,9 @@
         <Help key="experimental" />
     </Check>
 </div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.moduleCustomSort} name={language.moduleCustomSort}></Check>
+</div>
 
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.rememberToolUsage} name={language.rememberToolUsage}></Check>
