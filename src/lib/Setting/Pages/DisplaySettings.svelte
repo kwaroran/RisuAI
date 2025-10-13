@@ -9,7 +9,7 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { updateAnimationSpeed } from "src/ts/gui/animation";
-    import { changeColorScheme, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
+    import { changeColorScheme, changeColorSchemeType, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
     import { DownloadIcon, HardDriveUploadIcon } from "lucide-svelte";
     import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
@@ -94,7 +94,9 @@
 
     {#if DBState.db.colorSchemeName === "custom"}
     <div class="border border-darkborderc p-2 m-2 rounded-md">
-        <SelectInput className="mt-2" value={DBState.db.colorScheme.type} onchange={updateColorScheme}>
+        <SelectInput className="mt-2" value={DBState.db.colorScheme.type} onchange={(e) => {
+            changeColorSchemeType((e.target as HTMLInputElement).value as 'light'|'dark')
+        }}>
             <OptionInput value="light">Light</OptionInput>
             <OptionInput value="dark">Dark</OptionInput>
         </SelectInput>
