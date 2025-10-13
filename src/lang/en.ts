@@ -663,6 +663,7 @@ export const languageEnglish = {
     pluginWarn: "Installing malicious plugins can cause problems.",
     pluginConfirm: "Do you really want to import this plugin? Only import plugins from trusted sources.",
     pluginContainsExternalMedia: "This plugin contains external media.",
+    pluginContainsExternalJS: "This plugin contains external Javascript.",
     createGroupImg: "Generate group icon",
     waifuWidth: "Waifu Chat Width",
     savebackup: "Save Backup to google",

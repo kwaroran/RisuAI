@@ -187,6 +187,7 @@ export const LanguageVietnamese = {
     "pluginWarn": "Các plugin có thể gây ra sự cố khi cài đặt các plugin độc hại.",
     "pluginConfirm": "Bạn có thực sự muốn nhập plugin này không? Chỉ nhập plugin từ các nguồn đáng tin cậy.",
     "pluginContainsExternalMedia": "Plugin này chứa phương tiện bên ngoài.",
+    "pluginContainsExternalJS": "Plugin này chứa Javascript bên ngoài.",
     "createGroupImg": "Tạo biểu tượng nhóm",
     "waifuWidth": "Chiều rộng trò chuyện Waifu",
     "savebackup": "Lưu Sao lưu vào google",

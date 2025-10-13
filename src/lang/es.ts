@@ -266,6 +266,7 @@ export const languageSpanish = {
     pluginWarn: "Instalar plugins maliciosos puede causar problemas.",
     pluginConfirm: "¿Realmente quieres importar este plugin? Solo importa plugins de fuentes confiables.",
     pluginContainsExternalMedia: "Este plugin contiene medios externos.",
+    pluginContainsExternalJS: "Este complemento contiene Javascript externo.",
     createGroupImg: "Generar icono de grupo",
     waifuWidth: "Ancho del Chat Waifu",
     savebackup: "Guardar Respaldo en Google",
