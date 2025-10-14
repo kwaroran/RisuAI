@@ -1179,5 +1179,6 @@ export const languageKorean = {
     "hideErrorDetails": "오류 세부사항 숨기기",
     "showErrorDetails": "오류 세부사항 보이기",
     "nightlyWarning": "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**",
-    "moduleCustomSort": "모듈 자유 정렬"
+    "moduleCustomSort": "모듈 자유 정렬",
+    "resetModuleOrder": "이름순으로 초기화"
 }

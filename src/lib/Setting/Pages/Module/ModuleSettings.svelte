@@ -5,7 +5,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, importModule, refreshModules, type RisuModule } from "src/ts/process/modules";
-    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints, ChevronUp, ChevronDown } from "lucide-svelte";
+    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints, ChevronUp, ChevronDown, ArrowDownAZ } from "lucide-svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
     import { alertCardExport, alertConfirm, alertError } from "src/ts/alert";
@@ -121,6 +121,13 @@
         draggedModuleId = null
     }
 
+    function resetModuleOrder() {
+        const sortedModules = [...DBState.db.modules].sort((a, b) =>
+            a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        )
+        DBState.db.modulesCustomOrder = sortedModules.map(m => m.id)
+    }
+
     onDestroy(() => {
         refreshModules()
     })
@@ -129,6 +136,17 @@
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.modules}</h2>
 
     <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} />
+
+    {#if DBState.db.moduleCustomSort}
+        <button
+            class="mt-2 text-textcolor2 hover:text-green-500 cursor-pointer flex items-center gap-1"
+            onclick={resetModuleOrder}
+            use:tooltip={"Reset to alphabetical order"}
+        >
+            <ArrowDownAZ size={18} />
+            <span class="text-sm">Reset to Name Order</span>
+        </button>
+    {/if}
 
     <div class="contain w-full max-w-full mt-4 flex flex-col border-selected border-1 rounded-md flex-1 overflow-y-auto">
         {#if DBState.db.modules.length === 0}
