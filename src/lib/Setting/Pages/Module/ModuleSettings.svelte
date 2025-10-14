@@ -338,31 +338,28 @@
     }
 
     function resetModuleOrder() {
-        const sortedModules = [...DBState.db.modules].sort((a, b) =>
-            a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-        )
         const folders = DBState.db.modulesFolders ?? []
+        const modules = DBState.db.modules
 
-        // Clear all folder module orders and reset module folderIds
+        // Sort each folder's modules by name
         folders.forEach(folder => {
-            folder.moduleOrder = []
+            const folderModules = modules
+                .filter(m => m.folderId === folder.id)
+                .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+            folder.moduleOrder = folderModules.map(m => m.id)
         })
 
-        DBState.db.modules = sortedModules.map(m => ({...m, folderId: undefined}))
+        // Get modules without folder
+        const modulesWithoutFolder = modules.filter(m => !m.folderId)
 
-        // Sort folders
-        const sortedFolders = [...folders].sort((a, b) =>
-            a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-        )
-
-        // Combine folder IDs and module IDs, sorted by name
+        // Combine and sort all top-level items (folders + modules without folder) by name
         const combined: { id: string, name: string }[] = [
-            ...sortedFolders.map(f => ({ id: f.id, name: f.name })),
-            ...sortedModules.map(m => ({ id: m.id, name: m.name }))
+            ...folders.map(f => ({ id: f.id, name: f.name })),
+            ...modulesWithoutFolder.map(m => ({ id: m.id, name: m.name }))
         ].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
 
         DBState.db.modulesCustomOrder = combined.map(item => item.id)
-        DBState.db.modulesFolders = sortedFolders
+        DBState.db.modulesFolders = [...folders]
     }
 
     async function createFolder() {
@@ -449,7 +446,7 @@
 
     {#if DBState.db.moduleCustomSort}
         <button
-            class="mt-2 text-textcolor2 hover:text-green-500 cursor-pointer flex items-center gap-1"
+            class="mt-2 text-textcolor2 hover:text-green-500 cursor-pointer inline-flex items-center gap-1 w-fit"
             onclick={resetModuleOrder}
             use:tooltip={"Reset to alphabetical order"}
         >
