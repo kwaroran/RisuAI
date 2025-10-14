@@ -2,6 +2,8 @@ import type { Database, character, loreBook } from './storage/database.svelte';
 import type { CbsConditions } from './parser.svelte';
 import type { RisuModule } from './process/modules';
 import type { LLMModel } from './model/modellist';
+import { get } from 'svelte/store';
+import { CurrentTriggerIdStore } from './stores.svelte';
 
 export const defaultCBSRegisterArg: CBSRegisterArg = {
     registerFunction: () => { throw new Error('registerFunction not implemented') },
@@ -63,6 +65,7 @@ export type matcherArg = {
     recursiveCount?: number
     lowLevelAccess?: boolean
     cbsConditions: CbsConditions
+    triggerId?: string
 }
 "a".toLowerCase().split('::')
 
@@ -174,6 +177,16 @@ export function registerCBS(arg:CBSRegisterArg) {
         },
         alias: [],
         description: 'Returns the current user\'s name as set in user settings. In consistent character mode, returns "username".\n\nUsage:: {{user}}',
+    });
+
+    registerFunction({
+        name: 'trigger_id',
+        callback: (str, matcherArg, args, vars) => {
+            const currentTriggerId = get(CurrentTriggerIdStore)
+            return currentTriggerId ?? 'null'
+        },
+        alias: ['triggerid'],
+        description: 'Returns the ID value from the risu-id attribute of the clicked element that triggered the manual trigger. Returns "null" if no ID was provided.\n\nUsage:: {{trigger_id}}',
     });
 
     registerFunction({

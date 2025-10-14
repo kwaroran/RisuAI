@@ -20,8 +20,11 @@ import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 
 
 const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz';
+const NIGHTLY_HUB_URL = 'https://nightly.sv.risuai.xyz'
 export const hubURL = typeof window !== 'undefined' && (window as any).__NODE__ === true
     ? '/hub-proxy'
+    : (window.location.hostname === 'nightly.risuai.xyz')
+    ? NIGHTLY_HUB_URL 
     : EXTERNAL_HUB_URL;
 
 export async function importCharacter() {
@@ -1076,14 +1079,15 @@ function convertCharbook(arg:{
             insertorder: book.insertion_order,
             comment: book.name ?? book.comment ?? "",
             content: content,
-            mode: "normal",
+            mode: (book.mode as any) ?? "normal",
             alwaysActive: book.constant ?? false,
             selective: book.selective ?? false,
             extentions: {...extensions, risu_case_sensitive: book.case_sensitive},
             activationPercent: book.extensions?.risu_activationPercent,
             loreCache: book.extensions?.risu_loreCache ?? null,
             //@ts-ignore
-            useRegex: book.use_regex ?? false
+            useRegex: book.use_regex ?? false,
+            folder: book.folder
         })
     }
 
@@ -1125,6 +1129,8 @@ async function createBaseV2(char:character) {
             name: lore.comment,
             comment: lore.comment,
             case_sensitive: caseSensitive,
+            mode: lore.mode ?? "normal",
+            folder: lore.folder,
         })
     }
     char.loreExt ??= {}
@@ -1463,9 +1469,15 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
     }
 }
 
+// Extended LorebookEntry with RisuAI specific fields
+type RisuLorebookEntry = LorebookEntry & {
+    mode?: string;
+    folder?: string;
+}
+
 export function createBaseV3(char:character){
     
-    let charBook:LorebookEntry[] = []
+    let charBook:RisuLorebookEntry[] = []
     let assets:Array<{
         type: string
         uri: string
@@ -1517,18 +1529,22 @@ export function createBaseV3(char:character){
         ext.risu_loreCache = lore.loreCache
 
         charBook.push({
-            keys: lore.key.split(',').map(r => r.trim()),
-            secondary_keys: lore.selective ? lore.secondkey.split(',').map(r => r.trim()) : undefined,
-            content: lore.content,
-            extensions: ext,
-            enabled: true,
-            insertion_order: lore.insertorder,
-            constant: lore.alwaysActive,
-            selective:lore.selective,
-            name: lore.comment,
-            comment: lore.comment,
-            case_sensitive: caseSensitive,
-            use_regex: lore.useRegex ?? false,
+            ...{
+                keys: lore.key.split(',').map(r => r.trim()),
+                secondary_keys: lore.selective ? lore.secondkey.split(',').map(r => r.trim()) : undefined,
+                content: lore.content,
+                extensions: ext,
+                enabled: true,
+                insertion_order: lore.insertorder,
+                constant: lore.alwaysActive,
+                selective:lore.selective,
+                name: lore.comment,
+                comment: lore.comment,
+                case_sensitive: caseSensitive,
+                use_regex: lore.useRegex ?? false,
+            } as LorebookEntry,
+            mode: lore.mode ?? "normal",
+            folder: lore.folder,
         })
     }
     char.loreExt ??= {}
@@ -1925,6 +1941,8 @@ interface charBookEntry{
     position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
     case_sensitive?:boolean
     use_regex?:boolean
+    mode?: string // RisuAI mode field
+    folder?: string // RisuAI folder field
 }
 
 interface RccCardMetaData{

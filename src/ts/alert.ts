@@ -10,7 +10,7 @@ export interface alertData{
     type: 'error'|'normal'|'none'|'ask'|'wait'|'selectChar'
             |'input'|'toast'|'wait2'|'markdown'|'select'|'login'
             |'tos'|'cardexport'|'requestdata'|'addchar'|'hypaV2'|'selectModule'
-            |'chatOptions'|'pukmakkurit'|'branches'|'progress',
+            |'chatOptions'|'pukmakkurit'|'branches'|'progress'|'pluginconfirm',
     msg: string,
     submsg?: string
     datalist?: [string, string][],
@@ -196,6 +196,18 @@ export async function alertConfirm(msg:string){
 
     alertStoreImported.set({
         'type': 'ask',
+        'msg': msg
+    })
+
+    await waitAlert()
+
+    return get(alertStoreImported).msg === 'yes'
+}
+
+export async function alertPluginConfirm(msg:string){
+
+    alertStoreImported.set({
+        'type': 'pluginconfirm',
         'msg': msg
     })
 

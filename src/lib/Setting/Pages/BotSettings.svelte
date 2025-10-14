@@ -56,9 +56,23 @@
         }
     });
 
+    function clearVertexToken() {
+        DBState.db.vertexAccessToken = '';
+        DBState.db.vertexAccessTokenExpires = 0;
+        console.log('Vertex AI token cleared');
+    }
+
+    $effect(() => {
+        if (DBState.db.aiModel === 'openrouter' || DBState.db.subModel === 'openrouter') {
+            openrouterSearchQuery = ""
+        }
+    });
+
+
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
     let modelInfo = $derived(getModelInfo(DBState.db.aiModel))
     let subModelInfo = $derived(getModelInfo(DBState.db.subModel))
+    let openrouterSearchQuery = $state("")
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
@@ -100,14 +114,15 @@
     {/if}
     {#if modelInfo.provider === LLMProvider.VertexAI || subModelInfo.provider === LLMProvider.VertexAI}
         <span class="text-textcolor">Project ID</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.google.projectId}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.google.projectId} oninput={clearVertexToken}/>
         <span class="text-textcolor">Vertex Client Email</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.vertexClientEmail}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.vertexClientEmail} oninput={clearVertexToken}/>
         <span class="text-textcolor">Vertex Private Key</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey} oninput={clearVertexToken}/>
         <span class="text-textcolor">Region</span>
         <SelectInput value={DBState.db.vertexRegion} onchange={(e) => {
             DBState.db.vertexRegion = e.currentTarget.value
+            clearVertexToken()
         }}>
             <OptionInput value={'global'}>
                 global
@@ -194,6 +209,13 @@
                 <OptionInput value="">Loading..</OptionInput>
             </SelectInput>
         {:then m}
+            {#if m && m.length > 0}
+                <TextInput 
+                    bind:value={openrouterSearchQuery} 
+                    placeholder="Search models..." 
+                    size="sm" 
+                />
+            {/if}
             <SelectInput className="mt-2 mb-4" bind:value={DBState.db.openrouterRequestModel}>
                 {#if (!m) || (m.length === 0)}
                     <OptionInput value="openai/gpt-3.5-turbo">GPT 3.5</OptionInput>
@@ -209,7 +231,12 @@
                 {:else}
                     <OptionInput value={"risu/free"}>Free Auto</OptionInput>
                     <OptionInput value={"openrouter/auto"}>Openrouter Auto</OptionInput>
-                    {#each m as model}
+                    {#each m.filter(model => {
+                        if (openrouterSearchQuery === "") return true;
+                        const searchTerms = openrouterSearchQuery.toLowerCase().trim().split(/\s+/);
+                        const modelText = (model.name + " " + model.id).toLowerCase();
+                        return searchTerms.every(term => modelText.includes(term));
+                    }) as model}
                         <OptionInput value={model.id}>{model.name}</OptionInput>
                     {/each}
                 {/if}
