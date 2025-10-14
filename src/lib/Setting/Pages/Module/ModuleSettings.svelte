@@ -58,31 +58,35 @@
         const currentIndex = DBState.db.modulesCustomOrder.indexOf(moduleId)
         if (currentIndex === -1) return
 
+        const newOrder = [...DBState.db.modulesCustomOrder]
+
         if (direction === 'up' && currentIndex > 0) {
             // Swap with previous
-            const temp = DBState.db.modulesCustomOrder[currentIndex - 1]
-            DBState.db.modulesCustomOrder[currentIndex - 1] = moduleId
-            DBState.db.modulesCustomOrder[currentIndex] = temp
-        } else if (direction === 'down' && currentIndex < DBState.db.modulesCustomOrder.length - 1) {
+            const temp = newOrder[currentIndex - 1]
+            newOrder[currentIndex - 1] = moduleId
+            newOrder[currentIndex] = temp
+            DBState.db.modulesCustomOrder = newOrder
+        } else if (direction === 'down' && currentIndex < newOrder.length - 1) {
             // Swap with next
-            const temp = DBState.db.modulesCustomOrder[currentIndex + 1]
-            DBState.db.modulesCustomOrder[currentIndex + 1] = moduleId
-            DBState.db.modulesCustomOrder[currentIndex] = temp
+            const temp = newOrder[currentIndex + 1]
+            newOrder[currentIndex + 1] = moduleId
+            newOrder[currentIndex] = temp
+            DBState.db.modulesCustomOrder = newOrder
         }
-
-        // Trigger reactivity
-        DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder
     }
 
     function onDragStart(e: DragEvent, moduleId: string) {
+        e.stopPropagation()
         draggedModuleId = moduleId
         if (e.dataTransfer) {
             e.dataTransfer.effectAllowed = 'move'
+            e.dataTransfer.setData('text/plain', moduleId)
         }
     }
 
     function onDragOver(e: DragEvent) {
         e.preventDefault()
+        e.stopPropagation()
         if (e.dataTransfer) {
             e.dataTransfer.dropEffect = 'move'
         }
@@ -90,20 +94,30 @@
 
     function onDrop(e: DragEvent, targetModuleId: string) {
         e.preventDefault()
-        if (!draggedModuleId || draggedModuleId === targetModuleId) return
+        e.stopPropagation()
+
+        if (!draggedModuleId || draggedModuleId === targetModuleId) {
+            draggedModuleId = null
+            return
+        }
 
         const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedModuleId)
         const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetModuleId)
 
-        if (draggedIndex === -1 || targetIndex === -1) return
+        if (draggedIndex === -1 || targetIndex === -1) {
+            draggedModuleId = null
+            return
+        }
 
+        // Create new array to ensure reactivity
+        const newOrder = [...DBState.db.modulesCustomOrder]
         // Remove from old position
-        DBState.db.modulesCustomOrder.splice(draggedIndex, 1)
+        newOrder.splice(draggedIndex, 1)
         // Insert at new position
-        DBState.db.modulesCustomOrder.splice(targetIndex, 0, draggedModuleId)
+        newOrder.splice(targetIndex, 0, draggedModuleId)
 
-        // Trigger reactivity
-        DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder
+        // Update database
+        DBState.db.modulesCustomOrder = newOrder
         draggedModuleId = null
     }
 
@@ -162,19 +176,18 @@
                     <div class="flex-grow flex justify-end">
                         <button class={(DBState.db.enabledModules.includes(rmodule.id)) ?
                                 "mr-2 cursor-pointer text-blue-500" :
-                                rmodule.namespace && 
+                                rmodule.namespace &&
                                 DBState.db.moduleIntergration?.split(',').map((s) => s.trim()).includes(rmodule.namespace) ?
                                 "text-amber-500 hover:text-green-500 mr-2 cursor-pointer" :
                                 "text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
                             } use:tooltip={language.enableGlobal} onclick={async (e) => {
                             e.stopPropagation()
                             if(DBState.db.enabledModules.includes(rmodule.id)){
-                                DBState.db.enabledModules.splice(DBState.db.enabledModules.indexOf(rmodule.id), 1)
+                                DBState.db.enabledModules = DBState.db.enabledModules.filter(id => id !== rmodule.id)
                             }
                             else{
-                                DBState.db.enabledModules.push(rmodule.id)
+                                DBState.db.enabledModules = [...DBState.db.enabledModules, rmodule.id]
                             }
-                            DBState.db.enabledModules = DBState.db.enabledModules
                         }}>
                             <Globe size={18}/>
                         </button>
@@ -206,18 +219,14 @@
                             e.stopPropagation()
                             const d = await alertConfirm(`${language.removeConfirm}` + rmodule.name)
                             if(d){
+                                // Remove from enabled modules
                                 if(DBState.db.enabledModules.includes(rmodule.id)){
-                                    DBState.db.enabledModules.splice(DBState.db.enabledModules.indexOf(rmodule.id), 1)
-                                    DBState.db.enabledModules = DBState.db.enabledModules
+                                    DBState.db.enabledModules = DBState.db.enabledModules.filter(id => id !== rmodule.id)
                                 }
-                                const index = DBState.db.modules.findIndex((v) => v.id === rmodule.id)
-                                DBState.db.modules.splice(index, 1)
-                                DBState.db.modules = DBState.db.modules
+                                // Remove from modules list
+                                DBState.db.modules = DBState.db.modules.filter(m => m.id !== rmodule.id)
                                 // Remove from custom order array
-                                const orderIndex = DBState.db.modulesCustomOrder.indexOf(rmodule.id)
-                                if (orderIndex !== -1) {
-                                    DBState.db.modulesCustomOrder.splice(orderIndex, 1)
-                                }
+                                DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder.filter(id => id !== rmodule.id)
                             }
                         }}>
                             <TrashIcon size={18}/>

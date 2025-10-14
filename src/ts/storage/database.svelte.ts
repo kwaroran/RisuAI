@@ -443,7 +443,11 @@ export function setDatabase(data:Database){
     data.moduleCustomSort ??= false
     data.modulesCustomOrder ??= []
     // Populate modulesCustomOrder with existing module IDs if not present
-    for (const module of data.modules) {
+    // Sort by name first to maintain alphabetical order when custom sort is first enabled
+    const sortedModules = [...data.modules].sort((a, b) =>
+        a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    )
+    for (const module of sortedModules) {
         if (!data.modulesCustomOrder.includes(module.id)) {
             data.modulesCustomOrder.push(module.id)
         }
