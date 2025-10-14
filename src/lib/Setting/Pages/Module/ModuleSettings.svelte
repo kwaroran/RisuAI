@@ -240,13 +240,14 @@
         }
 
         const folderNames = folders.map(f => f.name)
-        const selectedName = await alertSelect(folderNames)
-        if (!selectedName) return
+        const selectedIndexStr = await alertSelect(folderNames)
+        if (!selectedIndexStr) return
 
-        const selectedFolder = folders.find(f => f.name === selectedName)
-        if (selectedFolder) {
-            updateModuleFolderId(moduleId, selectedFolder.id)
-        }
+        const selectedIndex = parseInt(selectedIndexStr)
+        if (isNaN(selectedIndex) || selectedIndex < 0 || selectedIndex >= folders.length) return
+
+        const selectedFolder = folders[selectedIndex]
+        updateModuleFolderId(moduleId, selectedFolder.id)
     }
 
     function resetModuleOrder() {
@@ -483,7 +484,7 @@
                     {/if}
                     {#if rmodule.folderId && DBState.db.moduleCustomSort}
                         <button
-                            class="text-textcolor2 hover:text-yellow-500 mr-2 cursor-pointer"
+                            class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
                             use:tooltip={"Remove from Folder"}
                             onclick={(e) => {
                                 e.stopPropagation()
@@ -493,9 +494,9 @@
                             <FolderOpen size={18}/>
                         </button>
                     {/if}
-                    {#if DBState.db.moduleCustomSort}
+                    {#if DBState.db.moduleCustomSort && !rmodule.folderId}
                         <button
-                            class="text-textcolor2 hover:text-blue-500 mr-2 cursor-pointer"
+                            class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
                             use:tooltip={"Move to Folder"}
                             onclick={(e) => {
                                 e.stopPropagation()
