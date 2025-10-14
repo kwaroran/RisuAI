@@ -605,6 +605,7 @@ export const languageEnglish = {
     localLoreInfo: "Chat Lorebook only applies to the current chat.",
     removeConfirm: "Do you really want to remove: ",
     removeConfirm2: "Do you REALLY want to remove: ",
+    removeFolderConfirm: "Remove this folder? Modules will not be deleted.",
     exportConfirm: "Do you want to export this?",
     insertOrder: 'Insertion Order',
     activationKeys: 'Activation keys',
