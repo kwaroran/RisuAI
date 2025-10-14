@@ -70,7 +70,7 @@
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.persona}</h2>
 
 {#key sorted}
-<div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2 w-full" bind:this={ele}>
+<div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2 w-full max-w-full min-w-0" bind:this={ele}>
     {#each DBState.db.personas as persona, i}
         <button data-risu-idx={i} onclick={() => {
             changeUserPersona(i)
