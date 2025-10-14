@@ -8,7 +8,7 @@
     import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints, ChevronUp, ChevronDown, ArrowDownAZ, FolderPlus, ChevronRight, FolderOpen, Folder } from "lucide-svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
-    import { alertCardExport, alertConfirm, alertError, alertInput } from "src/ts/alert";
+    import { alertCardExport, alertConfirm, alertError, alertInput, alertSelect } from "src/ts/alert";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import { ShowRealmFrameStore } from "src/ts/stores.svelte";
     import { onDestroy } from "svelte";
@@ -24,6 +24,7 @@
     let moduleSearch = $state('')
     let draggedModuleId = $state<string|null>(null)
     let dragOverFolderId = $state<string|null>(null)
+    let draggedFolderId = $state<string|null>(null)
 
     type ModuleOrFolder =
         | { type: 'module', data: RisuModule }
@@ -40,37 +41,63 @@
 
         if(DBState.db.moduleCustomSort){
             const customOrder = DBState.db.modulesCustomOrder ?? []
-            const sorted = filtered.sort((a, b) => {
-                const indexA = customOrder.indexOf(a.id)
-                const indexB = customOrder.indexOf(b.id)
 
-                // Both not in custom order - keep original relative order
-                if(indexA === -1 && indexB === -1) return 0
-
-                // New modules (not in order array) appear at top
-                if(indexA === -1) return -1
-                if(indexB === -1) return 1
-
-                // Both in custom order - sort by position
-                return indexA - indexB
-            })
-
-            // Group by folder
+            // Build a map of folder contents
+            const folderContents = new Map<string, RisuModule[]>()
             for (const folder of folders) {
-                const folderModules = sorted.filter(m => m.folderId === folder.id)
-                if (folderModules.length > 0 || !search) {
-                    result.push({ type: 'folder', data: folder })
-                    if (!folder.folded) {
-                        folderModules.forEach(m => result.push({ type: 'module', data: m }))
+                folderContents.set(folder.id, filtered.filter(m => m.folderId === folder.id))
+            }
+
+            // Get modules without folder
+            const modulesWithoutFolder = filtered.filter(m => !m.folderId)
+
+            // Sort by customOrder
+            const items: ModuleOrFolder[] = []
+
+            for (const id of customOrder) {
+                // Check if it's a folder
+                const folder = folders.find(f => f.id === id)
+                if (folder) {
+                    const contents = folderContents.get(id) || []
+                    if (contents.length > 0 || !search) {
+                        items.push({ type: 'folder', data: folder })
+                        if (!folder.folded) {
+                            // Sort folder contents by customOrder
+                            contents.sort((a, b) => {
+                                const indexA = customOrder.indexOf(a.id)
+                                const indexB = customOrder.indexOf(b.id)
+                                if(indexA === -1) return 1
+                                if(indexB === -1) return -1
+                                return indexA - indexB
+                            }).forEach(m => items.push({ type: 'module', data: m }))
+                        }
+                    }
+                } else {
+                    // Check if it's a module without folder
+                    const module = modulesWithoutFolder.find(m => m.id === id)
+                    if (module) {
+                        items.push({ type: 'module', data: module })
                     }
                 }
             }
 
-            // Add modules without folder
-            const modulesWithoutFolder = sorted.filter(m => !m.folderId)
-            modulesWithoutFolder.forEach(m => result.push({ type: 'module', data: m }))
+            // Add any items not in customOrder (new items)
+            for (const folder of folders) {
+                if (!customOrder.includes(folder.id)) {
+                    const contents = folderContents.get(folder.id) || []
+                    if (contents.length > 0 || !search) {
+                        items.unshift({ type: 'folder', data: folder })
+                    }
+                }
+            }
 
-            return result
+            for (const module of modulesWithoutFolder) {
+                if (!customOrder.includes(module.id)) {
+                    items.unshift({ type: 'module', data: module })
+                }
+            }
+
+            return items
         }
         else{
             const sorted = filtered.sort((a, b) => {
@@ -102,6 +129,27 @@
         }
     }
 
+    function moveFolder(folderId: string, direction: 'up' | 'down') {
+        const currentIndex = DBState.db.modulesCustomOrder.indexOf(folderId)
+        if (currentIndex === -1) return
+
+        const newOrder = [...DBState.db.modulesCustomOrder]
+
+        if (direction === 'up' && currentIndex > 0) {
+            // Swap with previous
+            const temp = newOrder[currentIndex - 1]
+            newOrder[currentIndex - 1] = folderId
+            newOrder[currentIndex] = temp
+            DBState.db.modulesCustomOrder = newOrder
+        } else if (direction === 'down' && currentIndex < newOrder.length - 1) {
+            // Swap with next
+            const temp = newOrder[currentIndex + 1]
+            newOrder[currentIndex + 1] = folderId
+            newOrder[currentIndex] = temp
+            DBState.db.modulesCustomOrder = newOrder
+        }
+    }
+
     function onDragStart(e: DragEvent, moduleId: string) {
         e.stopPropagation()
         draggedModuleId = moduleId
@@ -123,6 +171,22 @@
         e.preventDefault()
         e.stopPropagation()
 
+        // Handle folder being dragged onto module (reorder)
+        if (draggedFolderId) {
+            const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedFolderId)
+            const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetModuleId)
+
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+                const newOrder = [...DBState.db.modulesCustomOrder]
+                newOrder.splice(draggedIndex, 1)
+                newOrder.splice(targetIndex, 0, draggedFolderId)
+                DBState.db.modulesCustomOrder = newOrder
+            }
+            draggedFolderId = null
+            return
+        }
+
+        // Handle module being dragged onto module
         if (!draggedModuleId || draggedModuleId === targetModuleId) {
             draggedModuleId = null
             dragOverFolderId = null
@@ -136,6 +200,17 @@
             draggedModuleId = null
             dragOverFolderId = null
             return
+        }
+
+        // Set the dragged module's folderId to match the target module's folderId
+        // If target has folderId, dragged goes into that folder
+        // If target has no folderId, dragged goes out of folder
+        const targetModule = DBState.db.modules.find(m => m.id === targetModuleId)
+        const draggedModule = DBState.db.modules.find(m => m.id === draggedModuleId)
+
+        if (targetModule && draggedModule) {
+            draggedModule.folderId = targetModule.folderId
+            DBState.db.modules = [...DBState.db.modules]
         }
 
         // Create new array to ensure reactivity
@@ -171,15 +246,6 @@
         dragOverFolderId = null
     }
 
-    function onDragOverFolder(e: DragEvent, folderId: string) {
-        e.preventDefault()
-        e.stopPropagation()
-        if (e.dataTransfer) {
-            e.dataTransfer.dropEffect = 'move'
-        }
-        dragOverFolderId = folderId
-    }
-
     function onDragLeaveFolder(e: DragEvent) {
         e.stopPropagation()
         dragOverFolderId = null
@@ -193,23 +259,63 @@
         }
     }
 
+    async function moveModuleToFolder(moduleId: string) {
+        const folders = DBState.db.modulesFolders ?? []
+        if (folders.length === 0) {
+            alertError('No folders available')
+            return
+        }
+
+        const folderNames = folders.map(f => f.name)
+        const selectedName = await alertSelect(folderNames)
+        if (!selectedName) return
+
+        const selectedFolder = folders.find(f => f.name === selectedName)
+        if (!selectedFolder) return
+
+        const module = DBState.db.modules.find(m => m.id === moduleId)
+        if (module) {
+            module.folderId = selectedFolder.id
+            DBState.db.modules = [...DBState.db.modules]
+        }
+    }
+
     function resetModuleOrder() {
         const sortedModules = [...DBState.db.modules].sort((a, b) =>
             a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         )
-        DBState.db.modulesCustomOrder = sortedModules.map(m => m.id)
+        const sortedFolders = [...(DBState.db.modulesFolders ?? [])].sort((a, b) =>
+            a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        )
+
+        // Combine folder IDs and module IDs, sorted by name
+        const combined: { id: string, name: string }[] = [
+            ...sortedFolders.map(f => ({ id: f.id, name: f.name })),
+            ...sortedModules.map(m => ({ id: m.id, name: m.name }))
+        ].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
+
+        DBState.db.modulesCustomOrder = combined.map(item => item.id)
     }
 
     async function createFolder() {
         const name = await alertInput(language.folderName)
         if(!name) return
 
+        // Check for duplicate folder name
+        const folders = DBState.db.modulesFolders ?? []
+        if (folders.some(f => f.name === name)) {
+            alertError('Folder with this name already exists')
+            return
+        }
+
         const newFolder: ModuleFolder = {
             id: v4(),
             name: name,
             folded: false
         }
-        DBState.db.modulesFolders = [...(DBState.db.modulesFolders ?? []), newFolder]
+        DBState.db.modulesFolders = [...folders, newFolder]
+        // Add to order
+        DBState.db.modulesCustomOrder = [newFolder.id, ...DBState.db.modulesCustomOrder]
     }
 
     function toggleFolder(folderId: string) {
@@ -235,6 +341,8 @@
 
         // Remove folder
         DBState.db.modulesFolders = (DBState.db.modulesFolders ?? []).filter(f => f.id !== folderId)
+        // Remove from order
+        DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder.filter(id => id !== folderId)
     }
 
     async function renameFolder(folderId: string) {
@@ -242,8 +350,14 @@
         const folder = folders.find(f => f.id === folderId)
         if(!folder) return
 
-        const newName = await alertInput(language.folderName, folder.name)
+        const newName = await alertInput(`${language.folderName}: ${folder.name}`)
         if(!newName) return
+
+        // Check for duplicate folder name (excluding current folder)
+        if (folders.some(f => f.id !== folderId && f.name === newName)) {
+            alertError('Folder with this name already exists')
+            return
+        }
 
         folder.name = newName
         DBState.db.modulesFolders = [...folders]
@@ -280,11 +394,74 @@
 
                 {#if item.type === 'folder'}
                     <div
-                        class="pl-3 pt-3 pb-3 text-left flex items-center hover:bg-selected/20 {dragOverFolderId === item.data.id ? 'bg-green-500/20' : ''}"
-                        ondragover={(e) => onDragOverFolder(e, item.data.id)}
+                        draggable={DBState.db.moduleCustomSort}
+                        ondragstart={(e) => {
+                            e.stopPropagation()
+                            draggedFolderId = item.data.id
+                            if (e.dataTransfer) {
+                                e.dataTransfer.effectAllowed = 'move'
+                                e.dataTransfer.setData('text/plain', item.data.id)
+                            }
+                        }}
+                        class="pl-3 pt-3 pb-3 text-left flex items-center hover:bg-selected/20 {dragOverFolderId === item.data.id ? 'bg-green-500/20' : ''} {DBState.db.moduleCustomSort ? 'cursor-move' : ''}"
+                        ondragover={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            if (e.dataTransfer) {
+                                e.dataTransfer.dropEffect = 'move'
+                            }
+                            if (draggedModuleId) {
+                                dragOverFolderId = item.data.id
+                            }
+                        }}
                         ondragleave={onDragLeaveFolder}
-                        ondrop={(e) => onDropOnFolder(e, item.data.id)}
+                        ondrop={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+
+                            // If dropping a module on folder
+                            if (draggedModuleId) {
+                                onDropOnFolder(e, item.data.id)
+                                return
+                            }
+
+                            // If dropping a folder on folder (reorder)
+                            if (draggedFolderId && draggedFolderId !== item.data.id) {
+                                const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedFolderId)
+                                const targetIndex = DBState.db.modulesCustomOrder.indexOf(item.data.id)
+
+                                if (draggedIndex !== -1 && targetIndex !== -1) {
+                                    const newOrder = [...DBState.db.modulesCustomOrder]
+                                    newOrder.splice(draggedIndex, 1)
+                                    newOrder.splice(targetIndex, 0, draggedFolderId)
+                                    DBState.db.modulesCustomOrder = newOrder
+                                }
+                                draggedFolderId = null
+                            }
+                        }}
                     >
+                        {#if DBState.db.moduleCustomSort}
+                            <div class="flex flex-col mr-2">
+                                <button
+                                    class="text-textcolor2 hover:text-green-500 cursor-pointer"
+                                    onclick={(e) => {
+                                        e.stopPropagation()
+                                        moveFolder(item.data.id, 'up')
+                                    }}
+                                >
+                                    <ChevronUp size={16}/>
+                                </button>
+                                <button
+                                    class="text-textcolor2 hover:text-green-500 cursor-pointer"
+                                    onclick={(e) => {
+                                        e.stopPropagation()
+                                        moveFolder(item.data.id, 'down')
+                                    }}
+                                >
+                                    <ChevronDown size={16}/>
+                                </button>
+                            </div>
+                        {/if}
                         <button
                             class="text-textcolor2 hover:text-green-500 cursor-pointer mr-2"
                             onclick={() => toggleFolder(item.data.id)}
@@ -295,7 +472,7 @@
                                 <ChevronDown size={18}/>
                             {/if}
                         </button>
-                        {#if item.data.folded}
+                        {#if !item.data.folded}
                             <FolderOpen size={18} class="mr-2" />
                         {:else}
                             <Folder size={18} class="mr-2" />
@@ -318,7 +495,7 @@
                         ondragover={onDragOver}
                         ondrop={(e) => onDrop(e, rmodule.id)}
                         class={DBState.db.moduleCustomSort ? 'cursor-move' : ''}
-                        style={rmodule.folderId ? 'padding-left: 2rem;' : ''}
+                        style={rmodule.folderId && DBState.db.moduleCustomSort ? 'padding-left: 2rem;' : ''}
                     >
                         <div class="pl-3 pt-3 text-left flex items-center">
                     {#if DBState.db.moduleCustomSort}
@@ -343,7 +520,7 @@
                             </button>
                         </div>
                     {/if}
-                    {#if rmodule.folderId}
+                    {#if rmodule.folderId && DBState.db.moduleCustomSort}
                         <button
                             class="text-textcolor2 hover:text-yellow-500 mr-2 cursor-pointer"
                             use:tooltip={"Remove from Folder"}
@@ -353,6 +530,18 @@
                             }}
                         >
                             <FolderOpen size={18}/>
+                        </button>
+                    {/if}
+                    {#if DBState.db.moduleCustomSort}
+                        <button
+                            class="text-textcolor2 hover:text-blue-500 mr-2 cursor-pointer"
+                            use:tooltip={"Move to Folder"}
+                            onclick={(e) => {
+                                e.stopPropagation()
+                                moveModuleToFolder(rmodule.id)
+                            }}
+                        >
+                            <FolderPlus size={18}/>
                         </button>
                     {/if}
                     {#if rmodule.mcp}
