@@ -37,62 +37,51 @@
         })
 
         const folders = DBState.db.modulesFolders ?? []
-        const result: ModuleOrFolder[] = []
 
         if(DBState.db.moduleCustomSort){
             const customOrder = DBState.db.modulesCustomOrder ?? []
-
-            // Build a map of folder contents
-            const folderContents = new Map<string, RisuModule[]>()
-            for (const folder of folders) {
-                folderContents.set(folder.id, filtered.filter(m => m.folderId === folder.id))
-            }
-
-            // Get modules without folder
-            const modulesWithoutFolder = filtered.filter(m => !m.folderId)
-
-            // Sort by customOrder
             const items: ModuleOrFolder[] = []
 
             for (const id of customOrder) {
                 // Check if it's a folder
                 const folder = folders.find(f => f.id === id)
                 if (folder) {
-                    const contents = folderContents.get(id) || []
-                    if (contents.length > 0 || !search) {
+                    // Get modules from folder's moduleOrder
+                    const folderModules = (folder.moduleOrder ?? [])
+                        .map(moduleId => filtered.find(m => m.id === moduleId))
+                        .filter(m => m !== undefined) as RisuModule[]
+
+                    if (folderModules.length > 0 || !search) {
                         items.push({ type: 'folder', data: folder })
                         if (!folder.folded) {
-                            // Sort folder contents by customOrder
-                            contents.sort((a, b) => {
-                                const indexA = customOrder.indexOf(a.id)
-                                const indexB = customOrder.indexOf(b.id)
-                                if(indexA === -1) return 1
-                                if(indexB === -1) return -1
-                                return indexA - indexB
-                            }).forEach(m => items.push({ type: 'module', data: m }))
+                            // Add modules in order from folder's moduleOrder
+                            folderModules.forEach(m => items.push({ type: 'module', data: m }))
                         }
                     }
                 } else {
-                    // Check if it's a module without folder
-                    const module = modulesWithoutFolder.find(m => m.id === id)
+                    // It's a module ID - find the module (should not have folderId)
+                    const module = filtered.find(m => m.id === id && !m.folderId)
                     if (module) {
                         items.push({ type: 'module', data: module })
                     }
                 }
             }
 
-            // Add any items not in customOrder (new items)
+            // Add any new items not in customOrder
             for (const folder of folders) {
                 if (!customOrder.includes(folder.id)) {
-                    const contents = folderContents.get(folder.id) || []
-                    if (contents.length > 0 || !search) {
+                    const folderModules = (folder.moduleOrder ?? [])
+                        .map(moduleId => filtered.find(m => m.id === moduleId))
+                        .filter(m => m !== undefined) as RisuModule[]
+
+                    if (folderModules.length > 0 || !search) {
                         items.unshift({ type: 'folder', data: folder })
                     }
                 }
             }
 
-            for (const module of modulesWithoutFolder) {
-                if (!customOrder.includes(module.id)) {
+            for (const module of filtered) {
+                if (!module.folderId && !customOrder.includes(module.id)) {
                     items.unshift({ type: 'module', data: module })
                 }
             }
@@ -108,48 +97,146 @@
         }
     }
 
-    // Generic function to move either module or folder in custom order
+    // Move either module or folder within their respective list
     function moveItem(itemId: string, direction: 'up' | 'down') {
-        const currentIndex = DBState.db.modulesCustomOrder.indexOf(itemId)
-        if (currentIndex === -1) return
+        const folders = DBState.db.modulesFolders ?? []
+        const isFolder = folders.some(f => f.id === itemId)
 
-        const newOrder = [...DBState.db.modulesCustomOrder]
+        if (isFolder) {
+            // Move folder within modulesCustomOrder
+            const currentIndex = DBState.db.modulesCustomOrder.indexOf(itemId)
+            if (currentIndex === -1) return
 
-        if (direction === 'up' && currentIndex > 0) {
-            // Swap with previous
-            const temp = newOrder[currentIndex - 1]
-            newOrder[currentIndex - 1] = itemId
+            const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+            if (targetIndex < 0 || targetIndex >= DBState.db.modulesCustomOrder.length) return
+
+            const newOrder = [...DBState.db.modulesCustomOrder]
+            const temp = newOrder[targetIndex]
+            newOrder[targetIndex] = itemId
             newOrder[currentIndex] = temp
             DBState.db.modulesCustomOrder = newOrder
-        } else if (direction === 'down' && currentIndex < newOrder.length - 1) {
-            // Swap with next
-            const temp = newOrder[currentIndex + 1]
-            newOrder[currentIndex + 1] = itemId
-            newOrder[currentIndex] = temp
-            DBState.db.modulesCustomOrder = newOrder
+        } else {
+            // It's a module - find which list it's in
+            const module = DBState.db.modules.find(m => m.id === itemId)
+            if (!module) return
+
+            if (module.folderId) {
+                // Module is in a folder - move within that folder's moduleOrder
+                const folder = folders.find(f => f.id === module.folderId)
+                if (!folder) return
+
+                const moduleOrder = folder.moduleOrder ?? []
+                const currentIndex = moduleOrder.indexOf(itemId)
+                if (currentIndex === -1) return
+
+                const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+                if (targetIndex < 0 || targetIndex >= moduleOrder.length) return
+
+                const newOrder = [...moduleOrder]
+                const temp = newOrder[targetIndex]
+                newOrder[targetIndex] = itemId
+                newOrder[currentIndex] = temp
+                folder.moduleOrder = newOrder
+                DBState.db.modulesFolders = [...folders]
+            } else {
+                // Module is not in a folder - move within modulesCustomOrder
+                const currentIndex = DBState.db.modulesCustomOrder.indexOf(itemId)
+                if (currentIndex === -1) return
+
+                const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+                if (targetIndex < 0 || targetIndex >= DBState.db.modulesCustomOrder.length) return
+
+                const newOrder = [...DBState.db.modulesCustomOrder]
+                const temp = newOrder[targetIndex]
+                newOrder[targetIndex] = itemId
+                newOrder[currentIndex] = temp
+                DBState.db.modulesCustomOrder = newOrder
+            }
         }
     }
 
     // Helper to reorder items by moving dragged item to target position
     function reorderItems(draggedId: string, targetId: string) {
-        const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedId)
-        const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetId)
+        // Determine which list they're in
+        const draggedModule = DBState.db.modules.find(m => m.id === draggedId)
 
-        if (draggedIndex === -1 || targetIndex === -1) return false
+        const folders = DBState.db.modulesFolders ?? []
+        const draggedIsFolder = folders.some(f => f.id === draggedId)
 
-        const newOrder = [...DBState.db.modulesCustomOrder]
-        newOrder.splice(draggedIndex, 1)
-        newOrder.splice(targetIndex, 0, draggedId)
-        DBState.db.modulesCustomOrder = newOrder
-        return true
+        // Folders or modules without folderId use modulesCustomOrder
+        if (draggedIsFolder || !draggedModule?.folderId) {
+            const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedId)
+            const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetId)
+
+            if (draggedIndex === -1 || targetIndex === -1) return false
+
+            const newOrder = [...DBState.db.modulesCustomOrder]
+            newOrder.splice(draggedIndex, 1)
+            newOrder.splice(targetIndex, 0, draggedId)
+            DBState.db.modulesCustomOrder = newOrder
+            return true
+        } else if (draggedModule.folderId) {
+            // Reorder within folder's moduleOrder
+            const folder = folders.find(f => f.id === draggedModule.folderId)
+            if (!folder) return false
+
+            const moduleOrder = folder.moduleOrder ?? []
+            const draggedIndex = moduleOrder.indexOf(draggedId)
+            const targetIndex = moduleOrder.indexOf(targetId)
+
+            if (draggedIndex === -1 || targetIndex === -1) return false
+
+            const newOrder = [...moduleOrder]
+            newOrder.splice(draggedIndex, 1)
+            newOrder.splice(targetIndex, 0, draggedId)
+            folder.moduleOrder = newOrder
+            DBState.db.modulesFolders = [...folders]
+            return true
+        }
+
+        return false
     }
 
-    // Helper to update module's folderId
+    // Helper to update module's folderId and manage moduleOrder arrays
     function updateModuleFolderId(moduleId: string, folderId: string | undefined) {
         const module = DBState.db.modules.find(m => m.id === moduleId)
-        if (module) {
+        if (!module) return
+
+        const folders = DBState.db.modulesFolders ?? []
+        const oldFolderId = module.folderId
+
+        // If moving from one folder/location to another
+        if (oldFolderId !== folderId) {
+            // Remove from old location
+            if (oldFolderId) {
+                // Remove from old folder's moduleOrder
+                const oldFolder = folders.find(f => f.id === oldFolderId)
+                if (oldFolder) {
+                    oldFolder.moduleOrder = (oldFolder.moduleOrder ?? []).filter(id => id !== moduleId)
+                }
+            } else {
+                // Remove from modulesCustomOrder
+                DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder.filter(id => id !== moduleId)
+            }
+
+            // Add to new location
+            if (folderId) {
+                // Add to new folder's moduleOrder
+                const newFolder = folders.find(f => f.id === folderId)
+                if (newFolder) {
+                    newFolder.moduleOrder = [...(newFolder.moduleOrder ?? []), moduleId]
+                }
+            } else {
+                // Add to modulesCustomOrder
+                DBState.db.modulesCustomOrder = [...DBState.db.modulesCustomOrder, moduleId]
+            }
+
+            // Update module's folderId
             module.folderId = folderId
+
+            // Trigger reactivity
             DBState.db.modules = [...DBState.db.modules]
+            DBState.db.modulesFolders = [...folders]
         }
     }
 
@@ -254,7 +341,17 @@
         const sortedModules = [...DBState.db.modules].sort((a, b) =>
             a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         )
-        const sortedFolders = [...(DBState.db.modulesFolders ?? [])].sort((a, b) =>
+        const folders = DBState.db.modulesFolders ?? []
+
+        // Clear all folder module orders and reset module folderIds
+        folders.forEach(folder => {
+            folder.moduleOrder = []
+        })
+
+        DBState.db.modules = sortedModules.map(m => ({...m, folderId: undefined}))
+
+        // Sort folders
+        const sortedFolders = [...folders].sort((a, b) =>
             a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         )
 
@@ -265,6 +362,7 @@
         ].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
 
         DBState.db.modulesCustomOrder = combined.map(item => item.id)
+        DBState.db.modulesFolders = sortedFolders
     }
 
     async function createFolder() {
@@ -300,6 +398,13 @@
     async function deleteFolder(folderId: string) {
         const confirmed = await alertConfirm(language.removeFolderConfirm)
         if(!confirmed) return
+
+        const folder = (DBState.db.modulesFolders ?? []).find(f => f.id === folderId)
+        if (!folder) return
+
+        // Add all modules from folder back to modulesCustomOrder
+        const modulesToMove = folder.moduleOrder ?? []
+        DBState.db.modulesCustomOrder = [...DBState.db.modulesCustomOrder, ...modulesToMove]
 
         // Remove folderId from all modules in this folder
         DBState.db.modules = DBState.db.modules.map(m => {

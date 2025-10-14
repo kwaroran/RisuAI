@@ -1478,6 +1478,7 @@ export interface ModuleFolder{
     id:string
     name:string
     folded:boolean
+    moduleOrder?: string[]
 }
 
 
