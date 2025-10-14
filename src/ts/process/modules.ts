@@ -30,6 +30,7 @@ export interface RisuModule{
     namespace?:string
     customModuleToggle?:string
     mcp?:MCPModule
+    folderId?:string
 }
 
 export async function exportModule(module:RisuModule, arg:{
