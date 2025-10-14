@@ -108,8 +108,9 @@
         }
     }
 
-    function moveModule(moduleId: string, direction: 'up' | 'down') {
-        const currentIndex = DBState.db.modulesCustomOrder.indexOf(moduleId)
+    // Generic function to move either module or folder in custom order
+    function moveItem(itemId: string, direction: 'up' | 'down') {
+        const currentIndex = DBState.db.modulesCustomOrder.indexOf(itemId)
         if (currentIndex === -1) return
 
         const newOrder = [...DBState.db.modulesCustomOrder]
@@ -117,37 +118,46 @@
         if (direction === 'up' && currentIndex > 0) {
             // Swap with previous
             const temp = newOrder[currentIndex - 1]
-            newOrder[currentIndex - 1] = moduleId
+            newOrder[currentIndex - 1] = itemId
             newOrder[currentIndex] = temp
             DBState.db.modulesCustomOrder = newOrder
         } else if (direction === 'down' && currentIndex < newOrder.length - 1) {
             // Swap with next
             const temp = newOrder[currentIndex + 1]
-            newOrder[currentIndex + 1] = moduleId
+            newOrder[currentIndex + 1] = itemId
             newOrder[currentIndex] = temp
             DBState.db.modulesCustomOrder = newOrder
         }
     }
 
-    function moveFolder(folderId: string, direction: 'up' | 'down') {
-        const currentIndex = DBState.db.modulesCustomOrder.indexOf(folderId)
-        if (currentIndex === -1) return
+    // Helper to reorder items by moving dragged item to target position
+    function reorderItems(draggedId: string, targetId: string) {
+        const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedId)
+        const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetId)
+
+        if (draggedIndex === -1 || targetIndex === -1) return false
 
         const newOrder = [...DBState.db.modulesCustomOrder]
+        newOrder.splice(draggedIndex, 1)
+        newOrder.splice(targetIndex, 0, draggedId)
+        DBState.db.modulesCustomOrder = newOrder
+        return true
+    }
 
-        if (direction === 'up' && currentIndex > 0) {
-            // Swap with previous
-            const temp = newOrder[currentIndex - 1]
-            newOrder[currentIndex - 1] = folderId
-            newOrder[currentIndex] = temp
-            DBState.db.modulesCustomOrder = newOrder
-        } else if (direction === 'down' && currentIndex < newOrder.length - 1) {
-            // Swap with next
-            const temp = newOrder[currentIndex + 1]
-            newOrder[currentIndex + 1] = folderId
-            newOrder[currentIndex] = temp
-            DBState.db.modulesCustomOrder = newOrder
+    // Helper to update module's folderId
+    function updateModuleFolderId(moduleId: string, folderId: string | undefined) {
+        const module = DBState.db.modules.find(m => m.id === moduleId)
+        if (module) {
+            module.folderId = folderId
+            DBState.db.modules = [...DBState.db.modules]
         }
+    }
+
+    // Helper to clear all drag states
+    function clearDragState() {
+        draggedModuleId = null
+        draggedFolderId = null
+        dragOverFolderId = null
     }
 
     function onDragStart(e: DragEvent, moduleId: string) {
@@ -173,32 +183,14 @@
 
         // Handle folder being dragged onto module (reorder)
         if (draggedFolderId) {
-            const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedFolderId)
-            const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetModuleId)
-
-            if (draggedIndex !== -1 && targetIndex !== -1) {
-                const newOrder = [...DBState.db.modulesCustomOrder]
-                newOrder.splice(draggedIndex, 1)
-                newOrder.splice(targetIndex, 0, draggedFolderId)
-                DBState.db.modulesCustomOrder = newOrder
-            }
-            draggedFolderId = null
+            reorderItems(draggedFolderId, targetModuleId)
+            clearDragState()
             return
         }
 
         // Handle module being dragged onto module
         if (!draggedModuleId || draggedModuleId === targetModuleId) {
-            draggedModuleId = null
-            dragOverFolderId = null
-            return
-        }
-
-        const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedModuleId)
-        const targetIndex = DBState.db.modulesCustomOrder.indexOf(targetModuleId)
-
-        if (draggedIndex === -1 || targetIndex === -1) {
-            draggedModuleId = null
-            dragOverFolderId = null
+            clearDragState()
             return
         }
 
@@ -206,24 +198,14 @@
         // If target has folderId, dragged goes into that folder
         // If target has no folderId, dragged goes out of folder
         const targetModule = DBState.db.modules.find(m => m.id === targetModuleId)
-        const draggedModule = DBState.db.modules.find(m => m.id === draggedModuleId)
-
-        if (targetModule && draggedModule) {
-            draggedModule.folderId = targetModule.folderId
-            DBState.db.modules = [...DBState.db.modules]
+        if (targetModule) {
+            updateModuleFolderId(draggedModuleId, targetModule.folderId)
         }
 
-        // Create new array to ensure reactivity
-        const newOrder = [...DBState.db.modulesCustomOrder]
-        // Remove from old position
-        newOrder.splice(draggedIndex, 1)
-        // Insert at new position
-        newOrder.splice(targetIndex, 0, draggedModuleId)
+        // Reorder in custom order
+        reorderItems(draggedModuleId, targetModuleId)
 
-        // Update database
-        DBState.db.modulesCustomOrder = newOrder
-        draggedModuleId = null
-        dragOverFolderId = null
+        clearDragState()
     }
 
     function onDropOnFolder(e: DragEvent, folderId: string) {
@@ -231,19 +213,14 @@
         e.stopPropagation()
 
         if (!draggedModuleId) {
-            dragOverFolderId = null
+            clearDragState()
             return
         }
 
-        // Find the dragged module and update its folderId
-        const module = DBState.db.modules.find(m => m.id === draggedModuleId)
-        if (module) {
-            module.folderId = folderId
-            DBState.db.modules = [...DBState.db.modules]
-        }
+        // Update the dragged module's folderId
+        updateModuleFolderId(draggedModuleId, folderId)
 
-        draggedModuleId = null
-        dragOverFolderId = null
+        clearDragState()
     }
 
     function onDragLeaveFolder(e: DragEvent) {
@@ -252,11 +229,7 @@
     }
 
     function removeFromFolder(moduleId: string) {
-        const module = DBState.db.modules.find(m => m.id === moduleId)
-        if (module) {
-            module.folderId = undefined
-            DBState.db.modules = [...DBState.db.modules]
-        }
+        updateModuleFolderId(moduleId, undefined)
     }
 
     async function moveModuleToFolder(moduleId: string) {
@@ -271,12 +244,8 @@
         if (!selectedName) return
 
         const selectedFolder = folders.find(f => f.name === selectedName)
-        if (!selectedFolder) return
-
-        const module = DBState.db.modules.find(m => m.id === moduleId)
-        if (module) {
-            module.folderId = selectedFolder.id
-            DBState.db.modules = [...DBState.db.modules]
+        if (selectedFolder) {
+            updateModuleFolderId(moduleId, selectedFolder.id)
         }
     }
 
@@ -427,16 +396,8 @@
 
                             // If dropping a folder on folder (reorder)
                             if (draggedFolderId && draggedFolderId !== item.data.id) {
-                                const draggedIndex = DBState.db.modulesCustomOrder.indexOf(draggedFolderId)
-                                const targetIndex = DBState.db.modulesCustomOrder.indexOf(item.data.id)
-
-                                if (draggedIndex !== -1 && targetIndex !== -1) {
-                                    const newOrder = [...DBState.db.modulesCustomOrder]
-                                    newOrder.splice(draggedIndex, 1)
-                                    newOrder.splice(targetIndex, 0, draggedFolderId)
-                                    DBState.db.modulesCustomOrder = newOrder
-                                }
-                                draggedFolderId = null
+                                reorderItems(draggedFolderId, item.data.id)
+                                clearDragState()
                             }
                         }}
                     >
@@ -446,7 +407,7 @@
                                     class="text-textcolor2 hover:text-green-500 cursor-pointer"
                                     onclick={(e) => {
                                         e.stopPropagation()
-                                        moveFolder(item.data.id, 'up')
+                                        moveItem(item.data.id, 'up')
                                     }}
                                 >
                                     <ChevronUp size={16}/>
@@ -455,7 +416,7 @@
                                     class="text-textcolor2 hover:text-green-500 cursor-pointer"
                                     onclick={(e) => {
                                         e.stopPropagation()
-                                        moveFolder(item.data.id, 'down')
+                                        moveItem(item.data.id, 'down')
                                     }}
                                 >
                                     <ChevronDown size={16}/>
@@ -504,7 +465,7 @@
                                 class="text-textcolor2 hover:text-green-500 cursor-pointer"
                                 onclick={(e) => {
                                     e.stopPropagation()
-                                    moveModule(rmodule.id, 'up')
+                                    moveItem(rmodule.id, 'up')
                                 }}
                             >
                                 <ChevronUp size={16}/>
@@ -513,7 +474,7 @@
                                 class="text-textcolor2 hover:text-green-500 cursor-pointer"
                                 onclick={(e) => {
                                     e.stopPropagation()
-                                    moveModule(rmodule.id, 'down')
+                                    moveItem(rmodule.id, 'down')
                                 }}
                             >
                                 <ChevronDown size={16}/>
