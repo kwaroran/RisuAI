@@ -988,6 +988,20 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
+        name: 'Claude 4.1 Opus (20250805) v1',
+        id: 'anthropic.claude-opus-4-1-20250805-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
         name: 'Claude 4 Opus (20250514) v1',
         id: 'anthropic.claude-opus-4-20250514-v1:0',
         provider: LLMProvider.AWS,
@@ -1284,6 +1298,15 @@ export const LLMModels: LLMModel[] = [
         parameters: ['thinking_tokens', 'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
         tokenizer: LLMTokenizer.GoogleCloud,
         recommended: true
+    },
+    {
+        name: "Gemini Flash 2.5 Image Preview",
+        id: 'gemini-2.5-flash-image-preview',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput,  LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.hasImageOutput],
+        parameters: ['temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'],
+        tokenizer: LLMTokenizer.GoogleCloud,
     },
     {
         name: "Gemini Flash Lite 2.5 preview (06/17)",

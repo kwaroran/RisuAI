@@ -3,7 +3,7 @@ import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, 
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
+import { ReloadChatPointer, ReloadGUIPointer, selectedCharID, CurrentTriggerIdStore } from "../stores.svelte";
 import { processMultiCommand } from "./command";
 import { parseKeyValue, sleep } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
@@ -1039,6 +1039,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     additonalSysPrompt?: additonalSysPrompt
     stopSending?: boolean
     manualName?: string
+    triggerId?: string
     displayMode?: boolean
     displayData?: string
     tempVars?: Record<string, string>
@@ -1062,7 +1063,17 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     const db = getDatabase()
     const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
     let chat = arg.displayMode ? arg.chat : safeStructuredClone(arg.chat ?? char.chats[char.chatPage])
+    
+    const previousTriggerId = get(CurrentTriggerIdStore)
+    const shouldSetTriggerId = !arg.displayMode && mode !== 'display'
+    if (shouldSetTriggerId) {
+        CurrentTriggerIdStore.set(arg.triggerId || null)
+    }
+    
     if((!triggers) || (triggers.length === 0)){
+        if (shouldSetTriggerId) {
+            CurrentTriggerIdStore.set(previousTriggerId)
+        }
         return null
     }
 
@@ -1894,17 +1905,20 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2ExtractRegex':{
                     let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
-                    let regex = new RegExp(effect.regex, effect.flags)
+                    let regexValue = effect.regexType === 'value' ? risuChatParser(effect.regex,{chara:char}) : getVar(risuChatParser(effect.regex,{chara:char}))
+                    let flagsValue = effect.flagsType === 'value' ? risuChatParser(effect.flags,{chara:char}) : getVar(risuChatParser(effect.flags,{chara:char}))
+                    let regex = new RegExp(regexValue, flagsValue)
                     let regexResult = regex.exec(value)
+                    let resultValue = effect.resultType === 'value' ? risuChatParser(effect.result,{chara:char}) : getVar(risuChatParser(effect.result,{chara:char}))
                     
                     let result = ''
                     if (regexResult !== null) {
-                        result = effect.result.replace(/\$[0-9]+/g, (match) => {
+                        result = resultValue.replace(/\$[0-9]+/g, (match) => {
                             let index = Number(match.slice(1))
                             return regexResult[index] || ''
                         }).replace(/\$&/g, regexResult[0] || '').replace(/\$\$/g, '$')
                     } else {
-                        result = effect.result.replace(/\$[0-9]+/g, '').replace(/\$&/g, '').replace(/\$\$/g, '$')
+                        result = resultValue.replace(/\$[0-9]+/g, '').replace(/\$&/g, '').replace(/\$\$/g, '$')
                     }
 
                     setVar(risuChatParser(effect.outputVar, {chara:char}), result)
@@ -2078,7 +2092,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2GetPersonaDesc':{
                     const db = getDatabase()
-                    setVar(risuChatParser(effect.outputVar, {chara:char}), db.personas[db.selectedPersona]?.personaPrompt ?? '')
+                    const currentPersonaPrompt = db.personaPrompt ?? ''
+                    const savedPersonaPrompt = db.personas[db.selectedPersona]?.personaPrompt ?? ''
+                    setVar(risuChatParser(effect.outputVar, {chara:char}), currentPersonaPrompt || savedPersonaPrompt)
                     break
                 }
                 case 'v2SetPersonaDesc':{
@@ -2770,6 +2786,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
     }
 
+    if (shouldSetTriggerId && mode !== 'manual') {
+        CurrentTriggerIdStore.set(previousTriggerId)
+    }
+    
     return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending, sendAIprompt, displayData: arg.displayData, tempVars: arg.tempVars}
 
 }
