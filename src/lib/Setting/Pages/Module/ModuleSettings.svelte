@@ -30,6 +30,22 @@
         | { type: 'module', data: RisuModule }
         | { type: 'folder', data: ModuleFolder }
 
+    // Helper: Get modules in a folder that match the filter
+    function getFolderModules(folder: ModuleFolder, filteredModules: RisuModule[]): RisuModule[] {
+        return (folder.moduleOrder ?? [])
+            .map(moduleId => filteredModules.find(m => m.id === moduleId))
+            .filter(m => m !== undefined) as RisuModule[]
+    }
+
+    // Helper: Swap two items in an array by their indices
+    function swapArrayItems(array: string[], index1: number, index2: number): string[] {
+        const newArray = [...array]
+        const temp = newArray[index2]
+        newArray[index2] = newArray[index1]
+        newArray[index1] = temp
+        return newArray
+    }
+
     function sortModules(modules:RisuModule[], search:string):ModuleOrFolder[] {
         const filtered = modules.filter((v) => {
             if(search === '') return true
@@ -46,10 +62,7 @@
                 // Check if it's a folder
                 const folder = folders.find(f => f.id === id)
                 if (folder) {
-                    // Get modules from folder's moduleOrder
-                    const folderModules = (folder.moduleOrder ?? [])
-                        .map(moduleId => filtered.find(m => m.id === moduleId))
-                        .filter(m => m !== undefined) as RisuModule[]
+                    const folderModules = getFolderModules(folder, filtered)
 
                     if (folderModules.length > 0 || !search) {
                         items.push({ type: 'folder', data: folder })
@@ -70,9 +83,7 @@
             // Add any new items not in customOrder
             for (const folder of folders) {
                 if (!customOrder.includes(folder.id)) {
-                    const folderModules = (folder.moduleOrder ?? [])
-                        .map(moduleId => filtered.find(m => m.id === moduleId))
-                        .filter(m => m !== undefined) as RisuModule[]
+                    const folderModules = getFolderModules(folder, filtered)
 
                     if (folderModules.length > 0 || !search) {
                         items.unshift({ type: 'folder', data: folder })
@@ -89,10 +100,9 @@
             return items
         }
         else{
-            const sorted = filtered.sort((a, b) => {
-                let score = a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-                return score
-            })
+            const sorted = filtered.sort((a, b) =>
+                a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+            )
             return sorted.map(m => ({ type: 'module' as const, data: m }))
         }
     }
@@ -110,11 +120,7 @@
             const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
             if (targetIndex < 0 || targetIndex >= DBState.db.modulesCustomOrder.length) return
 
-            const newOrder = [...DBState.db.modulesCustomOrder]
-            const temp = newOrder[targetIndex]
-            newOrder[targetIndex] = itemId
-            newOrder[currentIndex] = temp
-            DBState.db.modulesCustomOrder = newOrder
+            DBState.db.modulesCustomOrder = swapArrayItems(DBState.db.modulesCustomOrder, currentIndex, targetIndex)
         } else {
             // It's a module - find which list it's in
             const module = DBState.db.modules.find(m => m.id === itemId)
@@ -132,11 +138,7 @@
                 const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
                 if (targetIndex < 0 || targetIndex >= moduleOrder.length) return
 
-                const newOrder = [...moduleOrder]
-                const temp = newOrder[targetIndex]
-                newOrder[targetIndex] = itemId
-                newOrder[currentIndex] = temp
-                folder.moduleOrder = newOrder
+                folder.moduleOrder = swapArrayItems(moduleOrder, currentIndex, targetIndex)
                 DBState.db.modulesFolders = [...folders]
             } else {
                 // Module is not in a folder - move within modulesCustomOrder
@@ -146,11 +148,7 @@
                 const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
                 if (targetIndex < 0 || targetIndex >= DBState.db.modulesCustomOrder.length) return
 
-                const newOrder = [...DBState.db.modulesCustomOrder]
-                const temp = newOrder[targetIndex]
-                newOrder[targetIndex] = itemId
-                newOrder[currentIndex] = temp
-                DBState.db.modulesCustomOrder = newOrder
+                DBState.db.modulesCustomOrder = swapArrayItems(DBState.db.modulesCustomOrder, currentIndex, targetIndex)
             }
         }
     }
@@ -466,6 +464,7 @@
 
                 {#if item.type === 'folder'}
                     <div
+                        role="listitem"
                         draggable={DBState.db.moduleCustomSort}
                         ondragstart={(e) => {
                             e.stopPropagation()
@@ -554,12 +553,12 @@
                 {:else}
                     {@const rmodule = item.data}
                     <div
+                        role="listitem"
                         draggable={DBState.db.moduleCustomSort}
                         ondragstart={(e) => onDragStart(e, rmodule.id)}
                         ondragover={onDragOver}
                         ondrop={(e) => onDrop(e, rmodule.id)}
-                        class={DBState.db.moduleCustomSort ? 'cursor-move' : ''}
-                        style={rmodule.folderId && DBState.db.moduleCustomSort ? 'padding-left: 2rem;' : ''}
+                        class="{DBState.db.moduleCustomSort ? 'cursor-move' : ''} {rmodule.folderId && DBState.db.moduleCustomSort ? 'border-l-4 border-selected pl-2' : ''}"
                     >
                         <div class="pl-3 pt-3 text-left flex items-center">
                     {#if DBState.db.moduleCustomSort}
@@ -584,35 +583,35 @@
                             </button>
                         </div>
                     {/if}
-                    {#if rmodule.folderId && DBState.db.moduleCustomSort}
-                        <button
-                            class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
-                            use:tooltip={"Remove from Folder"}
-                            onclick={(e) => {
-                                e.stopPropagation()
-                                removeFromFolder(rmodule.id)
-                            }}
-                        >
-                            <FolderOpen size={18}/>
-                        </button>
-                    {/if}
-                    {#if DBState.db.moduleCustomSort && !rmodule.folderId}
-                        <button
-                            class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
-                            use:tooltip={"Move to Folder"}
-                            onclick={(e) => {
-                                e.stopPropagation()
-                                moveModuleToFolder(rmodule.id)
-                            }}
-                        >
-                            <FolderPlus size={18}/>
-                        </button>
-                    {/if}
                     {#if rmodule.mcp}
                         <Waypoints size={18} class="mr-2" />
                     {/if}
                     <span class="text-lg">{rmodule.name}</span>
                     <div class="flex-grow flex justify-end">
+                        {#if rmodule.folderId && DBState.db.moduleCustomSort}
+                            <button
+                                class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
+                                use:tooltip={"Remove from Folder"}
+                                onclick={(e) => {
+                                    e.stopPropagation()
+                                    removeFromFolder(rmodule.id)
+                                }}
+                            >
+                                <FolderOpen size={18}/>
+                            </button>
+                        {/if}
+                        {#if DBState.db.moduleCustomSort && !rmodule.folderId}
+                            <button
+                                class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer"
+                                use:tooltip={"Move to Folder"}
+                                onclick={(e) => {
+                                    e.stopPropagation()
+                                    moveModuleToFolder(rmodule.id)
+                                }}
+                            >
+                                <FolderPlus size={18}/>
+                            </button>
+                        {/if}
                         <button class={(DBState.db.enabledModules.includes(rmodule.id)) ?
                                 "mr-2 cursor-pointer text-blue-500" :
                                 rmodule.namespace &&
@@ -661,6 +660,15 @@
                                 // Remove from enabled modules
                                 if(DBState.db.enabledModules.includes(rmodule.id)){
                                     DBState.db.enabledModules = DBState.db.enabledModules.filter(id => id !== rmodule.id)
+                                }
+                                // If module is in a folder, remove from folder's moduleOrder
+                                if(rmodule.folderId){
+                                    const folders = DBState.db.modulesFolders ?? []
+                                    const folder = folders.find(f => f.id === rmodule.folderId)
+                                    if(folder && folder.moduleOrder){
+                                        folder.moduleOrder = folder.moduleOrder.filter(id => id !== rmodule.id)
+                                    }
+                                    DBState.db.modulesFolders = [...folders]
                                 }
                                 // Remove from modules list
                                 DBState.db.modules = DBState.db.modules.filter(m => m.id !== rmodule.id)
