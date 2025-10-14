@@ -160,6 +160,7 @@ export function changeColorSchemeType(type: 'light'|'dark'){
         db.colorScheme.type = type
         setDatabase(db)
         updateColorScheme()
+        updateTextThemeAndCSS()
     } catch (error) {}
 }
 
