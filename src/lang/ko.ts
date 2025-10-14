@@ -606,6 +606,7 @@ export const languageKorean = {
     "emphasizedView": "더블",
     "pluginWarn": "악성 플러그인 설치 시 문제가 생길 수 있습니다.",
     "pluginConfirm": "이 플러그인을 정말로 가져오시겠습니까? 신뢰할 수 있는 출처의 플러그인만 가져오세요.",
+    "pluginContainsExternalIframe": "경고: 이 플러그인은 외부 iframe을 사용하며, 이는 보안 위험을 초래할 수 있습니다.",
     "pluginContainsExternalMedia": "이 플러그인에는 외부 미디어가 포함되어 있습니다.",
     "pluginContainsExternalJS": "이 플러그인에는 외부 자바스크립트가 포함되어 있습니다.",
     "createGroupImg": "그룹 아이콘 자동생성",

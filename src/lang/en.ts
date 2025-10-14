@@ -662,6 +662,7 @@ export const languageEnglish = {
     emphasizedView: "Double Character View",
     pluginWarn: "Installing malicious plugins can cause problems.",
     pluginConfirm: "Do you really want to import this plugin? Only import plugins from trusted sources.",
+    pluginContainsExternalIframe: "Warning: This plugin uses an external iframe, which can be a security risk.",
     pluginContainsExternalMedia: "This plugin contains external media.",
     pluginContainsExternalJS: "This plugin contains external Javascript.",
     createGroupImg: "Generate group icon",

@@ -215,6 +215,7 @@ export const languageGerman = {
     emphasizedView: "Doppelte Charakteransicht",
     pluginWarn: "Installieren von Plugins unbekannter Herkunft könnte Probleme verursachen oder sogar schädlichen Code enthalten",
     pluginConfirm: "Möchten Sie dieses Plugin wirklich importieren? Importieren Sie nur Plugins aus vertrauenswürdigen Quellen.",
+    pluginContainsExternalIframe: "Warnung: Dieses Plugin verwendet einen externen Iframe, was ein Sicherheitsrisiko darstellen kann.",
     pluginContainsExternalMedia: "Dieses Plugin enthält externe Medien.",
     pluginContainsExternalJS: "Dieses Plugin enthält externes Javascript.",
     createGroupImg: "Gruppenicon generieren",
