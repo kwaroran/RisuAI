@@ -22,18 +22,23 @@ export async function selectUserImg() {
         icon: db.userIcon,
         personaPrompt: db.personaPrompt,
         note: db.userNote,
-        id: v4()
+        id: db.personas[db.selectedPersona].id || v4(),
+        largePortrait: db.personas[db.selectedPersona]?.largePortrait
     }
     setDatabase(db)
 }
 
 export function saveUserPersona() {
     let db = getDatabase()
-    db.personas[db.selectedPersona].name = db.username
-    db.personas[db.selectedPersona].icon = db.userIcon
-    db.personas[db.selectedPersona].personaPrompt = db.personaPrompt
-    db.personas[db.selectedPersona].note = db.userNote
-    db.personas[db.selectedPersona].largePortrait = db.personas[db.selectedPersona]?.largePortrait
+    const currentPersona = db.personas[db.selectedPersona]
+    db.personas[db.selectedPersona] = {
+        name: db.username,
+        icon: db.userIcon,
+        personaPrompt: db.personaPrompt,
+        note: db.userNote,
+        id: currentPersona.id || v4(),
+        largePortrait: currentPersona?.largePortrait
+    }
     setDatabase(db)
 }
 
