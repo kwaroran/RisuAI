@@ -11,7 +11,7 @@
     import { alertCardExport, alertConfirm, alertError, alertInput, alertSelect } from "src/ts/alert";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import { ShowRealmFrameStore } from "src/ts/stores.svelte";
-    import { onDestroy } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { importMCPModule } from "src/ts/process/mcp/mcp";
     import type { ModuleFolder } from "src/ts/storage/database.svelte";
     let tempModule:RisuModule = $state({
@@ -195,6 +195,45 @@
         return false
     }
 
+    // Helper to remove duplicates from an array
+    function removeDuplicates<T>(array: T[]): T[] {
+        return [...new Set(array)]
+    }
+
+    // Cleanup duplicates and fix misplaced modules in all order arrays
+    function cleanupAllDuplicates() {
+        const modules = DBState.db.modules
+        const folders = DBState.db.modulesFolders ?? []
+
+        // Remove duplicates AND modules with folderId from modulesCustomOrder
+        // (modules with folderId should only be in their folder's moduleOrder)
+        const validModuleIds = modules
+            .filter(m => !m.folderId)
+            .map(m => m.id)
+
+        const validFolderIds = folders.map(f => f.id)
+        const validTopLevelIds = new Set([...validModuleIds, ...validFolderIds])
+
+        DBState.db.modulesCustomOrder = removeDuplicates(
+            DBState.db.modulesCustomOrder.filter(id => validTopLevelIds.has(id))
+        )
+
+        // Clean each folder's moduleOrder (remove duplicates and non-folder modules)
+        folders.forEach(folder => {
+            if (folder.moduleOrder) {
+                // Only keep modules that actually belong to this folder
+                const validInFolder = modules
+                    .filter(m => m.folderId === folder.id)
+                    .map(m => m.id)
+
+                folder.moduleOrder = removeDuplicates(
+                    folder.moduleOrder.filter(id => validInFolder.includes(id))
+                )
+            }
+        })
+        DBState.db.modulesFolders = [...folders]
+    }
+
     // Helper to update module's folderId and manage moduleOrder arrays
     function updateModuleFolderId(moduleId: string, folderId: string | undefined) {
         const module = DBState.db.modules.find(m => m.id === moduleId)
@@ -217,16 +256,21 @@
                 DBState.db.modulesCustomOrder = DBState.db.modulesCustomOrder.filter(id => id !== moduleId)
             }
 
-            // Add to new location
+            // Add to new location (only if not already present)
             if (folderId) {
                 // Add to new folder's moduleOrder
                 const newFolder = folders.find(f => f.id === folderId)
                 if (newFolder) {
-                    newFolder.moduleOrder = [...(newFolder.moduleOrder ?? []), moduleId]
+                    const moduleOrder = newFolder.moduleOrder ?? []
+                    if (!moduleOrder.includes(moduleId)) {
+                        newFolder.moduleOrder = [...moduleOrder, moduleId]
+                    }
                 }
             } else {
-                // Add to modulesCustomOrder
-                DBState.db.modulesCustomOrder = [...DBState.db.modulesCustomOrder, moduleId]
+                // Add to modulesCustomOrder (only if not already present)
+                if (!DBState.db.modulesCustomOrder.includes(moduleId)) {
+                    DBState.db.modulesCustomOrder = [...DBState.db.modulesCustomOrder, moduleId]
+                }
             }
 
             // Update module's folderId
@@ -397,9 +441,10 @@
         const folder = (DBState.db.modulesFolders ?? []).find(f => f.id === folderId)
         if (!folder) return
 
-        // Add all modules from folder back to modulesCustomOrder
+        // Add all modules from folder back to modulesCustomOrder (only if not already present)
         const modulesToMove = folder.moduleOrder ?? []
-        DBState.db.modulesCustomOrder = [...DBState.db.modulesCustomOrder, ...modulesToMove]
+        const newModules = modulesToMove.filter(id => !DBState.db.modulesCustomOrder.includes(id))
+        DBState.db.modulesCustomOrder = [...DBState.db.modulesCustomOrder, ...newModules]
 
         // Remove folderId from all modules in this folder
         DBState.db.modules = DBState.db.modules.map(m => {
@@ -432,6 +477,11 @@
         folder.name = newName
         DBState.db.modulesFolders = [...folders]
     }
+
+    onMount(() => {
+        // Clean up any duplicates on initialization
+        cleanupAllDuplicates()
+    })
 
     onDestroy(() => {
         refreshModules()
