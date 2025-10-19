@@ -696,8 +696,6 @@
                 description: '',
                 id: v4(),
             }
-            DBState.db.modules.push(tempModule)
-            DBState.db.modulesCustomOrder.unshift(tempModule.id)
             mode = 1
         }}>
             <PlusIcon />
@@ -723,6 +721,7 @@
     <ModuleMenu bind:currentModule={tempModule}/>
     <Button className="mt-6" onclick={() => {
         DBState.db.modules.push(tempModule)
+        DBState.db.modulesCustomOrder = [tempModule.id, ...DBState.db.modulesCustomOrder]
         mode = 0
     }}>{language.createModule}</Button>
 {:else if mode === 2}
