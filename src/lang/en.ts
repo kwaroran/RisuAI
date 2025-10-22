@@ -875,6 +875,7 @@ export const languageEnglish = {
     emotionMethod: "Emotion Method",
     continueResponse: "Continue Response",
     showMenuChatList: "Show Menu Chat List",
+    preventBrowserRefresh: "Prevent Browser Refresh (Ctrl+R)",
     translatorLanguage: "Translator Language",
     translatorType: "Translator Type",
     htmlTranslation: "HTML Translate",

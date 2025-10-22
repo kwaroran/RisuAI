@@ -74,3 +74,7 @@
 <div class="flex items-center mt-2">
     <Check bind:check={DBState.db.showTranslationLoading} name={language.showTranslationLoading}/>
 </div>
+
+<div class="flex items-center mt-2">
+    <Check bind:check={DBState.db.preventBrowserRefresh} name={language.preventBrowserRefresh}/>
+</div>

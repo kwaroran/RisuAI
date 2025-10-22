@@ -819,6 +819,7 @@ export const languageKorean = {
     "emotionMethod": "감정 방식",
     "continueResponse": "응답 계속하기",
     "showMenuChatList": "메뉴에서 채팅 리스트 보이기",
+    "preventBrowserRefresh": "브라우저 새로고침 방지 (Ctrl+R)",
     "translatorLanguage": "번역기 언어",
     "translatorType": "번역기 타입",
     "htmlTranslation": "HTML 번역",

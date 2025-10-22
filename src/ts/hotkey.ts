@@ -195,6 +195,11 @@ export function initHotkey(){
             return
         }
 
+        if(database?.preventBrowserRefresh && ev.ctrlKey && ev.key === 'r'){
+            ev.preventDefault()
+            ev.stopPropagation()
+            return
+        }
 
         if(ev.ctrlKey){
             switch (ev.key){
