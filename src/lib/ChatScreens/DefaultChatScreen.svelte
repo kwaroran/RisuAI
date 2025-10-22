@@ -489,18 +489,20 @@
                                     reader.onload = async (e) => {
                                         const buf = e.target?.result as ArrayBuffer
                                         const uint8 = new Uint8Array(buf)
-                                        const res = await postChatFile({
+                                        const results = await postChatFile({
                                             name: file.name,
                                             data: uint8
                                         })
-                                        if(res?.type === 'asset'){
-                                            fileInput.push(res.data)
-                                            updateInputSizeAll()
+                                        if(!results) return
+                                        for(const res of results){
+                                            if(res?.type === 'asset'){
+                                                fileInput.push(res.data)
+                                            }
+                                            if(res?.type === 'text'){
+                                                messageInput += `{{file::${res.name}::${res.data}}}`
+                                            }
                                         }
-                                        if(res?.type === 'text'){
-                                            messageInput += `{{file::${res.name}::${res.data}}}`
-                                            updateInputSizeAll()
-                                        }
+                                        updateInputSizeAll()
                                     }
                                     reader.readAsArrayBuffer(file)
                                 }
@@ -813,15 +815,17 @@
                     </div>
 
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={async () => {
-                        const res = await postChatFile(messageInput)
-                        if(res?.type === 'asset'){
-                            fileInput.push(res.data)
-                            updateInputSizeAll()
+                        const results = await postChatFile(messageInput)
+                        if(!results) return
+                        for(const res of results){
+                            if(res?.type === 'asset'){
+                                fileInput.push(res.data)
+                            }
+                            if(res?.type === 'text'){
+                                messageInput += `{{file::${res.name}::${res.data}}}`
+                            }
                         }
-                        if(res?.type === 'text'){
-                            messageInput += `{{file::${res.name}::${res.data}}}`
-                            updateInputSizeAll()
-                        }
+                        updateInputSizeAll()
                     }}>
 
                         <ImagePlusIcon />
