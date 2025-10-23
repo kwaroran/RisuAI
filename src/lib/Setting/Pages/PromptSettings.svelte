@@ -21,6 +21,9 @@
     let warns: string[] = $state([])
     let tokens = $state(0)
     let extokens = $state(0)
+    let draggedIndex = $state(-1)
+    let dragOverIndex = $state(-1)
+    let openedItemIndex = $state(-1)
     executeTokenize(DBState.db.promptTemplate)
   interface Props {
     onGoBack?: () => void;
@@ -41,6 +44,59 @@
   $effect.pre(() => {
     executeTokenize(DBState.db.promptTemplate)
   });
+
+  function getDisplayTemplate() {
+    return DBState.db.promptTemplate.map((item, i) => ({
+      item,
+      originalIndex: i,
+      displayIndex: i
+    }))
+  }
+
+  function getReorderedTemplate() {
+    if (draggedIndex === -1 || dragOverIndex === -1 || draggedIndex === dragOverIndex) {
+      return getDisplayTemplate()
+    }
+
+    const items = getDisplayTemplate()
+    const [movedItem] = items.splice(draggedIndex, 1)
+
+    const adjustedDropIndex = draggedIndex < dragOverIndex ? dragOverIndex - 1 : dragOverIndex
+    items.splice(adjustedDropIndex, 0, movedItem)
+
+    return items.map((item, displayIndex) => ({
+      ...item,
+      displayIndex
+    }))
+  }
+
+  function handlePromptDrop() {
+    if (draggedIndex === -1 || dragOverIndex === -1 || draggedIndex === dragOverIndex) {
+      return
+    }
+
+    const templates = [...DBState.db.promptTemplate]
+    const [movedItem] = templates.splice(draggedIndex, 1)
+
+    const adjustedDropIndex = draggedIndex < dragOverIndex ? dragOverIndex - 1 : dragOverIndex
+    templates.splice(adjustedDropIndex, 0, movedItem)
+
+    if (openedItemIndex === draggedIndex) {
+      openedItemIndex = adjustedDropIndex
+    } else if (draggedIndex < adjustedDropIndex) {
+      if (openedItemIndex > draggedIndex && openedItemIndex <= adjustedDropIndex) {
+        openedItemIndex = openedItemIndex - 1
+      }
+    } else {
+      if (openedItemIndex >= adjustedDropIndex && openedItemIndex < draggedIndex) {
+        openedItemIndex = openedItemIndex + 1
+      }
+    }
+
+    DBState.db.promptTemplate = templates
+    draggedIndex = -1
+    dragOverIndex = -1
+  }
 </script>
 {#if mode === 'independent'}
     <h2 class="mb-2 text-2xl font-bold mt-2 items-center flex">
@@ -79,30 +135,61 @@
                 <div class="text-textcolor2">No Format</div>
         {/if}
         {#key sorted}
-            {#each DBState.db.promptTemplate as prompt, i}
-                <PromptDataItem bind:promptItem={DBState.db.promptTemplate[i]} onRemove={() => {
-                    let templates = DBState.db.promptTemplate
-                    templates.splice(i, 1)
-                    DBState.db.promptTemplate = templates
-                }} moveDown={() => {
-                    if(i === DBState.db.promptTemplate.length - 1){
-                        return
-                    }
-                    let templates = DBState.db.promptTemplate
-                    let temp = templates[i]
-                    templates[i] = templates[i + 1]
-                    templates[i + 1] = temp
-                    DBState.db.promptTemplate = templates
-                }} moveUp={() => {
-                    if(i === 0){
-                        return
-                    }
-                    let templates = DBState.db.promptTemplate
-                    let temp = templates[i]
-                    templates[i] = templates[i - 1]
-                    templates[i - 1] = temp
-                    DBState.db.promptTemplate = templates
-                }} />
+            {#each getReorderedTemplate() as { item: prompt, originalIndex, displayIndex }}
+                <PromptDataItem
+                    bind:promptItem={DBState.db.promptTemplate[originalIndex]}
+                    isDragging={draggedIndex === originalIndex}
+                    isOpened={openedItemIndex === originalIndex}
+                    bind:draggedIndex
+                    bind:dragOverIndex
+                    bind:openedItemIndex
+                    currentIndex={originalIndex}
+                    displayIndex={displayIndex}
+                    onDrop={handlePromptDrop}
+                    onRemove={() => {
+                        let templates = DBState.db.promptTemplate
+                        templates.splice(originalIndex, 1)
+                        DBState.db.promptTemplate = templates
+                        if (openedItemIndex === originalIndex) {
+                            openedItemIndex = -1
+                        } else if (openedItemIndex > originalIndex) {
+                            openedItemIndex = openedItemIndex - 1
+                        }
+                        draggedIndex = -1
+                        dragOverIndex = -1
+                    }}
+                    moveDown={() => {
+                        if(originalIndex === DBState.db.promptTemplate.length - 1){
+                            return
+                        }
+                        let templates = DBState.db.promptTemplate
+                        let temp = templates[originalIndex]
+                        templates[originalIndex] = templates[originalIndex + 1]
+                        templates[originalIndex + 1] = temp
+                        DBState.db.promptTemplate = templates
+
+                        if (openedItemIndex === originalIndex) {
+                            openedItemIndex = originalIndex + 1
+                        } else if (openedItemIndex === originalIndex + 1) {
+                            openedItemIndex = originalIndex
+                        }
+                    }}
+                    moveUp={() => {
+                        if(originalIndex === 0){
+                            return
+                        }
+                        let templates = DBState.db.promptTemplate
+                        let temp = templates[originalIndex]
+                        templates[originalIndex] = templates[originalIndex - 1]
+                        templates[originalIndex - 1] = temp
+                        DBState.db.promptTemplate = templates
+
+                        if (openedItemIndex === originalIndex) {
+                            openedItemIndex = originalIndex - 1
+                        } else if (openedItemIndex === originalIndex - 1) {
+                            openedItemIndex = originalIndex
+                        }
+                    }} />
             {/each}
         {/key}
     </div>
