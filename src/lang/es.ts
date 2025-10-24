@@ -735,4 +735,5 @@ export const languageSpanish = {
         "summarizationConditionLabel": "Consejo: HypaV3 comienza a resumir cuando los tokens de entrada superan el tamaño máximo de contexto.",
         "emptySelectedFirstMessageLabel": "ADVERTENCIA: El primer mensaje seleccionado está vacío"
     },
+    sourcemapTranslate: "Traducir seguimientos de pila usando sourcemaps",
 }

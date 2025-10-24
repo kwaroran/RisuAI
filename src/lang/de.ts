@@ -490,4 +490,5 @@ export const languageGerman = {
         "summarizationConditionLabel": "Hinweis: HypaV3 beginnt mit der Zusammenfassung, wenn die Eingabe-Tokens die maximale Kontextgröße überschreiten.",
         "emptySelectedFirstMessageLabel": "WARNUNG: Ausgewählte erste Nachricht ist leer"
     },
+    sourcemapTranslate: "Stack-Traces mit Sourcemaps übersetzen",
 }
