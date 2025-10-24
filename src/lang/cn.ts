@@ -128,7 +128,8 @@ export const languageChinese = {
         "systemRoleReplacement": "若模型不支持系统角色，将使用此角色替换系统角色。",
         "summarizationPrompt": "用于摘要的提示词。留空将使用默认提示。你还可以使用带有 {{slot}} 的 ChatML 格式来处理聊天数据。",
         "translatorPrompt": "用于翻译的提示词。留空将使用默认提示。你还可以使用带有 {{slot}} 的 ChatML 格式表示目标语言：用 {{slot::content}} 表示内容，用 {{slot::tnote}} 表示翻译注释。",
-        "translateBeforeHTMLFormatting": "激活后，将在正则脚本和 HTML 格式化之前翻译文本。这可能减少 Token 数，但可能破坏格式。"
+        translateBeforeHTMLFormatting: "激活后，将在正则脚本和 HTML 格式化之前翻译文本。这可能减少 Token 数，但可能破坏格式。",
+        sourcemapTranslate: "如果启用，错误的堆栈跟踪将使用源映射自动翻译，以显示原始源代码位置。这对于调试非常有用。"
     },
     "setup": {
         "chooseProvider": "选择 AI 提供者",
@@ -828,6 +829,6 @@ export const languageChinese = {
     },
     sourcemapTranslate: "使用源映射翻译堆栈跟踪",
     translating: "翻译中...",
-    showOriginal: "显示原文",
-    translate: "翻译",
+    showOriginal: "显示原始代码地址",
+    translate: "翻译代码地址",
 }

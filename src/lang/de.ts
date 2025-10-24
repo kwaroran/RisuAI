@@ -89,9 +89,8 @@ export const languageGerman = {
             + "Die SupaMemory-Anweisung entscheidet darüber, welche Anweisung konkret zur Zusammenfassung gesendet werden soll. Wenn Sie das Feld leer lassen, wird die Standard-Anweisung verwendet. Es wird empfohlen, es leer zu lassen.\n\n"
             + "Nachdem alles eingerichtet ist, können Sie SupaMemory in den Einstellungen eines Charakters aktivieren",
         replaceGlobalNote: "Sofern dieses Feld ausgefüllt ist, wird es die aktuelle globale Notiz ersetzen",
-        backgroundHTML: "Ein Markdown/HTML-Datenblock, der im Backend der Chat-Ausgabe hinzugefügt wird.\n\n Sie können auch zusätzliche Assets verwenden. Zum Beispiel können Sie `{{audio::<Asset-Name}}` für Hintergrundmusik verwenden."
-            + "\n\n Zusätzlich können Sie dies mit weiteren Assets verwenden:"
-            + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen"
+        backgroundHTML: "Ein Markdown/HTML-Datenblock, der im Backend der Chat-Ausgabe hinzugefügt wird.\n\n Sie können auch zusätzliche Assets verwenden. Zum Beispiel können Sie `{{audio::<Asset-Name>}}` für Hintergrundmusik verwenden."            + "\n\n Zusätzlich können Sie dies mit weiteren Assets verwenden:"            + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen",
+        sourcemapTranslate: "Wenn diese Option aktiviert ist, werden Stack-Traces von Fehlern automatisch mithilfe von Sourcemaps übersetzt, um den ursprünglichen Quellcode-Speicherort anzuzeigen. Dies ist nützlich für das Debugging."
     },
     setup: {
         chooseProvider: "Wählen Sie Ihren AI-Anbieter aus",
@@ -492,6 +491,6 @@ export const languageGerman = {
     },
     sourcemapTranslate: "Stack-Traces mit Sourcemaps übersetzen",
     translating: "Übersetze...",
-    showOriginal: "Original anzeigen",
-    translate: "Übersetzen",
+    showOriginal: "Original-Code-Adresse anzeigen",
+    translate: "Code-Adresse übersetzen",
 }

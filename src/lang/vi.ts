@@ -62,7 +62,8 @@ export const LanguageVietnamese = {
         "additionalAssets": "Nội dung bổ sung để hiển thị trong cuộc trò chuyện của bạn.\n\n - sử dụng `{{raw::<asset name>}}` để dùng làm đường dẫn.\n - sử dụng `{{img::<asset name>}}` để sử dụng làm hình ảnh\n - sử dụng `{{video::<asset name>}}` để sử dụng làm video\n - sử dụng `{{audio::<asset name>}}` để sử dụng làm âm thanh\n    - nên đặt HTML nền",
         "superMemory": "SuperMemory giúp nhân vật của bạn ghi nhớ nhiều hơn bằng cách cung cấp dữ liệu tóm tắt cho AI.\n\nMô hình SuperMemory là mô hình tóm tắt văn bản đó. davinci được khuyến nghị và các mô hình phụ trợ không được khuyến nghị trừ khi đó là mô hình chưa được lọc với hơn 2000 mã thông báo có kỹ năng tóm tắt tuyệt vời.\n\nLời nhắc SuperMemory quyết định lời nhắc nào sẽ được gửi để tóm tắt. nếu bạn để trống, nó sẽ sử dụng lời nhắc mặc định. nên để trống.\n\nSau khi thiết lập xong, bạn có thể sử dụng nó trong cài đặt của một nhân vật.",
         "replaceGlobalNote": "Nếu nó không trống, nó sẽ thay thế ghi chú chung hiện tại bằng ghi chú này.",
-        "backgroundHTML": "Dữ liệu Markdown/HTML sẽ được đưa vào nền màn hình trò chuyện.\n\n bạn cũng có thể sử dụng tài sản bổ sung. ví dụ: bạn có thể sử dụng `{{audio::<asset name}}` cho nhạc nền.\n\n Ngoài ra, bạn có thể sử dụng những thứ này với các nội dung bổ sung:\n - `{{bg::<asset name>}}`: thêm nền làm nội dung"
+        "backgroundHTML": "Dữ liệu Markdown/HTML sẽ được đưa vào nền màn hình trò chuyện.\n\n bạn cũng có thể sử dụng tài sản bổ sung. ví dụ: bạn có thể sử dụng `{{audio::<asset name}}` cho nhạc nền.\n\n Ngoài ra, bạn có thể sử dụng những thứ này với các nội dung bổ sung:\n - `{{bg::<asset name>}}`: thêm nền làm nội dung",
+        "sourcemapTranslate": "Nếu được bật, dấu vết ngăn xếp từ các lỗi sẽ được tự động dịch bằng bản đồ nguồn để hiển thị vị trí mã nguồn ban đầu. Điều này hữu ích cho việc gỡ lỗi."
     },
     "setup": {
         "chooseProvider": "Chọn nhà cung cấp AI",
@@ -466,6 +467,6 @@ export const LanguageVietnamese = {
     },
     sourcemapTranslate: "Dịch dấu vết ngăn xếp bằng bản đồ nguồn",
     translating: "Đang dịch...",
-    showOriginal: "Hiển thị bản gốc",
-    translate: "Dịch",
+    showOriginal: "Hiển thị địa chỉ mã gốc",
+    translate: "Dịch địa chỉ mã",
 }

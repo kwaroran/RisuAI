@@ -133,6 +133,7 @@ export const languageSpanish = {
         triggerLLMPrompt: "Un prompt que se enviará al modelo. Puedes usar múltiples turnos y roles usando `@@role usuario`, `@@role sistema`, `@@role asistente`. Por ejemplo, \n\`\`\`\n@@role sistema\nresponde como hola\n@@role asistente\nhola\n@@role usuario\nhola\n\`\`\`",
         legacyTranslation: "Si está habilitado, usará el método de traducción antiguo, que preprocesa Markdown y citas antes de las traducciones en lugar de postprocesar después de las traducciones.",
         luaHelp: "Puedes usar scripts Lua como script de activación. Puedes definir funciones onInput, onOutput, onStart. onInput se llama cuando el usuario envía un mensaje, onOutput se llama cuando el personaje envía un mensaje, onStart se llama cuando comienza el chat. Para más información, consulta la documentación.",
+        sourcemapTranslate: "Si está habilitado, los seguimientos de pila de los errores se traducirán automáticamente usando mapas de origen para mostrar la ubicación original del código fuente. Esto es útil para la depuración."
     },
     setup: {
         chooseProvider: "Elige Proveedor de IA",
@@ -737,6 +738,6 @@ export const languageSpanish = {
     },
     sourcemapTranslate: "Traducir seguimientos de pila usando sourcemaps",
     translating: "Traduciendo...",
-    showOriginal: "Mostrar Original",
-    translate: "Traducir",
+    showOriginal: "Mostrar dirección de código original",
+    translate: "Traducir dirección de código",
 }

@@ -133,9 +133,10 @@ export const languageChineseTraditional = {
         "presetChain": "若欄位不為空，則每次使用者發送訊息時，系統會從此輸入中的預設列表中隨機變更並應用預設設定。預設列表應以逗號分隔，例如 `preset1,preset2`。",
         "legacyMediaFindings": "啟用後，將使用舊版方法尋找媒體資源，而不使用額外的搜尋演算法。",
         "comfyWorkflow": "請輸入 Comfy UI 的 API 工作流程。您可以在 Comfy UI 中點選「Workflow > Export (API)」按鈕以取得您的 API 工作流程。此外，您必須在工作流程文本中加入 {{risu_prompt}}，該佔位符將被 Risu 提供的提示詞替換。",
-        "APIPool": "啟用後，系統將連接到 RisuAI 的 API 資源池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分使用的金鑰，增加對速率受限模型的請求次數。"
+        APIPool: "啟用後，系統將連接到 RisuAI 的 API 池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分利用的金鑰，增加對速率受限模型的請求次數。",
+        sourcemapTranslate: "如果啟用，錯誤的堆疊追蹤將使用來源地圖自動翻譯，以顯示原始原始碼位置。這對於偵錯非常有用。"
     },
-    "setup": {
+    setup: {
         "chooseProvider": "選擇 AI 提供者",
         "openaikey": "使用 OpenAI API 金鑰（推薦）",
         "openaiProxy": "OpenAI 反向代理",
@@ -861,6 +862,6 @@ export const languageChineseTraditional = {
     },
     sourcemapTranslate: "使用來源地圖翻譯堆疊追蹤",
     translating: "翻譯中...",
-    showOriginal: "顯示原文",
-    translate: "翻譯",
+    showOriginal: "顯示原始程式碼地址",
+    translate: "翻譯程式碼地址",
 }
