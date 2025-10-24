@@ -827,4 +827,7 @@ export const languageChinese = {
         "emptySelectedFirstMessageLabel": "警告：所选的第一条消息为空"
     },
     sourcemapTranslate: "使用源映射翻译堆栈跟踪",
+    translating: "翻译中...",
+    showOriginal: "显示原文",
+    translate: "翻译",
 }

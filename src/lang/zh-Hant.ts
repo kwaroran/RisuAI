@@ -860,4 +860,7 @@ export const languageChineseTraditional = {
         "emptySelectedFirstMessageLabel": "警告：選定的第一條訊息為空"
     },
     sourcemapTranslate: "使用來源地圖翻譯堆疊追蹤",
+    translating: "翻譯中...",
+    showOriginal: "顯示原文",
+    translate: "翻譯",
 }

@@ -491,4 +491,7 @@ export const languageGerman = {
         "emptySelectedFirstMessageLabel": "WARNUNG: Ausgewählte erste Nachricht ist leer"
     },
     sourcemapTranslate: "Stack-Traces mit Sourcemaps übersetzen",
+    translating: "Übersetze...",
+    showOriginal: "Original anzeigen",
+    translate: "Übersetzen",
 }

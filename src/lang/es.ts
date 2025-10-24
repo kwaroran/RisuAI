@@ -736,4 +736,7 @@ export const languageSpanish = {
         "emptySelectedFirstMessageLabel": "ADVERTENCIA: El primer mensaje seleccionado está vacío"
     },
     sourcemapTranslate: "Traducir seguimientos de pila usando sourcemaps",
+    translating: "Traduciendo...",
+    showOriginal: "Mostrar Original",
+    translate: "Traducir",
 }
