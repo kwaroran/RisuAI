@@ -121,6 +121,7 @@
     "autoprefixer": "^10.4.16",
     "internal-ip": "^7.0.0",
     "postcss": "^8.4.33",
+    "source-map": "^0.7.6",
     "svelte": "^5.1.9",
     "svelte-check": "^4.0.5",
     "svelte-preprocess": "^6.0.3",
