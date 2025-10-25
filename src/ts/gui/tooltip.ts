@@ -10,6 +10,9 @@ export function tooltip(node:HTMLElement, tip:string) {
         theme: 'translucent',
     })
     return {
+        update(newTip: string) {
+            instance.setContent(newTip)
+        },
         destroy() {
             instance.destroy()
         }
@@ -25,6 +28,9 @@ export function tooltipRight(node:HTMLElement, tip:string) {
         theme: 'translucent',
     })
     return {
+        update(newTip: string) {
+            instance.setContent(newTip)
+        },
         destroy() {
             instance.destroy()
         }
