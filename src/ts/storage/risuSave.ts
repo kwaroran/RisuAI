@@ -286,14 +286,19 @@ export class RisuSaveDecoder {
             offset += length;
 
             if (compression) {
-                //decode using DecompressionStream
-                await checkCompressionStreams();
-                const cs = new DecompressionStream('gzip');
-                const writer = cs.writable.getWriter();
-                writer.write(blockData as any);
-                writer.close();
-                const buf = await new Response(cs.readable).arrayBuffer();
-                blockData = new Uint8Array(buf);
+                try {
+                    //decode using DecompressionStream
+                    await checkCompressionStreams();
+                    const cs = new DecompressionStream('gzip');
+                    const writer = cs.writable.getWriter();
+                    writer.write(blockData as any);
+                    writer.close();
+                    const buf = await new Response(cs.readable).arrayBuffer();
+                    blockData = new Uint8Array(buf);   
+                } catch (error) {
+                    console.error(`Error decompressing block ${name}:`, error);
+                    continue
+                }
             }
 
             this.blocks.push({
@@ -302,6 +307,7 @@ export class RisuSaveDecoder {
                 compression,
                 content: new TextDecoder().decode(blockData)
             })
+            console.log(`Decoded block: ${name} (type: ${type}, compression: ${compression}, length: ${blockData.length})`);
         }
         console.log('blocks',this.blocks)
         for(const key in this.blocks){
