@@ -1,3 +1,5 @@
+import { translate } from "src/ts/translator/translator";
+
 export const languageEnglish = {
     formating:{
         'main': "Main Prompt",
@@ -1138,6 +1140,7 @@ export const languageEnglish = {
     seperateParameters: "Separate Parameters",
     seperateParametersEnabled: "Enable Separate Parameters",
     summarizationPrompt: "Summarization Prompt",
+    reSummarizationPrompt: "Re-Summarizaion Prompt",
     translatorPrompt: "Translation Prompt",
     translateBeforeHTMLFormatting: "Translate Before HTML Formatting",
     retranslate: "Retranslate",
@@ -1233,6 +1236,23 @@ export const languageEnglish = {
         nextSummarizationLoadingError: "Error loading next summarization target: {0}",
         summarizationConditionLabel: "Tip: HypaV3 begins summarization when input tokens exceed the maximum context size.",
         emptySelectedFirstMessageLabel: "WARN: Selected first message is empty",
+        unclassified: "Unclassified",
+        reSummarize: "Re-summarize",
+        reSummarizing: "Re-summarizing...",
+        reSummarizeResult: "Re-summarization result",
+        retry: "Retry",
+        translate: "Translate",
+        tag: "Tag",
+        tagManager: "Tag Manager",
+        tagManagerTitle: "Tag Manager - Summary #{0}",
+        newTagName: "New tag name",
+        noTagsYet: "No tags yet.",
+        addNewTagHint: "Add a new tag above.",
+        categoryManager: "Categories",
+        allCategories: "All",
+        categoryName: "Category name",
+        noCategoriesYet: "No categories yet.",
+        addNewCategoryHint: "Click the + button above to add one.",
     },
     bulkEnabling: "Lorebook Bulk Enabling",
     showTranslationLoading: "Show Translation Loading",

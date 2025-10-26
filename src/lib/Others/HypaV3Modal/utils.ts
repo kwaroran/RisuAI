@@ -3,6 +3,7 @@ import { processScriptFull, risuChatParser } from "src/ts/process/scripts";
 import { type Message } from "src/ts/storage/database.svelte";
 import { alertConfirm } from "src/ts/alert";
 import { DBState, selectedCharID } from "src/ts/stores.svelte";
+import { language } from "src/lang";
 
 export async function alertConfirmTwice(
   firstMessage: string,
@@ -115,4 +116,71 @@ export async function processRegexScript(
     ...msg,
     data: newData,
   };
+}
+
+export function getCategoryName(categoryId: string | undefined, categories: any[]): string {
+  const category = categories.find(c => c.id === (categoryId || ""));
+  return category?.name || language.hypaV3Modal.unclassified;
+}
+
+export function createCategoryId(): string {
+  return `cat_${Date.now()}`;
+}
+
+export function shouldShowSummary(
+  summary: any, 
+  index: number, 
+  showImportantOnly: boolean, 
+  selectedCategoryFilter: string
+): boolean {
+  if (showImportantOnly && !summary.isImportant) {
+    return false;
+  }
+
+  if (selectedCategoryFilter !== "all") {
+    const summaryCategory = summary.categoryId || "";
+    if (summaryCategory !== selectedCategoryFilter) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function isGuidLike(str: string): boolean {
+  const strTrimed = str.trim();
+  if (strTrimed.length < 4) return false;
+  return /^[0-9a-f]{4,12}(-[0-9a-f]{4,12}){0,4}-?$/i.test(strTrimed);
+}
+
+export function parseSelectionInput(input: string, totalCount: number): Set<number> {
+  const newSelection = new Set<number>();
+  const parts = input.split(',').map(s => s.trim()).filter(s => s);
+
+  for (const part of parts) {
+    if (part.includes('-')) {
+      const [startStr, endStr] = part.split('-').map(s => s.trim());
+      const start = parseInt(startStr);
+      const end = parseInt(endStr);
+
+      if (!isNaN(start) && !isNaN(end) && start <= end) {
+        for (let i = start; i <= end; i++) {
+          const index = i - 1;
+          if (index >= 0 && index < totalCount) {
+            newSelection.add(index);
+          }
+        }
+      }
+    } else {
+      const num = parseInt(part);
+      if (!isNaN(num)) {
+        const index = num - 1;
+        if (index >= 0 && index < totalCount) {
+          newSelection.add(index);
+        }
+      }
+    }
+  }
+
+  return newSelection;
 }
