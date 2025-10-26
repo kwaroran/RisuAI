@@ -19,8 +19,10 @@
     max={max}
     id={id}
     disabled={disabled}
-    bind:value
+    bind:value={displayValue}
     onchange={onChange}
+    oninput={handleInput}
+    onkeydown={handleKeyDown}
 />
 
 <script lang="ts">
@@ -55,6 +57,66 @@
         className = '',
         disabled = false
     }: Props = $props();
+
+    let displayValue = $state<string | number>(value.toString());
+    
+    // Sync displayValue with value changes from parent
+    $effect(() => {
+        displayValue = value.toString();
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+        const input = e.currentTarget as HTMLInputElement;
+        const currentValue = input.value;
+        
+        // If current value is "0" and user types a non-zero digit, replace the 0
+        if (currentValue === "0" && /^[1-9]$/.test(e.key)) {
+            // Let the default behavior happen, just prevent duplicate handling
+        }
+        // If current value is "0" and user types ".", allow it to become "0."
+        else if (currentValue === "0" && e.key === ".") {
+            // Let the default behavior happen
+        }
+        // If current value is "0" and user types "-", replace with "-"
+        else if (currentValue === "0" && e.key === "-") {
+            e.preventDefault();
+            // Clear the input first, then set to "-"
+            input.value = "-";
+            displayValue = "-";
+        }
+    };
+
+    const handleInput = (e: Event) => {
+        const input = e.currentTarget as HTMLInputElement;
+        const inputValue = input.value;
+        
+        // Handle empty input
+        if (inputValue === "") {
+            value = 0;
+            return;
+        }
+        
+        // Handle incomplete inputs that should not update the bound value yet
+        const isIncomplete = inputValue === "-" || 
+                            inputValue === "." || 
+                            inputValue === "-." ||
+                            /^-?\d*\.$/.test(inputValue);
+        
+        if (isIncomplete) {
+            // Don't update the bound value, just keep the display
+            return;
+        }
+        
+        // Try to parse the complete input
+        const parsed = parseFloat(inputValue);
+        if (!isNaN(parsed)) {
+            value = parsed;
+        } else {
+            // If parsing fails, revert to the previous valid value
+            displayValue = value.toString();
+            input.value = value.toString();
+        }
+    };
 </script>
 
 <style>
