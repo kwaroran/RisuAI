@@ -2,6 +2,7 @@ import { Packr, Unpackr, decode } from "msgpackr";
 import * as fflate from "fflate";
 import { AppendableBuffer, isTauri } from "../globalApi.svelte";
 import { presetTemplate, type Database } from "./database.svelte";
+import localforage from "localforage";
 
 const packr = new Packr({
     useRecords:false
@@ -78,6 +79,10 @@ enum RisuSaveType {
     MODULES = 5
 }
 
+
+const risuSaveCacheForage = localforage.createInstance({
+    name: 'risuSaveCache'
+});
 export class RisuSaveEncoder {
 
     private blocks: { [key: string]: Uint8Array } = {};
@@ -139,12 +144,6 @@ export class RisuSaveEncoder {
                 obj[key] = data[key]
             }
         }
-        this.blocks['root'] = await this.encodeBlock({
-            compression: this.compression,
-            data: JSON.stringify(obj),
-            type: RisuSaveType.ROOT,
-            name: 'root'
-        });
 
         const savedId = new Set<string>();
         for(const character of data.characters) {
@@ -195,6 +194,14 @@ export class RisuSaveEncoder {
                 name: 'modules'
             });
         }
+
+        obj["__directory"] = Object.keys(this.blocks).filter(key => key !== 'root');
+        this.blocks['root'] = await this.encodeBlock({
+            compression: this.compression,
+            data: JSON.stringify(obj),
+            type: RisuSaveType.ROOT,
+            name: 'root'
+        });
     }
 
     encode(arg:{
@@ -226,8 +233,10 @@ export class RisuSaveEncoder {
         data:string
         type:RisuSaveType
         name:string
+        cache?:boolean
     }){
         let databuf: Uint8Array;
+        const cacheBlock = arg.cache ?? true;
         if(arg.compression){
             await checkCompressionStreams();
             const cs = new CompressionStream('gzip');
@@ -250,6 +259,11 @@ export class RisuSaveEncoder {
         buf.set(nameBuf, 3);
         buf.set(new Uint8Array(lengthBuf), 3 + nameBuf.length);
         buf.set(databuf, 7 + nameBuf.length);
+        await risuSaveCacheForage.setItem(`risuSaveBlock_${arg.name}`, {
+            type: arg.type,
+            data: arg.data,
+            name: arg.name,
+        });
         return buf;
     }
 }
@@ -266,44 +280,51 @@ export class RisuSaveDecoder {
         let offset = magicRisuSaveHeader.length;
         //@ts-ignore
         let db:Database = {}
+        const loadedBlocks = new Set<string>();
         while (offset < data.length) {
-            const type = data[offset];
-            const compression = data[offset + 1] === 1;
-            offset += 2;
+            try {
+                const type = data[offset];
+                const compression = data[offset + 1] === 1;
+                offset += 2;
 
-            const nameLength = data[offset];
-            offset += 1;
-            const name = new TextDecoder().decode(data.subarray(offset, offset + nameLength));
-            offset += nameLength;
+                const nameLength = data[offset];
+                offset += 1;
+                const name = new TextDecoder().decode(data.subarray(offset, offset + nameLength));
+                offset += nameLength;
 
-            const newArrayBuf = new ArrayBuffer(4);
-            const lengthSubUint8Buf = data.slice(offset, offset + 4);
-            new Uint8Array(newArrayBuf).set(lengthSubUint8Buf);
-            const length = new Uint32Array(newArrayBuf)[0];
-            offset += 4;
+                const newArrayBuf = new ArrayBuffer(4);
+                const lengthSubUint8Buf = data.slice(offset, offset + 4);
+                new Uint8Array(newArrayBuf).set(lengthSubUint8Buf);
+                const length = new Uint32Array(newArrayBuf)[0];
+                offset += 4;
 
-            let blockData = data.subarray(offset, offset + length);
-            offset += length;
+                let blockData = data.subarray(offset, offset + length);
+                offset += length;
 
-            if (compression) {
-                //decode using DecompressionStream
-                await checkCompressionStreams();
-                const cs = new DecompressionStream('gzip');
-                const writer = cs.writable.getWriter();
-                writer.write(blockData as any);
-                writer.close();
-                const buf = await new Response(cs.readable).arrayBuffer();
-                blockData = new Uint8Array(buf);
+                if (compression) {
+                    //decode using DecompressionStream
+                    await checkCompressionStreams();
+                    const cs = new DecompressionStream('gzip');
+                    const writer = cs.writable.getWriter();
+                    writer.write(blockData as any);
+                    writer.close();
+                    const buf = await new Response(cs.readable).arrayBuffer();
+                    blockData = new Uint8Array(buf);
+                }
+
+                loadedBlocks.add(name);
+                this.blocks.push({
+                    name,
+                    type,
+                    compression,
+                    content: new TextDecoder().decode(blockData)
+                })   
+            } catch (error) {
+                continue
             }
-
-            this.blocks.push({
-                name,
-                type,
-                compression,
-                content: new TextDecoder().decode(blockData)
-            })
         }
         console.log('blocks',this.blocks)
+        let directory: string[] = []
         for(const key in this.blocks){
             switch(this.blocks[key].type){
                 case RisuSaveType.ROOT:{
@@ -311,6 +332,34 @@ export class RisuSaveDecoder {
                     for(const rootKey in rootData){
                         if(!db[rootKey]){
                             db[rootKey] = rootData[rootKey];
+                        }
+                        if(rootKey === '__directory'){
+                            directory = rootData[rootKey];
+                            console.log('RisuSave directory:', directory);
+                            for(const dirKey of directory){
+                                if(!loadedBlocks.has(dirKey)){
+                                    try {
+                                        console.log(`Loading directory block ${dirKey} from cache`);
+                                        const dirData:{
+                                            type:RisuSaveType
+                                            data:string
+                                            name:string
+                                        } = await risuSaveCacheForage.getItem(`risuSaveBlock_${dirKey}`) as any;
+
+                                        if(dirData){
+                                            this.blocks.push({
+                                                name: dirData.name,
+                                                type: dirData.type,
+                                                compression: false,
+                                                content: dirData.data
+                                            });
+                                            loadedBlocks.add(dirKey);
+                                        }
+                                    } catch (error) {
+                                        console.error(`Error loading directory block ${dirKey}:`, error);
+                                    }
+                                }
+                            }
                         }
                     }
                     break;
