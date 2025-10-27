@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "166.3.1"
+export let appVer = "166.3.2"
 export let webAppSubVer = ''
 
 
