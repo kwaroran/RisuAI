@@ -325,7 +325,8 @@ export class RisuSaveDecoder {
         }
         console.log('blocks',this.blocks)
         let directory: string[] = []
-        for(const key in this.blocks){
+        for(let i = 0; i < this.blocks.length; i++){
+            const key = i;
             switch(this.blocks[key].type){
                 case RisuSaveType.ROOT:{
                     const rootData = JSON.parse(this.blocks[key].content);
