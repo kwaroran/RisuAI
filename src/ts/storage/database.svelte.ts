@@ -1042,6 +1042,7 @@ export interface Database{
     doNotChangeSeperateModels:boolean
     modelTools: string[]
     hotkeys:Hotkey[]
+    preventBrowserRefresh?:boolean
     fallbackModels: {
         memory: string[],
         emotion: string[],
