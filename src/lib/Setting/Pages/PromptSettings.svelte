@@ -23,7 +23,7 @@
     let extokens = $state(0)
     let draggedIndex = $state(-1)
     let dragOverIndex = $state(-1)
-    let openedItemIndex = $state(-1)
+    let openedItemIndices = $state(new Set<number>())
     executeTokenize(DBState.db.promptTemplate)
   interface Props {
     onGoBack?: () => void;
@@ -81,17 +81,25 @@
     const adjustedDropIndex = draggedIndex < dragOverIndex ? dragOverIndex - 1 : dragOverIndex
     templates.splice(adjustedDropIndex, 0, movedItem)
 
-    if (openedItemIndex === draggedIndex) {
-      openedItemIndex = adjustedDropIndex
-    } else if (draggedIndex < adjustedDropIndex) {
-      if (openedItemIndex > draggedIndex && openedItemIndex <= adjustedDropIndex) {
-        openedItemIndex = openedItemIndex - 1
+    const newOpenedIndices = new Set<number>()
+    openedItemIndices.forEach((index) => {
+      if (index === draggedIndex) {
+        newOpenedIndices.add(adjustedDropIndex)
+      } else if (draggedIndex < adjustedDropIndex) {
+        if (index > draggedIndex && index <= adjustedDropIndex) {
+          newOpenedIndices.add(index - 1)
+        } else {
+          newOpenedIndices.add(index)
+        }
+      } else {
+        if (index >= adjustedDropIndex && index < draggedIndex) {
+          newOpenedIndices.add(index + 1)
+        } else {
+          newOpenedIndices.add(index)
+        }
       }
-    } else {
-      if (openedItemIndex >= adjustedDropIndex && openedItemIndex < draggedIndex) {
-        openedItemIndex = openedItemIndex + 1
-      }
-    }
+    })
+    openedItemIndices = newOpenedIndices
 
     DBState.db.promptTemplate = templates
     draggedIndex = -1
@@ -139,10 +147,10 @@
                 <PromptDataItem
                     bind:promptItem={DBState.db.promptTemplate[originalIndex]}
                     isDragging={draggedIndex === originalIndex}
-                    isOpened={openedItemIndex === originalIndex}
+                    isOpened={openedItemIndices.has(originalIndex)}
                     bind:draggedIndex
                     bind:dragOverIndex
-                    bind:openedItemIndex
+                    bind:openedItemIndices
                     currentIndex={originalIndex}
                     displayIndex={displayIndex}
                     onDrop={handlePromptDrop}
@@ -150,11 +158,19 @@
                         let templates = DBState.db.promptTemplate
                         templates.splice(originalIndex, 1)
                         DBState.db.promptTemplate = templates
-                        if (openedItemIndex === originalIndex) {
-                            openedItemIndex = -1
-                        } else if (openedItemIndex > originalIndex) {
-                            openedItemIndex = openedItemIndex - 1
-                        }
+
+                        const newOpenedIndices = new Set<number>()
+                        openedItemIndices.forEach((index) => {
+                            if (index === originalIndex) {
+                                return
+                            } else if (index > originalIndex) {
+                                newOpenedIndices.add(index - 1)
+                            } else {
+                                newOpenedIndices.add(index)
+                            }
+                        })
+                        openedItemIndices = newOpenedIndices
+
                         draggedIndex = -1
                         dragOverIndex = -1
                     }}
@@ -168,11 +184,17 @@
                         templates[originalIndex + 1] = temp
                         DBState.db.promptTemplate = templates
 
-                        if (openedItemIndex === originalIndex) {
-                            openedItemIndex = originalIndex + 1
-                        } else if (openedItemIndex === originalIndex + 1) {
-                            openedItemIndex = originalIndex
-                        }
+                        const newOpenedIndices = new Set<number>()
+                        openedItemIndices.forEach((index) => {
+                            if (index === originalIndex) {
+                                newOpenedIndices.add(originalIndex + 1)
+                            } else if (index === originalIndex + 1) {
+                                newOpenedIndices.add(originalIndex)
+                            } else {
+                                newOpenedIndices.add(index)
+                            }
+                        })
+                        openedItemIndices = newOpenedIndices
                     }}
                     moveUp={() => {
                         if(originalIndex === 0){
@@ -184,11 +206,17 @@
                         templates[originalIndex - 1] = temp
                         DBState.db.promptTemplate = templates
 
-                        if (openedItemIndex === originalIndex) {
-                            openedItemIndex = originalIndex - 1
-                        } else if (openedItemIndex === originalIndex - 1) {
-                            openedItemIndex = originalIndex
-                        }
+                        const newOpenedIndices = new Set<number>()
+                        openedItemIndices.forEach((index) => {
+                            if (index === originalIndex) {
+                                newOpenedIndices.add(originalIndex - 1)
+                            } else if (index === originalIndex - 1) {
+                                newOpenedIndices.add(originalIndex)
+                            } else {
+                                newOpenedIndices.add(index)
+                            }
+                        })
+                        openedItemIndices = newOpenedIndices
                     }} />
             {/each}
         {/key}

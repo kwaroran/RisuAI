@@ -21,7 +21,7 @@
         isOpened?: boolean;
         draggedIndex?: number;
         dragOverIndex?: number;
-        openedItemIndex?: number;
+        openedItemIndices?: Set<number>;
         currentIndex?: number;
         displayIndex?: number;
     }
@@ -36,7 +36,7 @@
         isOpened = false,
         draggedIndex = $bindable(-1),
         dragOverIndex = $bindable(-1),
-        openedItemIndex = $bindable(-1),
+        openedItemIndices = $bindable(new Set<number>()),
         currentIndex = -1,
         displayIndex = -1
     }: Props = $props();
@@ -116,7 +116,11 @@
 
     const EL = (e:KeyboardEvent) => {
         if(e.ctrlKey && e.altKey && e.key === 'o'){
-            openedItemIndex = isOpened ? -1 : currentIndex
+            if (openedItemIndices.size === DBState.db.promptTemplate.length) {
+                openedItemIndices = new Set<number>()
+            } else {
+                openedItemIndices = new Set(DBState.db.promptTemplate.map((_, i) => i))
+            }
         }
     }
 
@@ -204,7 +208,13 @@
             dragOverIndex = -1
         }}
         onclick={() => {
-            openedItemIndex = isOpened ? -1 : currentIndex
+            const newIndices = new Set(openedItemIndices)
+            if (isOpened) {
+                newIndices.delete(currentIndex)
+            } else {
+                newIndices.add(currentIndex)
+            }
+            openedItemIndices = newIndices
         }}
     >
         <span>{getName(promptItem)}</span>
