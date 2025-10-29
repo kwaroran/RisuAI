@@ -15,6 +15,7 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import ModelList from "src/lib/UI/ModelList.svelte";
+    import { onDestroy, onMount } from "svelte";
 
     let sorted = 0
     let opened = 0
@@ -105,6 +106,24 @@
     draggedIndex = -1
     dragOverIndex = -1
   }
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.altKey && e.key === 'o') {
+      if (openedItemIndices.size === DBState.db.promptTemplate.length) {
+        openedItemIndices = new Set<number>()
+      } else {
+        openedItemIndices = new Set(DBState.db.promptTemplate.map((_, i) => i))
+      }
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('keydown', handleKeyDown)
+  })
+
+  onDestroy(() => {
+    document.removeEventListener('keydown', handleKeyDown)
+  })
 </script>
 {#if mode === 'independent'}
     <h2 class="mb-2 text-2xl font-bold mt-2 items-center flex">

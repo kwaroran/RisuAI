@@ -9,7 +9,6 @@
     import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
     import TextInput from "./GUI/TextInput.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { onDestroy, onMount } from "svelte";
     
     interface Props {
         promptItem: PromptItem;
@@ -113,24 +112,6 @@
         DBState.db.promptTemplate.splice(myInd, 0, prompt)
 
     }
-
-    const EL = (e:KeyboardEvent) => {
-        if(e.ctrlKey && e.altKey && e.key === 'o'){
-            if (openedItemIndices.size === DBState.db.promptTemplate.length) {
-                openedItemIndices = new Set<number>()
-            } else {
-                openedItemIndices = new Set(DBState.db.promptTemplate.map((_, i) => i))
-            }
-        }
-    }
-
-    onMount(() => {
-        document.addEventListener('keydown', EL)
-    })
-
-    onDestroy(() => {
-        document.removeEventListener('keydown', EL)
-    })
 
 </script>
 
