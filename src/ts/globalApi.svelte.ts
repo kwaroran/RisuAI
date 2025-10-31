@@ -1445,6 +1445,72 @@ export function checkCharOrder() {
 }
 
 /**
+ * Checks and updates the persona order in the database.
+ * Ensures that all personas are properly ordered and removes any invalid entries.
+ */
+export function checkPersonaOrder() {
+    let db = getDatabase()
+    db.personaOrder = db.personaOrder ?? []
+    let ordered = []
+    for(let i=0;i<db.personaOrder.length;i++){
+        const folder =db.personaOrder[i]
+        if(typeof(folder) !== 'string' && folder){
+            for(const f of folder.data){
+                ordered.push(f)
+            }
+        }
+        if(typeof(folder) === 'string'){
+            ordered.push(folder)
+        }
+    }
+
+    let personaIdList:string[] = []
+
+    for(let i=0;i<db.personas.length;i++){
+        const persona = db.personas[i]
+        const personaId = persona.id
+        personaIdList.push(personaId)
+        if(!ordered.includes(personaId)){
+            db.personaOrder.push(personaId)
+        }
+    }
+
+
+    for(let i=0;i<db.personaOrder.length;i++){
+        const data =db.personaOrder[i]
+        if(typeof(data) !== 'string'){
+            if(!data){
+                db.personaOrder.splice(i,1)
+                i--;
+                continue
+            }
+            if(data.data.length === 0){
+                db.personaOrder.splice(i,1)
+                i--;
+                continue
+            }
+            for(let i2=0;i2<data.data.length;i2++){
+                const data2 = data.data[i2]
+                if(!personaIdList.includes(data2)){
+                    data.data.splice(i2,1)
+                    i2--;
+                }
+            }
+            db.personaOrder[i] = data
+        }
+        else{
+            if(!personaIdList.includes(data)){
+                db.personaOrder.splice(i,1)
+                i--;
+            }
+        }
+    }
+
+
+    setDatabase(db)
+}
+
+/**
  * Purges chunks of data that are not needed.
  * Removes files from the assets directory that are not in the list of unpargeable items.
  */
