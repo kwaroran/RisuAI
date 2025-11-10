@@ -30,6 +30,7 @@ export interface RisuModule{
     namespace?:string
     customModuleToggle?:string
     mcp?:MCPModule
+    folderId?:string
 }
 
 export async function exportModule(module:RisuModule, arg:{
@@ -57,6 +58,8 @@ export async function exportModule(module:RisuModule, arg:{
     module.assets = module.assets.map((asset) => {
         return [asset[0], '', asset[2]] as [string,string,string]
     })
+    // Remove folderId when exporting so imported modules start outside folders
+    delete module.folderId
 
     const mainbuf = await encodeRPack(Buffer.from(JSON.stringify({
         module: module,
@@ -169,6 +172,8 @@ export async function readModule(buf:Buffer):Promise<RisuModule> {
     })
 
     module.id = v4()
+    // Remove folderId when importing so imported modules start outside folders
+    delete module.folderId
     return module
 }
 
@@ -202,6 +207,8 @@ export async function importModule(){
                 return
             }
             importData.id = v4()
+            // Remove folderId when importing so imported modules start outside folders
+            delete importData.folderId
 
             if(importData.lowLevelAccess){
                 const conf = await alertConfirm(language.lowLevelAccessConfirm)

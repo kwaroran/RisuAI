@@ -549,6 +549,7 @@ export const languageKorean = {
     "localLoreInfo": "챗 로어북은 이 채팅에만 적용됩니다.",
     "removeConfirm": "정말로 삭제하시겠습니까: ",
     "removeConfirm2": "정말로, 정말로 삭제하시겠습니까: ",
+    "removeFolderConfirm": "이 폴더를 삭제하시겠습니까? 모듈은 삭제되지 않습니다.",
     "exportConfirm": "엑스포트하시겠습니까?",
     "insertOrder": "배치 순서",
     "activationKeys": "활성화 키",
@@ -1181,5 +1182,7 @@ export const languageKorean = {
     "folderRemoveConfirm": "이 폴더에는 로어북이 포함되어 있습니다. 폴더와 그 안의 모든 항목을 삭제하시겠습니까?",
     "hideErrorDetails": "오류 세부사항 숨기기",
     "showErrorDetails": "오류 세부사항 보이기",
-    "nightlyWarning": "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**"
+    "nightlyWarning": "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**",
+    "moduleCustomSort": "모듈 자유 정렬",
+    "resetModuleOrder": "이름순으로 초기화"
 }

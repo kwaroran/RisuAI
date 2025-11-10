@@ -444,6 +444,19 @@ export function setDatabase(data:Database){
     data.memoryLimitThickness ??= 1
     data.modules ??= []
     data.enabledModules ??= []
+    data.moduleCustomSort ??= false
+    data.modulesCustomOrder ??= []
+    data.modulesFolders ??= []
+    // Populate modulesCustomOrder with existing module IDs if not present
+    // Sort by name first to maintain alphabetical order when custom sort is first enabled
+    const sortedModules = [...data.modules].sort((a, b) =>
+        a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    )
+    for (const module of sortedModules) {
+        if (!data.modulesCustomOrder.includes(module.id)) {
+            data.modulesCustomOrder.push(module.id)
+        }
+    }
     data.additionalParams ??= []
     data.heightMode ??= 'normal'
     data.antiClaudeOverload ??= false
@@ -898,6 +911,9 @@ export interface Database{
     memoryLimitThickness?:number
     modules: RisuModule[]
     enabledModules: string[]
+    moduleCustomSort?: boolean
+    modulesCustomOrder?: string[]
+    modulesFolders?: ModuleFolder[]
     sideMenuRerollButton?:boolean
     requestInfoInsideChat?:boolean
     additionalParams:[string, string][]
@@ -1468,6 +1484,13 @@ export interface folder{
     id:string
     imgFile?:string
     img?:string
+}
+
+export interface ModuleFolder{
+    id:string
+    name:string
+    folded:boolean
+    moduleOrder?: string[]
 }
 
 
