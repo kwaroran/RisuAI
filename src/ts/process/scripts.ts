@@ -406,6 +406,7 @@ export async function processScriptFull(
   }
   async function executeScriptAsync(pscript: pScript) {
     const workerResult = await replaceScriptWorker.postMessage({
+      //DOM Aware objects are not transferrable, so we use structuredClone
       pscript: structuredClone(pscript),
       ctx: {
         mode: structuredClone(mode),
@@ -437,14 +438,13 @@ export async function processScriptFull(
             before: data.slice(diffpoint - 20, diffpoint + 20),
             after: newData.slice(diffpoint - 20, diffpoint + 20),
           });
-        } else {
-          console.log("Script worker result match.");
         }
       }
-      //data = newData;
+      data = newData;
     } else {
       executeScript(pscript);
     }
+
   }
 
   let parsedScripts: pScript[] = [];
