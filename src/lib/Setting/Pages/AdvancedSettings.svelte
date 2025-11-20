@@ -229,7 +229,8 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
-    <Check bind:check={DBState.db.realmDirectOpen} name={"Directly open character in RisuRealm"}>
+    <Check bind:check={DBState.db.realmDirectOpen} name={language.realmDirectOpen}>
+        <Help key="realmDirectOpen"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">

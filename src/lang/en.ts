@@ -184,7 +184,8 @@ export const languageEnglish = {
         dynamicResponseTiming: "When enabled, it will adjust the response timing dynamically.",
         dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
         showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
-        dynamicOutputPrompt: "When enabled, the schema information will be included in the request."
+        dynamicOutputPrompt: "When enabled, the schema information will be included in the request.",
+        realmDirectOpen: "If enabled, clicking a character in RisuRealm preview will directly open the character description."
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -1166,6 +1167,7 @@ export const languageEnglish = {
     imageTranslation: "Image Translation",
     banCharacterset: 'Auto Regenerate On Characterset',
     checkCorruption: "Check Corruption",
+    realmDirectOpen: "Directly open character in RisuRealm",
     showPromptComparison: "Show Prompt Comparison",
     inlayErrorResponse: "Inlay Error Response",
     triggerOn: "Trigger On",

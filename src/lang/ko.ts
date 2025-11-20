@@ -7,6 +7,7 @@ export const languageKorean = {
         "globalNote": "글로벌 노트",
         "authorNote": "작가의 노트",
         "lastChat": "마지막 채팅",
+        "checkCorruption": "데이터 손상 확인",
         "description": "캐릭터 설명",
         "personaPrompt": "페르소나 프롬프트",
         "plain": "순수 프롬프트",
@@ -129,6 +130,7 @@ export const languageKorean = {
         "v2GetAlertSelect": "선택지는 | 로 구분합니다.",
         "v2RegexTest": "정규표현식에 매칭이 되면 1, 매칭이 되지 않으면 0을 출력합니다.",
         "v2Calculate": "기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.",
+        "realmDirectOpen": "활성화되면 RisuRealm 미리보기에서 캐릭터를 클릭할 때 캐릭터 설명이 바로 열립니다."
     },
     "setup": {
         "chooseProvider": "AI 제공자를 선택해 주세요",
@@ -957,6 +959,8 @@ export const languageKorean = {
     "combineTranslation": "결합 번역",
     "dynamicAssets": "다이나믹 에셋",
     "dynamicAssetsEditDisplay": "디스플레이 수정에 다이나믹 에셋 사용",
+    "checkCorruption": "데이터 손상 확인",
+    "realmDirectOpen": "RisuRealm 미리보기에서 바로 열기",
     "longTermMemory": "장기기억",
     "grid": "그리드",
     "list": "리스트",
