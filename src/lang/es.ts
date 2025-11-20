@@ -265,6 +265,7 @@ export const languageSpanish = {
     emphasizedView: "Vista de Personajes Doble",
     pluginWarn: "Instalar plugins maliciosos puede causar problemas.",
     pluginConfirm: "¿Realmente quieres importar este plugin? Solo importa plugins de fuentes confiables.",
+    pluginContainsExternalIframe: "Advertencia: Este plugin utiliza un iframe externo, lo que puede suponer un riesgo de seguridad.",
     pluginContainsExternalMedia: "Este plugin contiene medios externos.",
     pluginContainsExternalJS: "Este complemento contiene Javascript externo.",
     createGroupImg: "Generar icono de grupo",

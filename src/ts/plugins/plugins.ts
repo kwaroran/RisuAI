@@ -49,6 +49,8 @@ export async function importPlugin() {
         const hasExternalMedia = mediaRegex.test(jsFile);
         const jsRegex = /(https?):\/\/[^\s\'\"]+\.js/gi;
         const hasExternalJS = jsRegex.test(jsFile);
+        const iframeRegex = /<iframe|createElement\s*\(\s*['"]iframe['"]\s*\)/gi;
+        const hasExternalIframe = iframeRegex.test(jsFile);
 
         let confirmMessage = `${name}`;
         if (hasExternalMedia) {
@@ -56,6 +58,9 @@ export async function importPlugin() {
         }
         if (hasExternalJS) {
             confirmMessage += `\n${language.pluginContainsExternalJS}`;
+        }
+        if (hasExternalIframe) {
+            confirmMessage += `\n${language.pluginContainsExternalIframe}`;
         }
         confirmMessage += `\n\n${language.pluginConfirm}`;
 

@@ -186,6 +186,7 @@ export const LanguageVietnamese = {
     "emphasizedView": "Chế độ xem nhân vật đôi",
     "pluginWarn": "Các plugin có thể gây ra sự cố khi cài đặt các plugin độc hại.",
     "pluginConfirm": "Bạn có thực sự muốn nhập plugin này không? Chỉ nhập plugin từ các nguồn đáng tin cậy.",
+    "pluginContainsExternalIframe": "Cảnh báo: Plugin này sử dụng iframe bên ngoài, có thể gây rủi ro bảo mật.",
     "pluginContainsExternalMedia": "Plugin này chứa phương tiện bên ngoài.",
     "pluginContainsExternalJS": "Plugin này chứa Javascript bên ngoài.",
     "createGroupImg": "Tạo biểu tượng nhóm",
