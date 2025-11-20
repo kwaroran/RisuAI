@@ -4,6 +4,7 @@ import type { simpleCharacterArgument } from "./parser.svelte";
 import type { alertData } from "./alert";
 import { getModules, moduleUpdate } from "./process/modules";
 import { resetScriptCache } from "./process/scripts";
+import type { hubType } from "./characterCards";
 
 function updateSize(){
     SizeStore.set({
@@ -40,6 +41,7 @@ export const SettingsMenuIndex = writable(-1)
 export const ReloadGUIPointer = writable(0)
 export const ReloadChatPointer = writable({} as Record<number, number>)
 export const OpenRealmStore = writable(false)
+export const RealmInitialOpenChar = writable<null | hubType>(null)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
