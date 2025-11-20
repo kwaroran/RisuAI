@@ -2,7 +2,7 @@
     import { appVer, webAppSubVer } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import Hub from "./Realm/RealmMain.svelte";
-    import { OpenRealmStore } from "src/ts/stores.svelte";
+    import { OpenRealmStore, RealmInitialOpenChar } from "src/ts/stores.svelte";
     import { ArrowLeft } from "lucide-svelte";
     import { getVersionString, isNodeServer, isTauri, openURL } from "src/ts/globalApi.svelte";
     import { language } from "src/lang";
@@ -32,7 +32,12 @@
               {@html hubAdditionalHTML}
               <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
                   {#each charas as chara}
-                      <RisuHubIcon onClick={() => {$OpenRealmStore = true}} chara={chara} />
+                      <RisuHubIcon onClick={() => {
+                        $OpenRealmStore = true
+                        if(DBState.db.realmDirectOpen){
+                            $RealmInitialOpenChar = chara
+                        }
+                      }} chara={chara} />
                   {/each}
               </div>
             {:else}

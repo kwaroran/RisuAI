@@ -91,7 +91,8 @@ export const languageGerman = {
         replaceGlobalNote: "Sofern dieses Feld ausgefüllt ist, wird es die aktuelle globale Notiz ersetzen",
         backgroundHTML: "Ein Markdown/HTML-Datenblock, der im Backend der Chat-Ausgabe hinzugefügt wird.\n\n Sie können auch zusätzliche Assets verwenden. Zum Beispiel können Sie `{{audio::<Asset-Name}}` für Hintergrundmusik verwenden."
             + "\n\n Zusätzlich können Sie dies mit weiteren Assets verwenden:"
-            + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen"
+            + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen",
+        realmDirectOpen: "Wenn aktiviert, öffnet ein Klick auf einen Charakter in der RisuRealm-Vorschau direkt die Charakterbeschreibung.",
     },
     setup: {
         chooseProvider: "Wählen Sie Ihren AI-Anbieter aus",
@@ -127,6 +128,7 @@ export const languageGerman = {
     presensePenalty: 'Auftrittslimitierung',
     advancedSettings: 'Erweitert',
     advancedSettingsWarn: "Warnung: Bitte ändern Sie die folgenden Optionen nicht, wenn Sie nicht exakt wissen, was diese bewirken!",
+    realmDirectOpen: "Charakter in RisuRealm direkt öffnen",
     formatingOrder: "Formatreihenfolge",
     authorNote: "Autorennotiz",
     firstMessage: 'Erste Nachricht',
