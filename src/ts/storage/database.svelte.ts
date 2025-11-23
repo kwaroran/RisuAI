@@ -1076,6 +1076,7 @@ export interface Database{
     streamGeminiThoughts:boolean
     verbosity:number
     dynamicOutput?:DynamicOutput
+    hubServerType?:string
 }
 
 interface SeparateParameters{

@@ -38,7 +38,7 @@ export class AccountStorage{
 
             da = await fetch(hubURL + '/api/account/write', {
                 method: "POST",
-                body: value,
+                body: value as any,
                 headers: {
                     'content-type': 'application/octet-stream',
                     'x-risu-key': key,
