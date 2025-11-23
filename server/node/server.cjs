@@ -232,16 +232,39 @@ async function hubProxyFunc(req, res) {
     ];
 
     try {
-        const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
-        const externalURL = hubURL + pathAndQuery;
+        let externalURL = '';
+
+        const pathHeader = req.headers['x-risu-node-path'];
+        if (pathHeader) {
+            const decodedPath = decodeURIComponent(pathHeader);
+            externalURL = decodedPath;
+        } else {
+            const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
+            externalURL = hubURL + pathAndQuery;
+        }
         
         const headersToSend = { ...req.headers };
         delete headersToSend.host;
         delete headersToSend.connection;
         delete headersToSend['content-length'];
-        
+        delete headersToSend['x-risu-node-path'];
+
         const hubOrigin = new URL(hubURL).origin;
         headersToSend.origin = hubOrigin;
+
+        //if Authorization header is "Server-Auth, set the token to be Server-Auth
+        if(headersToSend['Authorization'] === 'X-Node-Server-Auth'){
+            //this requires password auth
+            const authHeader = req.headers['risu-auth'];
+            if(!authHeader || authHeader.trim() !== password.trim()){
+                console.log('incorrect', 'received:', authHeader, 'expected:', password)
+                throw new Error('Incorrect password for server auth');
+            }
+
+            headersToSend['Authorization'] = "Bearer " + await getSionywAccessToken();
+            delete headersToSend['risu-auth'];
+        }
+        
         
         const response = await fetch(externalURL, {
             method: req.method,
@@ -260,11 +283,6 @@ async function hubProxyFunc(req, res) {
         }
         res.status(response.status);
 
-        //if Authorization header is "Server-Auth, set the token to be Server-Auth
-        if(response.headers.get('Authorization') === 'X-Node-Server-Auth'){
-            res.setHeader('Authorization', "Bearer " + await getSionywAccessToken());
-        }
-        
         if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
             const redirectUrl = response.headers.get('location');
             const newHeaders = { ...headersToSend };

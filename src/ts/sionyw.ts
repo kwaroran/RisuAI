@@ -1,4 +1,6 @@
 import { hubURL } from "./characterCards";
+import { forageStorage, isNodeServer, isTauri } from "./globalApi.svelte";
+import type { NodeStorage } from "./storage/nodeStorage";
 import { DBState } from "./stores.svelte";
 import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import * as client from 'openid-client'
@@ -26,7 +28,7 @@ function getHub(){
     return hub
 }
 
-export async function fetchProtectedResource(url: string, options: RequestInit = {}) {
+export async function fetchProtectedResource(url: string, options: RequestInit = {}, arg:ProtectedResourceArg = {}) {
     //risuAuth is for backward compatibility, which is unsecurely stored in localStorage
     //Safely stored tokens are handled differently based on the platform
     //if risuAuth is empty string, it means we should use the safely stored tokens
@@ -46,6 +48,19 @@ export async function fetchProtectedResource(url: string, options: RequestInit =
             risuAuth = ''
         }
     }    
+
+    if(risuAuth){
+        return fetchProtectedResourceRisuAuthVersion(url, options, risuAuth, arg)
+    }
+    else if(isNodeServer){
+        return fetchProtectedResourceNodeVersion(url, options, arg)
+    }
+    else if(isTauri){
+        return fetchProtectedResourceTauri(url, options, arg)
+    }
+    else{
+        return fetchProtectedResourceWebVersion(url, options, arg)
+    }
 }
 
 //This method is used in the web version of the app
@@ -71,6 +86,22 @@ async function fetchProtectedResourceWebVersion(url: string, options: RequestIni
 
     return res
 }
+
+
+async function fetchProtectedResourceNodeVersion(url: string, options: RequestInit = {}, arg:ProtectedResourceArg = {}) {
+
+    const res = await fetch('/hub-proxy', {
+        ...options,
+        headers: {
+            ...options.headers,
+            "x-risu-node-path": url,
+            "risu-auth": (forageStorage.realStorage as NodeStorage).getAuth()
+        }
+    })
+
+    return res
+}
+
 
 //Tauri version of fetchProtectedResource
 //We can contect javascript safely because its hard to intercept the requests in Tauri
@@ -142,4 +173,15 @@ function badLoginResponse(){
             'WWW-Authenticate': `Bearer error="invalid_token", error_description="The access token is invalid or has expired"`,
         }
     })
+}
+
+async function fetchProtectedResourceRisuAuthVersion(url: string, options: RequestInit = {}, risuAuth: string, arg:ProtectedResourceArg = {}) {
+    const res = await fetch(url, {
+        ...options,
+        headers: {
+            'x-risu-auth': risuAuth,
+            ...options.headers
+        }
+    })
+    return res
 }
