@@ -1,8 +1,8 @@
 import { hubURL } from "./characterCards";
-import { forageStorage, isNodeServer, isTauri } from "./globalApi.svelte";
+import { fetchNative, forageStorage, isNodeServer, isTauri } from "./globalApi.svelte";
 import type { NodeStorage } from "./storage/nodeStorage";
 import { DBState } from "./stores.svelte";
-import { readFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { readFile, BaseDirectory, writeFile } from "@tauri-apps/plugin-fs";
 import * as client from 'openid-client'
 
 let accessToken = ''
@@ -113,7 +113,7 @@ async function fetchProtectedResourceTauri(url: string, options: RequestInit = {
     
     if(!tokenInitalized){
 
-        const oauthDataText = await readFile('oauthData.txt', { baseDir: BaseDirectory.AppData })
+        const oauthDataText = await readFile('oauthData.json', { baseDir: BaseDirectory.AppData })
         const oauthData: SionywOauthData = JSON.parse(new TextDecoder().decode(oauthDataText))
 
         if(!refreshToken){
@@ -184,4 +184,92 @@ async function fetchProtectedResourceRisuAuthVersion(url: string, options: Reque
         }
     })
     return res
+}
+
+async function loginToSionyw(){
+    if(isNodeServer){
+        return loginToSionywNodeVersion()
+    }
+    else if(isTauri){
+        return loginToSionywTauriVersion()
+    }
+    else{
+        return loginToSionywWebVersion()
+    }   
+}
+
+async function loginToSionywNodeVersion(){
+    location.href = '/sionyw/login'
+}
+
+async function loginToSionywTauriVersion(){
+    // We should use Oauth2.1 with dynamic client registration
+    let config = await client.discovery(
+        new URL('https://account.sionyw.com/'),
+        '',
+        ''
+    )
+    const a = await fetchNative(config.serverMetadata().registration_endpoint!, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            client_name: 'RisuAI Local',
+            redirect_uris: ['risuai://sionyw/callback'],
+            grant_types: ['refresh_token', 'authorization_code'],
+            response_types: ['code'],
+        })
+    })
+    const registration = await a.json()
+    config = await client.discovery(
+        new URL('https://account.sionyw.com/'),
+        registration.client_id,
+        registration.client_secret
+    )
+
+    let code_verifier: string = client.randomPKCECodeVerifier()
+    let code_challenge: string =  await client.calculatePKCECodeChallenge(code_verifier)
+
+    const authUrl = await client.buildAuthorizationUrl(config, {
+        redirect_uri: 'https://risuai.xyz/sionyw/callback',
+        scope: 'risuai refresh_token',
+        code_challenge_method: 'S256',
+        code_challenge: code_challenge,
+        response_mode: 'web_message',
+    })
+
+    const xWind = window.open(authUrl, '_blank')
+    xWind?.focus()
+    const msgEventCallback = async (event:MessageEvent) => {
+        if(event.origin.startsWith('https://account.sionyw.com')){
+            let response = event.data
+
+            const exchanged = await client.authorizationCodeGrant(
+                config,
+                new URL('https://risuai.xyz/sionyw/callback'),
+                {
+                    pkceCodeVerifier: code_verifier
+                }
+            )
+
+            // Store the refresh token securely
+            await writeFile('oauthData.json', new TextEncoder().encode(JSON.stringify({
+                refresh_token: exchanged.refresh_token,
+                client_id: registration.client_id,
+                client_secret: registration.client_secret,
+            })), { baseDir: BaseDirectory.AppData })
+
+            accessToken = exchanged.access_token!
+            refreshToken = exchanged.refresh_token!
+            tokenExpiry = Date.now() + (exchanged.expires_in! * 1000) - 60000 // Refresh 1 minute before expiry
+            tokenInitalized = true
+            window.removeEventListener('message', msgEventCallback)
+            xWind?.close()
+        }
+    }
+    window.addEventListener('message', msgEventCallback)
+}
+async function loginToSionywWebVersion(){
+    location.href = getHub() + '/sionyw/login'
 }
