@@ -21,11 +21,7 @@ interface ProtectedResourceArg {
 }
 
 function getHub(){
-    let hub = hubURL
-    if(DBState?.db?.hubServerType === 'nightly'){
-        hub = `https://nightly.sv.risuai.xyz`
-    }
-    return hub
+    return hubURL
 }
 
 export async function fetchProtectedResource(url: string, options: RequestInit = {}, arg:ProtectedResourceArg = {}) {
