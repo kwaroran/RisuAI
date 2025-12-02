@@ -383,6 +383,7 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             safeGlobal.RegExp = RegExp;
             safeGlobal.Error = Error;
             safeGlobal.Function = globalThis.__pluginApis__.SafeFunction;
+            safeGlobal.document = globalThis.__pluginApis__.safeDocument;
             safeGlobal.addEventListener = (...args: any[]) => {
                 //@ts-ignore
                 window.addEventListener(...args);
@@ -442,7 +443,7 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                 },
                 getPrototypeOf(target) {
                     return Reflect.getPrototypeOf(target);
-                }
+                },
             })
         },
         setDatabaseLite: (newDb: any) => {
