@@ -19,7 +19,7 @@ interface ProviderPlugin {
     script: string
     arguments: { [key: string]: 'int' | 'string' | string[] }
     realArg: { [key: string]: number | string }
-    version?: 1 | 2
+    version?: 1 | 2 | 21
     customLink: ProviderPluginCustomLink[]
 }
 interface ProviderPluginCustomLink {
@@ -39,13 +39,6 @@ export async function importPlugin() {
         //support utf-8 with BOM or without BOM
         let jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
 
-        const safety = await checkCodeSafety(jsFile)
-        if(!safety.isSafe){
-            pluginAlertModalStore.errors = safety.errors
-            pluginAlertModalStore.open = true
-            return
-        }
-
         const splitedJs = jsFile.split('\n')
         let name = ''
         for (const line of splitedJs) {
@@ -55,36 +48,12 @@ export async function importPlugin() {
             }
         }
 
-        const mediaRegex = /(https?):\/\/[^\s\'\"]+\.(?:png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|mp4|webm)/gi;
-        const hasExternalMedia = mediaRegex.test(jsFile);
-        const jsRegex = /(https?):\/\/[^\s\'\"]+\.js/gi;
-        const hasExternalJS = jsRegex.test(jsFile);
-
-        let confirmMessage = `${name}`;
-        if (hasExternalMedia) {
-            confirmMessage += `\n${language.pluginContainsExternalMedia}`;
-        }
-        if (hasExternalJS) {
-            confirmMessage += `\n${language.pluginContainsExternalJS}`;
-        }
-        confirmMessage += `\n\n${language.pluginConfirm}`;
-
-        if (!await alertPluginConfirm(confirmMessage)) {
-            return
-        }
         let displayName: string = undefined
         let arg: { [key: string]: 'int' | 'string' | string[] } = {}
         let realArg: { [key: string]: number | string } = {}
         let customLink: ProviderPluginCustomLink[] = []
+        let apiVersion = '2.0'
         for (const line of splitedJs) {
-            if (line.startsWith('//@risu-name')) {
-                alertMd('V1 plugin is not supported anymore, please use V2 plugin instead. for more information, please check the documentation. `https://github.com/kwaroran/RisuAI/blob/main/plugins.md`')
-                return
-            }
-            if (line.startsWith('//@risu-display-name')) {
-                alertMd('V1 plugin is not supported anymore, please use V2 plugin instead. for more information, please check the documentation. `https://github.com/kwaroran/RisuAI/blob/main/plugins.md`')
-                return
-            }
             if (line.startsWith('//@name')) {
                 const provied = line.slice(7)
                 if (provied === '') {
@@ -92,6 +61,12 @@ export async function importPlugin() {
                     return
                 }
                 name = provied.trim()
+            }
+            if(line.startsWith('//@api')){
+                const provied = line.slice(6).trim()
+                if(provied === '2.1'){
+                    apiVersion = '2.1'
+                }
             }
             if (line.startsWith('//@display-name')) {
                 const provied = line.slice('//@display-name'.length + 1)
@@ -153,6 +128,34 @@ export async function importPlugin() {
         if (name.length === 0) {
             alertError('plugin name not found, did you put it correctly?')
             return
+        }
+
+        if(apiVersion === '2.1'){
+            const safety = await checkCodeSafety(jsFile)
+            if(!safety.isSafe){
+                pluginAlertModalStore.errors = safety.errors
+                pluginAlertModalStore.open = true
+                return
+            }
+        }
+        else{
+            const mediaRegex = /(https?):\/\/[^\s\'\"]+\.(?:png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|mp4|webm)/gi;
+            const hasExternalMedia = mediaRegex.test(jsFile);
+            const jsRegex = /(https?):\/\/[^\s\'\"]+\.js/gi;
+            const hasExternalJS = jsRegex.test(jsFile);
+
+            let confirmMessage = `${name}`;
+            if (hasExternalMedia) {
+                confirmMessage += `\n${language.pluginContainsExternalMedia}`;
+            }
+            if (hasExternalJS) {
+                confirmMessage += `\n${language.pluginContainsExternalJS}`;
+            }
+            confirmMessage += `\n\n${language.pluginConfirm}`;
+
+            if (!await alertPluginConfirm(confirmMessage)) {
+                return
+            }
         }
 
         let pluginData: RisuPlugin = {
@@ -300,6 +303,9 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                 throw (`replacer handler named ${name} not found`)
             }
         },
+        addFetchReplacer: (func: (content: string, type: string) => string | Promise<string>) => {
+            pluginV2.replacerafterRequest.add(func)
+        },
         removeRisuReplacer: (name: string, func: ReplacerFunction) => {
             if (pluginV2['replacer' + name]) {
                 pluginV2['replacer' + name].delete(func)
@@ -446,6 +452,43 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                 },
             })
         },
+        pluginStorage: {
+            getItem: (key: string) => {
+                const db = getDatabase();
+                db.pluginCustomStorage ??= {}
+                return db.pluginCustomStorage[key] || null;
+            },
+            setItem: (key: string, value: string) => {
+                const db = getDatabase();
+                db.pluginCustomStorage ??= {}
+                db.pluginCustomStorage[key] = value;
+            },
+            removeItem: (key: string) => {
+                const db = getDatabase();
+                db.pluginCustomStorage ??= {}
+                delete db.pluginCustomStorage[key];
+            },
+            clear: () => {
+                const db = getDatabase();
+                db.pluginCustomStorage = {};
+            },
+            key: (index: number) => {
+                const db = getDatabase();
+                db.pluginCustomStorage ??= {}
+                const keys = Object.keys(db.pluginCustomStorage);
+                return keys[index] || null;
+            },
+            keys: () => {
+                const db = getDatabase();
+                db.pluginCustomStorage ??= {}
+                return Object.keys(db.pluginCustomStorage);
+            },
+            length: () => {
+                const db = getDatabase();
+                db.pluginCustomStorage ??= {}
+                return Object.keys(db.pluginCustomStorage).length;
+            }
+        },
         setDatabaseLite: (newDb: any) => {
             const db = getDatabase();
             db.pluginCustomStorage ??= {}
@@ -486,14 +529,24 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                 }
             }
 
-        })
+        }),
+        loadPlugins: loadPlugins,
+        readImage: readImage,
+        saveAsset: saveAsset
 
     }
 
     for (const plugin of plugins) {
-        const data = (await checkCodeSafety(plugin.script)).modifiedCode
-
-        console.log('Loading V2 Plugin', data)
+        let data = ''
+        
+        if(plugin.version === 21){
+            data = (await checkCodeSafety(plugin.script)).modifiedCode
+            console.log('Loading V2.1 Plugin', plugin.name)
+        }
+        else{
+            data = plugin.script
+            console.log('Loading V2.0 Plugin', plugin.name)
+        }
         const realScript = `(async () => {
             const risuFetch = globalThis.__pluginApis__.risuFetch
             const nativeFetch = globalThis.__pluginApis__.nativeFetch
@@ -523,7 +576,12 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         })();`
 
         try {
-            new Function(realScript)()
+            if(plugin.version === 2){
+                eval(realScript)
+            }
+            else{
+                new Function(realScript)()
+            }
         } catch (error) {
             console.error(error)
         }

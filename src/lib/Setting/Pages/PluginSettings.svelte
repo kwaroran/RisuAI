@@ -1,7 +1,8 @@
 <script lang="ts">
     import { PlusIcon, TrashIcon, LinkIcon } from "lucide-svelte";
     import { language } from "src/lang";
-    import { alertConfirm } from "src/ts/alert";
+    import { alertConfirm, alertMd } from "src/ts/alert";
+    import { AlertTriangle } from 'lucide-svelte';
 
     import { DBState } from "src/ts/stores.svelte";
     import { importPlugin } from "src/ts/plugins/plugins";
@@ -9,6 +10,7 @@
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
+    import migrationGuideContent from "src/ts/plugins/migrationGuide.md?raw";
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
@@ -27,6 +29,15 @@
             <span class="font-bold flex-grow"
                 >{plugin.displayName ?? plugin.name}</span
             >
+
+            {#if plugin.version === 2}
+                <button class="text-yellow-400 hover:gray-200 cursor-pointer" onclick={() => {
+                    alertMd(migrationGuideContent);
+                }} >
+                    <AlertTriangle />
+                </button>
+            {/if}
+
             <!--Button line Started-->
             <!--URL from plugin metadata-->
             {#if plugin.customLink}
