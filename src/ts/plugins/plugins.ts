@@ -302,6 +302,7 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                 'clearInterval',
                 'URL',
                 'URLSearchParams',
+                'location',
             ]
             for (const key of keys) {
                 if(allowedKeys.includes(key)){

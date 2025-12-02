@@ -2463,6 +2463,11 @@ export function toGetter<T extends object>(
             return value;
         },
 
+        set(target, prop, value, receiver) {
+            const realInstance = getterFn();
+            return Reflect.set(realInstance as object, prop, value, receiver);
+        },
+
         has(target, prop) {
             const realInstance = getterFn();
             return Reflect.has(realInstance as object, prop);
