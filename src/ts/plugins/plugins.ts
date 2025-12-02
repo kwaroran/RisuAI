@@ -204,7 +204,8 @@ const allowedDbKeys = [
     'moduleIntergration',
     'pluginV2',
     'personas',
-    'plugins'
+    'plugins',
+    'pluginCustomStorage'
 ]
 
 export async function loadV2Plugin(plugins: RisuPlugin[]) {
@@ -348,6 +349,24 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             safeGlobal.localStorage = globalThis.__pluginApis__.safeLocalStorage;
             safeGlobal.indexedDB = globalThis.__pluginApis__.safeIdbFactory;
             safeGlobal.__pluginApis__ = globalThis.__pluginApis__
+            safeGlobal.Object = Object;
+            safeGlobal.Array = Array;
+            safeGlobal.String = String;
+            safeGlobal.Number = Number;
+            safeGlobal.Boolean = Boolean;
+            safeGlobal.Math = Math;
+            safeGlobal.Date = Date;
+            safeGlobal.RegExp = RegExp;
+            safeGlobal.Error = Error;
+            safeGlobal.Function = globalThis.__pluginApis__.SafeFunction;
+            safeGlobal.addEventListener = (...args: any[]) => {
+                //@ts-ignore
+                window.addEventListener(...args);
+            }
+            safeGlobal.removeEventListener = (...args: any[]) => {
+                //@ts-ignore
+                window.removeEventListener(...args);
+            }
             return safeGlobal;
         },
         safeLocalStorage: new SafeLocalStorage(),
@@ -368,6 +387,10 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                     if (typeof prop === 'string' && allowedDbKeys.includes(prop)) {
                         return (target as any)[prop];
                     }
+                    else if(target.pluginCustomStorage){
+                        console.log('Getting custom db property', prop.toString());
+                        return target.pluginCustomStorage[prop.toString()];
+                    }
                     return undefined;
                 },
                 set(target, prop, value) {
@@ -375,10 +398,19 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                         (target as any)[prop] = value;
                         return true;
                     }
-                    return false;
+                    else{
+                        console.log('Setting custom db property', prop.toString(), value);
+                        target.pluginCustomStorage ??= {}
+                        target.pluginCustomStorage[prop.toString()] = value;
+                        return true;
+                    }
                 },
                 ownKeys(target) {
-                    return Reflect.ownKeys(target).filter(key => typeof key === 'string' && allowedDbKeys.includes(key));
+                    const keys = Reflect.ownKeys(target).filter(key => typeof key === 'string' && allowedDbKeys.includes(key));
+                    if(target.pluginCustomStorage){
+                        keys.push(...Object.keys(target.pluginCustomStorage));
+                    }
+                    return keys;
                 },
                 deleteProperty(target, prop) {
                     console.log('Attempt to delete db.' + String(prop) + ' denied in safe database proxy.');
@@ -391,44 +423,51 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         },
         setDatabaseLite: (newDb: any) => {
             const db = getDatabase();
+            db.pluginCustomStorage ??= {}
             for (const key of Object.keys(newDb)) {
                 if (allowedDbKeys.includes(key)) {
                     (db as any)[key] = newDb[key];
+                }
+                else{
+                    db.pluginCustomStorage[key] = newDb[key];
                 }
             }
             DBState.db = db;
         },
         setDatabase: (newDb: any) => {
             const db = getDatabase();
+            db.pluginCustomStorage ??= {}
             for (const key of Object.keys(newDb)) {
                 if (allowedDbKeys.includes(key)) {
                     (db as any)[key] = newDb[key];
                 }
+                else{
+                    db.pluginCustomStorage[key] = newDb[key];
+                }
             }
             setDatabase(db);
         },
-        SafeFunction: (a: string) => {
-
-            a = a.trim();
-            if(a.endsWith(';')){
-                a = a.slice(0, -1).trim();
+        // SafeFunction: (a: string) => {
+        //     return function() {
+        //         return globalThis.__pluginApis__.getSafeGlobalThis();
+        //     }
+        // }
+        SafeFunction: new Proxy(Function, {
+            construct(target, args) {
+                return function() {
+                    return globalThis.__pluginApis__.getSafeGlobalThis();
+                }
+            },
+            
+            //call too
+            apply(target, thisArg, args) {
+                return function() {
+                    return globalThis.__pluginApis__.getSafeGlobalThis();
+                }
             }
 
-            const safes = [
-                'return this',
-                'return globalThis',
-            ]
+        })
 
-            if(!safes.includes(a)){
-                return Function(a);
-            }
-
-            console.warn('Only returning safe globals is allowed in SafeFunction.');
-            console.log(a)
-            return function() {
-                return globalThis.__pluginApis__.getSafeGlobalThis();
-            }
-        }
     }
 
     for (const plugin of plugins) {

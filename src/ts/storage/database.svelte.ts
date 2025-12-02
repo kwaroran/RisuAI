@@ -1077,6 +1077,7 @@ export interface Database{
     verbosity:number
     dynamicOutput?:DynamicOutput
     hubServerType?:string
+    pluginCustomStorage:{[key:string]:any}
 }
 
 interface SeparateParameters{
