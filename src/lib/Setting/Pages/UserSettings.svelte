@@ -124,9 +124,11 @@
                 
                 DBState.db.account = undefined
             }}>{language.logout}</button>
-            <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-blue-500 transition-colors float-right" onclick={async () => {
-                loginToSionyw()
-            }}>{language.loginSionyw}</button>
+                {#if import.meta.env.DEV}
+                <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-blue-500 transition-colors float-right" onclick={async () => {
+                    loginToSionyw()
+                }}>{language.loginSionyw}</button>
+            {/if}
         {/if}</h1>
     </div>
     {#if DBState.db.account}
