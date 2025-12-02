@@ -2,6 +2,8 @@ import { get, writable } from "svelte/store";
 import { language } from "../../lang";
 import { alertError, alertMd } from "../alert";
 import { getCurrentCharacter, getDatabase, setDatabase, setDatabaseLite } from "../storage/database.svelte";
+import { alertError, alertMd, alertPluginConfirm } from "../alert";
+import { getCurrentCharacter, getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
 import { fetchNative, globalFetch, readImage, saveAsset, toGetter } from "../globalApi.svelte";
@@ -48,6 +50,30 @@ export async function importPlugin() {
 
         const splitedJs = jsFile.split('\n')
         let name = ''
+        for (const line of splitedJs) {
+            if (line.startsWith('//@name')) {
+                name = line.slice(7).trim()
+                break
+            }
+        }
+
+        const mediaRegex = /(https?):\/\/[^\s\'\"]+\.(?:png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|mp4|webm)/gi;
+        const hasExternalMedia = mediaRegex.test(jsFile);
+        const jsRegex = /(https?):\/\/[^\s\'\"]+\.js/gi;
+        const hasExternalJS = jsRegex.test(jsFile);
+
+        let confirmMessage = `${name}`;
+        if (hasExternalMedia) {
+            confirmMessage += `\n${language.pluginContainsExternalMedia}`;
+        }
+        if (hasExternalJS) {
+            confirmMessage += `\n${language.pluginContainsExternalJS}`;
+        }
+        confirmMessage += `\n\n${language.pluginConfirm}`;
+
+        if (!await alertPluginConfirm(confirmMessage)) {
+            return
+        }
         let displayName: string = undefined
         let arg: { [key: string]: 'int' | 'string' | string[] } = {}
         let realArg: { [key: string]: number | string } = {}
@@ -230,9 +256,9 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         getArg: (arg: string) => {
             const db = getDatabase()
             const [name, realArg] = arg.split('::')
-            for (const plug of db.plugins) {
-                if (plug.name === name) {
-                    return plug.realArg[realArg]
+            for (const plugin of db.plugins) {
+                if (plugin.name === name) {
+                    return plugin.realArg[realArg]
                 }
             }
         },
@@ -290,9 +316,9 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         setArg: (arg: string, value: string | number) => {
             const db = getDatabase();
             const [name, realArg] = arg.split("::");
-            for (const plug of db.plugins) {
-                if (plug.name === name) {
-                    plug.realArg[realArg] = value;
+            for (const plugin of db.plugins) {
+                if (plugin.name === name) {
+                    plugin.realArg[realArg] = value;
                 }
             }
         },

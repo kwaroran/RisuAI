@@ -82,6 +82,8 @@
                 <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
             {:else if $alertStore.type === 'ask'}
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Confirm</h2>
+            {:else if $alertStore.type === 'pluginconfirm'}
+                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Plugin Import</h2>
             {:else if $alertStore.type === 'selectChar'}
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Select</h2>
             {:else if $alertStore.type === 'input'}
@@ -101,8 +103,26 @@
                 <div class="text-textcolor">You should accept <a role="button" tabindex="0" class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" onclick={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
-            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
-                <span class="text-gray-300">{$alertStore.msg}</span>
+            {:else if $alertStore.type === 'pluginconfirm'}
+                {@const parts = $alertStore.msg.split('\n\n')}
+                {@const mainPart = parts[0]}
+                {@const confirmMessage = parts[1]}
+                {@const mainParts = mainPart.split('\n')}
+                {@const pluginName = mainParts[0]}
+                {@const warnings = mainParts.slice(1)}
+                <div class="plugin-confirm-content">
+                    <p class="plugin-name">{pluginName}</p>
+                    {#if warnings.length > 0}
+                        <ul class="warnings-list">
+                            {#each warnings as warning}
+                                <li class="warning-item">{warning}</li>
+                            {/each}
+                        </ul>
+                    {/if}
+                    <p class="confirm-message">{confirmMessage}</p>
+                </div>
+            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions' && $alertStore.type !== 'pluginconfirm'}
+                <span class="text-gray-300 whitespace-pre-wrap">{$alertStore.msg}</span>
                 {#if $alertStore.submsg && $alertStore.type !== 'progress'}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
                 {/if}
@@ -132,7 +152,7 @@
                 </div>
             {/if}
 
-            {#if $alertStore.type === 'ask'}
+            {#if $alertStore.type === 'ask' || $alertStore.type === 'pluginconfirm'}
                 <div class="flex gap-2 w-full">
                     <Button className="mt-4 flex-grow" onclick={() => {
                         alertStore.set({
@@ -739,6 +759,26 @@
 {/if}
 
 <style>
+    .plugin-confirm-content .plugin-name {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: white;
+    }
+    .plugin-confirm-content .warnings-list {
+        list-style-type: disc;
+        list-style-position: inside;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        padding-left: 1rem;
+        color: #f87171; /* red-400 */
+    }
+    .plugin-confirm-content .warning-item {
+        margin-bottom: 0.25rem;
+    }
+    .plugin-confirm-content .confirm-message {
+        margin-top: 1rem;
+        color: #d1d5db; /* gray-300 */
+    }
     .break-any{
         word-break: normal;
         overflow-wrap: anywhere;

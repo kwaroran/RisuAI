@@ -42,6 +42,7 @@ export interface HypaV3Settings {
   summarizationMaxConcurrent: number;
   embeddingRequestsPerMinute: number;
   embeddingMaxConcurrent: number;
+  alwaysToggleOn: boolean;
 }
 
 interface HypaV3Data {
@@ -1705,7 +1706,10 @@ export async function summarize(oaiMessages: OpenAIChat[]): Promise<string> {
       throw new Error("Empty summary returned");
     }
 
-    return response.result.trim();
+    // Remove thoughts content for API
+    const thoughtsRegex = /<Thoughts>[\s\S]*?<\/Thoughts>/g;
+
+    return response.result.replace(thoughtsRegex, "").trim();
   }
 
   // Local
@@ -1760,6 +1764,7 @@ export function createHypaV3Preset(
     summarizationMaxConcurrent: 1,
     embeddingRequestsPerMinute: 100,
     embeddingMaxConcurrent: 1,
+    alwaysToggleOn: false,
   };
 
   if (

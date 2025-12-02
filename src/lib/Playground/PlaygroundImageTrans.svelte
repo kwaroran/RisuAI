@@ -7,11 +7,13 @@
     import { requestChatData } from "src/ts/process/request/request";
     import { alertError } from "src/ts/alert";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
+    import NumberInput from "../UI/GUI/NumberInput.svelte";
 
     const autoPrompt = ('extract text chunk from the image, with all the positions and background color, and translate them to {{slot}} in a JSON format.Format of: \n\n [\n  {\n    "bg_hex_color": string\n    "content": string\n    "text_hex_color": string,\n    "x_max": number,\n    "x_min": number,\n    "y_max": number,\n    "y_min": number\n    "translation": string,\n  }\n]\n\n each properties is:\n - x_min, y_min, x_max, y_max: range of 0 (most left/top point of the image) to 1 (most bottom/right point of the image), it is the bounding boxes of the original text chunk.\n - bg_hex_color is the color of the background.\n - text_hex_color is the color of the text.\n - translation is the translated text.\n - content is the original text chunk.').replace(/\n/g, '\\n');
     const manualPrompt = (`extract text from the image, and translate it to {{slot}} in a JSON format. Format of: \n\n{\n  "content": string,\n  "translation": string\n}\n\n each properties is:\n - content: the original text chunk.\n - translation: the translated text.`).replace(/\n/g, '\\n');
 
     let mode:'auto'|'manual' = $state('auto');
+    let fontSize = $state(0);
     let selLang = $state("en");
     let prompt = $state(autoPrompt);
     let canvas: HTMLCanvasElement;
@@ -34,6 +36,7 @@
         }
         const img = new Image();
         inputImage = img;
+        //@ts-ignore
         img.src = URL.createObjectURL(new Blob([file.data]));
         await img.decode();
         aspectRatio = img.width / img.height;
@@ -200,7 +203,7 @@
                     content: resultParsed.content,
                     translation: resultParsed.translation,
                     center: true,
-                    fontSize: 0, //0 = auto
+                    fontSize: fontSize, //0 = auto
                 });
                 console.log(outputObj)
                 output = JSON.stringify(outputObj, null, 2);
@@ -339,7 +342,10 @@
 
 
 <span class="text-textcolor text-lg mt-4">{language.font}</span>
-<TextAreaInput bind:value={fontFamily} />
+<TextInput bind:value={fontFamily} />
+
+<span class="text-textcolor text-lg mt-4">fontSize</span>
+<NumberInput bind:value={fontSize} />
 
 {#if mode === 'manual'}
     <Button className="mt-4" onclick={selectFile}>
@@ -350,6 +356,8 @@
 <Button className="mt-4" onclick={() => imageTranslate(0)}>
     {loading ? 'loading' : language.imageTranslation}
 </Button>
+
+
 
 {#if output}
     <span class="text-textcolor text-lg mt-4">JSON</span>
