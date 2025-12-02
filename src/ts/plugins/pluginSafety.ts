@@ -32,12 +32,6 @@ const SAFETY_BLACKLIST: BlacklistRule[] = [
     },
     {
         nodeType: 'Identifier',
-        identifierName: 'Function',
-        message: 'Usage of "new Function()" is forbidden.',
-        userAlertKey: 'eval'
-    },
-    {
-        nodeType: 'Identifier',
         identifierName: 'sessionStorage',
         message: 'Access to "sessionStorage" is forbidden.',
         userAlertKey: 'storageAccess'
@@ -97,38 +91,29 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
             Identifier(node, state, ancestors:any[]) {
                 const name = node.name;
 
-                if(
-                    name === 'window' ||
-                    name === 'global' ||
-                    name === 'globalThis' ||
-                    name === 'self' ||
-                    name === 'top' ||
-                    name === 'parent' ||
-                    name === 'frames'
-                ){
-                    //globals, rewrite safeWindow
-                    node.name = 'safeGlobalThis';
-                    return
+                switch (name) {
+                    case 'window':
+                    case 'global':
+                    case 'globalThis':
+                    case 'self':
+                    case 'top':
+                    case 'parent':
+                    case 'frames':
+                        node.name = 'safeGlobalThis';
+                        return;
+                    case 'localStorage':
+                        node.name = 'safeLocalStorage';
+                        return;
+                    case 'indexedDB':
+                        node.name = 'safeIdbFactory';
+                        return;
+                    case 'document':
+                        node.name = 'safeDocument';
+                        return;
+                    case 'Function':
+                        node.name = 'SafeFunction';
+                        return;
                 }
-
-                if(name === 'localStorage'){
-                    //localStorage, rewrite safeLocalStorage
-                    node.name = 'safeLocalStorage';
-                    return
-                }
-
-                if(name === 'indexedDB'){
-                    //indexedDB, rewrite safeIdbFactory
-                    node.name = 'safeIdbFactory';
-                    return
-                }
-
-                if(name === 'document'){
-                    //document, rewrite safeDocument
-                    node.name = 'safeDocument';
-                    return
-                }
-
                 const isTarget = SAFETY_BLACKLIST.some(r => r.nodeType === 'Identifier' && r.identifierName === name);
                 if (!isTarget) return;
 
