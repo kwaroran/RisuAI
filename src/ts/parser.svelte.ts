@@ -358,18 +358,18 @@ async function renderHighlightableMarkdown(data:string) {
 export const assetRegex = /{{(raw|path|img|image|video|audio|bgm|bg|emotion|asset|video-img|source)::(.+?)}}/gms
 
 async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string[], ext?: string}}) {
+    console.log("getAssetSrc")
     for (const asset of assetArr) {
         if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue
         const assetPath = await getFileSrc(asset[1])
         const key = asset[0].toLocaleLowerCase()
-        assetPaths[key] = {
+        assetPaths[key] ??= {
             path: [],
             ext: asset[2]
         }
         if(assetPaths[key].ext === asset[2]){
             assetPaths[key].path.push(assetPath)
         }
-        return
     }
 }
 
@@ -445,6 +445,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
         let p = path.path[0]
 
         if(path.path.length > 1){
+            console.log('Multiple assets found for', name, path.path, arg.ch)
             p = path.path[Math.floor(arg.ch % p.length)]
         }
         switch(type){
@@ -767,7 +768,7 @@ function decodeStyle(text:string){
 }
 
 export async function hasher(data:Uint8Array){
-    return Buffer.from(await crypto.subtle.digest("SHA-256", data)).toString('hex');
+    return Buffer.from(await crypto.subtle.digest("SHA-256", data as any)).toString('hex');
 }
 
 export async function convertImage(data:Uint8Array) {

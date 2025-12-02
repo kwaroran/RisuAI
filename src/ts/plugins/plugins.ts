@@ -1,12 +1,16 @@
 import { get, writable } from "svelte/store";
 import { language } from "../../lang";
+import { alertError, alertMd } from "../alert";
+import { getCurrentCharacter, getDatabase, setDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { alertError, alertMd, alertPluginConfirm } from "../alert";
 import { getCurrentCharacter, getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
-import { fetchNative, globalFetch } from "../globalApi.svelte";
-import { selectedCharID } from "../stores.svelte";
+import { fetchNative, globalFetch, readImage, saveAsset, toGetter } from "../globalApi.svelte";
+import { DBState, pluginAlertModalStore, selectedCharID } from "../stores.svelte";
 import type { ScriptMode } from "../process/scripts";
+import { checkCodeSafety } from "./pluginSafety";
+import { SafeDocument, SafeIdbFactory, SafeLocalStorage } from "./pluginSafeClass";
 
 export const customProviderStore = writable([] as string[])
 
@@ -34,8 +38,16 @@ export async function importPlugin() {
         if (!f) {
             return
         }
+        //support utf-8 with BOM or without BOM
+        let jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
 
-        const jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
+        const safety = await checkCodeSafety(jsFile)
+        if(!safety.isSafe){
+            pluginAlertModalStore.errors = safety.errors
+            pluginAlertModalStore.open = true
+            return
+        }
+
         const splitedJs = jsFile.split('\n')
         let name = ''
         for (const line of splitedJs) {
@@ -211,6 +223,17 @@ export const pluginV2 = {
     loaded: false
 }
 
+const allowedDbKeys = [
+    'characters',
+    'modules',
+    'enabledModules',
+    'moduleIntergration',
+    'pluginV2',
+    'personas',
+    'plugins',
+    'pluginCustomStorage'
+]
+
 export async function loadV2Plugin(plugins: RisuPlugin[]) {
 
     if (pluginV2.loaded) {
@@ -298,12 +321,185 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                     plugin.realArg[realArg] = value;
                 }
             }
-        }
+        },
+        safeGlobalThis: {} as any,
+        getSafeGlobalThis: () => {
+            if(Object.keys(globalThis.__pluginApis__.safeGlobalThis).length > 0){
+                return globalThis.__pluginApis__.safeGlobalThis;
+            }
+            //safeGlobalThis
+            const keys = Object.keys(globalThis);
+            const safeGlobal: any = {};
+            const allowedKeys = [
+                'console',
+                'TextEncoder',
+                'TextDecoder',
+                'setTimeout',
+                'setInterval',
+                'clearTimeout',
+                'clearInterval',
+                'URL',
+                'URLSearchParams',
+                'location',
+            ]
+            for (const key of keys) {
+                if(allowedKeys.includes(key)){
+                    safeGlobal[key] = (globalThis as any)[key];
+                }
+            }
+
+            //compatibility layer with old unsafe APIs
+
+            //from PBV2
+            safeGlobal.readImage = readImage;
+            safeGlobal.saveAsset = saveAsset;
+            safeGlobal.showDirectoryPicker = window.showDirectoryPicker
+
+            safeGlobal.DBState = {
+                db: toGetter(
+                    globalThis.__pluginApis__.getDatabase
+                )
+            }
+
+            safeGlobal.setInterval = globalThis.setInterval;
+            safeGlobal.setTimeout = globalThis.setTimeout;
+            safeGlobal.clearInterval = globalThis.clearInterval;
+            safeGlobal.clearTimeout = globalThis.clearTimeout;
+            safeGlobal.alert = globalThis.alert;
+            safeGlobal.confirm = globalThis.confirm;
+            safeGlobal.prompt = globalThis.prompt;
+            safeGlobal.innerWidth = window.innerWidth;
+            safeGlobal.innerHeight = window.innerHeight;
+            safeGlobal.getComputedStyle = window.getComputedStyle
+            safeGlobal.navigator = window.navigator;
+            safeGlobal.localStorage = globalThis.__pluginApis__.safeLocalStorage;
+            safeGlobal.indexedDB = globalThis.__pluginApis__.safeIdbFactory;
+            safeGlobal.__pluginApis__ = globalThis.__pluginApis__
+            safeGlobal.Object = Object;
+            safeGlobal.Array = Array;
+            safeGlobal.String = String;
+            safeGlobal.Number = Number;
+            safeGlobal.Boolean = Boolean;
+            safeGlobal.Math = Math;
+            safeGlobal.Date = Date;
+            safeGlobal.RegExp = RegExp;
+            safeGlobal.Error = Error;
+            safeGlobal.Function = globalThis.__pluginApis__.SafeFunction;
+            safeGlobal.addEventListener = (...args: any[]) => {
+                //@ts-ignore
+                window.addEventListener(...args);
+            }
+            safeGlobal.removeEventListener = (...args: any[]) => {
+                //@ts-ignore
+                window.removeEventListener(...args);
+            }
+            return safeGlobal;
+        },
+        safeLocalStorage: new SafeLocalStorage(),
+        safeIdbFactory: SafeIdbFactory,
+        safeDocument: SafeDocument,
+        alertStore: {
+            set: (msg: string) => {}
+        },
+        apiVersion: "2.1",
+        apiVersionCompatibleWith: ["2.0","2.1"],
+        getDatabase: () => {
+            const db = DBState?.db
+            if(!db){
+                return {}
+            }
+            return new Proxy(db, {
+                get(target, prop) {
+                    if (typeof prop === 'string' && allowedDbKeys.includes(prop)) {
+                        return (target as any)[prop];
+                    }
+                    else if(target.pluginCustomStorage){
+                        console.log('Getting custom db property', prop.toString());
+                        return target.pluginCustomStorage[prop.toString()];
+                    }
+                    return undefined;
+                },
+                set(target, prop, value) {
+                    if (typeof prop === 'string' && allowedDbKeys.includes(prop)) {
+                        (target as any)[prop] = value;
+                        return true;
+                    }
+                    else{
+                        console.log('Setting custom db property', prop.toString(), value);
+                        target.pluginCustomStorage ??= {}
+                        target.pluginCustomStorage[prop.toString()] = value;
+                        return true;
+                    }
+                },
+                ownKeys(target) {
+                    const keys = Reflect.ownKeys(target).filter(key => typeof key === 'string' && allowedDbKeys.includes(key));
+                    if(target.pluginCustomStorage){
+                        keys.push(...Object.keys(target.pluginCustomStorage));
+                    }
+                    return keys;
+                },
+                deleteProperty(target, prop) {
+                    console.log('Attempt to delete db.' + String(prop) + ' denied in safe database proxy.');
+                    return false;
+                },
+                getPrototypeOf(target) {
+                    return Reflect.getPrototypeOf(target);
+                }
+            })
+        },
+        setDatabaseLite: (newDb: any) => {
+            const db = getDatabase();
+            db.pluginCustomStorage ??= {}
+            for (const key of Object.keys(newDb)) {
+                if (allowedDbKeys.includes(key)) {
+                    (db as any)[key] = newDb[key];
+                }
+                else{
+                    db.pluginCustomStorage[key] = newDb[key];
+                }
+            }
+            DBState.db = db;
+        },
+        setDatabase: (newDb: any) => {
+            const db = getDatabase();
+            db.pluginCustomStorage ??= {}
+            for (const key of Object.keys(newDb)) {
+                if (allowedDbKeys.includes(key)) {
+                    (db as any)[key] = newDb[key];
+                }
+                else{
+                    db.pluginCustomStorage[key] = newDb[key];
+                }
+            }
+            setDatabase(db);
+        },
+        // SafeFunction: (a: string) => {
+        //     return function() {
+        //         return globalThis.__pluginApis__.getSafeGlobalThis();
+        //     }
+        // }
+        SafeFunction: new Proxy(Function, {
+            construct(target, args) {
+                return function() {
+                    return globalThis.__pluginApis__.getSafeGlobalThis();
+                }
+            },
+            
+            //call too
+            apply(target, thisArg, args) {
+                return function() {
+                    return globalThis.__pluginApis__.getSafeGlobalThis();
+                }
+            }
+
+        })
+
     }
 
     for (const plugin of plugins) {
-        const data = plugin.script
+        const data = (await checkCodeSafety(plugin.script)).modifiedCode
 
+        console.log('Loading V2 Plugin', data)
         const realScript = `(async () => {
             const risuFetch = globalThis.__pluginApis__.risuFetch
             const nativeFetch = globalThis.__pluginApis__.nativeFetch
@@ -318,12 +514,22 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             const removeRisuReplacer = globalThis.__pluginApis__.removeRisuReplacer
             const onUnload = globalThis.__pluginApis__.onUnload
             const setArg = globalThis.__pluginApis__.setArg
-
+            const safeGlobalThis = globalThis.__pluginApis__.getSafeGlobalThis()
+            const Risuai = globalThis.__pluginApis__
+            const safeLocalStorage = globalThis.__pluginApis__.safeLocalStorage
+            const safeIdbFactory = globalThis.__pluginApis__.safeIdbFactory
+            const alertStore = globalThis.__pluginApis__.alertStore
+            const safeDocument = globalThis.__pluginApis__.safeDocument
+            const getDatabase = globalThis.__pluginApis__.getDatabase
+            const setDatabaseLite = globalThis.__pluginApis__.setDatabaseLite
+            const setDatabase = globalThis.__pluginApis__.setDatabase
+            const loadPlugins = globalThis.__pluginApis__.loadPlugins
+            const SafeFunction = globalThis.__pluginApis__.SafeFunction
             ${data}
         })();`
 
         try {
-            eval(realScript)
+            new Function(realScript)()
         } catch (error) {
             console.error(error)
         }

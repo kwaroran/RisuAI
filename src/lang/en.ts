@@ -1333,5 +1333,25 @@ export const languageEnglish = {
     showTypingEffect: "Show Typing Effect",
     dynamicRequest: "Dynamic Request",
     dynamicOutputPrompt: "Dynamic Output Prompt",
-    nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**"
+    nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**",
+    loginSionyw: "Login with Sionyw Account",
+    pluginRiskDetectedAlert: "Risuai detected code that may be harmful which can STOLE YOUR API KEY OR PERSONAL DATA. we recommend you to NOT INSTALL THIS PLUGIN.",
+    doNotInstall: "Do Not Install",
+    continueAnyway: "Continue Anyway",
+    pluginNoRiskButAlert: "Risuai did not detect harmful code, but please be aware that installing plugins from untrusted sources can pose security risks.",
+    
+    pluginRisksInuserFriendly : {
+        eval: "Evaluating Code from Strings",
+        globalAccess: "Accessing Global Variables",
+        thisOutsideClass: "Using 'this' Outside of Class Context",
+        errorInVerification: "Errors During Verification Process",
+        storageAccess: "Accessing Storage",
+    },
+    pluginRisksInuserFriendlyDesc : {
+        eval: "The plugin attempts to execute code from strings, strings can be obsucated to hide malicious code.",
+        globalAccess: "The plugin tries to access global variables, which can lead to unintended side effects or security vulnerabilities.",
+        thisOutsideClass: "The plugin uses 'this' keyword outside of class context, which can lead to unintended behavior or security issues.",
+        errorInVerification: "There are errors during the verification process of the plugin, indicating potential issues with its functionality.",
+        storageAccess: "The plugin attempts to access storage, which could lead to data leaks or unauthorized data manipulation.",
+    }
 }
