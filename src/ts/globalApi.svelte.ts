@@ -2441,6 +2441,10 @@ export function getVersionString(): string {
 
 export function toGetter<T extends object>(
     getterFn: () => T,
+    args?: {
+        //blocks this.children from being accessed
+        restrictChildren:string[]
+    }
 ): T {
 
     const dummyTarget = () => { };
@@ -2449,6 +2453,10 @@ export function toGetter<T extends object>(
         get(target, prop, receiver) {
 
             const realInstance = getterFn();
+            
+            if (args?.restrictChildren && args.restrictChildren.includes(prop as string)) {
+                throw new Error(`Access to property '${String(prop)}' is restricted`);
+            }
 
             if (realInstance === null || realInstance === undefined) {
                 return (realInstance as any)[prop];

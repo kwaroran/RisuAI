@@ -1,3 +1,5 @@
+import { toGetter } from "../globalApi.svelte";
+
 export class SafeLocalStorage {
     getItem(key: string): string | null {
         return localStorage.getItem(`safe_plugin_${key}`);
@@ -232,6 +234,17 @@ export const tagWhitelist = [
     'vkern',
 ];
 
+const restrictElement = <T extends Node>(element: T): T => {
+    return toGetter(() => element, {
+        restrictChildren: ['ownerDocument']
+    });
+}
+
+const restrictNodeList = <T extends Element, Q extends NodeListOf<T>|HTMLCollectionOf<T> >(nodeList: Q): Q => {
+    let result = Array.from(nodeList).map(node => restrictElement(node));
+    return result as unknown as Q;
+}
+
 export const SafeDocument = {
     body: document.body,
     characterSet: document.characterSet,
@@ -246,65 +259,69 @@ export const SafeDocument = {
         if (!tagWhitelist.includes(tagName.toLowerCase())) {
             throw new Error(`Creation of <${tagName}> elements is not allowed in plugin context.`);
         }
-        return document.createElement(tagName);
+        return restrictElement(document.createElement(tagName));
     },
     createTextNode: (data: string): Text => {
-        return document.createTextNode(data);
+        return restrictElement(document.createTextNode(data));
     },
     createElementNS: (namespaceURI: string, qualifiedName: string): Element => {
         if (!tagWhitelist.includes(qualifiedName.toLowerCase())) {
             throw new Error(`Creation of <${qualifiedName}> elements is not allowed in plugin context.`);
         }
-        return document.createElementNS(namespaceURI, qualifiedName);
+        return restrictElement(document.createElementNS(namespaceURI, qualifiedName));
     },
 
     //add safe methods as needed
-    createNodeIterator: (root: Node, whatToShow?: number, filter?: NodeFilter | null): NodeIterator => {
-        return document.createNodeIterator(root, whatToShow, filter);
-    },
     createRange: (): Range => {
-        return document.createRange();
+        return (document.createRange());
     },
     createDocumentFragment: (): DocumentFragment => {
-        return document.createDocumentFragment();
+        return restrictElement(document.createDocumentFragment());
     },
     querySelector: (selectors: string): Element | null => {
-        return document.querySelector(selectors);
+        return restrictElement(document.querySelector(selectors));
     },
     querySelectorAll: (selectors: string): NodeListOf<Element> => {
-        return document.querySelectorAll(selectors);
+        return restrictNodeList(document.querySelectorAll(selectors));
     },
     getElementById: (elementId: string): HTMLElement | null => {
-        return document.getElementById(elementId);
+        return restrictElement(document.getElementById(elementId));
     },
     getElementsByClassName: (classNames: string): HTMLCollectionOf<Element> => {
-        return document.getElementsByClassName(classNames);
+        return restrictNodeList(document.getElementsByClassName(classNames))
     },
     getElementsByTagName: (qualifiedName: string): HTMLCollectionOf<Element> => {
-        return document.getElementsByTagName(qualifiedName);
+        return restrictNodeList(document.getElementsByTagName(qualifiedName));
     },
     getElementsByName: (elementName: string): NodeListOf<Element> => {
-        return document.getElementsByName(elementName);
+        return restrictNodeList(document.getElementsByName(elementName));
     },
     createComment: (data: string): Comment => {
-        return document.createComment(data);
-    },
-    createTreeWalker: (root: Node, whatToShow?: number, filter?: NodeFilter | null): TreeWalker => {
-        return document.createTreeWalker(root, whatToShow, filter);
+        return restrictElement(document.createComment(data));
     },
     elementFromPoint: (x: number, y: number): Element | null => {
-        return document.elementFromPoint(x, y);
+        return restrictElement(document.elementFromPoint(x, y));
     },
     elementsFromPoint: (x: number, y: number): Element[] => {
-        return document.elementsFromPoint(x, y);
+        return document.elementsFromPoint(x, y).map(el => restrictElement(el));
     },
     hasFocus: (): boolean => {
         return document.hasFocus();
     },
     addEventListener: (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void => {
+        const allowedEvents = ['click', 'keydown', 'keyup', 'input', 'change', 'submit', 'focus', 'blur', 'mouseover', 'mouseout', 'mousemove', 'mousedown', 'mouseup'];
+        if(!allowedEvents.includes(type)) {
+            console.warn(`Event type '${type}' is not allowed in plugin context.`);
+            return;
+        }
         document.addEventListener(type, listener, options);
     },
     removeEventListener: (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void => {
+        const allowedEvents = ['click', 'keydown', 'keyup', 'input', 'change', 'submit', 'focus', 'blur', 'mouseover', 'mouseout', 'mousemove', 'mousedown', 'mouseup'];
+        if(!allowedEvents.includes(type)) {
+            console.warn(`Event type '${type}' is not allowed in plugin context.`);
+            return;
+        }
         document.removeEventListener(type, listener, options);
     }
 }
