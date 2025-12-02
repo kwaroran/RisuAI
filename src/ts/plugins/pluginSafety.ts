@@ -111,19 +111,19 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
 
         walk.ancestor(ast, {
 
-            CallExpression(node: any) {
+            CallExpression(node) {
                 if (node.callee?.type === 'Identifier') {
                     validateNode(node, 'CallExpression', node.callee.name, errors);
                 }
             },
 
-            NewExpression(node: any) {
+            NewExpression(node) {
                 if (node.callee?.type === 'Identifier') {
                     validateNode(node, 'NewExpression', node.callee.name, errors);
                 }
             },
 
-            ThisExpression(node: any, ancestors: any[]) {
+            ThisExpression(node, ancestors: any[]) {
                 const isInsideClass = ancestors.some((a) => a.type === 'ClassBody');
 
                 if (!isInsideClass) {
@@ -134,7 +134,7 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
                 }
             },
 
-            Identifier(node: any, ancestors: any[]) {
+            Identifier(node, ancestors: any[]) {
                 const name = node.name;
 
                 const isTarget = SAFETY_BLACKLIST.some(r => r.nodeType === 'Identifier' && r.identifierName === name);
