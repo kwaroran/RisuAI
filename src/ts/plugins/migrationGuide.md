@@ -1,3 +1,5 @@
+# NOTE: 2.1 is not final yet. this is a draft. all APIs and behaviors are subject to change.
+
 # Plugin 2.0 -> 2.1 Migration Guide
 
 ## Overview

@@ -63,7 +63,7 @@ export const SafeIdbFactory = {
     }
 }
 
-const tagWhitelist = [
+export const tagWhitelist = [
     'a',
     'abbr',
     'acronym',
