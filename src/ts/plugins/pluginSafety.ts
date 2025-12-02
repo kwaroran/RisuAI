@@ -59,12 +59,12 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
     const hashedCode = await hasher(new TextEncoder().encode(code));
     const cacheKey = `safety-${hashedCode}`;
     const cachedResult = localStorage.getItem(cacheKey);
-    // if (cachedResult) {
-    //     const got =  JSON.parse(cachedResult) as CheckResult;
-    //     if (got.checkerVersion === checkerVersion) {
-    //         return got;
-    //     }
-    // }
+    if (cachedResult) {
+        const got =  JSON.parse(cachedResult) as CheckResult;
+        if (got.checkerVersion === checkerVersion) {
+            return got;
+        }
+    }
 
     try {
         const [acorn, walk] = await Promise.all([
