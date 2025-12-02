@@ -98,6 +98,24 @@ async function fetchProtectedResourceNodeVersion(url: string, options: RequestIn
     return res
 }
 
+const readFileSecure = isTauri ? readFile : async (path:string, options:any) => {
+
+    if(!import.meta.env.DEV){
+        throw new Error("Secure file access is only available in Tauri or development mode")
+    }
+    const data = localStorage.getItem(path)
+    if(!data){
+        throw new Error("File not found")
+    }
+    return Buffer.from(data, 'base64')
+}
+const writeFileSecure = isTauri ? writeFile : async (path:string, data:Uint8Array, options:any) => {
+    if(!import.meta.env.DEV){
+        throw new Error("Secure file access is only available in Tauri or development mode")
+    }
+    localStorage.setItem(path, Buffer.from(data).toString('base64'))
+}
+
 
 //Tauri version of fetchProtectedResource
 //We can contect javascript safely because its hard to intercept the requests in Tauri
@@ -109,7 +127,7 @@ async function fetchProtectedResourceTauri(url: string, options: RequestInit = {
     
     if(!tokenInitalized){
 
-        const oauthDataText = await readFile('oauthData.json', { baseDir: BaseDirectory.AppData })
+        const oauthDataText = await readFileSecure('oauthData.json', { baseDir: BaseDirectory.AppData })
         const oauthData: SionywOauthData = JSON.parse(new TextDecoder().decode(oauthDataText))
 
         if(!refreshToken){
@@ -182,16 +200,18 @@ async function fetchProtectedResourceRisuAuthVersion(url: string, options: Reque
     return res
 }
 
-async function loginToSionyw(){
-    if(isNodeServer){
-        return loginToSionywNodeVersion()
-    }
-    else if(isTauri){
-        return loginToSionywTauriVersion()
-    }
-    else{
-        return loginToSionywWebVersion()
-    }   
+export async function loginToSionyw(){
+    // if(isNodeServer){
+    //     return loginToSionywNodeVersion()
+    // }
+    // else if(isTauri){
+    //     return loginToSionywTauriVersion()
+    // }
+    // else{
+    //     return loginToSionywWebVersion()
+    // }   
+            return loginToSionywTauriVersion()
+
 }
 
 async function loginToSionywNodeVersion(){
@@ -202,8 +222,8 @@ async function loginToSionywTauriVersion(){
     // We should use Oauth2.1 with dynamic client registration
     let config = await client.discovery(
         new URL('https://account.sionyw.com/'),
-        '',
-        ''
+        'placeholder_client_id',
+        'placeholder_secret'
     )
     const a = await fetchNative(config.serverMetadata().registration_endpoint!, {
         method: 'POST',
@@ -215,6 +235,7 @@ async function loginToSionywTauriVersion(){
             redirect_uris: ['risuai://sionyw/callback'],
             grant_types: ['refresh_token', 'authorization_code'],
             response_types: ['code'],
+            scope: 'risuai refresh_token',
         })
     })
     const registration = await a.json()
@@ -228,7 +249,7 @@ async function loginToSionywTauriVersion(){
     let code_challenge: string =  await client.calculatePKCECodeChallenge(code_verifier)
 
     const authUrl = await client.buildAuthorizationUrl(config, {
-        redirect_uri: 'https://risuai.xyz/sionyw/callback',
+        redirect_uri: 'risuai://sionyw/callback',
         scope: 'risuai refresh_token',
         code_challenge_method: 'S256',
         code_challenge: code_challenge,
@@ -239,18 +260,29 @@ async function loginToSionywTauriVersion(){
     xWind?.focus()
     const msgEventCallback = async (event:MessageEvent) => {
         if(event.origin.startsWith('https://account.sionyw.com')){
-            let response = event.data
+            let response:{
+                code:string,
+            } = event.data
 
+            if(!response?.code){
+                return
+            }
+
+            window.removeEventListener('message', msgEventCallback)
+            xWind?.close()
+
+            const callbackUrl = new URL('risuai://sionyw/callback')
+            callbackUrl.searchParams.set('code', response.code)
             const exchanged = await client.authorizationCodeGrant(
                 config,
-                new URL('https://risuai.xyz/sionyw/callback'),
+                callbackUrl,
                 {
                     pkceCodeVerifier: code_verifier
                 }
             )
 
             // Store the refresh token securely
-            await writeFile('oauthData.json', new TextEncoder().encode(JSON.stringify({
+            await writeFileSecure('oauthData.json', new TextEncoder().encode(JSON.stringify({
                 refresh_token: exchanged.refresh_token,
                 client_id: registration.client_id,
                 client_secret: registration.client_secret,
@@ -260,8 +292,6 @@ async function loginToSionywTauriVersion(){
             refreshToken = exchanged.refresh_token!
             tokenExpiry = Date.now() + (exchanged.expires_in! * 1000) - 60000 // Refresh 1 minute before expiry
             tokenInitalized = true
-            window.removeEventListener('message', msgEventCallback)
-            xWind?.close()
         }
     }
     window.addEventListener('message', msgEventCallback)
