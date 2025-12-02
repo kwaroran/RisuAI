@@ -758,7 +758,7 @@ function decodeStyle(text:string){
 }
 
 export async function hasher(data:Uint8Array){
-    return Buffer.from(await crypto.subtle.digest("SHA-256", data)).toString('hex');
+    return Buffer.from(await crypto.subtle.digest("SHA-256", data as any)).toString('hex');
 }
 
 export async function convertImage(data:Uint8Array) {

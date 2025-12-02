@@ -5,8 +5,9 @@ import { getCurrentCharacter, getDatabase, setDatabaseLite } from "../storage/da
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
 import { fetchNative, globalFetch } from "../globalApi.svelte";
-import { selectedCharID } from "../stores.svelte";
+import { pluginAlertModalStore, selectedCharID } from "../stores.svelte";
 import type { ScriptMode } from "../process/scripts";
+import { checkCodeSafety } from "./pluginSafety";
 
 export const customProviderStore = writable([] as string[])
 
@@ -34,7 +35,16 @@ export async function importPlugin() {
         if (!f) {
             return
         }
+        //support utf-8 with BOM or without BOM
         const jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
+
+        const safety = await checkCodeSafety(jsFile)
+        if(!safety.isSafe){
+            pluginAlertModalStore.errors = safety.errors
+            pluginAlertModalStore.open = true
+            return
+        }
+
         const splitedJs = jsFile.split('\n')
         let name = ''
         let displayName: string = undefined

@@ -34,29 +34,36 @@ export async function fetchProtectedResource(url: string, options: RequestInit =
         url = hub + url
     }
 
-    let risuAuth = DBState.db?.account?.token || ''
-    let fallBackRisuToken = localStorage.getItem("fallbackRisuToken")
-    if(!risuAuth && fallBackRisuToken){
-        try {
-            const tokenObj = JSON.parse(fallBackRisuToken)
-            risuAuth = tokenObj.token || ''
-        } catch (error) {
-            risuAuth = ''
-        }
-    }    
+    let risuAuth = ''
 
-    if(risuAuth){
-        return fetchProtectedResourceRisuAuthVersion(url, options, risuAuth, arg)
+    //this option is for development and debugging purposes only
+    //for production, DBState.db.account.token should be removed entirely
+    if(localStorage.getItem('ignoreRisuAuth') !== 'true'){
+        risuAuth = DBState.db?.account?.token
+        let fallBackRisuToken = localStorage.getItem("fallbackRisuToken")
+        if(!risuAuth && fallBackRisuToken){
+            try {
+                const tokenObj = JSON.parse(fallBackRisuToken)
+                risuAuth = tokenObj.token || ''
+            } catch (error) {
+                risuAuth = ''
+            }
+        }
     }
-    else if(isNodeServer){
-        return fetchProtectedResourceNodeVersion(url, options, arg)
-    }
-    else if(isTauri){
-        return fetchProtectedResourceTauri(url, options, arg)
-    }
-    else{
-        return fetchProtectedResourceWebVersion(url, options, arg)
-    }
+
+    // if(risuAuth){
+    //     return fetchProtectedResourceRisuAuthVersion(url, options, risuAuth, arg)
+    // }
+    // else if(isNodeServer){
+    //     return fetchProtectedResourceNodeVersion(url, options, arg)
+    // }
+    // else if(isTauri){
+    //     return fetchProtectedResourceTauri(url, options, arg)
+    // }
+    // else{
+    //     return fetchProtectedResourceWebVersion(url, options, arg)
+    // }
+    return fetchProtectedResourceTauri(url, options, arg)
 }
 
 //This method is used in the web version of the app

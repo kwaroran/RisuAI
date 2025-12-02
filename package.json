@@ -44,6 +44,8 @@
     "@tauri-apps/plugin-shell": "2.2.1",
     "@tauri-apps/plugin-updater": "~2.7.1",
     "@types/markdown-it": "^14.1.1",
+    "acorn": "^8.15.0",
+    "acorn-walk": "^8.3.4",
     "blueimp-md5": "^2.19.0",
     "body-parser": "^1.20.2",
     "buffer": "^6.0.3",
