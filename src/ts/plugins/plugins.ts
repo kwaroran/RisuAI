@@ -4,7 +4,7 @@ import { alertError, alertMd } from "../alert";
 import { getCurrentCharacter, getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
-import { fetchNative, globalFetch } from "../globalApi.svelte";
+import { fetchNative, globalFetch, readImage, saveAsset, toGetter } from "../globalApi.svelte";
 import { pluginAlertModalStore, selectedCharID } from "../stores.svelte";
 import type { ScriptMode } from "../process/scripts";
 import { checkCodeSafety } from "./pluginSafety";
@@ -36,7 +36,7 @@ export async function importPlugin() {
             return
         }
         //support utf-8 with BOM or without BOM
-        const jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
+        let jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
 
         const safety = await checkCodeSafety(jsFile)
         if(!safety.isSafe){
@@ -283,12 +283,56 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                     plug.realArg[realArg] = value;
                 }
             }
+        },
+        safeGlobalThis: {} as any,
+        getSafeGlobalThis: () => {
+            if(Object.keys(globalThis.__pluginApis__.safeGlobalThis).length > 0){
+                return globalThis.__pluginApis__.safeGlobalThis;
+            }
+            //safeGlobalThis
+            const keys = Object.keys(globalThis);
+            const safeGlobal: any = {};
+            const allowedKeys = [
+                'console',
+                'TextEncoder',
+                'TextDecoder',
+                'setTimeout',
+                'setInterval',
+                'clearTimeout',
+                'clearInterval',
+                'URL',
+                'URLSearchParams',
+            ]
+            for (const key of keys) {
+                if(allowedKeys.includes(key)){
+                    safeGlobal[key] = (globalThis as any)[key];
+                }
+            }
+
+            //compatibility layer with old unsafe APIs
+
+            //from PBV2
+            safeGlobal.readImage = readImage;
+            safeGlobal.saveAsset = saveAsset;
+            safeGlobal.showDirectoryPicker = window.showDirectoryPicker
+
+            safeGlobal.DBState = {
+                db: {
+                    //from OGod.js
+                    personas: toGetter(() => getDatabase().personas),
+                }
+            }
+            
+
+
+            return safeGlobal;
         }
     }
 
     for (const plugin of plugins) {
-        const data = plugin.script
+        const data = (await checkCodeSafety(plugin.script)).modifiedCode
 
+        console.log('Loading V2 Plugin', data)
         const realScript = `(async () => {
             const risuFetch = globalThis.__pluginApis__.risuFetch
             const nativeFetch = globalThis.__pluginApis__.nativeFetch
@@ -303,12 +347,13 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             const removeRisuReplacer = globalThis.__pluginApis__.removeRisuReplacer
             const onUnload = globalThis.__pluginApis__.onUnload
             const setArg = globalThis.__pluginApis__.setArg
+            const safeGlobalThis = globalThis.__pluginApis__.getSafeGlobalThis()
 
             ${data}
         })();`
 
         try {
-            eval(realScript)
+            new Function(realScript)()
         } catch (error) {
             console.error(error)
         }

@@ -46,6 +46,7 @@
     "@types/markdown-it": "^14.1.1",
     "acorn": "^8.15.0",
     "acorn-walk": "^8.3.4",
+    "astring": "^1.9.0",
     "blueimp-md5": "^2.19.0",
     "body-parser": "^1.20.2",
     "buffer": "^6.0.3",

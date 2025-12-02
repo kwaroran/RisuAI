@@ -50,12 +50,12 @@
                     
                 </details>
 
-                <button 
+                <!-- <button 
                     class="text-gray-200"
                     onclick={() => pluginAlertModalStore.open = false}
                 >
                     {language.continueAnyway}
-                </button>
+                </button> -->
             </details>
             
             <button 

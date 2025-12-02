@@ -4,6 +4,7 @@ export interface CheckResult {
     isSafe: boolean;
     errors: PluginSafetyErrors[];
     checkerVersion: number;
+    modifiedCode: string;
 }
 
 type DangerousNodeType = 'CallExpression' | 'NewExpression' | 'Identifier' | 'ThisExpression';
@@ -60,24 +61,7 @@ const SAFETY_BLACKLIST: BlacklistRule[] = [
         message: 'Access to "cookieStore" is forbidden.',
         userAlertKey: 'storageAccess'
     },
-    {
-        nodeType: 'Identifier',
-        identifierName: 'window',
-        message: 'Access to "window" is forbidden.',
-        userAlertKey: 'globalAccess'
-    },
-    {
-        nodeType: 'Identifier',
-        identifierName: 'global',
-        message: 'Access to "global" is forbidden.',
-        userAlertKey: 'globalAccess'
-    },
-    {
-        nodeType: 'Identifier',
-        identifierName: 'globalThis',
-        message: 'Access to "globalThis" is forbidden.',
-        userAlertKey: 'globalAccess'
-    }
+
 ];
 
 export type PluginSafetyErrors = {
@@ -94,12 +78,12 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
     const hashedCode = await hasher(new TextEncoder().encode(code));
     const cacheKey = `safety-${hashedCode}`;
     const cachedResult = localStorage.getItem(cacheKey);
-    if (cachedResult) {
-        const got =  JSON.parse(cachedResult) as CheckResult;
-        if (got.checkerVersion === checkerVersion) {
-            return got;
-        }
-    }
+    // if (cachedResult) {
+    //     const got =  JSON.parse(cachedResult) as CheckResult;
+    //     if (got.checkerVersion === checkerVersion) {
+    //         return got;
+    //     }
+    // }
 
     try {
         const [acorn, walk] = await Promise.all([
@@ -107,7 +91,7 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
             import('acorn-walk')
         ]);
 
-        const ast = acorn.parse(code, { ecmaVersion: 2020 });
+        const ast = acorn.parse(code, { ecmaVersion: 'latest' });
 
         walk.ancestor(ast, {
 
@@ -123,32 +107,33 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
                 }
             },
 
-            ThisExpression(node, ancestors: any[]) {
-                const isInsideClass = ancestors.some((a) => a.type === 'ClassBody');
-
-                if (!isInsideClass) {
-                    errors.push({
-                        message: 'Usage of "this" outside of class context is forbidden.',
-                        userAlertKey: 'thisOutsideClass'
-                    });
-                }
-            },
-
-            Identifier(node, ancestors: any[]) {
+            Identifier(node, state, ancestors:any[]) {
                 const name = node.name;
+
+                if(
+                    name === 'window' ||
+                    name === 'global' ||
+                    name === 'globalThis' ||
+                    name === 'self' ||
+                    name === 'top' ||
+                    name === 'parent' ||
+                    name === 'frames'
+                ){
+                    //globals, rewrite safeWindow
+                    node.name = 'safeGlobalThis';
+                    return
+                }
 
                 const isTarget = SAFETY_BLACKLIST.some(r => r.nodeType === 'Identifier' && r.identifierName === name);
                 if (!isTarget) return;
 
-                const parent = ancestors[ancestors.length - 2];
-                if (parent) {
-                    if (parent.type === 'MemberExpression' && parent.property === node && !parent.computed) return;
-                    if (parent.type === 'Property' && parent.key === node) return;
-                }
-
                 validateNode(node, 'Identifier', name, errors);
             }
         });
+
+        const {generate} = await import('astring');
+        const modifiedCode = generate(ast);
+        code = modifiedCode;
 
     } catch (err) {
         // Handles syntax errors or import errors
@@ -158,12 +143,13 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
                 message: `Error during code verification: ${(err as Error).message}`,
                 userAlertKey: 'errorInVerification'
             }],
-            checkerVersion
+            checkerVersion,
+            modifiedCode: code
         };
     }
 
     localStorage.setItem(cacheKey, JSON.stringify({ isSafe: errors.length === 0, errors, checkerVersion }));
-    return { isSafe: errors.length === 0, errors, checkerVersion };
+    return { isSafe: errors.length === 0, errors, checkerVersion, modifiedCode: code};
 }
 
 function validateNode(node: any, type: DangerousNodeType, name: string | undefined, errors: PluginSafetyErrors[]) {
