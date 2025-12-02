@@ -5,9 +5,10 @@ import { getCurrentCharacter, getDatabase, setDatabaseLite } from "../storage/da
 import { checkNullish, selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
 import { fetchNative, globalFetch, readImage, saveAsset, toGetter } from "../globalApi.svelte";
-import { pluginAlertModalStore, selectedCharID } from "../stores.svelte";
+import { DBState, pluginAlertModalStore, selectedCharID } from "../stores.svelte";
 import type { ScriptMode } from "../process/scripts";
 import { checkCodeSafety } from "./pluginSafety";
+import { SafeDocument, SafeIdbFactory, SafeLocalStorage } from "./pluginSafeClass";
 
 export const customProviderStore = writable([] as string[])
 
@@ -318,15 +319,73 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             safeGlobal.showDirectoryPicker = window.showDirectoryPicker
 
             safeGlobal.DBState = {
-                db: {
-                    //from OGod.js
-                    personas: toGetter(() => getDatabase().personas),
-                }
+                db: toGetter(
+                    globalThis.__pluginApis__.getDatabase
+                )
             }
-            
 
+            safeGlobal.setInterval = globalThis.setInterval;
+            safeGlobal.setTimeout = globalThis.setTimeout;
+            safeGlobal.clearInterval = globalThis.clearInterval;
+            safeGlobal.clearTimeout = globalThis.clearTimeout;
+            safeGlobal.alert = globalThis.alert;
+            safeGlobal.confirm = globalThis.confirm;
+            safeGlobal.prompt = globalThis.prompt;
+            safeGlobal.innerWidth = window.innerWidth;
+            safeGlobal.innerHeight = window.innerHeight;
+            safeGlobal.getComputedStyle = window.getComputedStyle
+
+            safeGlobal.localStorage = globalThis.__pluginApis__.safeLocalStorage;
+            safeGlobal.indexedDB = globalThis.__pluginApis__.safeIdbFactory;
 
             return safeGlobal;
+        },
+        safeLocalStorage: new SafeLocalStorage(),
+        safeIdbFactory: SafeIdbFactory,
+        safeDocument: SafeDocument,
+        alertStore: {
+            set: (msg: string) => {}
+        },
+        getDatabase: () => {
+            const db = DBState?.db
+            if(!db){
+                return {}
+            }
+            const safeDb = {} as any
+            const allowedKeys = [
+                'characters',
+                'modules',
+                'enabledModules',
+                'moduleIntergration',
+                'pluginV2',
+                'personas',
+                'plugins'
+            ]
+            return new Proxy(db, {
+                get(target, prop) {
+                    if (typeof prop === 'string' && allowedKeys.includes(prop)) {
+                        return (target as any)[prop];
+                    }
+                    return undefined;
+                },
+                set(target, prop, value) {
+                    if (typeof prop === 'string' && allowedKeys.includes(prop)) {
+                        (target as any)[prop] = value;
+                        return true;
+                    }
+                    return false;
+                },
+                ownKeys(target) {
+                    return Reflect.ownKeys(target).filter(key => typeof key === 'string' && allowedKeys.includes(key));
+                },
+                deleteProperty(target, prop) {
+                    console.log('Attempt to delete db.' + String(prop) + ' denied in safe database proxy.');
+                    return false;
+                },
+                getPrototypeOf(target) {
+                    return Reflect.getPrototypeOf(target);
+                }
+            })
         }
     }
 
@@ -349,7 +408,12 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             const onUnload = globalThis.__pluginApis__.onUnload
             const setArg = globalThis.__pluginApis__.setArg
             const safeGlobalThis = globalThis.__pluginApis__.getSafeGlobalThis()
-
+            const Risuai = globalThis.__pluginApis__
+            const safeLocalStorage = globalThis.__pluginApis__.safeLocalStorage
+            const safeIdbFactory = globalThis.__pluginApis__.safeIdbFactory
+            const alertStore = globalThis.__pluginApis__.alertStore
+            const safeDocument = globalThis.__pluginApis__.safeDocument
+            const getDatabase = globalThis.__pluginApis__.getDatabase
             ${data}
         })();`
 

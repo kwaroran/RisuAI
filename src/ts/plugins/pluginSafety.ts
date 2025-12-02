@@ -36,23 +36,10 @@ const SAFETY_BLACKLIST: BlacklistRule[] = [
         message: 'Usage of "new Function()" is forbidden.',
         userAlertKey: 'eval'
     },
-
-    {
-        nodeType: 'Identifier',
-        identifierName: 'localStorage',
-        message: 'Access to "localStorage" is forbidden.',
-        userAlertKey: 'storageAccess'
-    },
     {
         nodeType: 'Identifier',
         identifierName: 'sessionStorage',
         message: 'Access to "sessionStorage" is forbidden.',
-        userAlertKey: 'storageAccess'
-    },
-    {
-        nodeType: 'Identifier',
-        identifierName: 'indexedDB',
-        message: 'Access to "indexedDB" is forbidden.',
         userAlertKey: 'storageAccess'
     },
     {
@@ -121,6 +108,24 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
                 ){
                     //globals, rewrite safeWindow
                     node.name = 'safeGlobalThis';
+                    return
+                }
+
+                if(name === 'localStorage'){
+                    //localStorage, rewrite safeLocalStorage
+                    node.name = 'safeLocalStorage';
+                    return
+                }
+
+                if(name === 'indexedDB'){
+                    //indexedDB, rewrite safeIdbFactory
+                    node.name = 'safeIdbFactory';
+                    return
+                }
+
+                if(name === 'document'){
+                    //document, rewrite safeDocument
+                    node.name = 'safeDocument';
                     return
                 }
 
