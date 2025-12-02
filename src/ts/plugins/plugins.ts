@@ -471,11 +471,6 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             }
             setDatabase(db);
         },
-        // SafeFunction: (a: string) => {
-        //     return function() {
-        //         return globalThis.__pluginApis__.getSafeGlobalThis();
-        //     }
-        // }
         SafeFunction: new Proxy(Function, {
             construct(target, args) {
                 return function() {
