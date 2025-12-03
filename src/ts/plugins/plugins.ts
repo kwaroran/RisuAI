@@ -21,6 +21,7 @@ interface ProviderPlugin {
     realArg: { [key: string]: number | string }
     version?: 1 | 2 | '2_old'
     customLink: ProviderPluginCustomLink[]
+    argMeta: { [key: string]: {[key:string]:string} }
 }
 interface ProviderPluginCustomLink {
     link: string
@@ -51,6 +52,7 @@ export async function importPlugin() {
         let displayName: string = undefined
         let arg: { [key: string]: 'int' | 'string' | string[] } = {}
         let realArg: { [key: string]: number | string } = {}
+        let argMeta: { [key: string]: {[key:string]:string} } = {}
         let customLink: ProviderPluginCustomLink[] = []
         let apiVersion = '2.1'
         for (const line of splitedJs) {
@@ -128,6 +130,25 @@ export async function importPlugin() {
                     arg[provKey] = 'string'
                     realArg[provKey] = ''
                 }
+
+                if(provied.length > 3){
+                    const meta: {[key:string]:string} = {}
+                    //Compatibility layer for unofficial meta
+                    let metaStr = provied.slice(3).join(' ').replace(
+                        /{{(.+?)(::?(.+?))?}}/g,
+                        (a,g1:string,g2,g3:string) => {
+                            console.log(g1,g3)
+                            meta[g1] = g3 || '1'
+                            return ''
+                        }
+                    ).trim()
+
+                    if(metaStr){
+                        meta['description'] = metaStr
+                    }
+
+                    argMeta[provKey] = meta
+                }
             }
 
         }
@@ -172,7 +193,8 @@ export async function importPlugin() {
             arguments: arg,
             displayName: displayName,
             version: 2,
-            customLink: customLink
+            customLink: customLink,
+            argMeta: argMeta
         }
 
         db.plugins ??= []
