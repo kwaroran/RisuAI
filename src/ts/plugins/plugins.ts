@@ -9,6 +9,7 @@ import { DBState, pluginAlertModalStore, selectedCharID } from "../stores.svelte
 import type { ScriptMode } from "../process/scripts";
 import { checkCodeSafety } from "./pluginSafety";
 import { SafeDocument, SafeIdbFactory, SafeLocalStorage } from "./pluginSafeClass";
+import { loadV3Plugins } from "./apiV3/v3";
 
 export const customProviderStore = writable([] as string[])
 
@@ -19,7 +20,7 @@ interface ProviderPlugin {
     script: string
     arguments: { [key: string]: 'int' | 'string' | string[] }
     realArg: { [key: string]: number | string }
-    version?: 1 | 2 | '2_old'
+    version?: 1 | 2 | '2_old' | 3
     customLink: ProviderPluginCustomLink[]
     argMeta: { [key: string]: {[key:string]:string} }
 }
@@ -30,15 +31,33 @@ interface ProviderPluginCustomLink {
 
 export type RisuPlugin = ProviderPlugin
 
-export async function importPlugin() {
+export async function createBlankPlugin(){
+    await importPlugin(
+`
+//@name New Plugin
+//@display-name New Plugin Display Name
+//@api 3.0
+//@arg example_arg string
+`.trim()
+    )
+}
+
+export async function importPlugin(code:string|null = null) {
     try {
+        let jsFile = ''
         let db = getDatabase()
-        const f = await selectSingleFile(['js'])
-        if (!f) {
-            return
+        
+        if(!code){
+            const f = await selectSingleFile(['js'])
+            if (!f) {
+                return
+            }
+            //support utf-8 with BOM or without BOM
+            jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
         }
-        //support utf-8 with BOM or without BOM
-        let jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
+        else{
+            jsFile = code
+        }
 
         const splitedJs = jsFile.split('\n')
         let name = ''
@@ -192,7 +211,7 @@ export async function importPlugin() {
             realArg: realArg,
             arguments: arg,
             displayName: displayName,
-            version: 2,
+            version: apiVersion === '3.0' ? 3 : 2,
             customLink: customLink,
             argMeta: argMeta
         }
@@ -215,9 +234,12 @@ export async function loadPlugins() {
     let db = getDatabase()
 
 
-    const pluginV2 = safeStructuredClone(db.plugins).filter((a: RisuPlugin) => a.version === 2)
+    const structuredCloned = safeStructuredClone(db.plugins)
+    const pluginV2 = structuredCloned.filter((a: RisuPlugin) => a.version === 2)
+    const pluginV3 = structuredCloned.filter((a: RisuPlugin) => a.version === 3)
 
     await loadV2Plugin(pluginV2)
+    await loadV3Plugins(pluginV3)
 }
 
 type PluginV2ProviderArgument = {

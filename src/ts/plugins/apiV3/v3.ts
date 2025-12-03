@@ -347,6 +347,11 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
     }
 }
 
+export async function loadV3Plugins(plugins:RisuPlugin[]){
+    const loadPromises = plugins.map(plugin => executePluginV3(plugin));
+    await Promise.all(loadPromises);
+}
+
 export async function executePluginV3(plugin:RisuPlugin){
     const iframe = document.createElement('iframe');
     iframe.style.display = "none";
