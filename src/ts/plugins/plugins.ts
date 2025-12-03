@@ -242,23 +242,8 @@ const allowedDbKeys = [
     'pluginCustomStorage'
 ]
 
-export async function loadV2Plugin(plugins: RisuPlugin[]) {
-
-    if (pluginV2.loaded) {
-        for (const unload of pluginV2.unload) {
-            await unload()
-        }
-
-        pluginV2.providers.clear()
-        pluginV2.editdisplay.clear()
-        pluginV2.editoutput.clear()
-        pluginV2.editprocess.clear()
-        pluginV2.editinput.clear()
-    }
-
-    pluginV2.loaded = true
-
-    globalThis.__pluginApis__ = {
+export const getV2PluginAPIs = () => {
+    return {
         risuFetch: globalFetch,
         nativeFetch: fetchNative,
         getArg: (arg: string) => {
@@ -309,9 +294,6 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             else {
                 throw (`replacer handler named ${name} not found`)
             }
-        },
-        addFetchReplacer: (func: (content: string, type: string) => string | Promise<string>) => {
-            pluginV2.replacerafterRequest.add(func)
         },
         removeRisuReplacer: (name: string, func: ReplacerFunction) => {
             if (pluginV2['replacer' + name]) {
@@ -548,6 +530,25 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         saveAsset: saveAsset
 
     }
+}
+
+export async function loadV2Plugin(plugins: RisuPlugin[]) {
+
+    if (pluginV2.loaded) {
+        for (const unload of pluginV2.unload) {
+            await unload()
+        }
+
+        pluginV2.providers.clear()
+        pluginV2.editdisplay.clear()
+        pluginV2.editoutput.clear()
+        pluginV2.editprocess.clear()
+        pluginV2.editinput.clear()
+    }
+
+    pluginV2.loaded = true
+
+    globalThis.__pluginApis__ = getV2PluginAPIs()
 
     for (const plugin of plugins) {
         let data = ''

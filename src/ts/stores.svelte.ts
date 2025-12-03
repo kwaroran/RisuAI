@@ -120,6 +120,10 @@ export const pluginAlertModalStore = $state({
 
 export const disableHighlight = writable(true)
 
+export const additionalSettingsMenu = $state([
+
+] as {name: string, icon: string, iconType:'html'|'img'|'none', callback: any}[])
+
 ReloadGUIPointer.subscribe(() => {
     ReloadChatPointer.set({})
     resetScriptCache()
