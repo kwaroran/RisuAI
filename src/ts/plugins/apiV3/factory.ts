@@ -185,17 +185,18 @@ export class SandboxHost {
     public run(container: HTMLElement|HTMLIFrameElement, userCode: string) {
         if(container instanceof HTMLIFrameElement) {
             this.iframe = container;
-            this.iframe.sandbox.add('allow-scripts');
         } else {
             this.iframe = document.createElement('iframe');
-            this.iframe.sandbox.add('allow-scripts');
             this.iframe.style.width = "100%";
             this.iframe.style.height = "100%";
             this.iframe.style.border = "none";
             container.appendChild(this.iframe);
         }
 
-        
+        this.iframe.sandbox.add('allow-scripts');
+        this.iframe.sandbox.add('allow-modals')
+        this.iframe.sandbox.add('allow-downloads')
+
         const messageHandler = async (event: MessageEvent) => {
             if (event.source !== this.iframe.contentWindow) return;
             const data = event.data as RpcMessage;
