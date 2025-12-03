@@ -5,7 +5,7 @@
     import { AlertTriangle } from 'lucide-svelte';
 
     import { DBState } from "src/ts/stores.svelte";
-    import { importPlugin } from "src/ts/plugins/plugins";
+    import { createBlankPlugin, importPlugin } from "src/ts/plugins/plugins";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
@@ -195,7 +195,7 @@
 
     <button
         onclick={() => {
-            importPlugin();
+            createBlankPlugin();
         }}
         class="hover:text-textcolor cursor-pointer"
     >
