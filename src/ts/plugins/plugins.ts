@@ -201,7 +201,8 @@ export async function importPlugin() {
         db.plugins.push(pluginData)
 
         setDatabaseLite(db)
-        loadPlugins()
+
+        //Previously we loaded plugin here
     } catch (error) {
         console.error(error)
         alertError(language.errors.noData)
