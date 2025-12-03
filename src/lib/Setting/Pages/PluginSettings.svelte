@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PlusIcon, TrashIcon, LinkIcon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon, LinkIcon, Code2Icon } from "lucide-svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertMd } from "src/ts/alert";
     import { AlertTriangle } from 'lucide-svelte';
@@ -183,7 +183,7 @@
         {/if}
     {/each}
 </div>
-<div class="text-textcolor2 mt-2 flex">
+<div class="text-textcolor2 mt-2 flex gap-2">
     <button
         onclick={() => {
             importPlugin();
@@ -191,5 +191,14 @@
         class="hover:text-textcolor cursor-pointer"
     >
         <PlusIcon />
+    </button>
+
+    <button
+        onclick={() => {
+            importPlugin();
+        }}
+        class="hover:text-textcolor cursor-pointer"
+    >
+        <Code2Icon />
     </button>
 </div>

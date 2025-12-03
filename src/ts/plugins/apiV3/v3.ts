@@ -341,6 +341,9 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                 iconType,
                 callback
             })
+        },
+        log: (message:string) => {
+            console.log(`[RisuAI Plugin: ${plugin.name}] ${message}`);
         }
 
 

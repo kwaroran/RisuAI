@@ -38,6 +38,8 @@ export async function createBlankPlugin(){
 //@display-name New Plugin Display Name
 //@api 3.0
 //@arg example_arg string
+
+Risuai.log("Hello from New Plugin!");
 `.trim()
     )
 }
