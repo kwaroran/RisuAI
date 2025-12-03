@@ -256,8 +256,16 @@ export const SafeDocument = {
     title: document.title,
     head: document.head,
     createElement: (tagName: string): HTMLElement => {
+        tagName = tagName.toLowerCase().trim();
         if (!tagWhitelist.includes(tagName.toLowerCase())) {
             throw new Error(`Creation of <${tagName}> elements is not allowed in plugin context.`);
+        }
+        if(tagName.toLowerCase() === 'a'){
+            console.error(`
+                Creation of <a> elements is restricted. due to potential security risks. Creating a <div> instead.
+                Use document.createAnchorElement(href: string) from the plugin API to create safe anchor elements.
+            `);
+            return restrictElement(document.createElement('div')) as HTMLElement;
         }
         return restrictElement(document.createElement(tagName));
     },
@@ -265,10 +273,58 @@ export const SafeDocument = {
         return restrictElement(document.createTextNode(data));
     },
     createElementNS: (namespaceURI: string, qualifiedName: string): Element => {
+        qualifiedName = qualifiedName.toLowerCase().trim();
         if (!tagWhitelist.includes(qualifiedName.toLowerCase())) {
             throw new Error(`Creation of <${qualifiedName}> elements is not allowed in plugin context.`);
         }
+        if(qualifiedName.toLowerCase() === 'a'){
+            console.error(`
+                Creation of <a> elements is restricted. due to potential security risks. Creating a <div> instead.
+                Use document.createAnchorElement(href: string) from the plugin API to create safe anchor elements.
+            `);
+            return restrictElement(document.createElementNS(namespaceURI, 'div'));
+        }
         return restrictElement(document.createElementNS(namespaceURI, qualifiedName));
+    },
+    createAnchorElement: (href: string): HTMLAnchorElement => {
+        const anchor = document.createElement('a');
+
+        try {
+            const hrefURL = new URL(href, document.baseURI);
+            if(hrefURL.protocol !== 'http:' && hrefURL.protocol !== 'https:'){
+                throw new Error(`Only http and https links are allowed for anchor elements in plugin context.`);
+            }
+            new URL(href);
+        } catch {
+            throw new Error(`Invalid URL provided for anchor element in plugin context.`);
+        }
+
+        anchor.href = href;
+        return toGetter(() => anchor, {
+            restrictChildren: [
+                'ownerDocument',
+                'href',
+                'download',
+                'hash',
+                'host',
+                'hostname',
+                'hreflang',
+                'origin',
+                'password',
+                'pathname',
+                'ping',
+                'port',
+                'protocol',
+                'referrerPolicy',
+                'rel',
+                'relList',
+                'search',
+                'target',
+                'text',
+                'type',
+                'username'
+            ]
+        }) as HTMLAnchorElement;
     },
 
     //add safe methods as needed

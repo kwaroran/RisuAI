@@ -19,7 +19,7 @@ interface ProviderPlugin {
     script: string
     arguments: { [key: string]: 'int' | 'string' | string[] }
     realArg: { [key: string]: number | string }
-    version?: 1 | 2 | 21
+    version?: 1 | 2 | '2_old'
     customLink: ProviderPluginCustomLink[]
 }
 interface ProviderPluginCustomLink {
@@ -52,7 +52,7 @@ export async function importPlugin() {
         let arg: { [key: string]: 'int' | 'string' | string[] } = {}
         let realArg: { [key: string]: number | string } = {}
         let customLink: ProviderPluginCustomLink[] = []
-        let apiVersion = '2.0'
+        let apiVersion = '2.1'
         for (const line of splitedJs) {
             if (line.startsWith('//@name')) {
                 const provied = line.slice(7)
@@ -64,8 +64,15 @@ export async function importPlugin() {
             }
             if(line.startsWith('//@api')){
                 const provied = line.slice(6).trim()
-                if(provied === '2.1'){
-                    apiVersion = '2.1'
+                switch(provied){
+                    case '2.0':
+                    case '2.1':
+                    case '3.0':
+                        apiVersion = provied
+                        break
+                    default:
+                        alertError(`plugin api version "${provied}" is not supported, please check the plugin file.`)
+                        return
                 }
             }
             if (line.startsWith('//@display-name')) {
@@ -344,7 +351,6 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                 'clearInterval',
                 'URL',
                 'URLSearchParams',
-                'location',
             ]
             for (const key of keys) {
                 if(allowedKeys.includes(key)){
@@ -538,10 +544,17 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
 
     for (const plugin of plugins) {
         let data = ''
-        
-        if(plugin.version === 21){
-            data = (await checkCodeSafety(plugin.script)).modifiedCode
-            console.log('Loading V2.1 Plugin', plugin.name)
+        let version = plugin.version || 2
+
+        if(import.meta.env.DEV){
+            version = 2
+        }
+
+        if(version === 2){
+            const safety = (await checkCodeSafety(plugin.script))
+            data = safety.modifiedCode
+            console.log('Safety check result:', safety)
+            console.log('Loading V2.1 Plugin', plugin.name, data)
         }
         else{
             data = plugin.script
@@ -576,12 +589,7 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
         })();`
 
         try {
-            if(plugin.version === 2){
-                eval(realScript)
-            }
-            else{
-                new Function(realScript)()
-            }
+            new Function(realScript)()
         } catch (error) {
             console.error(error)
         }

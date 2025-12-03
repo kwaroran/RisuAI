@@ -41,8 +41,7 @@ const SAFETY_BLACKLIST: BlacklistRule[] = [
         identifierName: 'cookieStore',
         message: 'Access to "cookieStore" is forbidden.',
         userAlertKey: 'storageAccess'
-    },
-
+    }
 ];
 
 export type PluginSafetyErrors = {
@@ -52,7 +51,7 @@ export type PluginSafetyErrors = {
 
 
 // Increment this version if the safety rules change to invalidate the cache
-const checkerVersion = 1;
+const checkerVersion = 2;
 export async function checkCodeSafety(code: string): Promise<CheckResult> {
     const errors: PluginSafetyErrors[] = [];
 
@@ -81,7 +80,6 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
                     validateNode(node, 'CallExpression', node.callee.name, errors);
                 }
             },
-
             NewExpression(node) {
                 if (node.callee?.type === 'Identifier') {
                     validateNode(node, 'NewExpression', node.callee.name, errors);
@@ -112,6 +110,15 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
                         return;
                     case 'Function':
                         node.name = 'SafeFunction';
+                        return;
+                    case 'prototype':
+                        node.name = 'safePrototype';
+                        return;
+                    case 'ownerDocument':
+                        node.name = 'safeOwnerDocument';
+                        return;
+                    case 'constructor':
+                        node.name = 'safeConstructor';
                         return;
                 }
                 const isTarget = SAFETY_BLACKLIST.some(r => r.nodeType === 'Identifier' && r.identifierName === name);

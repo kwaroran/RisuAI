@@ -2472,6 +2472,10 @@ export function toGetter<T extends object>(
         },
 
         set(target, prop, value, receiver) {
+
+            if(args?.restrictChildren && args.restrictChildren.includes(prop as string)) {
+                throw new Error(`Access to property '${String(prop)}' is restricted`);
+            }
             const realInstance = getterFn();
             return Reflect.set(realInstance as object, prop, value, receiver);
         },
