@@ -345,10 +345,6 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                 'console',
                 'TextEncoder',
                 'TextDecoder',
-                'setTimeout',
-                'setInterval',
-                'clearTimeout',
-                'clearInterval',
                 'URL',
                 'URLSearchParams',
             ]
@@ -370,11 +366,22 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
                     globalThis.__pluginApis__.getDatabase
                 )
             }
-
-            safeGlobal.setInterval = globalThis.setInterval;
-            safeGlobal.setTimeout = globalThis.setTimeout;
-            safeGlobal.clearInterval = globalThis.clearInterval;
-            safeGlobal.clearTimeout = globalThis.clearTimeout;
+            safeGlobal.setInterval = (...args: any[]) => {
+                //@ts-ignore
+                return globalThis.setInterval(...args);
+            }
+            safeGlobal.setTimeout = (...args: any[]) => {
+                //@ts-ignore
+                return globalThis.setTimeout(...args);
+            }
+            safeGlobal.clearInterval = (...args: any[]) => {
+                //@ts-ignore
+                return globalThis.clearInterval(...args);
+            }
+            safeGlobal.clearTimeout = (...args: any[]) => {
+                //@ts-ignore
+                return globalThis.clearTimeout(...args);
+            }
             safeGlobal.alert = globalThis.alert;
             safeGlobal.confirm = globalThis.confirm;
             safeGlobal.prompt = globalThis.prompt;

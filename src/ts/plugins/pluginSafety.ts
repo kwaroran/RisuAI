@@ -51,7 +51,7 @@ export type PluginSafetyErrors = {
 
 
 // Increment this version if the safety rules change to invalidate the cache
-const checkerVersion = 2;
+const checkerVersion = 3;
 export async function checkCodeSafety(code: string): Promise<CheckResult> {
     const errors: PluginSafetyErrors[] = [];
 
@@ -145,7 +145,7 @@ export async function checkCodeSafety(code: string): Promise<CheckResult> {
         };
     }
 
-    localStorage.setItem(cacheKey, JSON.stringify({ isSafe: errors.length === 0, errors, checkerVersion }));
+    localStorage.setItem(cacheKey, JSON.stringify({ isSafe: errors.length === 0, errors, checkerVersion, modifiedCode:code }));
     return { isSafe: errors.length === 0, errors, checkerVersion, modifiedCode: code};
 }
 

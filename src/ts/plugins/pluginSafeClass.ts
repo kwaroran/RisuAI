@@ -235,14 +235,12 @@ export const tagWhitelist = [
 ];
 
 const restrictElement = <T extends Node>(element: T): T => {
-    return toGetter(() => element, {
-        restrictChildren: ['ownerDocument']
-    });
+    //since we already trimed out, just return the element
+    return element;
 }
 
 const restrictNodeList = <T extends Element, Q extends NodeListOf<T>|HTMLCollectionOf<T> >(nodeList: Q): Q => {
-    let result = Array.from(nodeList).map(node => restrictElement(node));
-    return result as unknown as Q;
+    return nodeList;
 }
 
 export const SafeDocument = {
@@ -256,6 +254,7 @@ export const SafeDocument = {
     title: document.title,
     head: document.head,
     createElement: (tagName: string): HTMLElement => {
+        console.log('Creating element:', tagName);
         tagName = tagName.toLowerCase().trim();
         if (!tagWhitelist.includes(tagName.toLowerCase())) {
             throw new Error(`Creation of <${tagName}> elements is not allowed in plugin context.`);
@@ -273,6 +272,7 @@ export const SafeDocument = {
         return restrictElement(document.createTextNode(data));
     },
     createElementNS: (namespaceURI: string, qualifiedName: string): Element => {
+        console.log('Creating namespaced element:', qualifiedName);
         qualifiedName = qualifiedName.toLowerCase().trim();
         if (!tagWhitelist.includes(qualifiedName.toLowerCase())) {
             throw new Error(`Creation of <${qualifiedName}> elements is not allowed in plugin context.`);
