@@ -4,7 +4,7 @@ import { SandboxHost } from "./factory";
 import { getDatabase } from "src/ts/storage/database.svelte";
 import { tagWhitelist } from "../pluginSafeClass";
 import DOMPurify from 'dompurify';
-import { additionalSettingsMenu } from "src/ts/stores.svelte";
+import { additionalFloatingActionButtons, additionalSettingsMenu } from "src/ts/stores.svelte";
 
 class SafeElement {
     #element: HTMLElement;
@@ -325,7 +325,25 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                 callback
             })
         },
-        
+        registerActionButton: (
+            name:string,
+            callback: any,
+            icon:string = '',
+            iconType:'html'|'img'|'none' = 'none'
+        ) => {
+            //Reserved for future use
+            if(iconType !== 'html' && iconType !== 'img' && iconType !== 'none'){
+                throw new Error("iconType must be 'html', 'img' or 'none'");
+            }
+            additionalFloatingActionButtons.push({
+                name,
+                icon,
+                iconType,
+                callback
+            })
+        }
+
+
     }
 }
 

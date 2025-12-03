@@ -120,9 +120,15 @@ export const pluginAlertModalStore = $state({
 
 export const disableHighlight = writable(true)
 
-export const additionalSettingsMenu = $state([
+export type MenuDef = {
+    name: string,
+    icon: string,
+    iconType:'html'|'img'|'none',
+    callback: any
+}
 
-] as {name: string, icon: string, iconType:'html'|'img'|'none', callback: any}[])
+export const additionalSettingsMenu = $state([] as MenuDef[])
+export const additionalFloatingActionButtons = $state([] as MenuDef[])
 
 ReloadGUIPointer.subscribe(() => {
     ReloadChatPointer.set({})
