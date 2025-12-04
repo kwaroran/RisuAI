@@ -13,6 +13,8 @@
     import migrationGuideContent from "src/ts/plugins/migrationGuide.md?raw";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+
+    let showParams = $state([])
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
@@ -24,10 +26,20 @@
         <span class="text-textcolor2">{language.noPlugins}</span>
     {/if}
     {#each DBState.db.plugins as plugin, i}
+        {#if i!==0}
         <div
             class="border-darkborderc mt-2 mb-2 w-full border-solid border-b-1 seperator"
         ></div>
-        <div class="flex gap-2">
+        {/if}
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <div class="flex gap-2" aria-labelledby="show-params" role='button' tabindex="0" onclick={() => {
+            if(showParams.includes(i)){
+                showParams.splice(showParams.indexOf(i),1)
+            }
+            else{
+                showParams.push(i)
+            }
+        }}>
             <span class="font-bold flex-grow">{plugin.displayName ?? plugin.name}</span>
             {#if plugin.version === 2}
                 <button class="text-yellow-400 hover:gray-200 cursor-pointer" onclick={() => {
@@ -74,14 +86,14 @@
                 <TrashIcon />
             </button>
         </div>
-        {#if plugin.version !== 2}
+        {#if plugin.version === 1}
             <span class="text-draculared text-xs">
                 {language.pluginVersionWarn
                     .replace("{{plugin_version}}", "API V1")
-                    .replace("{{required_version}}", "API V2")}
+                    .replace("{{required_version}}", "API V3")}
             </span>
             <!--List up args-->
-        {:else if Object.keys(plugin.arguments).filter((i) => !i.startsWith("hidden_")).length > 0}
+        {:else if Object.keys(plugin.arguments).filter((i) => !i.startsWith("hidden_")).length > 0 && showParams.includes(i)}
             <div class="flex flex-col mt-2 bg-dark-900 bg-opacity-50 p-3">
                 {#each Object.keys(plugin.arguments) as arg}
                     {#if !arg.startsWith("hidden_")}

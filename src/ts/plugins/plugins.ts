@@ -44,10 +44,15 @@ Risuai.log("Hello from New Plugin!");
     )
 }
 
-export async function importPlugin(code:string|null = null) {
+export async function importPlugin(code:string|null = null, argu:{
+    isUpdate?: boolean
+    originalPluginName?: string
+} = {}) {
     try {
         let jsFile = ''
         let db = getDatabase()
+        let isUpdate = argu.isUpdate || false
+        let originalPluginName = argu.originalPluginName || ''
         
         if(!code){
             const f = await selectSingleFile(['js'])
@@ -207,6 +212,7 @@ export async function importPlugin(code:string|null = null) {
             }
         }
 
+        
         let pluginData: RisuPlugin = {
             name: name,
             script: jsFile,
@@ -219,7 +225,22 @@ export async function importPlugin(code:string|null = null) {
         }
 
         db.plugins ??= []
-        db.plugins.push(pluginData)
+
+        if(isUpdate){
+            //find old plugin
+            const pluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === originalPluginName);
+            if(pluginIndex !== -1){
+                db.plugins[pluginIndex] = pluginData;
+            }
+            else{
+                //set false to add as new plugin
+                isUpdate = false
+            }
+        }
+
+        if(!isUpdate){
+            db.plugins.push(pluginData)
+        }
 
         setDatabaseLite(db)
 

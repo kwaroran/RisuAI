@@ -361,4 +361,5 @@ export async function executePluginV3(plugin:RisuPlugin){
     document.body.appendChild(iframe);
     const host = new SandboxHost(makeRisuaiAPIV3(iframe, plugin));
     host.run(iframe, plugin.script);
+    console.log(`[RisuAI Plugin: ${plugin.name}] Loaded API V3 plugin.`);
 }
