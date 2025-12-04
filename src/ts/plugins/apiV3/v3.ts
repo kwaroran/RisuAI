@@ -295,6 +295,55 @@ class SafeDocument extends SafeElement {
     }
 }
 
+type SafeMutationRecord = {
+    type: string;
+    target: SafeElement;
+    addedNodes: SafeElement[];
+}
+
+type SafeMutationCallback = (mutations: SafeMutationRecord[]) => void;
+
+class SafeMutationObserver {
+    #observer: MutationObserver;
+    constructor(callback: SafeMutationCallback) {
+        this.#observer = new MutationObserver((mutations) => {
+            const safeMutations: SafeMutationRecord[] = mutations.map(mutation => {
+
+                const elementMapHelper = (nodeList: NodeList): SafeElement[] => {
+                    const elements: SafeElement[] = [];
+                    nodeList.forEach(node => {
+                        if(node instanceof HTMLElement) {
+                            elements.push(new SafeElement(node));
+                        }
+                    })
+                    return elements;
+                }
+
+                return {
+                    type: mutation.type,
+                    target: new SafeElement(mutation.target as HTMLElement),
+                    addedNodes: elementMapHelper(mutation.addedNodes),
+                    removedNodes: elementMapHelper(mutation.removedNodes)
+                    
+                }
+            })
+
+            callback(safeMutations);
+        });
+    }
+
+    observe(element:SafeElement, options: MutationObserverInit) {
+        const identifier = v4();
+        element.setAttribute('x-identifier', identifier);
+        const rawElement = document.querySelector(`[x-identifier="${identifier}"]`) as HTMLElement;
+        if(rawElement){
+            this.#observer.observe(rawElement, options);
+            element.setAttribute('x-identifier', '');
+        }
+    }
+
+}
+
 const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
     
     const oldApis = getV2PluginAPIs();
@@ -426,6 +475,9 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         log: (message:string) => {
             console.log(`[RisuAI Plugin: ${plugin.name}] ${message}`);
+        },
+        createMutationObserver(callback: SafeMutationCallback): SafeMutationObserver {
+            return new SafeMutationObserver(callback)
         },
         _getOldKeys: () => {
             return Object.keys(oldApis)
