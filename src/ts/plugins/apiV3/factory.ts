@@ -121,11 +121,12 @@ const GUEST_BRIDGE_SCRIPT = `
     
     
     
-    window.sandboxApi = new Proxy({}, {
+    window.risuai = new Proxy({}, {
         get: (target, prop) => {
             return (...args) => sendRequest('CALL_ROOT', { method: prop, args: args });
         }
     });
+    window.Risuai = window.risuai;
 })();
 `;
 
