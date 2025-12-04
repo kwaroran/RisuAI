@@ -5,11 +5,16 @@ import { getDatabase } from "src/ts/storage/database.svelte";
 import { tagWhitelist } from "../pluginSafeClass";
 import DOMPurify from 'dompurify';
 import { additionalFloatingActionButtons, additionalSettingsMenu } from "src/ts/stores.svelte";
+import { v4 } from "uuid";
+
 
 class SafeElement {
     #element: HTMLElement;
 
     constructor(element: HTMLElement) {
+        if(element.getAttribute('freezed')){
+            throw new Error("This element cannot be accessed by SafeELement")
+        }
         this.#element = element;
     }
 
@@ -84,16 +89,18 @@ class SafeElement {
         this.#element.setAttribute('style', value);
     }
     public addClass(className: string) {
-        if(!className.startsWith('x-')){
-            throw new Error("Can only add classes starting with 'x-' for security reasons. for other classes, use dedicated methods.");
-        }
+        // 
         this.#element.classList.add(className);
     }
     public removeClass(className: string) {
-        if(!className.startsWith('x-')){
-            throw new Error("Can only remove classes starting with 'x-' for security reasons. for other classes, use dedicated methods.");
-        }
+        // 
         this.#element.classList.remove(className);
+    }
+    public setClassName(className: string){
+        this.#element.className = className
+    }
+    public getClassName(){
+        return this.#element.className
     }
     public hasClass(className: string): boolean {
         //We don't need to check the className here since we're just checking
@@ -179,6 +186,81 @@ class SafeElement {
     public setOuterHTML(value: string) {
         const san = DOMPurify.sanitize(value);
         this.#element.outerHTML = san;
+    }
+
+    #eventIdMap = new Map<string, Function>()
+
+    public async addEventListener(type:string, listener: (event: any) => void, options?: boolean | AddEventListenerOptions):Promise<string> {
+        const realOptions = typeof options === 'boolean' ? { capture: options } : options || {};
+
+        //allowed with unlimited
+        const allowedDocumentEventListeners = [
+            'click',
+            'dblclick',
+            'contextmenu',
+            'mousedown',
+            'mouseup',
+            'mousemove',
+            'mouseover',
+            'mouseleave',
+            'pointercancel',
+            'pointerdown',
+            'pointerenter',
+            'pointerleave',
+            'pointermove',
+            'pointerout',
+            'pointerover',
+            'pointerup',
+            'scroll',
+            'scrollend'
+        ]
+
+        //allowed, but it has fingerprinting issues,
+        //so it will be delayed random ms.
+        const allowedDelayedEventListeners = [
+            'keydown',
+            'keyup',
+            'keypress'
+        ]
+
+        const id = v4()
+
+        if(allowedDocumentEventListeners.includes(type)){
+            const modifiedListener = (event: any) => {
+                listener(event)
+            }
+            this.#eventIdMap.set(id, modifiedListener)
+            document.addEventListener(type, modifiedListener, realOptions)
+        }
+        else if(allowedDelayedEventListeners.includes(type)){
+            const modifiedListener = (event: any) => {
+                let delay = 0;
+                try {
+                    delay = crypto.getRandomValues(new Uint32Array(1))[0];                    
+                } catch (error) {}
+                setTimeout(() => {
+                    listener(event);
+                }, delay);
+            }
+            this.#eventIdMap.set(id, modifiedListener)
+            document.addEventListener(type, modifiedListener, realOptions);
+        }
+
+        throw new Error(`Event listener of type '${type}' is not allowed for security reasons.`);
+        
+    }
+
+    removeEventListener(type:string, id:string, options?: boolean | EventListenerOptions) {
+        const listener = this.#eventIdMap.get(id);
+        if(listener){
+            const realOptions = typeof options === 'boolean' ? { capture: options } : options || {};
+            document.removeEventListener(type, listener as EventListenerOrEventListenerObject, realOptions);
+            this.#eventIdMap.delete(id);
+        }
+    }
+
+    matches: (selector: string) => boolean = (selector: string) => {
+        return this.#element.matches(selector);
     }
 }
 
@@ -345,8 +427,6 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         log: (message:string) => {
             console.log(`[RisuAI Plugin: ${plugin.name}] ${message}`);
         }
-
-
     }
 }
 
