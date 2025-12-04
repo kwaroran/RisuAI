@@ -163,7 +163,7 @@ risuai.log('Hello from my plugin!');
 const character = await risuai.getCharacter();
 
 // Access the main document
-const rootDoc = risuai.getRootDocument();
+const rootDoc = await risuai.getRootDocument();
 ```
 
 ### The `risuai` Object
@@ -179,11 +179,11 @@ console.log(risuai.apiVersionCompatibleWith); // ["3.0"]
 risuai.log('This appears as: [RisuAI Plugin: PluginName] This...');
 
 // Container management
-risuai.showContainer('fullscreen'); // Show your iframe UI
-risuai.hideContainer(); // Hide your iframe UI
+await risuai.showContainer('fullscreen'); // Show your iframe UI
+await risuai.hideContainer(); // Hide your iframe UI
 
 // DOM access
-const doc = risuai.getRootDocument(); // Access main document safely
+const doc = await risuai.getRootDocument(); // Access main document safely
 ```
 
 ## Working with the DOM
@@ -208,20 +208,20 @@ Your plugin has access to **two separate DOM contexts**:
 
 ```javascript
 // Get the root document
-const rootDoc = risuai.getRootDocument();
+const rootDoc = await risuai.getRootDocument();
 
 // Create elements
-const container = rootDoc.createElement('div');
-const button = rootDoc.createElement('button');
+const container = await rootDoc.createElement('div');
+const button = await rootDoc.createElement('button');
 
 // Set content
-button.setTextContent('Click Me!');
-container.appendChild(button);
+await button.setTextContent('Click Me!');
+await container.appendChild(button);
 
 // Query existing elements
-const chatArea = rootDoc.querySelector('.chat-container');
+const chatArea = await rootDoc.querySelector('.chat-container');
 if (chatArea) {
-  chatArea.appendChild(container);
+  await chatArea.appendChild(container);
 }
 ```
 
@@ -407,7 +407,7 @@ Use `SafeMutationObserver` to watch for changes:
 
 ```javascript
 // Create observer
-const observer = risuai.createMutationObserver(async (mutations) => {
+const observer = await risuai.createMutationObserver(async (mutations) => {
   for (const mutation of mutations) {
     risuai.log(`Type: ${mutation.type}`);
 
@@ -422,9 +422,9 @@ const observer = risuai.createMutationObserver(async (mutations) => {
 });
 
 // Start observing
-const rootDoc = risuai.getRootDocument();
-const body = rootDoc.querySelector('body');
-observer.observe(body, {
+const rootDoc = await risuai.getRootDocument();
+const body = await rootDoc.querySelector('body');
+await observer.observe(body, {
   childList: true,
   subtree: true,
   attributes: true
@@ -456,12 +456,12 @@ async function showPluginUI() {
     await saveSettings();
   });
 
-  myDoc.getElementById('close-btn').addEventListener('click', () => {
-    risuai.hideContainer();
+  myDoc.getElementById('close-btn').addEventListener('click', async () => {
+    await risuai.hideContainer();
   });
 
   // Show the iframe in fullscreen
-  risuai.showContainer('fullscreen');
+  await risuai.showContainer('fullscreen');
 }
 ```
 
@@ -483,7 +483,7 @@ risuai.registerSetting(
   'My Plugin Settings',
   async () => {
     // Called when user clicks the menu item
-    risuai.showContainer('fullscreen');
+    await risuai.showContainer('fullscreen');
   },
   '<svg width="24" height="24">...</svg>', // Optional icon
   'html' // Icon type: 'html', 'img', or 'none'
@@ -498,7 +498,7 @@ risuai.registerActionButton(
   async () => {
     // Called when user clicks the button
     const char = await risuai.getCharacter();
-    risuai.log(`Current character: ${char.name}`);
+    await risuai.log(`Current character: ${char.name}`);
   },
   'https://example.com/icon.png', // Optional icon URL
   'img' // Icon type: 'html', 'img', or 'none'
@@ -535,15 +535,15 @@ await risuai.setArgument('max_retries', 5);
 
 ```javascript
 // All operations are synchronous (wrapper around sync storage)
-risuai.pluginStorage.setItem('user_preference', 'dark_mode');
-risuai.pluginStorage.setItem('last_sync', Date.now().toString());
+await risuai.pluginStorage.setItem('user_preference', 'dark_mode');
+await risuai.pluginStorage.setItem('last_sync', Date.now().toString());
 
-const preference = risuai.pluginStorage.getItem('user_preference');
-const allKeys = risuai.pluginStorage.keys();
-const count = risuai.pluginStorage.length();
+const preference = await  risuai.pluginStorage.getItem('user_preference');
+const allKeys = await risuai.pluginStorage.keys();
+const count = await risuai.pluginStorage.length();
 
-risuai.pluginStorage.removeItem('last_sync');
-risuai.pluginStorage.clear(); // Remove all items
+await risuai.pluginStorage.removeItem('last_sync');
+await risuai.pluginStorage.clear(); // Remove all items
 ```
 
 **Use `pluginStorage` when:**
@@ -557,8 +557,8 @@ risuai.pluginStorage.clear(); // Remove all items
 
 ```javascript
 // Same API as pluginStorage
-risuai.safeLocalStorage.setItem('device_id', 'unique-id');
-const deviceId = risuai.safeLocalStorage.getItem('device_id');
+await risuai.safeLocalStorage.setItem('device_id', 'unique-id');
+const deviceId = await risuai.safeLocalStorage.getItem('device_id');
 ```
 
 **Use `safeLocalStorage` when:**
@@ -616,8 +616,8 @@ await risuai.setCharacter(character);
 ```
 
 **Legacy names** (still work, but prefer new names):
-- `risuai.getChar()` � Use `risuai.getCharacter()`
-- `risuai.setChar()` � Use `risuai.setCharacter()`
+- `risuai.getChar()` : Use `risuai.getCharacter()`
+- `risuai.setChar()` : Use `risuai.setCharacter()`
 
 ## Advanced Features
 
@@ -833,31 +833,7 @@ for (const id of listeners) {
 }
 ```
 
-### 5. Use risuai.log() for Debugging
-
-Provides clear plugin identification:
-
-```javascript
-risuai.log('Debug info');
-// Output: [RisuAI Plugin: YourPlugin] Debug info
-
-// Better than:
-console.log('Debug info'); // No plugin identification
-```
-
-### 6. Validate User Input
-
-Even though HTML is auto-sanitized, validate data:
-
-```javascript
-const apiKey = await risuai.getArgument('api_key');
-if (!apiKey || apiKey.trim() === '') {
-  risuai.log('Error: API key is required');
-  return;
-}
-```
-
-### 7. Use Modern Naming Conventions
+### 5. Use Modern Naming Conventions
 
 Prefer new API names over deprecated ones:
 
@@ -873,11 +849,11 @@ await risuai.setChar(char)
 await risuai.getArg(key)
 ```
 
-### 8. Respect the Sandbox
+### 6. Respect the Sandbox
 
 Don't try to break out of the iframe or access restricted APIs. The sandbox is for user security.
 
-### 9. Document Your Plugin
+### 7. Document Your Plugin
 
 Add clear comments and metadata:
 
@@ -1118,10 +1094,10 @@ Add clear comments and metadata:
   try {
     // Process AI output to convert markdown-style bold
     risuai.addRisuScriptHandler('output', async (content) => {
-      // **bold** � <strong>bold</strong>
+      // **bold** <strong>bold</strong>
       content = content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 
-      // *italic* � <em>italic</em>
+      // *italic* <em>italic</em>
       content = content.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
       return content;
@@ -1289,4 +1265,4 @@ If you encounter issues or have questions:
 3. Examine the [API v3 source code](./apiV3/v3.ts)
 4. Report issues on the RisuAI GitHub repository
 
-Happy plugin development! =�
+Happy plugin development! 😊
