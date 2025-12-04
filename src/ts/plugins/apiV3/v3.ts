@@ -426,6 +426,9 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         log: (message:string) => {
             console.log(`[RisuAI Plugin: ${plugin.name}] ${message}`);
+        },
+        _getOldKeys: () => {
+            return Object.keys(oldApis)
         }
     }
 }

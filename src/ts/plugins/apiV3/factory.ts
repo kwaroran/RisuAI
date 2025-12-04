@@ -127,6 +127,13 @@ const GUEST_BRIDGE_SCRIPT = `
         }
     });
     window.Risuai = window.risuai;
+
+    window.initOldApiGlobal = () => {
+        const keys = risuai._getOldKeys()
+        for(const key of keys){
+            window[key] = risuai[key];
+        }
+    }
 })();
 `;
 
