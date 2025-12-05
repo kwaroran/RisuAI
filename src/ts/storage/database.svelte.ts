@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "166.3.0"
+export let appVer = "166.3.3"
 export let webAppSubVer = ''
 
 
@@ -186,7 +186,7 @@ export function setDatabase(data:Database){
         data.NAIApiKey = ''
     }
     if(checkNullish(data.NAIImgModel)){
-        data.NAIImgModel = 'nai-diffusion-3'
+        data.NAIImgModel = 'nai-diffusion-4-5-full'
     }
     if(checkNullish(data.NAII2I)){
         data.NAII2I = false
@@ -259,10 +259,10 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.NAIImgConfig)){
         data.NAIImgConfig = {
-            width:512,
-            height:768,
-            sampler:"k_dpmpp_sde",
-            noise_schedule:"native",
+            width:1024,
+            height:1024,
+            sampler:"k_euler_ancestral",
+            noise_schedule:"karras",
             steps:28,
             scale:5,
             cfg_rescale: 0,
@@ -294,6 +294,10 @@ export function setDatabase(data:Database){
             },
             variety_plus: false,
             decrisp: false,
+            reference_mode: '',
+            character_image: '',
+            character_base64image: '',
+            style_aware: false,
         }
     }
     //add NAI v4 (사용중인 사람용 추가 DB Init)
@@ -574,6 +578,10 @@ export function setDatabase(data:Database){
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
     data.streamGeminiThoughts ??= false
+    data.ImagenModel ??= 'imagen-4.0-generate-001'
+    data.ImagenImageSize ??= '1K'
+    data.ImagenAspectRatio ??= '1:1'
+    data.ImagenPersonGeneration ??= 'allow_all'
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -1076,6 +1084,12 @@ export interface Database{
     streamGeminiThoughts:boolean
     verbosity:number
     dynamicOutput?:DynamicOutput
+    hubServerType?:string
+    pluginCustomStorage:{[key:string]:any}
+    ImagenModel:string
+    ImagenImageSize:string
+    ImagenAspectRatio:string
+    ImagenPersonGeneration:string
 }
 
 interface SeparateParameters{
@@ -1499,6 +1513,11 @@ export interface NAIImgConfig{
     //add variety+ and decrisp options
     variety_plus:boolean,
     decrisp:boolean,
+    //add character reference
+    reference_mode:string,
+    character_image:string,
+    character_base64image:string,
+    style_aware:boolean,
 }
 
 //add 4

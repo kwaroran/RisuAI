@@ -112,7 +112,7 @@ async function setColdStorageItem(key:string, value:any) {
                 'x-risu-auth': (forageStorage.realStorage as AccountStorage).auth,
                 'content-type': 'application/json'
             },
-            body: compressed
+            body: compressed as any
         })
         if(res.status !== 200){
             try {
@@ -148,7 +148,7 @@ async function setColdStorageItem(key:string, value:any) {
             const opfs = await navigator.storage.getDirectory()
             const file = await opfs.getFileHandle('coldstorage_' + key+'.json', { create: true })
             const writable = await file.createWritable()
-            await writable.write(compressed)
+            await writable.write(compressed as any)
             await writable.close()
         } catch (error) {
             console.error(error)
