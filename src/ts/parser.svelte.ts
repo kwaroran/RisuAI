@@ -696,9 +696,9 @@ export function addMetadataToElement(data:string, modelShortName:string){
     }
 
     let metadata = '{' + [
-        'AiGen',
-        'Risuai',
-        modelShortName
+        'aigen',
+        'risuai',
+        modelShortName.toLocaleLowerCase().replace(/[^a-z]/g, ''),
     ].join('|') + '}'
     const encodedMetadata = new TextEncoder().encode(metadata)
     let encodedMetaCode = ''
