@@ -2,7 +2,7 @@ import DOMPurify from 'dompurify';
 import markdownit from 'markdown-it'
 import { appVer, getCurrentCharacter, getDatabase, type Database, type Message, type character, type customscript, type groupChat, type loreBook, type triggerscript } from './storage/database.svelte';
 import { DBState } from './stores.svelte';
-import { getFileSrc, isMobile, isNodeServer, isTauri } from './globalApi.svelte';
+import { aiLawApplies, aiWatermarkingLawApplies, getFileSrc, isMobile, isNodeServer, isTauri } from './globalApi.svelte';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
@@ -675,6 +675,62 @@ export function trimMarkdown(data:string){
         ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
     }))
+}
+
+const placeToPutMetadata = new Set([
+    ' ', '\n'
+])
+
+const metaCodes = [
+    '\u200B', //zero width space
+    '\u200C', //zero width non-joiner
+    '\u200D', //zero width joiner
+    '\uFEFF', //zero width no-break space
+    '\u2060', //word joiner
+    '\u180E', //mongolian vowel separator
+]
+
+export function addMetadataToElement(data:string, modelShortName:string){
+    if(!aiWatermarkingLawApplies()){
+        return data
+    }
+
+    let metadata = '{' + [
+        'AiGen',
+        'Risuai',
+        modelShortName
+    ].join('|') + '}'
+    const encodedMetadata = new TextEncoder().encode(metadata)
+    let encodedMetaCode = ''
+
+    for(let i=0;i<encodedMetadata.length;i++){
+        let byte = (encodedMetadata[i] - 97).toString(6).padStart(2,'0')
+        for(let j=0;j<byte.length;j++){
+            switch(byte.charAt(j)){
+                case '0':{
+                    encodedMetaCode += metaCodes[0]
+                }
+                case '1':{
+                    encodedMetaCode += metaCodes[1]
+                }
+                case '2':{
+                    encodedMetaCode += metaCodes[2]
+                }
+                case '3':{
+                    encodedMetaCode += metaCodes[3]
+                }
+            }
+        }
+    }
+
+    console.log('Encoded metadata:', encodedMetaCode.length, 'characters')
+    console.log('This requires at least', Math.ceil(encodedMetaCode.length / 32), '<p> tags to store')
+
+    let d =  data.replace(/\<p\>/g, (v) => {
+        return '<p>' + encodedMetaCode
+    })
+
+    return d + encodedMetaCode
 }
 
 export async function postTranslationParse(data:string){
