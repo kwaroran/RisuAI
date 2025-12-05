@@ -700,11 +700,10 @@ export function addMetadataToElement(data:string, modelShortName:string){
         'risuai',
         modelShortName.toLocaleLowerCase().replace(/[^a-z]/g, ''),
     ].join('|') + '}'
-    const encodedMetadata = new TextEncoder().encode(metadata)
     let encodedMetaCode = ''
 
-    for(let i=0;i<encodedMetadata.length;i++){
-        let byte = (encodedMetadata[i] - 97).toString(6).padStart(2,'0')
+    for(let i=0;i<metadata.length;i++){
+        let byte = (metadata.charCodeAt(i) - 97).toString(6).padStart(2,'0')
         for(let j=0;j<byte.length;j++){
             switch(byte.charAt(j)){
                 case '0':{
