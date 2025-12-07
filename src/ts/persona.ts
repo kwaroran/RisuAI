@@ -126,13 +126,15 @@ export async function importUserPersona() {
         const data: PersonaCard = JSON.parse(Buffer.from(decoded, 'base64').toString('utf-8'))
         if (data.name && data.personaPrompt) {
             let db = getDatabase()
+            const newId = v4()
             db.personas.push({
                 name: data.name,
                 icon: await saveImage(await reencodeImage(v.data)),
                 personaPrompt: data.personaPrompt,
                 note: data.note,
-                id: v4()
+                id: newId
             })
+            db.personaOrder.push(newId)
             setDatabase(db)
             alertNormal(language.successImport)
         } else {
