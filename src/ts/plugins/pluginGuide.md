@@ -67,6 +67,9 @@ Every plugin starts with metadata comments and a main script:
 
 ### Metadata Comments
 
+Metadata comments define your plugin's identity and configuration:
+It must be placed at the very top of your plugin script.
+
 #### Required Metadata
 
 - **`//@name`** - Internal plugin name (must be unique)
@@ -92,6 +95,7 @@ Every plugin starts with metadata comments and a main script:
   //@arg max_items int Maximum number of items
   ```
   Supported types: `string`, `int`
+  Syntax: `//@arg <name> <type> <description and optional metadata>`
 
 - **`//@link`** - Add custom links
   ```javascript
