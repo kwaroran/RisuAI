@@ -225,7 +225,7 @@ export async function importPlugin(code:string|null = null, argu:{
             const depMessage =
                 'This plugin is using 2.0 API, which is unsafe, alerting all safety errors rather than checking. ' +
                 'If you are developer and this error appear even if you are developing in 2.1 or above, ' +
-                'please check your //@api declaration at the top of your plugin script.'
+                'please check your //@api declaration at the top of your plugin script. (e.g. //@api 3.0)'
             
             pluginAlertModalStore.errors = [
                 {
