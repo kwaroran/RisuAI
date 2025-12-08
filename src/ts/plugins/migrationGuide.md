@@ -612,3 +612,34 @@ API v3.0 implements multiple security layers:
 })()
 ```
 
+### Making Your Plugin Compatible with 2.0, 2.1, and 3.0
+
+first, declare the api version at the top of your plugin script:
+
+```javascript
+//@api 2.0 2.1 3.0
+```
+
+This will make the software load the plugin in the highest supported api version. then, you can use feature detection to check which api version is currently running, and adjust your code accordingly:
+
+```javascript
+
+(async () => {
+
+  //This works in all api versions, except 1.0, which is deprecated long ago
+  const apiVersion = (typeof risuai !== 'undefined' ? risuai.apiVersion : apiVersion) || '2.0'
+
+  if (apiVersion === '3.0') {
+    // Use API v3.0 features
+    const doc = risuai.getRootDocument();
+    // ...
+  } else if (apiVersion === '2.1') {
+    // Use API v2.1 features
+    const doc = safeDocument;
+    // ...
+  } else {
+    // Use API v2.0 features
+    const doc = document;
+    // ...
+  }
+})();
