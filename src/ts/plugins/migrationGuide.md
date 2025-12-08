@@ -7,7 +7,7 @@ This is due to the fact that plugins can run arbitrary code, which may lead to s
 
 So plugin 2.1 and 3.0 introduced a new plugin API versioning system. 2.1 is mostly compatible with 2.0, but with some restricted APIs and added safe alternatives. however, 2.1 were just a transitional version, and still have some security issues due to API's structure. 3.0 will introduce API overhaul with many breaking changes, with focus on security and stability.
 
-2.1 will not be deprecated unless a new plugin API version is released after 3.0. however, 3.0 will be the recommended version for new plugins, and 2.1 might show security warnings in future versions.
+2.1 can be deprecated in the future, but it will still be supported for a long time for compatibility reasons. however, 3.0 will be the recommended version for new plugins, and 2.1 might show security warnings in future versions.
 
 ## Declaring Plugin Version
 
