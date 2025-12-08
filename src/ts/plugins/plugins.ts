@@ -80,7 +80,7 @@ export async function importPlugin(code:string|null = null, argu:{
         let realArg: { [key: string]: number | string } = {}
         let argMeta: { [key: string]: {[key:string]:string} } = {}
         let customLink: ProviderPluginCustomLink[] = []
-        let apiVersion = '2.1'
+        let apiVersion = '2.0'
         for (const line of splitedJs) {
             if (line.startsWith('//@name')) {
                 const provied = line.slice(7)
