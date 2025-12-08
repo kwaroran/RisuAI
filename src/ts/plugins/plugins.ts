@@ -191,7 +191,15 @@ export async function importPlugin(code:string|null = null, argu:{
             if(!safety.isSafe){
                 pluginAlertModalStore.errors = safety.errors
                 pluginAlertModalStore.open = true
-                return
+                
+                //I can use event but lazy
+                while(pluginAlertModalStore.open){
+                    await sleep(100)
+                }
+
+                if(pluginAlertModalStore.errors.length > 0){
+                    return
+                }
             }
             apiInternalVersion = '2.1'
         }
@@ -213,6 +221,31 @@ export async function importPlugin(code:string|null = null, argu:{
             if (!await alertPluginConfirm(confirmMessage)) {
                 return
             }
+
+            pluginAlertModalStore.errors = [
+                {
+                    message: 'This plugin is using 2.0 API, which is unsafe, alerting all safety errors rather than checking.',
+                    userAlertKey: 'eval'
+                },
+                {
+                    message: 'This plugin is using 2.0 API, which is unsafe, alerting all safety errors rather than checking.',
+                    userAlertKey: 'globalAccess'
+                },
+                {
+                    message: 'This plugin is using 2.0 API, which is unsafe, alerting all safety errors rather than checking.',
+                    userAlertKey: 'storageAccess'
+                }
+            ]
+            pluginAlertModalStore.open = true
+
+            //I can use event but lazy
+            while(pluginAlertModalStore.open){
+                await sleep(100)
+            }
+            if(pluginAlertModalStore.errors.length > 0){
+                return
+            }
+
             apiInternalVersion = 2
         }
         else if(apiVersion === '3.0'){
