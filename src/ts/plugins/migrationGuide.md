@@ -643,3 +643,13 @@ This will make the software load the plugin in the highest supported api version
     // ...
   }
 })();
+```
+
+# Deprecation Schedule
+
+| Version | Deprecation Date | Notes |
+|---------|------------------|-------|
+| 1.0    | Already Deprecated | No longer supported, plugins using this version will not work in current versions. |
+| 2.0     | After Account System Release | Transitional support for legacy plugins, it will quickly be deprecated after account system release. |
+| 2.1     | Unknown (Long-term support) | Will be supported for a long time for compatibility, but security warnings will be shown after 2.0 deprecation. |
+| 3.0     | N/A              | Recommended version for new plugins, will be supported indefinitely, unless major security issues arise. |
