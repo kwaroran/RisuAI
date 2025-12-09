@@ -131,15 +131,15 @@ export function updateColorScheme(){
         let db = getDatabase()
 
         let colorScheme = db.colorScheme
-    
+
         if(colorScheme == null){
             colorScheme = safeStructuredClone(defaultColorScheme)
         }
-    
+
         if(get(isLite)){
             colorScheme = safeStructuredClone(colorShemes.lite)
         }
-    
+
         //set css variables
         document.documentElement.style.setProperty("--risu-theme-bgcolor", colorScheme.bgcolor);
         document.documentElement.style.setProperty("--risu-theme-darkbg", colorScheme.darkbg);
@@ -150,7 +150,17 @@ export function updateColorScheme(){
         document.documentElement.style.setProperty("--risu-theme-textcolor2", colorScheme.textcolor2);
         document.documentElement.style.setProperty("--risu-theme-darkborderc", colorScheme.darkBorderc);
         document.documentElement.style.setProperty("--risu-theme-darkbutton", colorScheme.darkbutton);
-        ColorSchemeTypeStore.set(colorScheme.type)   
+        ColorSchemeTypeStore.set(colorScheme.type)
+    } catch (error) {}
+}
+
+export function changeColorSchemeType(type: 'light'|'dark'){
+    try {
+        let db = getDatabase()
+        db.colorScheme.type = type
+        setDatabase(db)
+        updateColorScheme()
+        updateTextThemeAndCSS()
     } catch (error) {}
 }
 
