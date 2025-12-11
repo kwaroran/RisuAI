@@ -20,7 +20,7 @@ interface ProviderPlugin {
     script: string
     arguments: { [key: string]: 'int' | 'string' | string[] }
     realArg: { [key: string]: number | string }
-    version?: 1 | 2 | '2_old' | 3
+    version?: 1 | 2 | '2.1' | '3.0'
     customLink: ProviderPluginCustomLink[]
     argMeta: { [key: string]: {[key:string]:string} }
 }
@@ -80,7 +80,7 @@ export async function importPlugin(code:string|null = null, argu:{
         let realArg: { [key: string]: number | string } = {}
         let argMeta: { [key: string]: {[key:string]:string} } = {}
         let customLink: ProviderPluginCustomLink[] = []
-        let apiVersion = '2.1'
+        let apiVersion = '2.0'
         for (const line of splitedJs) {
             if (line.startsWith('//@name')) {
                 const provied = line.slice(7)
@@ -91,16 +91,16 @@ export async function importPlugin(code:string|null = null, argu:{
                 name = provied.trim()
             }
             if(line.startsWith('//@api')){
-                const provied = line.slice(6).trim()
-                switch(provied){
-                    case '2.0':
-                    case '2.1':
-                    case '3.0':
-                        apiVersion = provied
+                const proviedVersions = line.slice(6).trim().split(' ')
+                const supportedVersions = ['2.0','2.1','3.0']
+                for(const ver of proviedVersions){
+                    if(supportedVersions.includes(ver)){
+                        apiVersion = ver
                         break
-                    default:
-                        alertError(`plugin api version "${provied}" is not supported, please check the plugin file.`)
-                        return
+                    }
+                    else{
+                        console.warn(`Plugin API version "${ver}" is not supported.`)
+                    }
                 }
             }
             if (line.startsWith('//@display-name')) {
@@ -184,15 +184,26 @@ export async function importPlugin(code:string|null = null, argu:{
             return
         }
 
+        let apiInternalVersion: 2|'2.1'|'3.0' = '2.1'
+
         if(apiVersion === '2.1'){
             const safety = await checkCodeSafety(jsFile)
             if(!safety.isSafe){
                 pluginAlertModalStore.errors = safety.errors
                 pluginAlertModalStore.open = true
-                return
+                
+                //I can use event but lazy
+                while(pluginAlertModalStore.open){
+                    await sleep(100)
+                }
+
+                if(pluginAlertModalStore.errors.length > 0){
+                    return
+                }
             }
+            apiInternalVersion = '2.1'
         }
-        else{
+        else if(apiVersion === '2.0'){
             const mediaRegex = /(https?):\/\/[^\s\'\"]+\.(?:png|jpg|jpeg|gif|webp|svg|mp3|wav|ogg|mp4|webm)/gi;
             const hasExternalMedia = mediaRegex.test(jsFile);
             const jsRegex = /(https?):\/\/[^\s\'\"]+\.js/gi;
@@ -210,6 +221,40 @@ export async function importPlugin(code:string|null = null, argu:{
             if (!await alertPluginConfirm(confirmMessage)) {
                 return
             }
+
+            const depMessage =
+                'This plugin is using 2.0 API, which is unsafe, alerting all safety errors rather than checking. ' +
+                'If you are developer and this error appear even if you are developing in 2.1 or above, ' +
+                'please check your //@api declaration at the top of your plugin script. (e.g. //@api 3.0)'
+            
+            pluginAlertModalStore.errors = [
+                {
+                    message: depMessage,
+                    userAlertKey: 'eval'
+                },
+                {
+                    message: depMessage,
+                    userAlertKey: 'globalAccess'
+                },
+                {
+                    message: depMessage,
+                    userAlertKey: 'storageAccess'
+                }
+            ]
+            pluginAlertModalStore.open = true
+
+            //I can use event but lazy
+            while(pluginAlertModalStore.open){
+                await sleep(100)
+            }
+            if(pluginAlertModalStore.errors.length > 0){
+                return
+            }
+
+            apiInternalVersion = 2
+        }
+        else if(apiVersion === '3.0'){
+            apiInternalVersion = '3.0'
         }
 
         
@@ -219,7 +264,7 @@ export async function importPlugin(code:string|null = null, argu:{
             realArg: realArg,
             arguments: arg,
             displayName: displayName,
-            version: apiVersion === '3.0' ? 3 : 2,
+            version: apiInternalVersion,
             customLink: customLink,
             argMeta: argMeta
         }
@@ -258,8 +303,8 @@ export async function loadPlugins() {
 
 
     const structuredCloned = safeStructuredClone(db.plugins)
-    const pluginV2 = structuredCloned.filter((a: RisuPlugin) => a.version === 2)
-    const pluginV3 = structuredCloned.filter((a: RisuPlugin) => a.version === 3)
+    const pluginV2 = structuredCloned.filter((a: RisuPlugin) => a.version === 2 || a.version === '2.1')
+    const pluginV3 = structuredCloned.filter((a: RisuPlugin) => a.version === '3.0')
 
     await loadV2Plugin(pluginV2)
     await loadV3Plugins(pluginV3)
@@ -626,16 +671,7 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             version = 2
         }
 
-        if(version === 2){
-            const safety = (await checkCodeSafety(plugin.script))
-            data = safety.modifiedCode
-            console.log('Safety check result:', safety)
-            console.log('Loading V2.1 Plugin', plugin.name, data)
-        }
-        else{
-            data = plugin.script
-            console.log('Loading V2.0 Plugin', plugin.name)
-        }
+
         const realScript = `(async () => {
             const risuFetch = globalThis.__pluginApis__.risuFetch
             const nativeFetch = globalThis.__pluginApis__.nativeFetch
@@ -650,27 +686,48 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
             const removeRisuReplacer = globalThis.__pluginApis__.removeRisuReplacer
             const onUnload = globalThis.__pluginApis__.onUnload
             const setArg = globalThis.__pluginApis__.setArg
-            const safeGlobalThis = globalThis.__pluginApis__.getSafeGlobalThis()
-            const Risuai = globalThis.__pluginApis__
-            const safeLocalStorage = globalThis.__pluginApis__.safeLocalStorage
-            const safeIdbFactory = globalThis.__pluginApis__.safeIdbFactory
-            const alertStore = globalThis.__pluginApis__.alertStore
-            const safeDocument = globalThis.__pluginApis__.safeDocument
-            const getDatabase = globalThis.__pluginApis__.getDatabase
-            const setDatabaseLite = globalThis.__pluginApis__.setDatabaseLite
-            const setDatabase = globalThis.__pluginApis__.setDatabase
-            const loadPlugins = globalThis.__pluginApis__.loadPlugins
-            const SafeFunction = globalThis.__pluginApis__.SafeFunction
+            ${version === '2.1' ? `
+                const safeGlobalThis = globalThis.__pluginApis__.getSafeGlobalThis()
+                const Risuai = globalThis.__pluginApis__
+                const safeLocalStorage = globalThis.__pluginApis__.safeLocalStorage
+                const safeIdbFactory = globalThis.__pluginApis__.safeIdbFactory
+                const alertStore = globalThis.__pluginApis__.alertStore
+                const safeDocument = globalThis.__pluginApis__.safeDocument
+                const getDatabase = globalThis.__pluginApis__.getDatabase
+                const setDatabaseLite = globalThis.__pluginApis__.setDatabaseLite
+                const setDatabase = globalThis.__pluginApis__.setDatabase
+                const loadPlugins = globalThis.__pluginApis__.loadPlugins
+                const SafeFunction = globalThis.__pluginApis__.SafeFunction
+            ` : ''}
             ${data}
         })();`
 
-        try {
-            new Function(realScript)()
-        } catch (error) {
-            console.error(error)
+        if(version === '2.1'){
+            const safety = (await checkCodeSafety(plugin.script))
+            data = safety.modifiedCode
+            console.log('Safety check result:', safety)
+            console.log('Loading V2.1 Plugin', plugin.name, data)
+
+            try {
+                new Function(realScript)()
+            } catch (error) {
+                console.error(error)
+            }
+
+            console.log('Loaded V2.1 Plugin', plugin.name)
+        }
+        else{
+            data = plugin.script
+            console.log('Loading V2.0 Plugin', plugin.name)
+
+            try {
+                eval(data)
+            } catch (error) {
+                console.error(error)
+            }
+            console.log('Loaded V2.0 Plugin', plugin.name)
         }
 
-        console.log('Loaded V2 Plugin', plugin.name)
 
     }
 }

@@ -67,6 +67,9 @@ Every plugin starts with metadata comments and a main script:
 
 ### Metadata Comments
 
+Metadata comments define your plugin's identity and configuration:
+It must be placed at the very top of your plugin script.
+
 #### Required Metadata
 
 - **`//@name`** - Internal plugin name (must be unique)
@@ -92,6 +95,7 @@ Every plugin starts with metadata comments and a main script:
   //@arg max_items int Maximum number of items
   ```
   Supported types: `string`, `int`
+  Syntax: `//@arg <name> <type> <description and optional metadata>`
 
 - **`//@link`** - Add custom links
   ```javascript
@@ -384,21 +388,21 @@ await element.focus();
 #### Element Creation
 
 ```javascript
-const doc = risuai.getRootDocument();
+const doc = await risuai.getRootDocument();
 
 // Create regular elements (limited to whitelist)
-const div = doc.createElement('div');
-const span = doc.createElement('span');
-const button = doc.createElement('button');
+const div = await doc.createElement('div');
+const span = await doc.createElement('span');
+const button = await doc.createElement('button');
 
 // Non-whitelisted tags become <div>
-const unknown = doc.createElement('custom-element'); // Creates <div>
+const unknown = await doc.createElement('custom-element'); // Creates <div>
 
 // Create validated anchor links
-const link = doc.createAnchorElement('https://example.com');
+const link = await doc.createAnchorElement('https://example.com');
 
 // Only http/https allowed
-const badLink = doc.createAnchorElement('javascript:alert()'); // href becomes '#'
+const badLink = await doc.createAnchorElement('javascript:alert()'); // href becomes '#'
 ```
 
 ### Monitoring DOM Changes
@@ -436,6 +440,7 @@ await observer.observe(body, {
 ### Using Your Iframe for Custom UI
 
 Your plugin's iframe is hidden by default. You can show it to display custom interfaces:
+Unlike `getRootDocument()`, your iframe's `document` is the standard DOM API without restrictions.
 
 ```javascript
 // Build your UI in the iframe's document

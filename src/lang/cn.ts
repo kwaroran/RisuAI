@@ -826,4 +826,6 @@ export const languageChinese = {
         "summarizationConditionLabel": "提示：当输入标记超过最大上下文大小时，HypaV3 将开始进行摘要处理。",
         "emptySelectedFirstMessageLabel": "警告：所选的第一条消息为空"
     },
+    generatedByAIDisclaimer: "此内容由 AI 生成，可能包含不准确信息或偏见。",
+    aiGenerationWarning: "内容将由 AI 生成，可能包含不准确信息或偏见。"
 }

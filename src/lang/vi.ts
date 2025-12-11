@@ -464,4 +464,6 @@ export const LanguageVietnamese = {
         "summarizationConditionLabel": "Mẹo: HypaV3 bắt đầu tóm tắt khi số lượng token đầu vào vượt quá kích thước ngữ cảnh tối đa.",
         "emptySelectedFirstMessageLabel": "CẢNH BÁO: Tin nhắn đầu tiên được chọn trống"
     },
+    generatedByAIDisclaimer: "Nội dung này được tạo bởi AI và có thể chứa thông tin không chính xác hoặc thiên kiến.",
+    aiGenerationWarning: "Nội dung sẽ được tạo bởi AI và có thể chứa thông tin không chính xác hoặc thiên kiến."
 }

@@ -4,7 +4,14 @@
  * This file provides TypeScript type definitions for the RisuAI Plugin API v3.0.
  * All API methods are accessed through the global `risuai` object.
  *
- * @important All API methods are asynchronous - always use `await` or `.then()`
+ * @important **ALL METHODS RETURN PROMISES**
+ *
+ * Due to the iframe-based sandboxing architecture, ALL method calls go through
+ * postMessage communication, which makes them asynchronous. Even methods that
+ * appear synchronous in the implementation (like log(), showContainer(), etc.)
+ * return Promises when called from the plugin iframe.
+ *
+ * **ALWAYS use `await` or `.then()` when calling any risuai method or SafeElement method.**
  *
  * @example
  * ```typescript
@@ -12,15 +19,27 @@
  * //@api 3.0
  *
  * (async () => {
- *   // Get current character
- *   const character = await risuai.getCharacter();
- *   risuai.log(`Current character: ${character.name}`);
+ *   // ALL methods require await
+ *   await risuai.log('Plugin initialized');
  *
- *   // Register a settings button
+ *   const character = await risuai.getCharacter();
+ *   await risuai.log(`Current character: ${character.name}`);
+ *
+ *   const apiKey = await risuai.getArgument('api_key');
+ *
  *   await risuai.registerSetting('My Plugin', async () => {
- *     risuai.showContainer('fullscreen');
+ *     await risuai.showContainer('fullscreen');
  *     // Build UI...
  *   }, '⚙️', 'html');
+ *
+ *   // Even DOM operations require await
+ *   const doc = await risuai.getRootDocument();
+ *   const element = await doc.querySelector('.chat');
+ *   await element.setTextContent('Hello!');
+ *
+ *   // Storage operations require await
+ *   await risuai.pluginStorage.setItem('key', 'value');
+ *   const value = await risuai.pluginStorage.getItem('key');
  * })();
  * ```
  */
@@ -549,8 +568,9 @@ export interface SafeMutationObserver {
      * Starts observing an element for changes
      * @param element - SafeElement to observe
      * @param options - MutationObserver options
+     * @returns Promise that resolves when observer is set up
      */
-    observe(element: SafeElement, options: MutationObserverInit): void;
+    observe(element: SafeElement, options: MutationObserverInit): Promise<void>;
 }
 
 // ============================================================================
@@ -560,76 +580,89 @@ export interface SafeMutationObserver {
 /**
  * Plugin-specific storage that syncs with save files
  *
+ * **All methods return Promises** due to iframe message passing.
+ *
  * @example
  * ```typescript
- * // Store data
- * risuai.pluginStorage.setItem('user_preference', 'dark_mode');
- * risuai.pluginStorage.setItem('score', 42);
+ * // Store data (async)
+ * await risuai.pluginStorage.setItem('user_preference', 'dark_mode');
+ * await risuai.pluginStorage.setItem('score', 42);
  *
- * // Retrieve data
- * const pref = risuai.pluginStorage.getItem('user_preference');
+ * // Retrieve data (async)
+ * const pref = await risuai.pluginStorage.getItem('user_preference');
  *
- * // Get all keys
- * const keys = risuai.pluginStorage.keys();
+ * // Get all keys (async)
+ * const keys = await risuai.pluginStorage.keys();
  * ```
  */
 export interface PluginStorage {
     /**
      * Gets an item from storage
      * @param key - Storage key
-     * @returns Stored value or null
+     * @returns Promise resolving to stored value or null
      */
-    getItem(key: string): any | null;
+    getItem(key: string): Promise<any | null>;
 
     /**
      * Sets an item in storage
      * @param key - Storage key
      * @param value - Value to store (any JSON-serializable value)
+     * @returns Promise that resolves when item is stored
      */
-    setItem(key: string, value: any): void;
+    setItem(key: string, value: any): Promise<void>;
 
     /**
      * Removes an item from storage
      * @param key - Storage key
+     * @returns Promise that resolves when item is removed
      */
-    removeItem(key: string): void;
+    removeItem(key: string): Promise<void>;
 
     /**
      * Clears all items from storage
+     * @returns Promise that resolves when storage is cleared
      */
-    clear(): void;
+    clear(): Promise<void>;
 
     /**
      * Gets a key by index
      * @param index - Key index
-     * @returns Key name or null
+     * @returns Promise resolving to key name or null
      */
-    key(index: number): any | null;
+    key(index: number): Promise<any | null>;
 
     /**
      * Gets all storage keys
-     * @returns Array of key names
+     * @returns Promise resolving to array of key names
      */
-    keys(): string[];
+    keys(): Promise<string[]>;
 
     /**
      * Gets the number of items in storage
-     * @returns Item count
+     * @returns Promise resolving to item count
      */
-    length(): number;
+    length(): Promise<number>;
 }
 
 /**
  * Device-specific storage shared between plugins
  * Same API as PluginStorage but only supports string values
+ *
+ * **All methods return Promises** due to iframe message passing.
+ *
+ * @example
+ * ```typescript
+ * await risuai.safeLocalStorage.setItem('device_id', 'unique-id');
+ * const deviceId = await risuai.safeLocalStorage.getItem('device_id');
+ * ```
  */
 export interface SafeLocalStorage {
-    getItem(key: string): string | null;
-    setItem(key: string, value: string): void;
-    removeItem(key: string): void;
-    clear(): void;
-    key(index: number): string | null;
-    length(): number;
+    getItem(key: string): Promise<string | null>;
+    setItem(key: string, value: string): Promise<void>;
+    removeItem(key: string): Promise<void>;
+    clear(): Promise<void>;
+    key(index: number): Promise<string | null>;
+    length(): Promise<number>;
 }
 
 // ============================================================================
@@ -716,56 +749,59 @@ export interface RisuaiPluginAPI {
     /**
      * Logs a message with plugin identification
      * @param message - Message to log
+     * @returns Promise that resolves when log is complete
      *
      * @example
      * ```typescript
-     * risuai.log('Plugin initialized');
+     * await risuai.log('Plugin initialized');
      * // Output: [RisuAI Plugin: YourPlugin] Plugin initialized
      * ```
      */
-    log(message: string): void;
+    log(message: string): Promise<void>;
 
     // ========== Container Management ==========
 
     /**
      * Shows the plugin's iframe container
      * @param mode - Display mode (currently only 'fullscreen')
+     * @returns Promise that resolves when container is shown
      *
      * @example
      * ```typescript
-     * risuai.showContainer('fullscreen');
+     * await risuai.showContainer('fullscreen');
      *
      * // Build UI in your iframe
      * document.body.innerHTML = '<h1>My Plugin UI</h1>';
      * ```
      */
-    showContainer(mode: ContainerMode): void;
+    showContainer(mode: ContainerMode): Promise<void>;
 
     /**
      * Hides the plugin's iframe container
+     * @returns Promise that resolves when container is hidden
      */
-    hideContainer(): void;
+    hideContainer(): Promise<void>;
 
     // ========== DOM Access ==========
 
     /**
      * Gets the root document for safe DOM access
-     * @returns SafeDocument for the main RisuAI document
+     * @returns Promise resolving to SafeDocument for the main RisuAI document
      *
      * @example
      * ```typescript
-     * const doc = risuai.getRootDocument();
-     * const element = doc.querySelector('.chat-container');
+     * const doc = await risuai.getRootDocument();
+     * const element = await doc.querySelector('.chat-container');
      * ```
      */
-    getRootDocument(): SafeDocument;
+    getRootDocument(): Promise<SafeDocument>;
 
     /**
      * Creates a mutation observer for monitoring DOM changes
      * @param callback - Callback function for mutations
-     * @returns SafeMutationObserver instance
+     * @returns Promise resolving to SafeMutationObserver instance
      */
-    createMutationObserver(callback: SafeMutationCallback): SafeMutationObserver;
+    createMutationObserver(callback: SafeMutationCallback): Promise<SafeMutationObserver>;
 
     // ========== Character APIs ==========
 
@@ -1080,14 +1116,14 @@ export interface RisuaiPluginAPI {
     /**
      * @deprecated Cleanup only happens on shutdown
      */
-    onUnload(func: () => void | Promise<void>): void;
+    onUnload(func: () => void | Promise<void>): Promise<void>;
 
     // ========== Internal Methods ==========
 
     /**
      * @internal Gets old API keys (for debugging/compatibility)
      */
-    _getOldKeys(): string[];
+    _getOldKeys(): Promise<string[]>;
 }
 
 // ============================================================================

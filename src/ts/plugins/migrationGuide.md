@@ -7,7 +7,7 @@ This is due to the fact that plugins can run arbitrary code, which may lead to s
 
 So plugin 2.1 and 3.0 introduced a new plugin API versioning system. 2.1 is mostly compatible with 2.0, but with some restricted APIs and added safe alternatives. however, 2.1 were just a transitional version, and still have some security issues due to API's structure. 3.0 will introduce API overhaul with many breaking changes, with focus on security and stability.
 
-2.1 will not be deprecated unless a new plugin API version is released after 3.0. however, 3.0 will be the recommended version for new plugins, and 2.1 might show security warnings in future versions.
+2.1 can be deprecated in the future, but it will still be supported for a long time for compatibility reasons. however, 3.0 will be the recommended version for new plugins, and 2.1 might show security warnings in future versions.
 
 ## Declaring Plugin Version
 
@@ -612,3 +612,44 @@ API v3.0 implements multiple security layers:
 })()
 ```
 
+### Making Your Plugin Compatible with 2.0, 2.1, and 3.0
+
+first, declare the api version at the top of your plugin script:
+
+```javascript
+//@api 2.0 2.1 3.0
+```
+
+This will make the software load the plugin in the highest supported api version. then, you can use feature detection to check which api version is currently running, and adjust your code accordingly:
+
+```javascript
+
+(async () => {
+
+  //This works in all api versions, except 1.0, which is deprecated long ago
+  const apiVersion = (typeof risuai !== 'undefined' ? risuai.apiVersion : apiVersion) || '2.0'
+
+  if (apiVersion === '3.0') {
+    // Use API v3.0 features
+    const doc = risuai.getRootDocument();
+    // ...
+  } else if (apiVersion === '2.1') {
+    // Use API v2.1 features
+    const doc = safeDocument;
+    // ...
+  } else {
+    // Use API v2.0 features
+    const doc = document;
+    // ...
+  }
+})();
+```
+
+# Deprecation Schedule
+
+| Version | Deprecation Date | Notes |
+|---------|------------------|-------|
+| 1.0    | Already Deprecated | No longer supported, plugins using this version will not work in current versions. |
+| 2.0     | After Account System Release | Transitional support for legacy plugins, it will quickly be deprecated after account system release. |
+| 2.1     | Unknown (Long-term support) | Will be supported for a long time for compatibility, but security warnings will be shown after 2.0 deprecation. |
+| 3.0     | N/A              | Recommended version for new plugins, will be supported indefinitely, unless major security issues arise. |

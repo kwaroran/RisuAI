@@ -1213,5 +1213,7 @@ export const languageKorean = {
         thisOutsideClass: "플러그인이 클래스 컨텍스트 외부에서 'this' 키워드를 사용하고 있습니다. 이는 의도치 않은 동작이나 보안 문제로 이어질 수 있습니다.",
         errorInVerification: "플러그인의 검증 과정 중 오류가 발생했습니다. 이는 기능상의 잠재적인 문제를 나타냅니다.",
         storageAccess: "플러그인이 스토리지에 접근하려고 합니다. 이는 데이터 유출이나 무단 데이터 조작으로 이어질 수 있습니다.",
-    }
+    },
+    generatedByAIDisclaimer: "이 콘텐츠는 AI에 의해 생성되었으며 부정확하거나 편향된 정보가 포함될 수 있습니다.",
+    aiGenerationWarning: "콘텐츠는 AI로 생성되며 부정확하거나 편향된 정보가 포함될 수 있습니다.",
 }

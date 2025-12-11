@@ -8,7 +8,7 @@
     import { ChevronRightIcon, User } from 'lucide-svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
-    import { openURL } from 'src/ts/globalApi.svelte';
+    import { aiLawApplies, openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
     import { XIcon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
@@ -121,7 +121,7 @@
                     {/if}
                     <p class="confirm-message">{confirmMessage}</p>
                 </div>
-            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions' && $alertStore.type !== 'pluginconfirm'}
+            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
                 <span class="text-gray-300 whitespace-pre-wrap">{$alertStore.msg}</span>
                 {#if $alertStore.submsg && $alertStore.type !== 'progress'}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
@@ -268,6 +268,11 @@
                     {/each}
                 </div>
             {:else if $alertStore.type === 'requestdata'}
+                {#if aiLawApplies()}
+                <div>
+                    {language.generatedByAIDisclaimer}
+                </div>
+                {/if}
                 <div class="flex flex-wrap gap-2">
                     <Button selected={generationInfoMenuIndex === 0} size="sm" onclick={() => {generationInfoMenuIndex = 0}}>
                         {language.tokens}
