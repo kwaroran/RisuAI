@@ -22,18 +22,23 @@ export async function selectUserImg() {
         icon: db.userIcon,
         personaPrompt: db.personaPrompt,
         note: db.userNote,
-        id: v4()
+        id: db.personas[db.selectedPersona].id || v4(),
+        largePortrait: db.personas[db.selectedPersona]?.largePortrait
     }
     setDatabase(db)
 }
 
 export function saveUserPersona() {
     let db = getDatabase()
-    db.personas[db.selectedPersona].name = db.username
-    db.personas[db.selectedPersona].icon = db.userIcon
-    db.personas[db.selectedPersona].personaPrompt = db.personaPrompt
-    db.personas[db.selectedPersona].note = db.userNote
-    db.personas[db.selectedPersona].largePortrait = db.personas[db.selectedPersona]?.largePortrait
+    const currentPersona = db.personas[db.selectedPersona]
+    db.personas[db.selectedPersona] = {
+        name: db.username,
+        icon: db.userIcon,
+        personaPrompt: db.personaPrompt,
+        note: db.userNote,
+        id: currentPersona.id || v4(),
+        largePortrait: currentPersona?.largePortrait
+    }
     setDatabase(db)
 }
 
@@ -121,13 +126,15 @@ export async function importUserPersona() {
         const data: PersonaCard = JSON.parse(Buffer.from(decoded, 'base64').toString('utf-8'))
         if (data.name && data.personaPrompt) {
             let db = getDatabase()
+            const newId = v4()
             db.personas.push({
                 name: data.name,
                 icon: await saveImage(await reencodeImage(v.data)),
                 personaPrompt: data.personaPrompt,
                 note: data.note,
-                id: v4()
+                id: newId
             })
+            db.personaOrder.push(newId)
             setDatabase(db)
             alertNormal(language.successImport)
         } else {

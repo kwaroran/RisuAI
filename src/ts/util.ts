@@ -278,6 +278,17 @@ export function getCharacterIndexObject() {
     return result
 }
 
+export function getPersonaIndexObject() {
+    const db = getDatabase()
+    let i=0;
+    let result:{[key:string]:number} = {}
+    for(const persona of db.personas){
+        result[persona.id] = i
+        i += 1
+    }
+    return result
+}
+
 export function defaultEmotion(em:[string,string][]){
     if(!em){
         return ''
