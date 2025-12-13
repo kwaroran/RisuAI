@@ -2146,6 +2146,34 @@ export function registerCBS(arg:CBSRegisterArg) {
     })
 
     registerFunction({
+        name: 'ruby',
+        callback: (str, matcherArg, args, vars) => {
+            return `<ruby>${args[0]}<rp> (</rp><rt>${args[1]}</rt><rp>) </rp></ruby>`
+        },
+        alias: ['furigana'],
+        description: 'Renders ruby text (furigana) for East Asian typography. Wraps base text and ruby text in appropriate HTML tags.\n\nUsage:: {{ruby::漢字::かんじ}}',
+    })
+
+    registerFunction({
+        name: 'codeblock',
+        callback: (str, matcherArg, args, vars) => {
+            let code = args[args.length - 1]
+                .replace(/\"/g, '&quot;')
+                .replace(/\'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+
+            if(args.length > 1){
+                return `<pre-hljs-placeholder lang="${args[0]}">`+ code +'</pre-hljs-placeholder>'
+            }
+
+            return `<pre><code>${code}</code></pre>`
+        },
+        alias: [],
+        description: 'Formats text as a code block using HTML pre and code tags.\n\nUsage:: {{codeblock::some code here}}, or {{codeblock::language::some code here}} for syntax highlighting.',
+    })
+
+    registerFunction({
         name: '//',
         callback: 'doc_only',
         alias: [],
