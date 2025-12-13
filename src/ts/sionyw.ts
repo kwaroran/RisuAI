@@ -63,7 +63,7 @@ export async function fetchProtectedResource(url: string, options: RequestInit =
     // else{
     //     return fetchProtectedResourceWebVersion(url, options, arg)
     // }
-    return fetchProtectedResourceTauri(url, options, arg)
+    return fetchProtectedResourceSPA(url, options, arg)
 }
 
 //This method is used in the web version of the app
@@ -126,7 +126,7 @@ const writeFileSecure = isTauri ? writeFile : async (path:string, data:Uint8Arra
 
 //Tauri version of fetchProtectedResource
 //We can contect javascript safely because its hard to intercept the requests in Tauri
-async function fetchProtectedResourceTauri(url: string, options: RequestInit = {}, arg:ProtectedResourceArg = {}) {
+async function fetchProtectedResourceSPA(url: string, options: RequestInit = {}, arg:ProtectedResourceArg = {}) {
     const retries = arg.retries || 0
     if(tokenExpiry - Date.now() < 60000){ // If token expires in less than 60 seconds
         tokenInitalized = false
@@ -173,7 +173,7 @@ async function fetchProtectedResourceTauri(url: string, options: RequestInit = {
     if(res.headers.get('WWW-Authenticate')?.includes('invalid_token')){
         tokenInitalized = false
         if(retries < 3){
-            return fetchProtectedResourceTauri(url, options, { retries: retries + 1 })
+            return fetchProtectedResourceSPA(url, options, { retries: retries + 1 })
         }
         else{
             return badLoginResponse()
