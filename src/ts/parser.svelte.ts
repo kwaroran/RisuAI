@@ -15,10 +15,7 @@ import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
-import airisu from '../etc/airisu.cbs?raw'
-import cbsIntro from '../etc/docs/cbs_intro.cbs?raw'
-import cbsDocs from '../etc/docs/cbs_docs.cbs?raw'
-import docsText from '../etc/docs/docs_text.cbs?raw'
+import katex from 'katex'
 import { getModelInfo, type LLMModel } from './model/modellist';
 import { registerCBS, type matcherArg, type RegisterCallback } from './cbs';
 
@@ -139,6 +136,30 @@ function renderMarkdown(md:markdownit, data:string){
     if(DBState.db?.customQuotes){
         quotes = DBState.db.customQuotesData ?? quotes
     }
+    data = data.replace(/\$\$(.*?)\$\$/gs, (
+        match:string,
+        content:string,
+    ) => {
+
+        try {
+            content = content
+                .replace(/\uE9b8/gu, '{')
+                .replace(/\uE9b9/gu, '}')
+                .replace(/\uE9ba/gu, '(')
+                .replace(/\uE9bb/gu, ')')
+            console.log(content)
+            const rendered = katex.renderToString(content, {
+                displayMode: false,
+                throwOnError: true,
+                output: 'mathml'
+            })
+            console.log('KaTeX rendered:', rendered)
+            return rendered
+        } catch (error) {
+            console.error('KaTeX render error:', error)
+            return match
+        }
+    })
     let text = risuUnescape(md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")))
 
     if(DBState.db?.unformatQuotes){
@@ -672,7 +693,7 @@ export async function ParseMarkdown(
 
 export function trimMarkdown(data:string){
     return decodeStyle(DOMPurify.sanitize(data, {
-        ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
+        ADD_TAGS: ["iframe", "style", "risu-style", "x-em", 'annotation', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt'],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
     }))
 }

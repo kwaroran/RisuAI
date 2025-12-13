@@ -2137,6 +2137,15 @@ export function registerCBS(arg:CBSRegisterArg) {
     })
 
     registerFunction({
+        name: 'tex',
+        callback: (str, matcherArg, args, vars) => {
+            return `$$${args[0]}$$`
+        },
+        alias: ['latex', 'katex'],
+        description: 'Renders LaTeX math expressions. Wraps the input in double dollar signs for display.\n\nUsage:: {{tex::E=mc^2}}',
+    })
+
+    registerFunction({
         name: '//',
         callback: 'doc_only',
         alias: [],
