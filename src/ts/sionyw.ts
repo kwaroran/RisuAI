@@ -1,6 +1,5 @@
 import { hubURL } from "./characterCards";
-import { fetchNative, forageStorage, isNodeServer, isTauri } from "./globalApi.svelte";
-import type { NodeStorage } from "./storage/nodeStorage";
+import { fetchNative } from "./globalApi.svelte";
 import { DBState } from "./stores.svelte";
 import { readFile, BaseDirectory, writeFile } from "@tauri-apps/plugin-fs";
 import * as client from 'openid-client'
@@ -9,6 +8,10 @@ let accessToken = ''
 let refreshToken = ''
 let tokenInitalized = false
 let tokenExpiry = 0 // Unix timestamp in milliseconds
+
+//isTauri is NOT IMPORTED due to circular dependency issues
+//@ts-expect-error
+const isTauri = !!window.__TAURI_INTERNALS__
 
 interface SionywOauthData {
     refresh_token: string;
@@ -55,6 +58,10 @@ export async function fetchProtectedResource(url: string, options: RequestInit =
         }
     }
 
+    // return fetchProtectedResourceSPA(url, options, arg)
+    if(risuAuth){
+        return fetchProtectedResourceRisuAuthVersion(url, options, risuAuth, arg)
+    }
     return fetchProtectedResourceSPA(url, options, arg)
 }
 
@@ -88,40 +95,53 @@ async function fetchProtectedResourceSPA(url: string, options: RequestInit = {},
         if(!refreshToken){
             return badLoginResponse("No refresh token")
         }
+        for(let attempt = 0; attempt < 2; attempt++){
 
-        try {
-            const config = await client.discovery(
-                new URL('https://account.sionyw.com/'),
-                oauthData.client_id,
-                oauthData.client_secret
-            )
+            try {
+                const config = await client.discovery(
+                    new URL('https://account.sionyw.com/'),
+                    oauthData.client_id,
+                    oauthData.client_secret
+                )
 
-            const dPoPKeyPair = await getDPoPKeys()
-            if(!dPoPKeyPair){
-                return badLoginResponse("No DPoP keys found")
+                const dPoPKeyPair = await getDPoPKeys()
+                if(!dPoPKeyPair){
+                    return badLoginResponse("No DPoP keys found")
+                }
+                const DPoP = client.getDPoPHandle(config, dPoPKeyPair)
+
+                //check dpop keys are extractable
+                const extractable = await crypto.subtle.exportKey("jwk", dPoPKeyPair.privateKey).then(() => true).catch(() => false)
+                if(extractable){
+                    return badLoginResponse("DPoP keys are extractable")
+                }
+
+                let refreshedTokens: client.TokenEndpointResponse = await client.refreshTokenGrant(
+                    config,
+                    oauthData.refresh_token,
+                    undefined,
+                    { DPoP: DPoP}
+                )
+
+                accessToken = refreshedTokens.access_token!
+                const newRefresh = oauthData.refresh_token
+                tokenExpiry = Date.now() + (refreshedTokens.expires_in! * 1000)
+                tokenInitalized = true
+
+                if(newRefresh && newRefresh !== oauthData.refresh_token){
+                    //Store the new refresh token securely
+                    await writeFileUnSecure('oauthData.json', new TextEncoder().encode(JSON.stringify({
+                        refresh_token: newRefresh,
+                        client_id: oauthData.client_id,
+                        client_secret: oauthData.client_secret,
+                    })), { baseDir: BaseDirectory.AppData })
+                }
+
+                break
+
+            } catch (error) {
+                console.error("Failed to refresh token:", error)
             }
-            const DPoP = client.getDPoPHandle(config, dPoPKeyPair)
-
-            //check dpop keys are extractable
-            const extractable = await crypto.subtle.exportKey("jwk", dPoPKeyPair.privateKey).then(() => true).catch(() => false)
-            if(extractable){
-                return badLoginResponse("DPoP keys are extractable")
-            }
-
-            let refreshedTokens: client.TokenEndpointResponse = await client.refreshTokenGrant(
-                config,
-                oauthData.refresh_token,
-                undefined,
-                { DPoP: DPoP}
-            )
-
-            accessToken = refreshedTokens.access_token!
-            refreshToken = refreshedTokens.refresh_token!
-            tokenExpiry = Date.now() + (refreshedTokens.expires_in! * 1000)
-            tokenInitalized = true
-        } catch (error) {
-            console.error("Failed to refresh token:", error)
-            return badLoginResponse("Failed to refresh token")
         }
     }
 
