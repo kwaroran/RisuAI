@@ -439,8 +439,18 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
 
         if(db.openrouterProvider){
-            body.provider = {
-                order: [db.openrouterProvider]
+            const provider: typeof db.openrouterProvider = {} as typeof db.openrouterProvider;
+            if (db.openrouterProvider.order?.length) {
+                provider.order = db.openrouterProvider.order;
+            }
+            if (db.openrouterProvider.only?.length) {
+                provider.only = db.openrouterProvider.only;
+            }
+            if (db.openrouterProvider.ignore?.length) {
+                provider.ignore = db.openrouterProvider.ignore;
+            }
+            if (Object.keys(provider).length) {
+                body.provider = provider;
             }
         }
 
