@@ -16,7 +16,8 @@
     import { alertNormal, alertError } from "src/ts/alert";
     import { exportRegex, importRegex } from "src/ts/process/scripts";
     import { selectMultipleFile } from "src/ts/util";
-    
+    import MCPToolEditor from "./MCPToolEditor.svelte";
+
     import { DBState } from 'src/ts/stores.svelte';
   import { v4 } from "uuid";
 
@@ -188,6 +189,13 @@
         <span>{language.triggerScript}</span>
     </button>
     <button onclick={() => {
+        currentModule.mcp ??= { localTools: [] }
+        currentModule.mcp.localTools ??= []
+        submenu = 4
+    }} class="p-2 flex-1 border-r border-darkborderc" class:bg-darkbutton={submenu === 4}>
+        <span>MCP Tools</span>
+    </button>
+    <button onclick={() => {
         currentModule.assets ??= []
         submenu = 5
     }} class="p-2 flex-1" class:bg-darkbutton={submenu === 5}>
@@ -315,4 +323,8 @@
         <Check bind:check={currentModule.lowLevelAccess} name={language.lowLevelAccess}/>
         <span> <Help key="lowLevelAccess" name={language.lowLevelAccess}/></span>
     </div>
+{/if}
+
+{#if submenu === 4 && currentModule.mcp?.localTools}
+    <MCPToolEditor bind:tools={currentModule.mcp.localTools} />
 {/if}

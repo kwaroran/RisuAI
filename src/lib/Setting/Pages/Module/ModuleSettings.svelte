@@ -75,7 +75,7 @@
                         }}>
                             <Globe size={18}/>
                         </button>
-                        {#if !rmodule.mcp}
+                        {#if !rmodule.mcp || rmodule.mcp.localTools}
                             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.download} onclick={async (e) => {
                                 e.stopPropagation()
                                 exportModule(rmodule)

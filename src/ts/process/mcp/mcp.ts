@@ -8,6 +8,7 @@ import type { MCPClientLike } from "./internalmcp";
 import localforage from "localforage";
 import { isTauri } from "src/ts/globalApi.svelte";
 import { sleep } from "src/ts/util";
+import { getLocalMCPServer } from "./localserver";
 
 export type MCPToolWithURL = MCPTool & {
     mcpURL: string;
@@ -50,6 +51,10 @@ export async function initializeMCPs(additionalMCPs?:string[]) {
                     case 'internal:googlesearch': {
                         const { GoogleSearchClient } = await import('./googlesearchclient');
                         MCPs[mcp] = new GoogleSearchClient();
+                        break;
+                    }
+                    case 'internal:localmodules': {
+                        MCPs[mcp] = getLocalMCPServer();
                         break;
                     }
                 }
@@ -231,6 +236,7 @@ export async function callTool(methodName:string, args:any) {
 
 export async function importMCPModule(){
     const x = await alertInput('Please enter the URL of the MCP module to import:', [
+        ['internal:localmodules', 'Create Local Tool Module (define custom tools)'],
         ['internal:aiaccess', 'LLM Call Client (internal:aiaccess)'],
         ['internal:risuai', 'Risu Access Client (internal:risuai)'],
         ['internal:fs', 'File System Client (internal:fs)'],
@@ -252,6 +258,32 @@ export async function importMCPModule(){
         alertError('Invalid URL');
         return;
     }
+
+    // Special handling for local tool modules
+    if (x === 'internal:localmodules') {
+        const db = getDatabase();
+        db.modules.push({
+            name: "Local Tools Module",
+            description: "Module with custom MCP tools",
+            mcp: {
+                localTools: []
+            },
+            id: v4(),
+            lorebook: [{
+                comment: "MCP Info",
+                content: `@@mcp\n\n<MCP Info>Name:Local Tools Module\nVersion:1.0.0\nInst:Custom tools defined in module settings</MCP Info>`,
+                key: '',
+                alwaysActive: true,
+                secondkey: "",
+                insertorder: 0,
+                mode: "normal",
+                selective: false
+            }]
+        });
+        alertNormal(`Local Tools module created!\nEdit the module to add custom tools.`);
+        return;
+    }
+
     try {
         const metas = (await getMCPMeta([x]))
         console.log(metas)

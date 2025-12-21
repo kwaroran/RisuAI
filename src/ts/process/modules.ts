@@ -11,8 +11,16 @@ import { Capacitor } from "@capacitor/core"
 import { HideIconStore, moduleBackgroundEmbedding, ReloadGUIPointer } from "../stores.svelte"
 import {get} from "svelte/store"
 
+export interface MCPToolDefinition {
+    name: string;
+    description: string;
+    inputSchema: any;  // JSON Schema for input validation
+    handler: string;   // JavaScript code as string to execute
+}
+
 export interface MCPModule{
-    url: string
+    url?: string;                     // External MCP server URL
+    localTools?: MCPToolDefinition[]; // Local tool definitions
 }
 
 export interface RisuModule{
@@ -396,8 +404,40 @@ export function getModuleToggles() {
 
 export function getModuleMcps() {
     const modules = getModules()
+    const urls: string[] = []
 
-    return modules.map((v) => v.mcp?.url).filter((v) => v)
+    let hasLocalTools = false
+
+    for (const m of modules) {
+        if (m.mcp) {
+            if (m.mcp.url) {
+                urls.push(m.mcp.url)
+            }
+            if (m.mcp.localTools && m.mcp.localTools.length > 0) {
+                hasLocalTools = true
+            }
+        }
+    }
+
+    // Add internal:localmodules if any module has local tools
+    if (hasLocalTools && !urls.includes('internal:localmodules')) {
+        urls.push('internal:localmodules')
+    }
+
+    return urls
+}
+
+export function getModuleLocalTools(): MCPToolDefinition[] {
+    const modules = getModules()
+    const tools: MCPToolDefinition[] = []
+
+    for (const m of modules) {
+        if (m.mcp?.localTools) {
+            tools.push(...m.mcp.localTools)
+        }
+    }
+
+    return tools
 }
 
 export async function applyModule() {
