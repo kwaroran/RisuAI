@@ -201,8 +201,9 @@
                     {#if expandedIndex === i}
                         <div class="p-4 space-y-4 border-t border-darkborderc">
                             <div>
-                                <label class="block text-sm font-medium mb-1">Tool Name</label>
+                                <label for={`mcp-tool-name-${i}`} class="block text-sm font-medium mb-1">Tool Name</label>
                                 <TextInput
+                                    id={`mcp-tool-name-${i}`}
                                     bind:value={tool.name}
                                     placeholder="my_tool_name"
                                     size="sm"
@@ -211,8 +212,9 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium mb-1">Description</label>
+                                <label for={`mcp-tool-desc-${i}`} class="block text-sm font-medium mb-1">Description</label>
                                 <TextInput
+                                    id={`mcp-tool-desc-${i}`}
                                     bind:value={tool.description}
                                     placeholder="What does this tool do?"
                                     size="sm"
@@ -221,8 +223,9 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium mb-1">Input Schema (JSON)</label>
+                                <label for={`mcp-tool-schema-${i}`} class="block text-sm font-medium mb-1">Input Schema (JSON)</label>
                                 <TextAreaInput
+                                    id={`mcp-tool-schema-${i}`}
                                     bind:value={schemaStrings[i]}
                                     onInput={() => updateSchemaFromString(i)}
                                     placeholder={'{"type": "object", "properties": {}}'}
@@ -232,8 +235,9 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium mb-1">Handler Code (JavaScript)</label>
+                                <label for={`mcp-tool-handler-${i}`} class="block text-sm font-medium mb-1">Handler Code (JavaScript)</label>
                                 <TextAreaInput
+                                    id={`mcp-tool-handler-${i}`}
                                     bind:value={tool.handler}
                                     placeholder={"// Your code here\nreturn { result: 'success' };"}
                                     size="lg"
@@ -248,10 +252,11 @@
                             </div>
 
                             <div class="border-t border-darkborderc pt-4">
-                                <label class="block text-sm font-medium mb-1">Test Tool</label>
+                                <label for={`mcp-tool-test-${i}`} class="block text-sm font-medium mb-1">Test Tool</label>
                                 <div class="flex gap-2">
                                     <div class="flex-1">
                                         <TextInput
+                                            id={`mcp-tool-test-${i}`}
                                             bind:value={testInputs[i]}
                                             placeholder={'{"arg1": "value1"}'}
                                             size="sm"
