@@ -292,6 +292,14 @@
     </div>
 </div>
 
+{#if showDiffModal && firstPresetId !== null && secondPresetId !== null}
+  <PromptDiffModal
+    firstPresetId={firstPresetId}
+    secondPresetId={secondPresetId}
+    onClose={closeDiff}
+  />
+{/if}
+
 <style>
     .break-any{
         word-break: normal;
