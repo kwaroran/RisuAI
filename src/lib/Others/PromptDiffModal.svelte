@@ -60,11 +60,10 @@
 
     type DiffStyle = 'line' | 'intraline'
     type ViewStyle = 'raw' | 'card'
-    type GroupingStyle = 'flattext' | 'linebyline' | 'cardline'
     
     let diffStyle = $state<DiffStyle>('intraline')
     let viewStyle = $state<ViewStyle>('raw')
-    let groupingStyle = $state<GroupingStyle>('flattext')
+    let isFlatText = $state(false)
 
     let diffResult = $state<DiffResult | null>(null)
     let cardDiffResult = $state<CardDiffResult | null>(null)
@@ -95,7 +94,6 @@
 
     const groupingOptions = [
         { value: 'flattext', label: 'Flat text' },
-        { value: 'linebyline', label: 'Line-by-line' },
         { value: 'cardline', label: 'Card Line' },
     ] as const
 
@@ -105,7 +103,7 @@
     $effect(() => {
         if (!firstCards || !secondCards) return
         diffStyle
-        groupingStyle
+        isFlatText
         viewStyle
         void recomputeDiff(firstCards, secondCards)
     })
@@ -272,28 +270,17 @@
         return lines.join('\n') + '\n'
     }
 
-    async function computeDiff(prompt1: PromptCard[], prompt2: PromptCard[], opts: { style: DiffStyle; grouping: 'flattext' | 'linebyline' }): Promise<DiffResult> {
-        switch (opts.grouping) {
-            case 'flattext':
-            return computeDiffFlat(renderRaw(prompt1), renderRaw(prompt2), opts.style)
-            case 'linebyline':
-            return computeDiffLineByLine(cardsToLines(prompt1), cardsToLines(prompt2), opts.style)
-        }
-    }
-
     async function recomputeDiff(firstCards: PromptCard[], secondCards: PromptCard[]) {
         if (!firstCards || !secondCards) return
 
-        if (groupingStyle === 'flattext' || groupingStyle === 'linebyline') {
-            diffResult = await computeDiff(firstCards, secondCards, {
-            style: diffStyle,
-            grouping: groupingStyle,
-            })
+        if (isFlatText) {
+            diffResult = await computeDiffFlat(renderRaw(firstCards), renderRaw(secondCards), diffStyle)
             cardDiffResult = null
-        } else if (groupingStyle === 'cardline') {
-            cardDiffResult = await computeCardViewDiff(firstCards, secondCards, diffStyle)
-            diffResult = null
+            return
         }
+
+        cardDiffResult = await computeCardViewDiff(firstCards, secondCards, diffStyle)
+        diffResult = null
     }
 
     async function computeCardViewDiff(prompt1: PromptCard[], prompt2: PromptCard[], style: DiffStyle): Promise<CardDiffResult> {
@@ -612,24 +599,6 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-textcolor2">Mode</span>
-          <div class="flex rounded-md border border-darkborderc overflow-hidden">
-            {#each groupingOptions as opt (opt.value)}
-              <label class={`${pillBase} ${groupingStyle === opt.value ? pillActive : pillInactive}`}>
-                <input
-                  class="hidden"
-                  type="radio"
-                  name="groupingStyle"
-                  value={opt.value}
-                  bind:group={groupingStyle}
-                />
-                  {opt.label}
-              </label>
-            {/each}
-          </div>
-        </div>
-
       </div>
 
       <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
@@ -640,7 +609,7 @@
 
     <div class="p-4 overflow-y-auto">
       <!-- card view -->
-      {#if groupingStyle === 'cardline' && viewStyle === 'card'}
+      {#if !isFlatText && viewStyle === 'card'}
         {#if cardDiffResult}
           {@const cardChangedTotal =
             cardDiffResult.cardCounts.modifiedCount
@@ -904,10 +873,10 @@
           <div class="text-textcolor2 text-sm">No diff computed yet.</div>
         {/if}
       {:else}<!-- raw view -->
-        {#if (groupingStyle === 'cardline' && viewStyle === 'raw' && cardlineFlatResult)
-          || (groupingStyle !== 'cardline' && diffResult)}
+        {#if (!isFlatText && viewStyle === 'raw' && cardlineFlatResult)
+          || (isFlatText && diffResult)}
           {@const result =
-            groupingStyle === 'cardline' && viewStyle === 'raw'
+            !isFlatText && viewStyle === 'raw'
               ? cardlineFlatResult
               : diffResult}
 
