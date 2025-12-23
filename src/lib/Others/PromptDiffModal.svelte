@@ -599,6 +599,17 @@
           </div>
         </div>
 
+        <div class="flex items-center gap-2">
+          <label class="flex items-center gap-1 text-xs text-textcolor2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              bind:checked={isFlatText}
+              class="accent-green-500"
+            />
+            Flat Text
+          </label>
+        </div>
+
       </div>
 
       <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
