@@ -866,13 +866,17 @@
                             {/each}
                           </div>
                           <div class={`whitespace-pre-wrap ${lineAddClass}`}>
-                            {#each part.tokens as tok, j (j)}
-                              {#if tok.t !== 'remove'}
-                                <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
-                                  {tok.v}
-                                </span>
-                              {/if}
-                            {/each}
+                            {#if part.src === 'linebyline' && part.right.text === ''}
+                              <span class="text-textcolor2/60 italic">[empty line]</span>
+                            {:else}
+                              {#each part.tokens as tok, j (j)}
+                                {#if tok.t !== 'remove'}
+                                  <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
+                                    {tok.v}
+                                  </span>
+                                {/if}
+                              {/each}
+                            {/if}
                           </div>
                         {:else}
                           <div class={`whitespace-pre-wrap ${lineModifyClass}`}>
@@ -980,16 +984,20 @@
                     class={`whitespace-pre-wrap ${lineAddClass}`}
                     class:mb-5={isLineby && part.right.lineRole === 'header'}
                   >
-                    {#each part.tokens as tok, j (j)}
-                      {#if tok.t !== 'remove'}
-                        <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
-                          {tok.v}
+                    {#if part.src === 'linebyline' && part.right.text === ''}
+                      <span class="text-textcolor2/60 italic">[empty line]</span>
+                    {:else}
+                      {#each part.tokens as tok, j (j)}
+                        {#if tok.t !== 'remove'}
+                          <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
+                            {tok.v}
+                          </span>
+                        {/if}
+                      {/each}{#if isLineby && (part.right.lineRole === 'name' || part.right.lineRole === 'header')}
+                        <span class={nameHeaderTagClass}>
+                          {part.right.lineRole === 'name' ? 'NAME' : 'TYPE'}
                         </span>
                       {/if}
-                    {/each}{#if isLineby && (part.right.lineRole === 'name' || part.right.lineRole === 'header')}
-                      <span class={nameHeaderTagClass}>
-                        {part.right.lineRole === 'name' ? 'NAME' : 'TYPE'}
-                      </span>
                     {/if}
                   </div>
 
