@@ -1,7 +1,5 @@
 <script lang="ts">
     import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "lucide-svelte"
-    import { getFileSrc } from "src/ts/globalApi.svelte"
-    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BotIcon, CopyIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "lucide-svelte"
     import { aiLawApplies, getFileSrc } from "src/ts/globalApi.svelte"
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
