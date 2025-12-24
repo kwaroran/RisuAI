@@ -571,6 +571,7 @@ export function setDatabase(data:Database){
     data.hypaV3PresetId ??= 0
     data.showDeprecatedTriggerV2 ??= false
     data.returnCSSError ??= true
+    data.realmDirectOpen ??= false
     data.useExperimentalGoogleTranslator ??= false
     if(data.antiClaudeOverload){ //migration
         data.antiClaudeOverload = false
@@ -1038,6 +1039,7 @@ export interface Database{
     hypaV3Settings: HypaV3Settings // legacy
     hypaV3Presets: HypaV3Preset[]
     hypaV3PresetId: number
+    realmDirectOpen:boolean
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number

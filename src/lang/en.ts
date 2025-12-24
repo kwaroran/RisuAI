@@ -185,6 +185,7 @@ export const languageEnglish = {
         dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
         showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
         dynamicOutputPrompt: "When enabled, the schema information will be included in the request.",
+        realmDirectOpen: "If enabled, clicking a character in RisuRealm preview will directly open the character description."
         openrouterProviderOrder: "The order of providers to use, the first provider will be used first, if the provider is not available, it will use the next provider. See datail on https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
         openrouterProviderOnly: "Only use the providers in this list, if all the provider is not available, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore: "Ignore the providers in this list, if all the provider is ingored, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
@@ -1172,6 +1173,7 @@ export const languageEnglish = {
     imageTranslation: "Image Translation",
     banCharacterset: 'Auto Regenerate On Characterset',
     checkCorruption: "Check Corruption",
+    realmDirectOpen: "Directly open character in RisuRealm",
     showPromptComparison: "Show Prompt Comparison",
     inlayErrorResponse: "Inlay Error Response",
     triggerOn: "Trigger On",
