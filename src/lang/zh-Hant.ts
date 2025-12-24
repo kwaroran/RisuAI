@@ -135,8 +135,7 @@ export const languageChineseTraditional = {
         "legacyMediaFindings": "啟用後，將使用舊版方法尋找媒體資源，而不使用額外的搜尋演算法。",
         "comfyWorkflow": "請輸入 Comfy UI 的 API 工作流程。您可以在 Comfy UI 中點選「Workflow > Export (API)」按鈕以取得您的 API 工作流程。此外，您必須在工作流程文本中加入 {{risu_prompt}}，該佔位符將被 Risu 提供的提示詞替換。",
         APIPool: "啟用後，系統將連接到 RisuAI 的 API 池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分利用的金鑰，增加對速率受限模型的請求次數。",
-        sourcemapTranslate: "如果啟用，錯誤的堆疊追蹤將使用來源地圖自動翻譯，以顯示原始原始碼位置。這對於偵錯非常有用。"
-        "APIPool": "啟用後，系統將連接到 RisuAI 的 API 資源池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分使用的金鑰，增加對速率受限模型的請求次數。",
+        sourcemapTranslate: "如果啟用，錯誤的堆疊追蹤將使用來源地圖自動翻譯，以顯示原始原始碼位置。這對於偵錯非常有用。",
         "openrouterProviderOrder": "提供商使用順序，優先使用第一個提供商，若該提供商不可用，將使用下一個。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
         "openrouterProviderOnly": "僅使用此列表中的提供商，若所有提供商均不可用，請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         "openrouterProviderIgnore": "忽略此列表中的提供商,若所有提供商均被忽略,請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
@@ -892,7 +891,7 @@ export const languageChineseTraditional = {
     showOriginal: "顯示原始程式碼地址",
     translate: "翻譯程式碼地址",
     "apply": "應用",
-    "add":"添加"
+    "add":"添加",
     generatedByAIDisclaimer: "此內容由 AI 生成，可能包含不準確資訊或偏見。",
     aiGenerationWarning: "內容將由 AI 生成，可能包含不準確資訊或偏見。"
 }

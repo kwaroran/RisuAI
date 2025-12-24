@@ -130,9 +130,8 @@ export const languageKorean = {
         "v2GetAlertSelect": "선택지는 | 로 구분합니다.",
         "v2RegexTest": "정규표현식에 매칭이 되면 1, 매칭이 되지 않으면 0을 출력합니다.",
         v2Calculate: "기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.",
-        sourcemapTranslate: "활성화하면 오류의 스택 트레이스가 소스맵을 사용하여 원본 소스 코드 위치를 표시하도록 자동으로 변환됩니다. 이는 디버깅에 유용합니다."
-        "v2Calculate": "기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.",
-        "realmDirectOpen": "활성화되면 RisuRealm 미리보기에서 캐릭터를 클릭할 때 캐릭터 설명이 바로 열립니다."
+        sourcemapTranslate: "활성화하면 오류의 스택 트레이스가 소스맵을 사용하여 원본 소스 코드 위치를 표시하도록 자동으로 변환됩니다. 이는 디버깅에 유용합니다.",
+        "realmDirectOpen": "활성화되면 RisuRealm 미리보기에서 캐릭터를 클릭할 때 캐릭터 설명이 바로 열립니다.",
         "openrouterProviderOrder": "사용할 제공자 순서입니다. 첫 번째 제공자가 먼저 사용되며, 제공자를 사용할 수 없는 경우 다음 제공자를 사용합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers 를 참조하세요",
         "openrouterProviderOnly": "이 목록의 제공자만 사용합니다. 모든 제공자를 사용할 수 없는 경우 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers 를 참조하세요",
         "openrouterProviderIgnore": "이 목록의 제공자를 무시합니다. 모든 제공자가 무시되면 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers 를 참조하세요",
@@ -1216,9 +1215,7 @@ export const languageKorean = {
     translating: "번역 중...",
     showOriginal: "기존 코드 주소 보기",
     translate: "코드 주소 번역하기",
-    nightlyWarning: "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**"
-    "nightlyWarning": "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**"
-    "nightlyWarning": "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**",
+    nightlyWarning: "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**",
     pluginRiskDetectedAlert: "Risuai가 API 키나 개인 데이터를 훔칠 수도 있는 위험한 코드를 감지했습니다. 이 플러그인을 설치하지 않는 것을 권장합니다.",
     doNotInstall: "설치하지 않음",
     continueAnyway: "무시하고 계속",
