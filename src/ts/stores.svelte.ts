@@ -4,6 +4,8 @@ import type { simpleCharacterArgument } from "./parser.svelte";
 import type { alertData } from "./alert";
 import { getModules, moduleUpdate } from "./process/modules";
 import { resetScriptCache } from "./process/scripts";
+import type { hubType } from "./characterCards";
+import type { PluginSafetyErrors } from "./plugins/pluginSafety";
 
 function updateSize(){
     SizeStore.set({
@@ -24,6 +26,7 @@ export const DynamicGUI = writable(false)
 export const sideBarClosing = writable(false)
 export const sideBarStore = writable(window.innerWidth > 1024)
 export const selectedCharID = writable(-1)
+export const CurrentTriggerIdStore = writable<string | null>(null)
 export const CharEmotion = writable({} as {[key:string]: [string, string, number][]})
 export const ViewBoxsize = writable({ width: 12 * 16, height: 12 * 16 }); // Default width and height in pixels
 export const settingsOpen = writable(false)
@@ -40,6 +43,7 @@ export const SettingsMenuIndex = writable(-1)
 export const ReloadGUIPointer = writable(0)
 export const ReloadChatPointer = writable({} as Record<number, number>)
 export const OpenRealmStore = writable(false)
+export const RealmInitialOpenChar = writable<null | hubType>(null)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
@@ -112,7 +116,22 @@ export const QuickSettings = $state({
     index: 0
 })
 
+export const pluginAlertModalStore = $state({
+    open: false,
+    errors: [] as PluginSafetyErrors[]
+})
+
 export const disableHighlight = writable(true)
+
+export type MenuDef = {
+    name: string,
+    icon: string,
+    iconType:'html'|'img'|'none',
+    callback: any
+}
+
+export const additionalSettingsMenu = $state([] as MenuDef[])
+export const additionalFloatingActionButtons = $state([] as MenuDef[])
 
 ReloadGUIPointer.subscribe(() => {
     ReloadChatPointer.set({})
@@ -122,6 +141,12 @@ ReloadGUIPointer.subscribe(() => {
 $effect.root(() => {
     selectedCharID.subscribe((v) => {
         selIdState.selId = v
+
+        if (DBState?.db?.characters?.[selIdState.selId]) {
+            if (DBState.db.hypaV3 && DBState.db.hypaV3Presets?.[DBState.db.hypaV3PresetId]?.settings?.alwaysToggleOn) {
+                DBState.db.characters[selIdState.selId].supaMemory = true;
+            }
+        }
     })
     $effect(() => {
         $state.snapshot(DBState.db.modules)

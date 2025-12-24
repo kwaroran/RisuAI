@@ -39,13 +39,12 @@ export async function postInlayAsset(img:{
     }
 
     if(inlayAudioExts.includes(extention)){
-        const b64 = Buffer.from(img.data).toString('base64')
-        const dataURI = `data:audio/${extention};base64,${b64}`
+        const audioBlob = new Blob([img.data], {type: `audio/${extention}`})
         const imgid = v4()
 
         await inlayStorage.setItem(imgid, {
             name: img.name,
-            data: dataURI,
+            data: audioBlob,
             ext: extention,
             type: 'audio'
         })
@@ -54,13 +53,12 @@ export async function postInlayAsset(img:{
     }
 
     if(inlayVideoExts.includes(extention)){
-        const b64 = Buffer.from(img.data).toString('base64')
-        const dataURI = `data:video/${extention};base64,${b64}`
+        const videoBlob = new Blob([img.data], {type: `video/${extention}`})
         const imgid = v4()
 
         await inlayStorage.setItem(imgid, {
             name: img.name,
-            data: dataURI,
+            data: videoBlob,
             ext: extention,
             type: 'video'
         })
@@ -98,14 +96,14 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
             resolve(null)
         }
     })
-    const dataURI = canvas.toDataURL('image/png')
+    const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
 
     const imgid = arg.id ?? v4()
 
     await inlayStorage.setItem(imgid, {
         name: arg.name ?? imgid,
-        data: dataURI,
+        data: imageBlob,
         ext: 'png',
         height: drawHeight,
         width: drawWidth,
@@ -115,10 +113,36 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
     return `${imgid}`
 }
 
+function base64ToBlob(b64: string): Blob {
+    const splitDataURI = b64.split(',');
+    const byteString = atob(splitDataURI[1]);
+    const mimeString = splitDataURI[0].split(':')[1].split(';')[0];
+
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+
+    return new Blob([ab], { type: mimeString });
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    return new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => {
+            resolve(reader.result as string);
+        };
+        reader.onerror = reject;
+    });
+}
+
+// Returns with base64 data URI
 export async function getInlayAsset(id: string){
     const img:{
         name: string,
-        data: string
+        data: string | Blob,
         ext: string
         height: number
         width: number
@@ -127,12 +151,46 @@ export async function getInlayAsset(id: string){
     if(img === null){
         return null
     }
-    return img
+
+    let data: string;
+    if(img.data instanceof Blob){
+        data = await blobToBase64(img.data)
+    } else {
+        data = img.data as string
+    }
+
+    return { ...img, data }
+}
+
+// Returns with Blob
+export async function getInlayAssetBlob(id: string){
+    const img:{
+        name: string,
+        data: string | Blob,
+        ext: string
+        height: number
+        width: number
+        type: 'image'|'video'|'audio'
+    } = await inlayStorage.getItem(id)
+    if(img === null){
+        return null
+    }
+
+    let data: Blob;
+    if(typeof img.data === 'string'){
+        // Migrate to Blob
+        data = base64ToBlob(img.data)
+        setInlayAsset(id, { ...img, data })
+    } else {
+        data = img.data
+    }
+
+    return { ...img, data }
 }
 
 export async function setInlayAsset(id: string, img:{
     name: string,
-    data: string,
+    data: string | Blob,
     ext: string,
     height: number,
     width: number,

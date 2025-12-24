@@ -184,7 +184,11 @@ export const languageEnglish = {
         dynamicResponseTiming: "When enabled, it will adjust the response timing dynamically.",
         dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
         showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
-        dynamicOutputPrompt: "When enabled, the schema information will be included in the request."
+        dynamicOutputPrompt: "When enabled, the schema information will be included in the request.",
+        realmDirectOpen: "If enabled, clicking a character in RisuRealm preview will directly open the character description."
+        openrouterProviderOrder: "The order of providers to use, the first provider will be used first, if the provider is not available, it will use the next provider. See datail on https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
+        openrouterProviderOnly: "Only use the providers in this list, if all the provider is not available, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
+        openrouterProviderIgnore: "Ignore the providers in this list, if all the provider is ingored, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -661,6 +665,9 @@ export const languageEnglish = {
     SpacedView: "Multiple Character View",
     emphasizedView: "Double Character View",
     pluginWarn: "Installing malicious plugins can cause problems.",
+    pluginConfirm: "Do you really want to import this plugin? Only import plugins from trusted sources.",
+    pluginContainsExternalMedia: "This plugin contains external media.",
+    pluginContainsExternalJS: "This plugin contains external Javascript.",
     createGroupImg: "Generate group icon",
     waifuWidth: "Waifu Chat Width",
     savebackup: "Save Backup to google",
@@ -938,6 +945,9 @@ export const languageEnglish = {
     maxThoughtTagDepth: "Max Thought Tag Depth",
     openrouterFallback: "Openrouter Fallback",
     openrouterMiddleOut: "Openrouter Middle Out",
+    openrouterProviderOrder: "Ordering Specific Providers",
+    openrouterProviderOnly: "Allowing Only Specific Providers",
+    openrouterProviderIgnore: "Ignoring Providers",
     geminiApiKey: "Gemini API Key",
     removePunctuationHypa: "Memory Punctuation Removal",
     memoryLimitThickness: "Memory Limit Thickness",
@@ -1163,6 +1173,7 @@ export const languageEnglish = {
     imageTranslation: "Image Translation",
     banCharacterset: 'Auto Regenerate On Characterset',
     checkCorruption: "Check Corruption",
+    realmDirectOpen: "Directly open character in RisuRealm",
     showPromptComparison: "Show Prompt Comparison",
     inlayErrorResponse: "Inlay Error Response",
     triggerOn: "Trigger On",
@@ -1336,5 +1347,27 @@ export const languageEnglish = {
     showTypingEffect: "Show Typing Effect",
     dynamicRequest: "Dynamic Request",
     dynamicOutputPrompt: "Dynamic Output Prompt",
-    nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**"
+    nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**",
+    loginSionyw: "Login with Sionyw Account",
+    pluginRiskDetectedAlert: "Risuai detected code that may be harmful which can STOLE YOUR API KEY OR PERSONAL DATA. we recommend you to NOT INSTALL THIS PLUGIN.",
+    doNotInstall: "Do Not Install",
+    continueAnyway: "Continue Anyway",
+    pluginNoRiskButAlert: "Risuai did not detect harmful code, but please be aware that installing plugins from untrusted sources can pose security risks.",
+    
+    pluginRisksInuserFriendly : {
+        eval: "Evaluating Code from Strings",
+        globalAccess: "Accessing Global Variables",
+        thisOutsideClass: "Using 'this' Outside of Class Context",
+        errorInVerification: "Errors During Verification Process",
+        storageAccess: "Accessing Storage",
+    },
+    pluginRisksInuserFriendlyDesc : {
+        eval: "The plugin attempts to execute code from strings, strings can be obsucated to hide malicious code.",
+        globalAccess: "The plugin tries to access global variables, which can lead to unintended side effects or security vulnerabilities.",
+        thisOutsideClass: "The plugin uses 'this' keyword outside of class context, which can lead to unintended behavior or security issues.",
+        errorInVerification: "There are errors during the verification process of the plugin, indicating potential issues with its functionality.",
+        storageAccess: "The plugin attempts to access storage, which could lead to data leaks or unauthorized data manipulation.",
+    },
+    generatedByAIDisclaimer: "This content was generated by AI and may contain inaccuracies or biases.",
+    aiGenerationWarning: "Contents will be AI generated and may contain inaccuracies or biases."
 }

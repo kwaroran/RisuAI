@@ -79,7 +79,7 @@ class StreamChunkWriter{
         const type = new TextEncoder().encode('IEND')
         await this.pushData(length)
         await this.pushData(type)
-        const crc = crc32(type)
+        const crc = crc32(type as Buffer)
         await this.pushData(new Uint8Array([
             crc / 0x1000000 % 0x100,
             crc / 0x10000 % 0x100,
@@ -100,7 +100,7 @@ export const PngChunk = {
             const typeString = new TextDecoder().decode(type)
             if(arg.checkCrc){
                 const crc = data[pos+8+len] * 0x1000000 + data[pos+9+len] * 0x10000 + data[pos+10+len] * 0x100 + data[pos+11+len]
-                const crcCheck = crc32(data.slice(pos+4,pos+8+len))
+                const crcCheck = crc32(data.slice(pos+4,pos+8+len) as Buffer)
                 if(crc !== crcCheck){
                     throw new Error('crc check failed')
                 }
@@ -186,7 +186,7 @@ export const PngChunk = {
             if(arg.checkCrc && !(data instanceof ReadableStream)){ //crc check is not supported for stream
                 const dataPart = await slice(pos+8+len,pos+12+len)
                 const crc = dataPart[0] * 0x1000000 + dataPart[1] * 0x10000 + dataPart[2] * 0x100 + dataPart[3]
-                const crcCheck = crc32(await slice(pos+4,pos+8+len))
+                const crcCheck = crc32(await slice(pos+4,pos+8+len) as Buffer)
                 if(crc !== crcCheck){
                     throw new Error('crc check failed')
                 }
@@ -304,7 +304,7 @@ export const PngChunk = {
             const type = new TextEncoder().encode('IEND')
             await pushData(length)
             await pushData(type)
-            const crc = crc32(type)
+            const crc = crc32(type as Buffer)
             await pushData(new Uint8Array([
                 crc / 0x1000000 % 0x100,
                 crc / 0x10000 % 0x100,

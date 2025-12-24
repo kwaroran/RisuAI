@@ -124,6 +124,7 @@ export const languageSpanish = {
         combineTranslation: "Si está habilitado, el texto que es una oración pero está separado por etiquetas HTML se combinará y se traducirá, luego se volverá a aplicar el script de Modificar Visualización a la respuesta traducida.\nEsto ayuda al traductor a realizar la traducción correcta.\nSi la interfaz de usuario se vuelve extraña cuando activas esta opción, desactiva la opción e informa sobre el problema.",
         dynamicAssets: "Si está habilitado, si no se encuentra el nombre del activo al procesar datos, intentará encontrar el nombre del activo más cercano usando la búsqueda de vectores y reemplazarlo con el nombre del activo más cercano.",
         dynamicAssetsEditDisplay: "Si está habilitado, los activos dinámicos se aplicarán también en la etapa de Modificar Visualización. Sin embargo, esto puede causar problemas de rendimiento.",
+        realmDirectOpen: "Si está habilitado, al hacer clic en un personaje en la vista previa de RisuRealm se abrirá directamente la descripción del personaje.",
         nickname: "El apodo se utilizaría en {{char}} o <char> en el chat en lugar del nombre del personaje si está configurado.",
         useRegexLorebook: "Si está habilitado, usará regex para la búsqueda en el lorebook, en lugar de coincidencia de cadenas. Usa el formato /regex/flags.",
         customChainOfThought: "Advertencia: el interruptor de cadena de pensamientos ya no se recomienda. Pon el prompt de cadena de pensamientos en otras entradas de prompt en su lugar.",
@@ -133,6 +134,9 @@ export const languageSpanish = {
         triggerLLMPrompt: "Un prompt que se enviará al modelo. Puedes usar múltiples turnos y roles usando `@@role usuario`, `@@role sistema`, `@@role asistente`. Por ejemplo, \n\`\`\`\n@@role sistema\nresponde como hola\n@@role asistente\nhola\n@@role usuario\nhola\n\`\`\`",
         legacyTranslation: "Si está habilitado, usará el método de traducción antiguo, que preprocesa Markdown y citas antes de las traducciones en lugar de postprocesar después de las traducciones.",
         luaHelp: "Puedes usar scripts Lua como script de activación. Puedes definir funciones onInput, onOutput, onStart. onInput se llama cuando el usuario envía un mensaje, onOutput se llama cuando el personaje envía un mensaje, onStart se llama cuando comienza el chat. Para más información, consulta la documentación.",
+        openrouterProviderOrder: "El orden de los proveedores a usar, el primer proveedor se usará primero, si el proveedor no está disponible, usará el siguiente proveedor. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
+        openrouterProviderOnly: "Solo usar los proveedores en esta lista, si todos los proveedores no están disponibles, la solicitud fallará. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
+        openrouterProviderIgnore: "Ignorar los proveedores en esta lista, si todos los proveedores son ignorados, la solicitud fallará. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
     },
     setup: {
         chooseProvider: "Elige Proveedor de IA",
@@ -264,6 +268,9 @@ export const languageSpanish = {
     SpacedView: "Vista de Múltiples Personajes",
     emphasizedView: "Vista de Personajes Doble",
     pluginWarn: "Instalar plugins maliciosos puede causar problemas.",
+    pluginConfirm: "¿Realmente quieres importar este plugin? Solo importa plugins de fuentes confiables.",
+    pluginContainsExternalMedia: "Este plugin contiene medios externos.",
+    pluginContainsExternalJS: "Este complemento contiene Javascript externo.",
     createGroupImg: "Generar icono de grupo",
     waifuWidth: "Ancho del Chat Waifu",
     savebackup: "Guardar Respaldo en Google",
@@ -539,6 +546,9 @@ export const languageSpanish = {
     maxThoughtTagDepth: "Profundidad Máxima de Etiqueta de Pensamiento",
     openrouterFallback: "Fallback de Openrouter",
     openrouterMiddleOut: "Middle Out de Openrouter",
+    openrouterProviderOrder: "Orden de Proveedor",
+    openrouterProviderOnly: "Solo Proveedor",
+    openrouterProviderIgnore: "Ignorar Proveedor",
     geminiApiKey: "Clave API de Gemini",
     removePunctuationHypa: "Eliminación de Puntuación de Memoria",
     memoryLimitThickness: "Grosor del Límite de Memoria",
@@ -611,6 +621,7 @@ export const languageSpanish = {
     combineTranslation: "Combinar Traducción",
     dynamicAssets: "Activos Dinámicos",
     dynamicAssetsEditDisplay: "Usar Activos Dinámicos en Visualización",
+    realmDirectOpen: "Abrir personaje directamente en RisuRealm",
     longTermMemory: "Memoria a Largo Plazo",
     grid: "Cuadrícula",
     list: "Lista",
@@ -732,4 +743,6 @@ export const languageSpanish = {
         "summarizationConditionLabel": "Consejo: HypaV3 comienza a resumir cuando los tokens de entrada superan el tamaño máximo de contexto.",
         "emptySelectedFirstMessageLabel": "ADVERTENCIA: El primer mensaje seleccionado está vacío"
     },
+    generatedByAIDisclaimer: "Este contenido fue generado por IA y puede contener inexactitudes o sesgos.",
+    aiGenerationWarning: "El contenido será generado por IA y puede contener inexactitudes o sesgos."
 }

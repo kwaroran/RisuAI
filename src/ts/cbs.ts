@@ -2,6 +2,8 @@ import type { Database, character, loreBook } from './storage/database.svelte';
 import type { CbsConditions } from './parser.svelte';
 import type { RisuModule } from './process/modules';
 import type { LLMModel } from './model/modellist';
+import { get } from 'svelte/store';
+import { CurrentTriggerIdStore } from './stores.svelte';
 
 export const defaultCBSRegisterArg: CBSRegisterArg = {
     registerFunction: () => { throw new Error('registerFunction not implemented') },
@@ -63,6 +65,7 @@ export type matcherArg = {
     recursiveCount?: number
     lowLevelAccess?: boolean
     cbsConditions: CbsConditions
+    triggerId?: string
 }
 "a".toLowerCase().split('::')
 
@@ -174,6 +177,16 @@ export function registerCBS(arg:CBSRegisterArg) {
         },
         alias: [],
         description: 'Returns the current user\'s name as set in user settings. In consistent character mode, returns "username".\n\nUsage:: {{user}}',
+    });
+
+    registerFunction({
+        name: 'trigger_id',
+        callback: (str, matcherArg, args, vars) => {
+            const currentTriggerId = get(CurrentTriggerIdStore)
+            return currentTriggerId ?? 'null'
+        },
+        alias: ['triggerid'],
+        description: 'Returns the ID value from the risu-id attribute of the clicked element that triggered the manual trigger. Returns "null" if no ID was provided.\n\nUsage:: {{trigger_id}}',
     });
 
     registerFunction({
@@ -2121,6 +2134,43 @@ export function registerCBS(arg:CBSRegisterArg) {
         },
         alias: [],
         description: 'A comment CBS for commenting out code. unlike {{//}}, this one is displayed in the chat.\n\nUsage:: {{comment::this is a comment}}',
+    })
+
+    registerFunction({
+        name: 'tex',
+        callback: (str, matcherArg, args, vars) => {
+            return `$$${args[0]}$$`
+        },
+        alias: ['latex', 'katex'],
+        description: 'Renders LaTeX math expressions. Wraps the input in double dollar signs for display.\n\nUsage:: {{tex::E=mc^2}}',
+    })
+
+    registerFunction({
+        name: 'ruby',
+        callback: (str, matcherArg, args, vars) => {
+            return `<ruby>${args[0]}<rp> (</rp><rt>${args[1]}</rt><rp>) </rp></ruby>`
+        },
+        alias: ['furigana'],
+        description: 'Renders ruby text (furigana) for East Asian typography. Wraps base text and ruby text in appropriate HTML tags.\n\nUsage:: {{ruby::漢字::かんじ}}',
+    })
+
+    registerFunction({
+        name: 'codeblock',
+        callback: (str, matcherArg, args, vars) => {
+            let code = args[args.length - 1]
+                .replace(/\"/g, '&quot;')
+                .replace(/\'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+
+            if(args.length > 1){
+                return `<pre-hljs-placeholder lang="${args[0]}">`+ code +'</pre-hljs-placeholder>'
+            }
+
+            return `<pre><code>${code}</code></pre>`
+        },
+        alias: [],
+        description: 'Formats text as a code block using HTML pre and code tags.\n\nUsage:: {{codeblock::some code here}}, or {{codeblock::language::some code here}} for syntax highlighting.',
     })
 
     registerFunction({
