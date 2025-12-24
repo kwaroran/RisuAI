@@ -1,3 +1,5 @@
+import { translate } from "src/ts/translator/translator";
+
 export const languageEnglish = {
     formating:{
         'main': "Main Prompt",
@@ -1145,6 +1147,7 @@ export const languageEnglish = {
     seperateParameters: "Separate Parameters",
     seperateParametersEnabled: "Enable Separate Parameters",
     summarizationPrompt: "Summarization Prompt",
+    reSummarizationPrompt: "Re-Summarizaion Prompt",
     translatorPrompt: "Translation Prompt",
     translateBeforeHTMLFormatting: "Translate Before HTML Formatting",
     retranslate: "Retranslate",
@@ -1241,6 +1244,23 @@ export const languageEnglish = {
         nextSummarizationLoadingError: "Error loading next summarization target: {0}",
         summarizationConditionLabel: "Tip: HypaV3 begins summarization when input tokens exceed the maximum context size.",
         emptySelectedFirstMessageLabel: "WARN: Selected first message is empty",
+        unclassified: "Unclassified",
+        reSummarize: "Re-summarize",
+        reSummarizing: "Re-summarizing...",
+        reSummarizeResult: "Re-summarization result",
+        retry: "Retry",
+        translate: "Translate",
+        tag: "Tag",
+        tagManager: "Tag Manager",
+        tagManagerTitle: "Tag Manager - Summary #{0}",
+        newTagName: "New tag name",
+        noTagsYet: "No tags yet.",
+        addNewTagHint: "Add a new tag above.",
+        categoryManager: "Categories",
+        allCategories: "All",
+        categoryName: "Category name",
+        noCategoriesYet: "No categories yet.",
+        addNewCategoryHint: "Click the + button above to add one.",
     },
     bulkEnabling: "Lorebook Bulk Enabling",
     showTranslationLoading: "Show Translation Loading",
@@ -1347,6 +1367,7 @@ export const languageEnglish = {
     showTypingEffect: "Show Typing Effect",
     dynamicRequest: "Dynamic Request",
     dynamicOutputPrompt: "Dynamic Output Prompt",
+    nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**"
     nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**",
     loginSionyw: "Login with Sionyw Account",
     pluginRiskDetectedAlert: "Risuai detected code that may be harmful which can STOLE YOUR API KEY OR PERSONAL DATA. we recommend you to NOT INSTALL THIS PLUGIN.",
