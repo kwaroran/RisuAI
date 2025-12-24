@@ -64,6 +64,7 @@ export const LanguageVietnamese = {
         "replaceGlobalNote": "Nếu nó không trống, nó sẽ thay thế ghi chú chung hiện tại bằng ghi chú này.",
         "backgroundHTML": "Dữ liệu Markdown/HTML sẽ được đưa vào nền màn hình trò chuyện.\n\n bạn cũng có thể sử dụng tài sản bổ sung. ví dụ: bạn có thể sử dụng `{{audio::<asset name}}` cho nhạc nền.\n\n Ngoài ra, bạn có thể sử dụng những thứ này với các nội dung bổ sung:\n - `{{bg::<asset name>}}`: thêm nền làm nội dung",
         "sourcemapTranslate": "Nếu được bật, dấu vết ngăn xếp từ các lỗi sẽ được tự động dịch bằng bản đồ nguồn để hiển thị vị trí mã nguồn ban đầu. Điều này hữu ích cho việc gỡ lỗi."
+        "realmDirectOpen": "Nếu được bật, nhấp vào một nhân vật trong bản xem trước RisuRealm sẽ mở trực tiếp mô tả nhân vật.",
     },
     "setup": {
         "chooseProvider": "Chọn nhà cung cấp AI",
@@ -99,6 +100,7 @@ export const LanguageVietnamese = {
     "presensePenalty": "Hình phạt có mặt",
     "advancedSettings": "Cài đặt nâng cao",
     "advancedSettingsWarn": "Cảnh báo: Nếu bạn không biết tùy chọn này làm gì, đừng thay đổi nó!",
+    "realmDirectOpen": "Mở trực tiếp nhân vật trong RisuRealm",
     "formatingOrder": "Thứ tự hình thành",
     "authorNote": "Ghi chú của tác giả",
     "firstMessage": "tin nhắn đầu tiên",
@@ -469,4 +471,6 @@ export const LanguageVietnamese = {
     translating: "Đang dịch...",
     showOriginal: "Hiển thị địa chỉ mã gốc",
     translate: "Dịch địa chỉ mã",
+    generatedByAIDisclaimer: "Nội dung này được tạo bởi AI và có thể chứa thông tin không chính xác hoặc thiên kiến.",
+    aiGenerationWarning: "Nội dung sẽ được tạo bởi AI và có thể chứa thông tin không chính xác hoặc thiên kiến."
 }

@@ -22,6 +22,7 @@
     import { hypaV3ModalOpen, hypaV3ProgressStore } from "./ts/stores.svelte";
     import HypaV3Modal from './lib/Others/HypaV3Modal.svelte';
     import HypaV3Progress from './lib/Others/HypaV3Progress.svelte';
+    import PluginAlertModal from './lib/Others/PluginAlertModal.svelte';
 
   
     let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
@@ -177,4 +178,5 @@
     {#if $hypaV3ProgressStore.open}
         <HypaV3Progress />
     {/if}
+    <PluginAlertModal />
 </main>

@@ -101,6 +101,7 @@ export const languageChineseTraditional = {
         "combineTranslation": "啟用後，將把被 HTML 標籤分隔但屬於同一句的文本合併後進行翻譯，並在翻譯結果上重新套用「修改顯示」（Modify Display）。這有助於提高翻譯的準確性。若啟用此後介面出現異常，請關閉此選項並回報問題。",
         "dynamicAssets": "啟用後，若在處理資料時找不到資源名稱，系統將使用向量搜尋（Vector Search）嘗試尋找最接近的資源名稱並進行替換。",
         "dynamicAssetsEditDisplay": "啟用後，動態資源將同樣應用於「修改顯示」階段，但這可能會影響效能。",
+        "realmDirectOpen": "啟用後，點擊 RisuRealm 預覽中的角色將直接開啟角色描述。",
         "nickname": "設定後，將在聊天中以此暱稱取代角色名稱，並顯示於 {{char}} 和 <char>。",
         "useRegexLorebook": "啟用後，Lorebook 將改用正規表達式（Regex）搜尋，而不再使用字串匹配。格式為 /regex/flags。",
         "customChainOfThought": "警告：不再建議使用思維鏈（CoT, Chain-of-Thought）切換功能。請將相關提示詞移至其他提示詞欄位。",
@@ -135,6 +136,10 @@ export const languageChineseTraditional = {
         "comfyWorkflow": "請輸入 Comfy UI 的 API 工作流程。您可以在 Comfy UI 中點選「Workflow > Export (API)」按鈕以取得您的 API 工作流程。此外，您必須在工作流程文本中加入 {{risu_prompt}}，該佔位符將被 Risu 提供的提示詞替換。",
         APIPool: "啟用後，系統將連接到 RisuAI 的 API 池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分利用的金鑰，增加對速率受限模型的請求次數。",
         sourcemapTranslate: "如果啟用，錯誤的堆疊追蹤將使用來源地圖自動翻譯，以顯示原始原始碼位置。這對於偵錯非常有用。"
+        "APIPool": "啟用後，系統將連接到 RisuAI 的 API 資源池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分使用的金鑰，增加對速率受限模型的請求次數。",
+        "openrouterProviderOrder": "提供商使用順序，優先使用第一個提供商，若該提供商不可用，將使用下一個。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
+        "openrouterProviderOnly": "僅使用此列表中的提供商，若所有提供商均不可用，請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
+        "openrouterProviderIgnore": "忽略此列表中的提供商,若所有提供商均被忽略,請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
     },
     setup: {
         "chooseProvider": "選擇 AI 提供者",
@@ -587,6 +592,9 @@ export const languageChineseTraditional = {
     "maxThoughtTagDepth": "思維標記最大深度",
     "openrouterFallback": "Openrouter 回退",
     "openrouterMiddleOut": "Openrouter 中間輸出",
+    "openrouterProviderOrder": "提供商順序",
+    "openrouterProviderOnly": "只使用",
+    "openrouterProviderIgnore": "忽略",
     "geminiApiKey": "Gemini API 金鑰",
     "removePunctuationHypa": "移除記憶標記",
     "memoryLimitThickness": "記憶上限厚度",
@@ -659,6 +667,7 @@ export const languageChineseTraditional = {
     "combineTranslation": "合併翻譯",
     "dynamicAssets": "動態資源",
     "dynamicAssetsEditDisplay": "在介面上使用動態資源",
+    "realmDirectOpen": "在 RisuRealm 中直接開啟角色",
     "longTermMemory": "長期記憶",
     "grid": "網格",
     "list": "列表",
@@ -864,4 +873,6 @@ export const languageChineseTraditional = {
     translating: "翻譯中...",
     showOriginal: "顯示原始程式碼地址",
     translate: "翻譯程式碼地址",
+    generatedByAIDisclaimer: "此內容由 AI 生成，可能包含不準確資訊或偏見。",
+    aiGenerationWarning: "內容將由 AI 生成，可能包含不準確資訊或偏見。"
 }

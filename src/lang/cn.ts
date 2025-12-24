@@ -101,6 +101,7 @@ export const languageChinese = {
         "combineTranslation": "激活后，将把被 HTML 标签分隔但属于同一句的文本合并后进行翻译，并在翻译结果上重新套用“修改显示”（Modify Display）。这有助于提高翻译的准确性。若激活此后接口出现异常，请关闭此选项并回报问题。",
         "dynamicAssets": "激活后，若在处理数据时找不到资源名称，系统将使用向量搜索（Vector Search）尝试查找最接近的资源名称并进行替换。",
         "dynamicAssetsEditDisplay": "激活后，动态资源将同样应用于“修改显示”阶段，但这可能会影响性能。",
+        "realmDirectOpen": "启用后，点击 RisuRealm 预览中的角色将直接打开角色描述。",
         "nickname": "设置后，将在聊天中以此昵称取代角色名称，并显示于 {{char}} 和 <char>。",
         "useRegexLorebook": "激活后，世界书将改用正则表达式（Regex）搜索，而不再使用字符串匹配。格式为 /regex/flags。",
         "customChainOfThought": "警告：不再建议使用思维链（CoT）切换功能。请将相关提示词移至其他提示词字段。",
@@ -130,6 +131,10 @@ export const languageChinese = {
         "translatorPrompt": "用于翻译的提示词。留空将使用默认提示。你还可以使用带有 {{slot}} 的 ChatML 格式表示目标语言：用 {{slot::content}} 表示内容，用 {{slot::tnote}} 表示翻译注释。",
         translateBeforeHTMLFormatting: "激活后，将在正则脚本和 HTML 格式化之前翻译文本。这可能减少 Token 数，但可能破坏格式。",
         sourcemapTranslate: "如果启用，错误的堆栈跟踪将使用源映射自动翻译，以显示原始源代码位置。这对于调试非常有用。"
+        "translateBeforeHTMLFormatting": "激活后，将在正则脚本和 HTML 格式化之前翻译文本。这可能减少 Token 数，但可能破坏格式。",
+        "openrouterProviderOrder": "使用提供商的顺序，将优先使用第一个提供商，若该提供商不可用，则会使用下一个提供商。详见 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
+        "openrouterProviderOnly": "仅使用此列表中的提供商，若所有提供商都不可用，请求将会失败。详见 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
+        "openrouterProviderIgnore": "忽略此列表中的提供商，若所有提供商都被忽略，请求将会失败。详见 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
     },
     "setup": {
         "chooseProvider": "选择 AI 提供者",
@@ -581,6 +586,9 @@ export const languageChinese = {
     "maxThoughtTagDepth": "思维标记最大深度",
     "openrouterFallback": "Openrouter 回退",
     "openrouterMiddleOut": "Openrouter 中间输出",
+    "openrouterProviderOrder": "提供商顺序",
+    "openrouterProviderOnly": "只使用",
+    "openrouterProviderIgnore": "忽略",
     "geminiApiKey": "Gemini API 密钥",
     "removePunctuationHypa": "移除记忆标记",
     "memoryLimitThickness": "记忆上限厚度",
@@ -653,6 +661,7 @@ export const languageChinese = {
     "combineTranslation": "合并翻译",
     "dynamicAssets": "动态资源",
     "dynamicAssetsEditDisplay": "在接口上使用动态资源",
+    "realmDirectOpen": "在 RisuRealm 中直接打开角色",
     "longTermMemory": "长期记忆",
     "grid": "网格",
     "list": "列表",
@@ -831,4 +840,6 @@ export const languageChinese = {
     translating: "翻译中...",
     showOriginal: "显示原始代码地址",
     translate: "翻译代码地址",
+    generatedByAIDisclaimer: "此内容由 AI 生成，可能包含不准确信息或偏见。",
+    aiGenerationWarning: "内容将由 AI 生成，可能包含不准确信息或偏见。"
 }

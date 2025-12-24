@@ -174,6 +174,9 @@
             <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
                 OpenAI Compatible
             </OptionInput>
+            <OptionInput value={LLMFormat.OpenAIResponseAPI.toString()}>
+                OpenAI Response API
+            </OptionInput>
             <OptionInput value={LLMFormat.Anthropic.toString()}>
                 Anthropic Claude
             </OptionInput>

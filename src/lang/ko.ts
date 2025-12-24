@@ -7,6 +7,7 @@ export const languageKorean = {
         "globalNote": "글로벌 노트",
         "authorNote": "작가의 노트",
         "lastChat": "마지막 채팅",
+        "checkCorruption": "데이터 손상 확인",
         "description": "캐릭터 설명",
         "personaPrompt": "페르소나 프롬프트",
         "plain": "순수 프롬프트",
@@ -130,6 +131,11 @@ export const languageKorean = {
         "v2RegexTest": "정규표현식에 매칭이 되면 1, 매칭이 되지 않으면 0을 출력합니다.",
         v2Calculate: "기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.",
         sourcemapTranslate: "활성화하면 오류의 스택 트레이스가 소스맵을 사용하여 원본 소스 코드 위치를 표시하도록 자동으로 변환됩니다. 이는 디버깅에 유용합니다."
+        "v2Calculate": "기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.",
+        "realmDirectOpen": "활성화되면 RisuRealm 미리보기에서 캐릭터를 클릭할 때 캐릭터 설명이 바로 열립니다."
+        "openrouterProviderOrder": "사용할 제공자 순서입니다. 첫 번째 제공자가 먼저 사용되며, 제공자를 사용할 수 없는 경우 다음 제공자를 사용합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers 를 참조하세요",
+        "openrouterProviderOnly": "이 목록의 제공자만 사용합니다. 모든 제공자를 사용할 수 없는 경우 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers 를 참조하세요",
+        "openrouterProviderIgnore": "이 목록의 제공자를 무시합니다. 모든 제공자가 무시되면 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers 를 참조하세요",
     },
     "setup": {
         "chooseProvider": "AI 제공자를 선택해 주세요",
@@ -886,6 +892,9 @@ export const languageKorean = {
     "maxThoughtTagDepth": "Thought 태그 최대 깊이",
     "openrouterFallback": "Openrouter 폴백",
     "openrouterMiddleOut": "Openrouter 미들 아웃",
+    "openrouterProviderOrder": "제공자 순서",
+    "openrouterProviderOnly": "제공자만 사용",
+    "openrouterProviderIgnore": "제공자 무시",
     "geminiApiKey": "Gemini API Key",
     "removePunctuationHypa": "장기기억 내 문장부호 제거",
     "memoryLimitThickness": "기억 한계선 두께",
@@ -958,6 +967,8 @@ export const languageKorean = {
     "combineTranslation": "결합 번역",
     "dynamicAssets": "다이나믹 에셋",
     "dynamicAssetsEditDisplay": "디스플레이 수정에 다이나믹 에셋 사용",
+    "checkCorruption": "데이터 손상 확인",
+    "realmDirectOpen": "RisuRealm 미리보기에서 바로 열기",
     "longTermMemory": "장기기억",
     "grid": "그리드",
     "list": "리스트",
@@ -1187,4 +1198,39 @@ export const languageKorean = {
     showOriginal: "기존 코드 주소 보기",
     translate: "코드 주소 번역하기",
     nightlyWarning: "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**"
+    "nightlyWarning": "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**",
+    pluginRiskDetectedAlert: "Risuai가 API 키나 개인 데이터를 훔칠 수도 있는 위험한 코드를 감지했습니다. 이 플러그인을 설치하지 않는 것을 권장합니다.",
+    doNotInstall: "설치하지 않음",
+    continueAnyway: "무시하고 계속",
+    pluginNoRiskButAlert: "Risuai가 위험한 코드를 감지하지 못했지만, 신뢰할 수 없는 출처의 플러그인을 설치하면 보안 위험이 발생할 수 있습니다.",
+    //     risksInuserFriendly : {
+    //     eval: "Evaluating Code from Strings",
+    //     globalAccess: "Accessing Global Variables",
+    //     thisOutsideClass: "Using 'this' Outside of Class Context",
+    //     errorInVerification: "Errors During Verification Process",
+    //     storageAccess: "Accessing Storage",
+    // },
+    // risksInuserFriendlyDesc : {
+    //     eval: "The plugin attempts to execute code from strings, strings can be obsucated to hide malicious code.",
+    //     globalAccess: "The plugin tries to access global variables, which can lead to unintended side effects or security vulnerabilities.",
+    //     thisOutsideClass: "The plugin uses 'this' keyword outside of class context, which can lead to unintended behavior or security issues.",
+    //     errorInVerification: "There are errors during the verification process of the plugin, indicating potential issues with its functionality.",
+    //     storageAccess: "The plugin attempts to access storage, which could lead to data leaks or unauthorized data manipulation.",
+    // }
+    risksInuserFriendly: {
+        eval: "문자열에서 코드 실행",
+        globalAccess: "글로벌 변수 접근",
+        thisOutsideClass: "클래스 컨텍스트 외부에서 'this' 사용",
+        errorInVerification: "검증 과정 중 오류 발생",
+        storageAccess: "스토리지 접근",
+    },
+    risksInuserFriendlyDesc: {
+        eval: "플러그인이 문자열에서 코드를 실행하려고 합니다. 악성 코드를 숨기기 위해 문자열이 난독화되었을 수 있습니다.",
+        globalAccess: "플러그인이 글로벌 변수에 접근하려고 합니다. 이는 의도치 않은 부작용이나 보안 취약점으로 이어질 수 있습니다.",
+        thisOutsideClass: "플러그인이 클래스 컨텍스트 외부에서 'this' 키워드를 사용하고 있습니다. 이는 의도치 않은 동작이나 보안 문제로 이어질 수 있습니다.",
+        errorInVerification: "플러그인의 검증 과정 중 오류가 발생했습니다. 이는 기능상의 잠재적인 문제를 나타냅니다.",
+        storageAccess: "플러그인이 스토리지에 접근하려고 합니다. 이는 데이터 유출이나 무단 데이터 조작으로 이어질 수 있습니다.",
+    },
+    generatedByAIDisclaimer: "이 콘텐츠는 AI에 의해 생성되었으며 부정확하거나 편향된 정보가 포함될 수 있습니다.",
+    aiGenerationWarning: "콘텐츠는 AI로 생성되며 부정확하거나 편향된 정보가 포함될 수 있습니다.",
 }
