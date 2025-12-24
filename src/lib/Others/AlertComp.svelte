@@ -23,8 +23,12 @@
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
+    import { translateStackTrace } from "../../ts/sourcemap";
 
     let showDetails = $state(false);
+    let translatedStackTrace = $state('');
+    let isTranslated = $state(false);
+    let isTranslating = $state(false);
 
     let btn
     let input = $state('')
@@ -39,6 +43,9 @@
     } = $state(null)
     $effect.pre(() => {
         showDetails = false;
+        translatedStackTrace = '';
+        isTranslated = false;
+        isTranslating = false;
         if(btn){
             btn.focus()
         }
@@ -54,6 +61,36 @@
             cardLicense = ''
         }
     });
+
+    $effect(() => {
+        if (showDetails) {
+            const shouldAutoTranslate = DBState.db.sourcemapTranslate;
+            isTranslated = shouldAutoTranslate;
+            if (shouldAutoTranslate && !translatedStackTrace) {
+                loadTranslatedTrace();
+            }
+        }
+    });
+
+    async function loadTranslatedTrace() {
+        if (isTranslating || translatedStackTrace) return;
+        isTranslating = true;
+        try {
+            translatedStackTrace = await translateStackTrace($alertStore.stackTrace);
+        } catch (e) {
+            console.error("Failed to translate stack trace:", e);
+            isTranslated = false;
+        } finally {
+            isTranslating = false;
+        }
+    }
+
+    async function handleToggleTranslate() {
+        if (!isTranslated && !translatedStackTrace) {
+            await loadTranslatedTrace();
+        }
+        isTranslated = !isTranslated;
+    }
 
     const beautifyJSON = (data:string) =>{
         try {
@@ -138,7 +175,16 @@
                             {/if}
                         </Button>
                         {#if showDetails}
-                            <pre class="stack-trace">{@html $alertStore.stackTrace}</pre>
+                            <Button styled="outlined" size="sm" onclick={handleToggleTranslate} disabled={isTranslating} className="ml-2">
+                                {#if isTranslating}
+                                    {language.translating}
+                                {:else if isTranslated}
+                                    {language.showOriginal}
+                                {:else}
+                                    {language.translate}
+                                {/if}
+                            </Button>
+                            <pre class="stack-trace">{@html isTranslated ? translatedStackTrace : $alertStore.stackTrace}</pre>
                         {/if}
                     </div>
                 {/if}

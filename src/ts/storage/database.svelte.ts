@@ -604,6 +604,7 @@ export function setDatabase(data:Database){
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
     data.streamGeminiThoughts ??= false
+    data.sourcemapTranslate ??= false
     data.ImagenModel ??= 'imagen-4.0-generate-001'
     data.ImagenImageSize ??= '1K'
     data.ImagenAspectRatio ??= '1:1'
@@ -1120,7 +1121,8 @@ export interface Database{
     ImagenModel:string
     ImagenImageSize:string
     ImagenAspectRatio:string
-    ImagenPersonGeneration:string
+    ImagenPersonGeneration:string,
+    sourcemapTranslate:boolean
 }
 
 interface SeparateParameters{

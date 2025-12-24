@@ -89,6 +89,8 @@ export const languageGerman = {
             + "Die SupaMemory-Anweisung entscheidet darüber, welche Anweisung konkret zur Zusammenfassung gesendet werden soll. Wenn Sie das Feld leer lassen, wird die Standard-Anweisung verwendet. Es wird empfohlen, es leer zu lassen.\n\n"
             + "Nachdem alles eingerichtet ist, können Sie SupaMemory in den Einstellungen eines Charakters aktivieren",
         replaceGlobalNote: "Sofern dieses Feld ausgefüllt ist, wird es die aktuelle globale Notiz ersetzen",
+        backgroundHTML: "Ein Markdown/HTML-Datenblock, der im Backend der Chat-Ausgabe hinzugefügt wird.\n\n Sie können auch zusätzliche Assets verwenden. Zum Beispiel können Sie `{{audio::<Asset-Name>}}` für Hintergrundmusik verwenden."            + "\n\n Zusätzlich können Sie dies mit weiteren Assets verwenden:"            + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen",
+        sourcemapTranslate: "Wenn diese Option aktiviert ist, werden Stack-Traces von Fehlern automatisch mithilfe von Sourcemaps übersetzt, um den ursprünglichen Quellcode-Speicherort anzuzeigen. Dies ist nützlich für das Debugging."
         backgroundHTML: "Ein Markdown/HTML-Datenblock, der im Backend der Chat-Ausgabe hinzugefügt wird.\n\n Sie können auch zusätzliche Assets verwenden. Zum Beispiel können Sie `{{audio::<Asset-Name}}` für Hintergrundmusik verwenden."
             + "\n\n Zusätzlich können Sie dies mit weiteren Assets verwenden:"
             + "\n - `{{bg::<Asset-Name>}}`: Das Hintergrundbild als Asset einfügen",
@@ -492,6 +494,10 @@ export const languageGerman = {
         "summarizationConditionLabel": "Hinweis: HypaV3 beginnt mit der Zusammenfassung, wenn die Eingabe-Tokens die maximale Kontextgröße überschreiten.",
         "emptySelectedFirstMessageLabel": "WARNUNG: Ausgewählte erste Nachricht ist leer"
     },
+    sourcemapTranslate: "Stack-Traces mit Sourcemaps übersetzen",
+    translating: "Übersetze...",
+    showOriginal: "Original-Code-Adresse anzeigen",
+    translate: "Code-Adresse übersetzen",
     generatedByAIDisclaimer: "Dieser Inhalt wurde von einer KI generiert und kann Ungenauigkeiten oder Verzerrungen enthalten.",
     aiGenerationWarning: "Die Inhalte werden von einer KI generiert und können Ungenauigkeiten oder Verzerrungen enthalten."
 }

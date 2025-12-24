@@ -187,6 +187,7 @@ export const languageEnglish = {
         dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
         showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
         dynamicOutputPrompt: "When enabled, the schema information will be included in the request.",
+        sourcemapTranslate: "If enabled, stack traces from errors will be automatically translated to show the original source code location, using sourcemaps. This is useful for debugging."
         realmDirectOpen: "If enabled, clicking a character in RisuRealm preview will directly open the character description."
         openrouterProviderOrder: "The order of providers to use, the first provider will be used first, if the provider is not available, it will use the next provider. See datail on https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
         openrouterProviderOnly: "Only use the providers in this list, if all the provider is not available, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
@@ -1367,6 +1368,10 @@ export const languageEnglish = {
     showTypingEffect: "Show Typing Effect",
     dynamicRequest: "Dynamic Request",
     dynamicOutputPrompt: "Dynamic Output Prompt",
+    sourcemapTranslate: "Translate stack traces using sourcemaps",
+    translating: "Translating...",
+    showOriginal: "Show Original Code Address",
+    translate: "Translate Code Address",
     nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**"
     nightlyWarning: "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**",
     loginSionyw: "Login with Sionyw Account",

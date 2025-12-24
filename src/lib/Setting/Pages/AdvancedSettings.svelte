@@ -141,6 +141,9 @@
     <Check bind:check={DBState.db.useExperimental} name={language.useExperimental}> <Help key="useExperimental"/></Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.sourcemapTranslate} name={language.sourcemapTranslate}> <Help key="sourcemapTranslate"/></Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}> <Help key="forceProxyAsOpenAI"/></Check>
 </div>
 <div class="flex items-center mt-4">

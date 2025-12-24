@@ -134,6 +134,7 @@ export const languageSpanish = {
         triggerLLMPrompt: "Un prompt que se enviará al modelo. Puedes usar múltiples turnos y roles usando `@@role usuario`, `@@role sistema`, `@@role asistente`. Por ejemplo, \n\`\`\`\n@@role sistema\nresponde como hola\n@@role asistente\nhola\n@@role usuario\nhola\n\`\`\`",
         legacyTranslation: "Si está habilitado, usará el método de traducción antiguo, que preprocesa Markdown y citas antes de las traducciones en lugar de postprocesar después de las traducciones.",
         luaHelp: "Puedes usar scripts Lua como script de activación. Puedes definir funciones onInput, onOutput, onStart. onInput se llama cuando el usuario envía un mensaje, onOutput se llama cuando el personaje envía un mensaje, onStart se llama cuando comienza el chat. Para más información, consulta la documentación.",
+        sourcemapTranslate: "Si está habilitado, los seguimientos de pila de los errores se traducirán automáticamente usando mapas de origen para mostrar la ubicación original del código fuente. Esto es útil para la depuración."
         openrouterProviderOrder: "El orden de los proveedores a usar, el primer proveedor se usará primero, si el proveedor no está disponible, usará el siguiente proveedor. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
         openrouterProviderOnly: "Solo usar los proveedores en esta lista, si todos los proveedores no están disponibles, la solicitud fallará. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore: "Ignorar los proveedores en esta lista, si todos los proveedores son ignorados, la solicitud fallará. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
@@ -743,6 +744,10 @@ export const languageSpanish = {
         "summarizationConditionLabel": "Consejo: HypaV3 comienza a resumir cuando los tokens de entrada superan el tamaño máximo de contexto.",
         "emptySelectedFirstMessageLabel": "ADVERTENCIA: El primer mensaje seleccionado está vacío"
     },
+    sourcemapTranslate: "Traducir seguimientos de pila usando sourcemaps",
+    translating: "Traduciendo...",
+    showOriginal: "Mostrar dirección de código original",
+    translate: "Traducir dirección de código",
     generatedByAIDisclaimer: "Este contenido fue generado por IA y puede contener inexactitudes o sesgos.",
     aiGenerationWarning: "El contenido será generado por IA y puede contener inexactitudes o sesgos."
 }
