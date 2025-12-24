@@ -82,6 +82,12 @@
         }
     })
 
+    const currentFlatResult = $derived.by<DiffResult | null>(() => {
+        if (!isFlatText && viewStyle === 'raw') return cardlineFlatResult
+        if (isFlatText) return diffResult
+        return null
+    })
+
     const diffOptions = [
         { value: 'line', label: 'Line' },
         { value: 'intraline', label: 'Intraline' },
@@ -884,12 +890,8 @@
           <div class="text-textcolor2 text-sm">No diff computed yet.</div>
         {/if}
       {:else}<!-- raw view -->
-        {#if (!isFlatText && viewStyle === 'raw' && cardlineFlatResult)
-          || (isFlatText && diffResult)}
-          {@const result =
-            !isFlatText && viewStyle === 'raw'
-              ? cardlineFlatResult
-              : diffResult}
+        {#if currentFlatResult}
+          {@const result = currentFlatResult}
 
           <div class="flex flex-wrap gap-3 text-xs text-textcolor2 mb-3">
             <span class="inline-flex items-center gap-2">
