@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "lucide-svelte"
+    import { getFileSrc } from "src/ts/globalApi.svelte"
     import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BotIcon, CopyIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "lucide-svelte"
     import { aiLawApplies, getFileSrc } from "src/ts/globalApi.svelte"
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
@@ -14,7 +16,7 @@
     import { onDestroy, onMount } from "svelte"
     import { type Unsubscriber } from "svelte/store"
     import { language } from "../../lang"
-    import { alertClear, alertConfirm, alertNormal, alertRequestData, alertWait } from "../../ts/alert"
+    import { alertClear, alertConfirm, alertInput, alertNormal, alertRequestData, alertWait } from "../../ts/alert"
     import { ParseMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
     import { getCurrentCharacter, getCurrentChat, setCurrentChat, type MessageGenerationInfo } from "../../ts/storage/database.svelte"
     import { selectedCharID } from "../../ts/stores.svelte"
@@ -204,6 +206,60 @@
                 CurrentTriggerIdStore.set(null)
             }, 100) // Small delay to allow display mode to complete
         }
+    }
+
+    let isBookmarked = $derived(
+        DBState.db.characters[selIdState.selId]
+            ?.chats[DBState.db.characters[selIdState.selId].chatPage]
+            ?.bookmarks?.includes(DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]?.chatId) ?? false
+    );
+
+    async function toggleBookmark() {
+        const chat = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage];
+        const messageId = chat.message[idx]?.chatId;
+        const messageContent = chat.message[idx]?.data;
+
+        if (!messageId) return;
+
+        chat.bookmarks ??= [];
+        chat.bookmarkNames ??= {};
+
+        const bookmarkIndex = chat.bookmarks.indexOf(messageId);
+
+        if (bookmarkIndex > -1) {
+            chat.bookmarks.splice(bookmarkIndex, 1);
+            delete chat.bookmarkNames[messageId];
+        } else {
+            chat.bookmarks.push(messageId);
+
+            const msgSender = chat.message[idx]?.role === 'user' ? getUserName() : name;
+            const newName= await alertInput(language.bookmarkAskNameOrDefault);
+
+            if (newName && newName.trim() !== '') {
+                chat.bookmarkNames[messageId] = newName;
+            } else {
+                let defaultName;
+
+                // 첫 번째 방법으로, 메시지를 줄 단위로 분리한 뒤에 앞에 특수 문자가 없는 줄을 찾는다
+                const blacklist = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=', '[', ']', '{', '}', '|', ';', ':', '"', "'", ',', '.', '<', '>', '/', '?'];
+                let lines = messageContent.split('\n');
+                // 중반 내용을 사용함
+                lines = lines.splice(Math.floor(lines.length * 0.5));
+                for (const line of lines) {
+                    if (line && !blacklist.some(char => line.startsWith(char))) {
+                        defaultName = line.trim().slice(0, 50) + '...';
+                        break;
+                    }
+                }
+                if (!defaultName) {
+                    defaultName = messageContent.slice(0, 50) + '...';
+                }
+                chat.bookmarkNames[messageId] = msgSender + '| ' + defaultName;
+            }
+        }
+
+        // Svelte 5의 반응성을 위해 배열을 재할당합니다.
+        chat.bookmarks = [...chat.bookmarks];
     }
 </script>
 
@@ -529,7 +585,9 @@
                     <Volume2Icon size={20}/>
                 </button>
             {/if}
-
+            <button class="ml-2 hover:text-yellow-500 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={toggleBookmark}>
+                <BookmarkIcon size={20}/>
+            </button>
             {#if !$ConnectionOpenStore}
                 <button class={"ml-2 hover:text-blue-500 transition-colors button-icon-edit "+(editMode?'text-blue-400':'')} onclick={() => {
                     if(!editMode){
