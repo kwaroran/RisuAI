@@ -1642,6 +1642,8 @@ export interface Chat{
     hypaV3Data?:SerializableHypaV3Data
     folderId?:string
     lastDate?:number
+    bookmarks?: string[];
+    bookmarkNames?: { [chatId: string]: string };
 }
 
 export interface ChatFolder{

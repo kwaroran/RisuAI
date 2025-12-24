@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore, loadedStore, alertStore, LoadingStatusState } from './ts/stores.svelte';
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore, loadedStore, alertStore, LoadingStatusState, bookmarkListOpen } from './ts/stores.svelte';
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import { DBState } from './ts/stores.svelte';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
@@ -7,6 +7,7 @@
     import RealmPopUp from './lib/UI/Realm/RealmPopUp.svelte';
     import GridChars from './lib/Others/GridCatalog.svelte';
     import WelcomeRisu from './lib/Others/WelcomeRisu.svelte';
+    import BookmarkList from './lib/Others/BookmarkList.svelte';
     import Settings from './lib/Setting/Settings.svelte';
     import { showRealmInfoStore, importCharacterProcess } from './ts/characterCards';
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
@@ -170,6 +171,9 @@
     {/if}
     {#if $openPersonaList}
         <ListedPersona close={() => {$openPersonaList = false}} />
+    {/if}
+    {#if $bookmarkListOpen}
+        <BookmarkList />
     {/if}
     {#if $hypaV3ModalOpen}
         <HypaV3Modal />
