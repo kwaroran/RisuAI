@@ -378,59 +378,71 @@ async function renderHighlightableMarkdown(data:string) {
 
 export const assetRegex = /{{(raw|path|img|image|video|audio|bgm|bg|emotion|asset|video-img|source)::(.+?)}}/gms
 
-async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string[], ext?: string}}) {
-    console.log("getAssetSrc")
+function getAssetSrc(assetArr: string[][], assetPaths: AssetPaths) {
     for (const asset of assetArr) {
-        if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue
-        const assetPath = await getFileSrc(asset[1])
         const key = asset[0].toLocaleLowerCase()
         assetPaths[key] ??= {
-            path: [],
+            srcPaths: [],
             ext: asset[2]
         }
         if(assetPaths[key].ext === asset[2]){
-            assetPaths[key].path.push(assetPath)
+            assetPaths[key].srcPaths.push(asset[1])
         }
     }
 }
 
-async function getEmoSrc(emoArr: string[][], emoPaths: {[key: string]:{path: string}}) {
+function getEmoSrc(emoArr: string[][], emoPaths: AssetPaths) {
     for (const emo of emoArr) {
-        const emoPath = await getFileSrc(emo[1])
         emoPaths[emo[0].toLocaleLowerCase()] = {
-            path: emoPath,
+            srcPaths: [emo[1]]
         }
     }
 }
+
+const fileSrcCache = new Map<string, string>()
+async function getFileSrcCached(path:string){
+    let cached = fileSrcCache.get(path)
+    if(cached){
+        return cached
+    }
+    const src = await getFileSrc(path)
+    fileSrcCache.set(path, src)
+    return src
+}
+
+type AssetPaths = {[key:string]:{
+    srcPaths:string[]
+    ext?:string
+}}
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', arg:{ch:number}){
     const assetWidthString = (DBState.db.assetWidth && DBState.db.assetWidth !== -1 || DBState.db.assetWidth === 0) ? `max-width:${DBState.db.assetWidth}rem;` : ''
 
-    let assetPaths:{[key:string]:{
-        path:string[]
-        ext?:string
-    }} = {}
-    let emoPaths:{[key:string]:{
-        path:string
-    }} = {}
+    let assetPaths:AssetPaths = {}
+    let emoPaths:AssetPaths = {}
 
     if (char.emotionImages) await getEmoSrc(char.emotionImages, emoPaths)
 
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
 
+    const moduleAssets = getModuleAssets()
+
+    if (char.additionalAssets) {
+        getAssetSrc(char.additionalAssets, assetPaths)
+    }
+    if (moduleAssets.length > 0) {
+        getAssetSrc(moduleAssets, assetPaths)
+    }
+
+    let cx:number|null = null
+
     data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
         name = name.toLocaleLowerCase()
-        const moduleAssets = getModuleAssets()
-        if (char.additionalAssets) {
-            await getAssetSrc(char.additionalAssets, name, assetPaths)
-        }
-        if (moduleAssets.length > 0) {
-            await getAssetSrc(moduleAssets, name, assetPaths)
-        }
 
         if(type === 'emotion'){
-            const path = emoPaths[name]?.path
+            const srcPath = emoPaths[name]?.srcPaths?.[0]
+            const path = srcPath ? await getFileSrcCached(srcPath) : null
             if(!path){
                 return ''
             }
@@ -449,26 +461,32 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             }
         }
 
-        let path = assetPaths[name]
+        let match = assetPaths[name]
 
-        if(!path){
+        if(!match){
             if(DBState.db.legacyMediaFindings){
                 return ''
             }
 
-            path = await getClosestMatch(char, name, assetPaths)
+            match = getClosestMatch(char, name, assetPaths)
 
-            if(!path){
+            if(!match){
                 return ''
             }
         }
 
-        let p = path.path[0]
+        let pSrc = match.srcPaths[0]
 
-        if(path.path.length > 1){
-            console.log('Multiple assets found for', name, path.path, arg.ch)
-            p = path.path[Math.floor(arg.ch % p.length)]
+        if(match.srcPaths.length > 1){
+            if(cx === null){
+                const chatID = arg.ch
+                cx = pickHashRand(chatID, (char.chaId || 'global') + chatID)
+            }
+            const selIndex = Math.floor(cx * match.srcPaths.length)
+            pSrc = match.srcPaths[selIndex]
         }
+
+        const p = await getFileSrcCached(pSrc)
         switch(type){
             case 'raw':
             case 'path':
@@ -489,7 +507,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 }
                 break
             case 'asset':{
-                if(path.ext && videoExtention.includes(path.ext)){
+                if(match.ext && videoExtention.includes(match.ext)){
                     return `<video autoplay muted loop><source src="${p}" type="video/mp4"></video>\n`
                 }
                 return `<img src="${p}" alt="${p}" style="${assetWidthString} "/>\n`
@@ -515,7 +533,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     return data
 }
 
-async function getClosestMatch(char: simpleCharacterArgument|character, name:string, assetPaths:{[key:string]:{path:string[], ext?:string}}){   
+function getClosestMatch(char: simpleCharacterArgument|character, name:string, assetPaths:AssetPaths){   
     if(!char.additionalAssets) return null
 
     let closest = ''
@@ -539,9 +557,8 @@ async function getClosestMatch(char: simpleCharacterArgument|character, name:str
         return null
     }
 
-    const assetPath = await getFileSrc(targetPath)
     assetPaths[closest] = {
-        path: [assetPath],
+        srcPaths: [targetPath],
         ext: targetExt
     }
 

@@ -273,15 +273,27 @@ async function loginToSionywSPAVersion(){
     })
 
     
-    const dPoPKeyPair = await crypto.subtle.generateKey(
-        {
-            name: "ECDSA",
-            namedCurve: "P-256"
-        },
-        false,
-        ["sign", "verify"],
-    );
-
+    let dPoPKeyPair
+    
+    try {
+        dPoPKeyPair = await crypto.subtle.generateKey(
+            {
+                name: 'Ed25519',
+            },
+            false,
+            ["sign", "verify"],
+        );
+    } catch (error) {
+        console.warn("Ed25519 not supported, falling back to P-256 for DPoP keys")
+        dPoPKeyPair = await crypto.subtle.generateKey(
+            {
+                name: "ECDSA",
+                namedCurve: "P-256"
+            },
+            false,
+            ["sign", "verify"],
+        );
+    }
     const DPoP = client.getDPoPHandle(config, dPoPKeyPair)
 
     const registration = await a.json()
