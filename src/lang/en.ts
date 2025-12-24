@@ -184,7 +184,10 @@ export const languageEnglish = {
         dynamicResponseTiming: "When enabled, it will adjust the response timing dynamically.",
         dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
         showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
-        dynamicOutputPrompt: "When enabled, the schema information will be included in the request."
+        dynamicOutputPrompt: "When enabled, the schema information will be included in the request.",
+        openrouterProviderOrder: "The order of providers to use, the first provider will be used first, if the provider is not available, it will use the next provider. See datail on https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
+        openrouterProviderOnly: "Only use the providers in this list, if all the provider is not available, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
+        openrouterProviderIgnore: "Ignore the providers in this list, if all the provider is ingored, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -941,6 +944,9 @@ export const languageEnglish = {
     maxThoughtTagDepth: "Max Thought Tag Depth",
     openrouterFallback: "Openrouter Fallback",
     openrouterMiddleOut: "Openrouter Middle Out",
+    openrouterProviderOrder: "Ordering Specific Providers",
+    openrouterProviderOnly: "Allowing Only Specific Providers",
+    openrouterProviderIgnore: "Ignoring Providers",
     geminiApiKey: "Gemini API Key",
     removePunctuationHypa: "Memory Punctuation Removal",
     memoryLimitThickness: "Memory Limit Thickness",

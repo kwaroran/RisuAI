@@ -133,7 +133,10 @@ export const languageChineseTraditional = {
         "presetChain": "若欄位不為空，則每次使用者發送訊息時，系統會從此輸入中的預設列表中隨機變更並應用預設設定。預設列表應以逗號分隔，例如 `preset1,preset2`。",
         "legacyMediaFindings": "啟用後，將使用舊版方法尋找媒體資源，而不使用額外的搜尋演算法。",
         "comfyWorkflow": "請輸入 Comfy UI 的 API 工作流程。您可以在 Comfy UI 中點選「Workflow > Export (API)」按鈕以取得您的 API 工作流程。此外，您必須在工作流程文本中加入 {{risu_prompt}}，該佔位符將被 Risu 提供的提示詞替換。",
-        "APIPool": "啟用後，系統將連接到 RisuAI 的 API 資源池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分使用的金鑰，增加對速率受限模型的請求次數。"
+        "APIPool": "啟用後，系統將連接到 RisuAI 的 API 資源池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分使用的金鑰，增加對速率受限模型的請求次數。",
+        "openrouterProviderOrder": "提供商使用順序，優先使用第一個提供商，若該提供商不可用，將使用下一個。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
+        "openrouterProviderOnly": "僅使用此列表中的提供商，若所有提供商均不可用，請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
+        "openrouterProviderIgnore": "忽略此列表中的提供商,若所有提供商均被忽略,請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
     },
     "setup": {
         "chooseProvider": "選擇 AI 提供者",
@@ -586,6 +589,9 @@ export const languageChineseTraditional = {
     "maxThoughtTagDepth": "思維標記最大深度",
     "openrouterFallback": "Openrouter 回退",
     "openrouterMiddleOut": "Openrouter 中間輸出",
+    "openrouterProviderOrder": "提供商順序",
+    "openrouterProviderOnly": "只使用",
+    "openrouterProviderIgnore": "忽略",
     "geminiApiKey": "Gemini API 金鑰",
     "removePunctuationHypa": "移除記憶標記",
     "memoryLimitThickness": "記憶上限厚度",
