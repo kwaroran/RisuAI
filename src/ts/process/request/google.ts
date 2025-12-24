@@ -361,18 +361,25 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
         ]
         arg.useStreaming = false
     }
-    if(arg.imageResponse){
+    if(arg.imageResponse || arg.modelInfo.flags.includes(LLMFlags.hasImageOutput)){ 
         body.generation_config.responseModalities = [
             'TEXT', 'IMAGE'
         ]
         arg.useStreaming = false
     }    let headers:{[key:string]:string} = {}
 
+    if(db.gptVisionQuality === 'high'){
+        body.generation_config.mediaResolution = "MEDIA_RESOLUTION_MEDIUM"
+    }
+
     const PROJECT_ID = db.google.projectId
     const REGION = db.vertexRegion
     console.log(arg.modelInfo);
 
     async function generateToken(email:string,key:string){
+        if (!window.crypto || !window.crypto.subtle) {
+            throw new Error("Web Crypto API is not available in this environment. Please ensure you are using HTTPS.");
+        }
         // Input validation
         if (!email.includes("gserviceaccount.com")) {
             throw new Error("Invalid Vertex project id. Must include gserviceaccount.com");
@@ -471,6 +478,10 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     
     if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         if(db.vertexAccessTokenExpires < Date.now()){
+            if (!db.vertexClientEmail || !db.vertexPrivateKey) {
+                alertError(language.vertexAuthError || "Vertex AI authentication details are missing.");
+                return { type: 'fail', result: 'Vertex AI authentication details are missing.' };
+            }
             headers['Authorization'] = "Bearer " + await generateToken(db.vertexClientEmail, db.vertexPrivateKey)
         }
         else{
@@ -664,7 +675,9 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
                         await writeInlayImage(imgHTML, {
                             id: id
                         })
-                        rDatas[rDatas.length-1].text += (`\n{{inlayeddata::${id}}}\n`)
+                        rDatas.push({
+                            text: `{{inlayeddata::${id}}}`
+                        })
                     }
                     else{
                         const id = v4()
@@ -685,17 +698,19 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
 
     // traverse responded data if it contains multipart contents
     let parts:GeminiPart[] = []
-    if (typeof (res.data)[Symbol.iterator] === 'function') {
+    if(Array.isArray(res.data)){
         for(const data of res.data){
             const p = await processDataItem(data)
             parts = parts.concat(p)
         }
-    } else {
+    }
+    else{
         const p = await processDataItem(res.data)
         parts = parts.concat(p)
     }
+    parts = parts.filter((p) => p)
 
-    const calls = parts.filter((p) => !!p.functionCall).map((p) => p.functionCall as GeminiFunctionCall)
+    const calls = parts.filter((p) => !!p?.functionCall).map((p) => p?.functionCall as GeminiFunctionCall)
 
     // If there are function calls, handle calls and send next request
     if(calls.length > 0){

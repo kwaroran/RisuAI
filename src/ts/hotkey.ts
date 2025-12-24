@@ -10,11 +10,13 @@ import { getRequestLog } from "./globalApi.svelte"
 
 export function initHotkey(){
     document.addEventListener('keydown', async (ev) => {
+        console.log(document.activeElement)
         if(
             !ev.ctrlKey &&
             !ev.altKey &&
             !ev.shiftKey &&
-            ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)
+            (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) ||
+            document.activeElement.getAttribute('contenteditable'))
         ){
             return
         }

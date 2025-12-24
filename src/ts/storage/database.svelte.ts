@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "165.1.0"
+export let appVer = "166.3.3"
 export let webAppSubVer = ''
 
 
@@ -186,7 +186,7 @@ export function setDatabase(data:Database){
         data.NAIApiKey = ''
     }
     if(checkNullish(data.NAIImgModel)){
-        data.NAIImgModel = 'nai-diffusion-3'
+        data.NAIImgModel = 'nai-diffusion-4-5-full'
     }
     if(checkNullish(data.NAII2I)){
         data.NAII2I = false
@@ -230,6 +230,9 @@ export function setDatabase(data:Database){
     if(checkNullish(data.showMemoryLimit)){
         data.showMemoryLimit = false
     }
+    if(checkNullish(data.showFirstMessagePages)){
+        data.showFirstMessagePages = false
+    }
     if(checkNullish(data.supaMemoryKey)){
         data.supaMemoryKey = ""
     }
@@ -256,10 +259,10 @@ export function setDatabase(data:Database){
     }
     if(checkNullish(data.NAIImgConfig)){
         data.NAIImgConfig = {
-            width:512,
-            height:768,
-            sampler:"k_dpmpp_sde",
-            noise_schedule:"native",
+            width:1024,
+            height:1024,
+            sampler:"k_euler_ancestral",
+            noise_schedule:"karras",
             steps:28,
             scale:5,
             cfg_rescale: 0,
@@ -291,6 +294,10 @@ export function setDatabase(data:Database){
             },
             variety_plus: false,
             decrisp: false,
+            reference_mode: '',
+            character_image: '',
+            character_base64image: '',
+            style_aware: false,
         }
     }
     //add NAI v4 (사용중인 사람용 추가 DB Init)
@@ -450,7 +457,32 @@ export function setDatabase(data:Database){
     data.top_a ??= 0
     data.customTokenizer ??= 'tik'
     data.instructChatTemplate ??= "chatml"
-    data.openrouterProvider ??= ''
+    // Migration: convert old string type into new provider object
+    if (typeof data.openrouterProvider === 'string') {
+        const oldProvider = data.openrouterProvider as unknown as string;
+        data.openrouterProvider = {
+            order: oldProvider ? [oldProvider] : [],
+            only: [],
+            ignore: []
+        }
+    }
+    if (data.botPresets) {
+        for (const preset of data.botPresets) {
+            if (typeof preset.openrouterProvider === 'string') {
+                const oldProvider = preset.openrouterProvider as unknown as string;
+                preset.openrouterProvider = {
+                    order: oldProvider ? [oldProvider] : [],
+                    only: [],
+                    ignore: []
+                }
+            }
+        }
+    }
+    data.openrouterProvider ??= {
+        order: [],
+        only: [],
+        ignore: []
+    }
     data.useInstructPrompt ??= false
     data.hanuraiEnable ??= false
     data.hanuraiSplit ??= false
@@ -539,6 +571,7 @@ export function setDatabase(data:Database){
     data.hypaV3PresetId ??= 0
     data.showDeprecatedTriggerV2 ??= false
     data.returnCSSError ??= true
+    data.realmDirectOpen ??= false
     data.useExperimentalGoogleTranslator ??= false
     if(data.antiClaudeOverload){ //migration
         data.antiClaudeOverload = false
@@ -571,6 +604,10 @@ export function setDatabase(data:Database){
     data.rememberToolUsage ??= true
     data.simplifiedToolUse ??= false
     data.streamGeminiThoughts ??= false
+    data.ImagenModel ??= 'imagen-4.0-generate-001'
+    data.ImagenImageSize ??= '1K'
+    data.ImagenAspectRatio ??= '1:1'
+    data.ImagenPersonGeneration ??= 'allow_all'
     //@ts-ignore
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
@@ -636,6 +673,16 @@ export function setCurrentChat(chat:Chat){
     const char = getCurrentCharacter()
     char.chats[char.chatPage] = chat
     setCurrentCharacter(char)
+}
+
+export interface DynamicOutput {
+    autoAdjustSchema: boolean
+    dynamicMessages: boolean
+    dynamicMemory: boolean
+    dynamicResponseTiming: boolean
+    dynamicOutputPrompt: boolean
+    showTypingEffect: boolean
+    dynamicRequest: boolean
 }
 
 export interface Database{
@@ -893,7 +940,11 @@ export interface Database{
     customTokenizer:string
     instructChatTemplate:string
     JinjaTemplate:string
-    openrouterProvider:string
+    openrouterProvider: {
+        order: string[]
+        only: string[]
+        ignore: string[]
+    }
     useInstructPrompt:boolean
     hanuraiTokens:number
     hanuraiSplit:boolean
@@ -988,6 +1039,7 @@ export interface Database{
     hypaV3Settings: HypaV3Settings // legacy
     hypaV3Presets: HypaV3Preset[]
     hypaV3PresetId: number
+    realmDirectOpen:boolean
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number
@@ -1059,8 +1111,16 @@ export interface Database{
     simplifiedToolUse:boolean
     requestLocation:string
     newImageHandlingBeta?: boolean
-
+    showFirstMessagePages:boolean
     streamGeminiThoughts:boolean
+    verbosity:number
+    dynamicOutput?:DynamicOutput
+    hubServerType?:string
+    pluginCustomStorage:{[key:string]:any}
+    ImagenModel:string
+    ImagenImageSize:string
+    ImagenAspectRatio:string
+    ImagenPersonGeneration:string
 }
 
 interface SeparateParameters{
@@ -1075,6 +1135,7 @@ interface SeparateParameters{
     reasoning_effort?:number
     thinking_tokens?:number
     outputImageModal?:boolean
+    verbosity?:number
 }
 
 type OutputModal = 'image'|'audio'|'video'
@@ -1374,7 +1435,11 @@ export interface botPreset{
     repetition_penalty?:number
     min_p?:number
     top_a?:number
-    openrouterProvider?:string
+    openrouterProvider?: {
+        order: string[]
+        only: string[]
+        ignore: string[]
+    }
     useInstructPrompt?:boolean
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string
@@ -1422,6 +1487,8 @@ export interface botPreset{
         model: string[]
     }
     fallbackWhenBlankResponse?: boolean
+    verbosity:number
+    dynamicOutput?:DynamicOutput
 }
 
 
@@ -1481,6 +1548,11 @@ export interface NAIImgConfig{
     //add variety+ and decrisp options
     variety_plus:boolean,
     decrisp:boolean,
+    //add character reference
+    reference_mode:string,
+    character_image:string,
+    character_base64image:string,
+    style_aware:boolean,
 }
 
 //add 4
@@ -1568,6 +1640,8 @@ export interface Chat{
     hypaV3Data?:SerializableHypaV3Data
     folderId?:string
     lastDate?:number
+    bookmarks?: string[];
+    bookmarkNames?: { [chatId: string]: string };
 }
 
 export interface ChatFolder{
@@ -1735,6 +1809,7 @@ export const presetTemplate:botPreset = {
     },
     top_p: 1,
     useInstructPrompt: false,
+    verbosity: 1
 }
 
 const defaultSdData:[string,string][] = [
@@ -1754,7 +1829,7 @@ export const defaultSdDataFunc = () =>{
 export function saveCurrentPreset(){
     let db = getDatabase()
     let pres = db.botPresets
-    pres[db.botPresetsId] = {
+    const savedPreset:botPreset =  {
         name: pres[db.botPresetsId].name,
         apiType: db.apiType,
         openAIKey: db.openAIKey,
@@ -1827,6 +1902,19 @@ export function saveCurrentPreset(){
         modelTools: safeStructuredClone(db.modelTools),
         fallbackModels: safeStructuredClone(db.fallbackModels),
         fallbackWhenBlankResponse: db.fallbackWhenBlankResponse ?? false,
+        verbosity: db.verbosity ?? 1,
+        dynamicOutput: db.dynamicOutput ?? null
+    }
+    
+    if(!Array.isArray(pres)){
+        pres = []
+    }
+    //if out of bounds, create a new preset
+    if(db.botPresetsId >= pres.length){
+        pres.push(savedPreset)
+    }
+    else{
+        pres[db.botPresetsId] = savedPreset
     }
     db.botPresets = pres
     setDatabase(db)
@@ -1959,6 +2047,8 @@ export function setPreset(db:Database, newPres: botPreset){
         db.fallbackWhenBlankResponse = newPres.fallbackWhenBlankResponse ?? false
     }
     db.modelTools = safeStructuredClone(newPres.modelTools ?? [])
+    db.verbosity = newPres.verbosity ?? 1
+    db.dynamicOutput = newPres.dynamicOutput
 
     return db
 }
@@ -2184,6 +2274,9 @@ export async function importPreset(f:{
         return
     }
     pre.name ??= "Imported"
+    if(!Array.isArray(db.botPresets)){
+        db.botPresets = []
+    }
     db.botPresets.push(pre)
     setDatabase(db)
 }

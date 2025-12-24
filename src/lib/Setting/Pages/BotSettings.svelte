@@ -56,9 +56,23 @@
         }
     });
 
+    function clearVertexToken() {
+        DBState.db.vertexAccessToken = '';
+        DBState.db.vertexAccessTokenExpires = 0;
+        console.log('Vertex AI token cleared');
+    }
+
+    $effect(() => {
+        if (DBState.db.aiModel === 'openrouter' || DBState.db.subModel === 'openrouter') {
+            openrouterSearchQuery = ""
+        }
+    });
+
+
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
     let modelInfo = $derived(getModelInfo(DBState.db.aiModel))
     let subModelInfo = $derived(getModelInfo(DBState.db.subModel))
+    let openrouterSearchQuery = $state("")
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
@@ -100,14 +114,15 @@
     {/if}
     {#if modelInfo.provider === LLMProvider.VertexAI || subModelInfo.provider === LLMProvider.VertexAI}
         <span class="text-textcolor">Project ID</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.google.projectId}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.google.projectId} oninput={clearVertexToken}/>
         <span class="text-textcolor">Vertex Client Email</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.vertexClientEmail}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.vertexClientEmail} oninput={clearVertexToken}/>
         <span class="text-textcolor">Vertex Private Key</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey}/>
+        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey} oninput={clearVertexToken}/>
         <span class="text-textcolor">Region</span>
         <SelectInput value={DBState.db.vertexRegion} onchange={(e) => {
             DBState.db.vertexRegion = e.currentTarget.value
+            clearVertexToken()
         }}>
             <OptionInput value={'global'}>
                 global
@@ -159,6 +174,9 @@
             <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
                 OpenAI Compatible
             </OptionInput>
+            <OptionInput value={LLMFormat.OpenAIResponseAPI.toString()}>
+                OpenAI Response API
+            </OptionInput>
             <OptionInput value={LLMFormat.Anthropic.toString()}>
                 Anthropic Claude
             </OptionInput>
@@ -194,6 +212,13 @@
                 <OptionInput value="">Loading..</OptionInput>
             </SelectInput>
         {:then m}
+            {#if m && m.length > 0}
+                <TextInput 
+                    bind:value={openrouterSearchQuery} 
+                    placeholder="Search models..." 
+                    size="sm" 
+                />
+            {/if}
             <SelectInput className="mt-2 mb-4" bind:value={DBState.db.openrouterRequestModel}>
                 {#if (!m) || (m.length === 0)}
                     <OptionInput value="openai/gpt-3.5-turbo">GPT 3.5</OptionInput>
@@ -209,7 +234,12 @@
                 {:else}
                     <OptionInput value={"risu/free"}>Free Auto</OptionInput>
                     <OptionInput value={"openrouter/auto"}>Openrouter Auto</OptionInput>
-                    {#each m as model}
+                    {#each m.filter(model => {
+                        if (openrouterSearchQuery === "") return true;
+                        const searchTerms = openrouterSearchQuery.toLowerCase().trim().split(/\s+/);
+                        const modelText = (model.name + " " + model.id).toLowerCase();
+                        return searchTerms.every(term => modelText.includes(term));
+                    }) as model}
                         <OptionInput value={model.id}>{model.name}</OptionInput>
                     {/each}
                 {/if}
@@ -341,7 +371,11 @@
     {/if}
     {#if modelInfo.parameters.includes('reasoning_effort')}
         <span class="text-textcolor">Reasoning Effort</span>
-        <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.reasoningEffort} disableable/>
+        <SliderInput min={-1} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.reasoningEffort} disableable/>
+    {/if}
+    {#if modelInfo.parameters.includes('verbosity')}
+        <span class="text-textcolor">Verbosity</span>
+    <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.verbosity} disableable/>
     {/if}
     {#if DBState.db.aiModel === 'textgen_webui' || DBState.db.aiModel === 'mancer' || DBState.db.aiModel.startsWith('local_') || DBState.db.aiModel.startsWith('hf:::')}
         <span class="text-textcolor">Repetition Penalty</span>
@@ -513,6 +547,8 @@
                     <SliderInput min={0} max={200} marginBottom step={0.01} fixed={2} bind:value={DBState.db.seperateParameters[param].presence_penalty} disableable/>
                     <span class="text-textcolor">{language.thinkingTokens}</span>
                     <SliderInput min={0} max={64000} marginBottom step={200} fixed={0} bind:value={DBState.db.seperateParameters[param].thinking_tokens} disableable/>
+                    <span class="text-textcolor">Verbosity</span>
+                    <SliderInput min={0} max={2} marginBottom step={1} fixed={0} bind:value={DBState.db.seperateParameters[param].verbosity} disableable/>
                 </Arcodion>
             {/each}
 
@@ -709,6 +745,7 @@
             const canvas = document.createElement('canvas')
             const ctx = canvas.getContext('2d')
             const img = new Image()
+            //@ts-ignore, works fine, don't touch
             const blob = new Blob([sel.data], {type: "image/png"})
             img.src = URL.createObjectURL(blob)
             await img.decode()

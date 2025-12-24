@@ -3,7 +3,7 @@ import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentCharacter, 
 import { tokenize } from "../tokenizer";
 import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
-import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
+import { ReloadChatPointer, ReloadGUIPointer, selectedCharID, CurrentTriggerIdStore } from "../stores.svelte";
 import { processMultiCommand } from "./command";
 import { parseKeyValue, sleep } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
@@ -27,7 +27,7 @@ export interface triggerscript{
 export type triggerCondition = triggerConditionsVar|triggerConditionsExists|triggerConditionsChatIndex
 
 export type triggerEffect = triggerEffectV1|triggerCode|triggerEffectV2
-export type triggerEffectV1 = triggerEffectCutChat|triggerEffectModifyChat|triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger
+export type triggerEffectV1 = triggerEffectCutChat|triggerEffectModifyChat|triggerEffectImgGen|triggerEffectRegex|triggerEffectRunLLM|triggerEffectCheckSimilarity|triggerEffectSendAIprompt|triggerEffectShowAlert|triggerEffectSetvar|triggerEffectSystemPrompt|triggerEffectImpersonate|triggerEffectCommand|triggerEffectStop|triggerEffectRunTrigger|triggerEffectRunAxLLM
 export type triggerEffectV2 =   triggerV2Header|triggerV2IfVar|triggerV2Else|triggerV2EndIndent|triggerV2SetVar|triggerV2Loop|triggerV2BreakLoop|
                                 triggerV2RunTrigger|triggerV2ConsoleLog|triggerV2StopTrigger|triggerV2CutChat|triggerV2ModifyChat|triggerV2SystemPrompt|triggerV2Impersonate|
                                 triggerV2Command|triggerV2SendAIprompt|triggerV2ImgGen|triggerV2CheckSimilarity|triggerV2RunLLM|triggerV2ShowAlert|triggerV2ExtractRegex|
@@ -1039,6 +1039,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     additonalSysPrompt?: additonalSysPrompt
     stopSending?: boolean
     manualName?: string
+    triggerId?: string
     displayMode?: boolean
     displayData?: string
     tempVars?: Record<string, string>
@@ -1062,7 +1063,17 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
     const db = getDatabase()
     const defaultVariables = parseKeyValue(char.defaultVariables).concat(parseKeyValue(db.templateDefaultVariables))
     let chat = arg.displayMode ? arg.chat : safeStructuredClone(arg.chat ?? char.chats[char.chatPage])
+    
+    const previousTriggerId = get(CurrentTriggerIdStore)
+    const shouldSetTriggerId = !arg.displayMode && mode !== 'display'
+    if (shouldSetTriggerId) {
+        CurrentTriggerIdStore.set(arg.triggerId || null)
+    }
+    
     if((!triggers) || (triggers.length === 0)){
+        if (shouldSetTriggerId) {
+            CurrentTriggerIdStore.set(previousTriggerId)
+        }
         return null
     }
 
@@ -1097,11 +1108,24 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         if (!currentScope) {
             return
         }
-        if (!currentScope[indent]) {
-            currentScope[indent] = {}
-        }
+        
         const finalValue = (value === null || value === undefined) ? 'null' : value
-        currentScope[indent][key] = finalValue
+        
+        let foundIndent = -1
+        for (let i = indent; i >= 0; i--) {
+            if (currentScope[i] && currentScope[i][key] !== undefined) {
+                foundIndent = i
+                break
+            }
+        }
+        
+        const targetIndent = foundIndent !== -1 ? foundIndent : indent
+        
+        if (!currentScope[targetIndent]) {
+            currentScope[targetIndent] = {}
+        }
+        
+        currentScope[targetIndent][key] = finalValue
     }
     
     function declareLocalVar(key: string, value: string, indent: number) {
@@ -1154,6 +1178,13 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
             tempVars[key] = value
             return
         }
+        
+        const localVar = getLocalVar(key)
+        if(localVar !== null){
+            setLocalVar(key, value, currentIndent)
+            return
+        }
+        
         const selectedCharId = get(selectedCharID)
         const currentCharacter = getCurrentCharacter()
         const db = getDatabase()
@@ -1874,17 +1905,20 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2ExtractRegex':{
                     let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
-                    let regex = new RegExp(effect.regex, effect.flags)
+                    let regexValue = effect.regexType === 'value' ? risuChatParser(effect.regex,{chara:char}) : getVar(risuChatParser(effect.regex,{chara:char}))
+                    let flagsValue = effect.flagsType === 'value' ? risuChatParser(effect.flags,{chara:char}) : getVar(risuChatParser(effect.flags,{chara:char}))
+                    let regex = new RegExp(regexValue, flagsValue)
                     let regexResult = regex.exec(value)
+                    let resultValue = effect.resultType === 'value' ? risuChatParser(effect.result,{chara:char}) : getVar(risuChatParser(effect.result,{chara:char}))
                     
                     let result = ''
                     if (regexResult !== null) {
-                        result = effect.result.replace(/\$[0-9]+/g, (match) => {
+                        result = resultValue.replace(/\$[0-9]+/g, (match) => {
                             let index = Number(match.slice(1))
                             return regexResult[index] || ''
                         }).replace(/\$&/g, regexResult[0] || '').replace(/\$\$/g, '$')
                     } else {
-                        result = effect.result.replace(/\$[0-9]+/g, '').replace(/\$&/g, '').replace(/\$\$/g, '$')
+                        result = resultValue.replace(/\$[0-9]+/g, '').replace(/\$&/g, '').replace(/\$\$/g, '$')
                     }
 
                     setVar(risuChatParser(effect.outputVar, {chara:char}), result)
@@ -2058,7 +2092,9 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                 }
                 case 'v2GetPersonaDesc':{
                     const db = getDatabase()
-                    setVar(risuChatParser(effect.outputVar, {chara:char}), db.personas[db.selectedPersona]?.personaPrompt ?? '')
+                    const currentPersonaPrompt = db.personaPrompt ?? ''
+                    const savedPersonaPrompt = db.personas[db.selectedPersona]?.personaPrompt ?? ''
+                    setVar(risuChatParser(effect.outputVar, {chara:char}), currentPersonaPrompt || savedPersonaPrompt)
                     break
                 }
                 case 'v2SetPersonaDesc':{
@@ -2750,6 +2786,10 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
         ReloadGUIPointer.set(get(ReloadGUIPointer) + 1)
     }
 
+    if (shouldSetTriggerId && mode !== 'manual') {
+        CurrentTriggerIdStore.set(previousTriggerId)
+    }
+    
     return {additonalSysPrompt, chat, tokens:caculatedTokens, stopSending, sendAIprompt, displayData: arg.displayData, tempVars: arg.tempVars}
 
 }

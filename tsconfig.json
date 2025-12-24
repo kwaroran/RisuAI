@@ -3,7 +3,7 @@
     "target": "ES2023",
     "useDefineForClassFields": true,
     "module": "ES2022",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "baseUrl": ".",
     /**

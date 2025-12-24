@@ -3,19 +3,19 @@ import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
-import { alertSelect, alertError, alertInput, alertNormal } from "../alert";
+import { alertSelect, alertError, alertInput, alertNormal, alertConfirm } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
 import { generateAIImage } from "./stableDiff";
-import { writeInlayImage } from "./files/inlays";
-import type { OpenAIChat } from "./index.svelte";
+import { writeInlayImage, getInlayAsset } from "./files/inlays";
+import type { OpenAIChat, MultiModal } from "./index.svelte";
 import { requestChatData } from "./request/request";
 import { v4 } from "uuid";
 import { getModuleLorebooks, getModuleTriggers } from "./modules";
 import { Mutex } from "../mutex";
 import { tokenize } from "../tokenizer";
-import { fetchNative } from "../globalApi.svelte";
+import { fetchNative, readImage } from "../globalApi.svelte";
 import { loadLoreBookV3Prompt } from './lorebook.svelte';
-import { getPersonaPrompt, getUserName } from '../util';
+import { getPersonaPrompt, getUserName, getUserIcon } from '../util';
 let luaFactory:LuaFactory
 let ScriptingSafeIds = new Set<string>()
 let ScriptingEditDisplayIds = new Set<string>()
@@ -142,6 +142,12 @@ export async function runScripted(code:string, arg:{
                 }
                 return alertSelect(value)
             })
+            declareAPI('alertConfirm', (id:string, value:string) => {
+                if(!ScriptingSafeIds.has(id)){
+                    return
+                }
+                return alertConfirm(value).then(res => res ? true : false)
+            })
 
             declareAPI('getChatMain', (id:string, index:number) => {
                 const chat = ScriptingEngineState.chat.message.at(index)
@@ -221,6 +227,17 @@ export async function runScripted(code:string, arg:{
                     }
                 }))
                 return data
+            })
+
+            declareAPI('sleep', (id:string, time:number) => {
+                if(!ScriptingSafeIds.has(id)){
+                    return
+                }
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve(true)
+                    }, time)
+                })
             })
 
             declareAPI('cbs', (value) => {
@@ -355,11 +372,73 @@ export async function runScripted(code:string, arg:{
                 return `{{inlay::${inlay}}}`
             })
 
+            declareAPI('getCharacterImageMain', async (id:string) => {
+                try {
+                    const db = getDatabase()
+                    const selectedChar = get(selectedCharID)
+
+                    if (selectedChar < 0 || selectedChar >= db.characters.length) {
+                        return ''
+                    }
+
+                    const character = db.characters[selectedChar]
+                    
+                    if (!character || character.type === 'group' || !character.image) {
+                        return ''
+                    }
+                    
+                    const img = await readImage(character.image)
+                    const imgObj = new Image()
+                    const extention = character.image.split('.').at(-1)
+
+                    imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/${extention}`}))
+
+                    const imgid = await writeInlayImage(imgObj, { name: character.image, ext: extention, id: character.image})
+
+                    if (imgid) {
+                        return `{{inlayed::${imgid}}}`
+                    }
+                    console.warn('Failed to create character image inlay')
+                    return ''
+                } catch (error) {
+                    console.error('Error in getCharacterImageMain:', error)
+                    return ''
+                }
+            })
+
+            declareAPI('getPersonaImageMain', async (id:string) => {
+                try {
+                    const icon = getUserIcon()
+
+                    if(!icon) {
+                        return ''
+                    }
+
+                    const img = await readImage(icon)
+                    const imgObj = new Image()
+                    const extention = icon.split('.').at(-1)
+
+                    imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/${extention}`}))
+
+                    const imgid = await writeInlayImage(imgObj, { name: icon, ext: extention, id: icon})
+
+                    if (imgid) {
+                        return `{{inlayed::${imgid}}}`
+                    }
+                    
+                    console.warn('Failed to create character image inlay')
+                    return ''
+                } catch (error) {
+                    console.error('Error in getCharacterImageMain:', error)
+                    return ''
+                }
+            })
+
             declareAPI('hash', async (id:string, value:string) => {
                 return await hasher(new TextEncoder().encode(value))
             })
 
-            declareAPI('LLMMain', async (id:string, promptStr:string) => {
+            declareAPI('LLMMain', async (id:string, promptStr:string, useMultimodal: boolean = false) => {
                 let prompt:{
                     role: string,
                     content: string
@@ -390,6 +469,43 @@ export async function runScripted(code:string, arg:{
                         role: role,
                     }
                 })
+
+                if(useMultimodal) {
+                    for(const msg of promptbody) {
+                        const inlays:string[] = []
+                        msg.content = msg.content.replace(/{{(inlay|inlayed|inlayeddata)::(.+?)}}/g, (
+                            match: string,
+                            p1: string,
+                            p2: string
+                        ) => {
+                            if(msg.role === 'assistant') {
+                                if(p2 && p1 === 'inlayeddata') {
+                                    inlays.push(p2)
+                                }
+                            }
+                            else {
+                                if(p2) {
+                                    inlays.push(p2)
+                                }
+                            }
+                            return ''
+                        })
+                        
+                        const multimodals: MultiModal[] = []
+                        for(const inlay of inlays) {
+                            const inlayData = await getInlayAsset(inlay)
+                            multimodals.push({
+                                type: inlayData?.type,
+                                base64: inlayData?.data,
+                                width: inlayData?.width,
+                                height: inlayData?.height
+                            })
+                        }
+
+                        msg.multimodals = multimodals.length > 0 ? multimodals : undefined
+                    }
+                }
+
                 const result = await requestChatData({
                     formated: promptbody,
                     bias: {},
@@ -664,7 +780,7 @@ export async function runScripted(code:string, arg:{
                 return JSON.stringify(loreBooks)
             })
 
-            declareAPI('axLLMMain', async (id:string, promptStr:string) => {
+            declareAPI('axLLMMain', async (id:string, promptStr:string, useMultimodal: boolean = false) => {
                 let prompt:{
                     role: string,
                     content: string
@@ -695,6 +811,43 @@ export async function runScripted(code:string, arg:{
                         role: role,
                     }
                 })
+
+                if(useMultimodal) {
+                    for(const msg of promptbody) {
+                        const inlays:string[] = []
+                        msg.content = msg.content.replace(/{{(inlay|inlayed|inlayeddata)::(.+?)}}/g, (
+                            match: string,
+                            p1: string,
+                            p2: string
+                        ) => {
+                            if(msg.role === 'assistant') {
+                                if(p2 && p1 === 'inlayeddata') {
+                                    inlays.push(p2)
+                                }
+                            }
+                            else {
+                                if(p2) {
+                                    inlays.push(p2)
+                                }
+                            }
+                            return ''
+                        })
+                        
+                        const multimodals: MultiModal[] = []
+                        for(const inlay of inlays) {
+                            const inlayData = await getInlayAsset(inlay)
+                            multimodals.push({
+                                type: inlayData?.type,
+                                base64: inlayData?.data,
+                                width: inlayData?.width,
+                                height: inlayData?.height
+                            })
+                        }
+
+                        msg.multimodals = multimodals.length > 0 ? multimodals : undefined
+                    }
+                }
+
                 const result = await requestChatData({
                     formated: promptbody,
                     bias: {},
@@ -746,7 +899,7 @@ export async function runScripted(code:string, arg:{
             declareAPI('getUserLastMessage', (id: string) => {
                 const chat = ScriptingEngineState.chat
                 if (!chat) {
-                    return null
+                    return ''
                 }
 
                 let pointer = chat.message.length - 1
@@ -758,7 +911,7 @@ export async function runScripted(code:string, arg:{
                     pointer--
                 }
 
-                return null
+                return ''
             })
 
             declareAPI('getCharacterLastMessage', (id: string) => {
@@ -785,7 +938,7 @@ export async function runScripted(code:string, arg:{
             declareAPI('getUserLastMessage', (id: string) => {
                 const chat = ScriptingEngineState.chat
                 if (!chat) {
-                    return null
+                    return ''
                 }
 
                 let pointer = chat.message.length - 1
@@ -796,8 +949,7 @@ export async function runScripted(code:string, arg:{
                     }
                     pointer--
                 }
-
-                return null
+                return ''
             })
 
             console.log('Running Lua code:', code)
@@ -1020,12 +1172,22 @@ function loadLoreBooks(id)
     return json.decode(loadLoreBooksMain(id):await())
 end
 
-function LLM(id, prompt)
-    return json.decode(LLMMain(id, json.encode(prompt)):await())
+function LLM(id, prompt, useMultimodal)
+    useMultimodal = useMultimodal or false
+    return json.decode(LLMMain(id, json.encode(prompt), useMultimodal):await())
 end
 
-function axLLM(id, prompt)
-    return json.decode(axLLMMain(id, json.encode(prompt)):await())
+function axLLM(id, prompt, useMultimodal)
+    useMultimodal = useMultimodal or false
+    return json.decode(axLLMMain(id, json.encode(prompt), useMultimodal):await())
+end
+
+function getCharacterImage(id)
+    return getCharacterImageMain(id):await()
+end
+
+function getPersonaImage(id)
+    return getPersonaImageMain(id):await()
 end
 
 local editRequestFuncs = {}

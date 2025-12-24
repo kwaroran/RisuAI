@@ -2,23 +2,18 @@
     import { appVer, webAppSubVer } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import Hub from "./Realm/RealmMain.svelte";
-    import { OpenRealmStore } from "src/ts/stores.svelte";
+    import { OpenRealmStore, RealmInitialOpenChar } from "src/ts/stores.svelte";
     import { ArrowLeft } from "lucide-svelte";
-    import { isNodeServer, isTauri, openURL } from "src/ts/globalApi.svelte";
+    import { getVersionString, isNodeServer, isTauri, openURL } from "src/ts/globalApi.svelte";
     import { language } from "src/lang";
     import { getRisuHub, hubAdditionalHTML } from "src/ts/characterCards";
     import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
     import Title from "./Title.svelte";
-
 </script>
 <div class="h-full w-full flex flex-col overflow-y-auto items-center">
     {#if !$OpenRealmStore}
       <Title />
-      {#if (!isTauri) && (!isNodeServer)}
-        <h3 class="text-textcolor2 mt-1">Version {appVer}{webAppSubVer}</h3>
-      {:else}
-        <h3 class="text-textcolor2 mt-1">Version {appVer}</h3>
-      {/if}
+      <h3 class="text-textcolor2 mt-1">Version {getVersionString()}</h3>
     {/if}
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !$OpenRealmStore}
@@ -37,7 +32,12 @@
               {@html hubAdditionalHTML}
               <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
                   {#each charas as chara}
-                      <RisuHubIcon onClick={() => {$OpenRealmStore = true}} chara={chara} />
+                      <RisuHubIcon onClick={() => {
+                        $OpenRealmStore = true
+                        if(DBState.db.realmDirectOpen){
+                            $RealmInitialOpenChar = chara
+                        }
+                      }} chara={chara} />
                   {/each}
               </div>
             {:else}

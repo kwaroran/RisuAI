@@ -19,7 +19,7 @@
     import { stopTTS } from "src/ts/process/tts";
     import MainMenu from '../UI/MainMenu.svelte';
     import AssetInput from './AssetInput.svelte';
-    import { downloadFile } from 'src/ts/globalApi.svelte';
+    import { aiLawApplies, downloadFile } from 'src/ts/globalApi.svelte';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
     import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
@@ -230,7 +230,7 @@
             }
         } catch (error) {
             console.error(error)
-            alertError(`${error}`)
+            alertError(error)
         }
         lastCharId = $selectedCharID
         $doingChat = false
@@ -421,6 +421,9 @@
         }
     }
 </script>
+
+
+
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="w-full h-full" style={customStyle} onclick={() => {
@@ -452,7 +455,7 @@
                 {/if}
 
                 {#if !DBState.db.useAdvancedEditor}
-                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
+                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full placeholder:text-sm"
                           bind:value={messageInput}
                           bind:this={inputEle}
                           onkeydown={(e) => {
@@ -665,6 +668,7 @@
                 currentCharacter={currentCharacter}
                 currentUsername={currentUsername}
                 userIcon={userIcon}
+                userIconPortrait={userIconPortrait}
             />
 
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
@@ -707,8 +711,15 @@
                             DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = chat
                         }}
                         isLastMemory={false}
+                        currentPage={(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].fmIndex ?? -1) + 2}
+                        totalPages={DBState.db.characters[$selectedCharID].alternateGreetings.length + 1}
 
                     />
+                    {#if (aiLawApplies() && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length === 0)}
+                        <div class="w-full flex justify-center text-textcolor2 italic m-2 max-w-full text-wrap">
+                            {language.aiGenerationWarning}
+                        </div>
+                    {/if}
                     {#if !DBState.db.characters[$selectedCharID].removedQuotes && DBState.db.characters[$selectedCharID].creatorNotes.length >= 2}
                         <CreatorQuote quote={DBState.db.characters[$selectedCharID].creatorNotes} onRemove={() => {
                             const cha = DBState.db.characters[$selectedCharID]

@@ -103,7 +103,7 @@
 <span class="text-textcolor">{language.assetMaxDifference}</span>
 <NumberInput marginBottom={true} size={"sm"} bind:value={DBState.db.assetMaxDifference}/>
 
-<span class="text-textcolor mt-4">GPT Vision Quality <Help key="gptVisionQuality"/></span>
+<span class="text-textcolor mt-4">Vision Quality <Help key="gptVisionQuality"/></span>
 <SelectInput bind:value={DBState.db.gptVisionQuality}>
     <OptionInput value="low">Low</OptionInput>
     <OptionInput value="high">High</OptionInput>
@@ -226,6 +226,11 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.checkCorruption} name={language.checkCorruption}>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.realmDirectOpen} name={language.realmDirectOpen}>
+        <Help key="realmDirectOpen"/>
     </Check>
 </div>
 <div class="flex items-center mt-4">

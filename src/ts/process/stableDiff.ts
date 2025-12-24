@@ -184,6 +184,11 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "prefer_brownian": true,
                     "deliberate_euler_ancestral_bug": false,
                     "skip_cfg_above_sigma": null,
+                    //add character reference
+                    "director_reference_images": [],
+                    "director_reference_descriptions": [],
+                    "director_reference_information_extracted": [],
+                    "director_reference_strength_values": [],
                 }
             },
             headers:{
@@ -204,7 +209,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
 
         // Add vibe reference_image_multiple if exists
-        if(db.NAIImgConfig.vibe_data) {
+        if(db.NAIImgConfig.reference_mode === 'vibe' && db.NAIImgConfig.vibe_data) {
             const vibeData = db.NAIImgConfig.vibe_data;
             // Determine which model to use based on vibe_model_selection or fallback to current model
             const modelKey = db.NAIImgConfig.vibe_model_selection || 
@@ -243,6 +248,74 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             }
         }
 
+        if(db.NAIImgConfig.reference_mode === 'character' &&
+            (db.NAIImgModel.includes('nai-diffusion-4-5-full') || db.NAIImgModel.includes('nai-diffusion-4-5-curated'))
+        ) {
+            let base64img = ''
+            if(!db.NAIImgConfig.character_image || db.NAIImgConfig.character_image === ''){
+                const charimg = currentChar.image;
+                const img = await readImage(charimg)
+                if (img) {
+                    base64img = Buffer.from(img).toString('base64')
+                }
+            }   
+            else{
+                base64img = db.NAIImgConfig.character_base64image;
+            }
+            
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const imageObj = new Image();
+                
+                await new Promise<void>((resolve) => {
+                    imageObj.onload = () => resolve();
+                    imageObj.src = `data:image/png;base64,${base64img}`;
+                });
+                
+                canvas.width = 1472;
+                canvas.height = 1472;
+                
+                const scale = Math.min(1472 / imageObj.width, 1472 / imageObj.height);
+                const scaledWidth = Math.floor(imageObj.width * scale);
+                const scaledHeight = Math.floor(imageObj.height * scale);
+                
+                const x = (1472 - scaledWidth) / 2;
+                const y = (1472 - scaledHeight) / 2;
+                
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, 1472, 1472);
+                
+                ctx.drawImage(imageObj, x, y, scaledWidth, scaledHeight);
+                
+                const blob = await new Promise<Blob>((resolve) => {
+                    canvas.toBlob(resolve, 'image/png');
+                });
+                
+                if (blob) {
+                    const arrayBuffer = await blob.arrayBuffer();
+                    base64img = Buffer.from(arrayBuffer).toString('base64');
+                }
+            } catch (error) {
+                console.warn('Image resize failed, using original:', error);
+            }
+            
+            if(base64img){
+                commonReq.body.parameters.director_reference_descriptions = [
+                    {
+                        caption: {
+                            base_caption: "character" + (db.NAIImgConfig.style_aware ? "&style" : ""),
+                            char_captions: []
+                        },
+                        legacy_uc: db.NAIImgConfig.legacy_uc,
+                    }
+                ]
+                commonReq.body.parameters.director_reference_images = [base64img]
+                commonReq.body.parameters.director_reference_information_extracted = [1]
+                commonReq.body.parameters.director_reference_strength_values = [1]
+            }
+        }
+
         if(db.NAII2I){
             let seed = random(0, 1000000000);
 
@@ -251,17 +324,21 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                 const charimg = currentChar.image;
 
                 const img = await readImage(charimg)
-                base64img = Buffer.from(img).toString('base64')
-            }   else{
+                if (img) {
+                    base64img = Buffer.from(img).toString('base64')
+                }
+            }   
+            else{
                 base64img = db.NAIImgConfig.base64image;
             }
             
-
-            reqlist = commonReq;
-            reqlist.body.action = "img2img";
-            reqlist.body.parameters.image = base64img;
-            reqlist.body.parameters.strength = db.NAIImgConfig.strength || 0.7;
-            reqlist.body.parameters.noise = db.NAIImgConfig.noise || 0;
+            if(base64img) {
+                reqlist = commonReq;
+                reqlist.body.action = "img2img";
+                reqlist.body.parameters.image = base64img;
+                reqlist.body.parameters.strength = db.NAIImgConfig.strength || 0.7;
+                reqlist.body.parameters.noise = db.NAIImgConfig.noise || 0;
+            }
             
             console.log({img2img:reqlist});
         }else{
@@ -593,6 +670,55 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             charemotions[currentChar.chaId] = emos
             CharEmotion.set(charemotions)
         }
+    }
+    if(db.sdProvider === 'Imagen') {
+        const model = db.ImagenModel
+        const size = db.ImagenImageSize
+        const aspect = db.ImagenAspectRatio
+        const person = db.ImagenPersonGeneration
+
+        let body:any = {
+            instances: [{
+                prompt: genPrompt
+            }],
+            parameters: {
+                sampleCount: 1,
+                aspectRatio: aspect,
+                personGeneration: person,
+            }
+        }
+
+        if(model === 'imagen-4.0-generate-001' || model === 'imagen-4.0-ultra-generate-001') {
+            body.parameters = {
+                ...body.parameters,
+                sampleImageSize: size
+            }
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:predict?key=${db.google.accessToken}`
+
+        const res = await globalFetch(url, {
+            headers: {
+                "Content-Type": "application/json"
+            },
+            method: 'POST',
+            body: body,
+        })
+
+        if(!res.ok) {
+            alertError(JSON.stringify(res.data))
+            return false
+        }
+
+        const img64 = res.data?.predictions?.[0]?.bytesBase64Encoded
+
+        if(!img64) {
+            alertError(JSON.stringify(res.data))
+            return false
+        }
+        
+        const mimeType = res.data?.predictions?.[0]?.mimeType || 'image/png'
+        return `data:${mimeType};base64,${img64}`
     }
     return ''
 }

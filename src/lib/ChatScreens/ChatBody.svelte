@@ -3,7 +3,7 @@
     import { DBState } from 'src/ts/stores.svelte'
     import { sleep } from "src/ts/util"
     import { alertError } from "../../ts/alert"
-    import { getDistance, ParseMarkdown, postTranslationParse, trimMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
+    import { addMetadataToElement, getDistance, ParseMarkdown, postTranslationParse, trimMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
     import { getLLMCache, translateHTML } from "../../ts/translator/translator"
     import { getModuleAssets } from "src/ts/process/modules";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
@@ -20,6 +20,7 @@
         translating: boolean
         retranslate: boolean
         bodyRoot?: HTMLElement|null
+        modelShortName: string
     }
 
     let {
@@ -31,7 +32,8 @@
         translated = $bindable(false),
         translating = $bindable(false),
         retranslate = $bindable(false),
-        bodyRoot
+        bodyRoot,
+        modelShortName = '',
     }: Props =  $props()
 
     // svelte-ignore non_reactive_update
@@ -250,7 +252,7 @@
 </script>
 
 {#await markParsingResult}
-    {@html trimMarkdown(lastParsed)}
+    {@html addMetadataToElement(trimMarkdown(lastParsed), modelShortName)}
 {:then md}
-    {@html trimMarkdown(md)}
+    {@html addMetadataToElement(trimMarkdown(md), modelShortName)}
 {/await}

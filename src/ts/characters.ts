@@ -3,9 +3,9 @@ import { saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, t
 import { alertAddCharacter, alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
 import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v4 } from 'uuid';
 import { MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores.svelte";
-import { AppendableBuffer, checkCharOrder, downloadFile, getFileSrc } from "./globalApi.svelte";
+import { AppendableBuffer, checkCharOrder, downloadFile, getFileSrc, requiresFullEncoderReload } from "./globalApi.svelte";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { checkImageType, parseMarkdownSafe } from "./parser.svelte";
 import { translateHTML } from "./translator/translator";
@@ -221,7 +221,7 @@ export async function exportChat(page:number){
         if(mode === '0'){
             let folders = []
             if(chat.folderId) {
-                folders = db.characters[selectedID].chatFolders.filter(f => f.id === chat.folderId)
+                folders = db.characters[selectedID].chatFolders?.filter(f => f.id === chat.folderId)
             }
             const stringl = Buffer.from(JSON.stringify({
                 type: 'risuChat',
@@ -365,7 +365,7 @@ export async function exportChat(page:number){
         }
         alertNormal(language.successExport)
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -385,7 +385,8 @@ export async function importChat(){
                 note: "",
                 name: "Imported Chat",
                 localLore: [],
-                fmIndex: -1
+                fmIndex: -1,
+                id: v4()
             }
 
             let isFirst = true
@@ -427,7 +428,7 @@ export async function importChat(){
                 let db = getDatabase()
                 let folderIdMap = {}
                 folders.forEach(folder => {
-                    if(db.characters[selectedID].chatFolders.some(f => f.id === folder.id)){
+                    if(db.characters[selectedID].chatFolders?.some(f => f.id === folder.id)){
                         const newId = uuidv4()
                         folderIdMap[folder.id] = newId
                         folder.id = newId
@@ -435,11 +436,15 @@ export async function importChat(){
                         folderIdMap[folder.id] = folder.id
                     }
                 })
+                if(db.characters[selectedID].chatFolders === undefined){
+                    db.characters[selectedID].chatFolders = []
+                }
                 db.characters[selectedID].chatFolders.push(...folders)
                 chats.forEach(chat => {
                     if(chat.folderId && folderIdMap[chat.folderId]){
                         chat.folderId = folderIdMap[chat.folderId]
                     }
+                    chat.id = v4()
                 })
                 db.characters[selectedID].chats.unshift(...chats)
                 setDatabase(db)
@@ -449,7 +454,16 @@ export async function importChat(){
             if(json.type === 'risuAllChats' && json.ver === 1){
                 const chats = json.data
                 if(Array.isArray(chats) && chats.length > 0){
-                    db.characters[selectedID].chats.unshift(...chats)
+                    db.characters[selectedID].chats.unshift(...(chats.map((v) => {
+                        if(!v.id){
+                            v.id = uuidv4()
+                        }
+                        if(!v.localLore){
+                            v.localLore = []
+                        }
+                        v.fmIndex ??= -1
+                        return v
+                    })))
                     setDatabase(db)
                     alertNormal(language.successImport)
                     return
@@ -462,6 +476,7 @@ export async function importChat(){
                 const das:Chat = json.data
                 if(!(checkNullish(das.message) || checkNullish(das.note) || checkNullish(das.name) || checkNullish(das.localLore))){
                     das.fmIndex ??= -1
+                    das.id = v4()
                     db.characters[selectedID].chats.unshift(das)
                     setDatabase(db)
                     alertNormal(language.successImport)
@@ -491,7 +506,7 @@ export async function importChat(){
             }
         }
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -512,7 +527,7 @@ export async function exportAllChats() {
         await downloadFile(`${char.name}_all_chats_${date}`.replace(/[<>:"/\\|?*.,]/g, "") + '.json', stringl)
         alertNormal(language.successExport)
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -618,10 +633,16 @@ export function characterFormatUpdate(indexOrCharacter:number|character, arg:{
     if(typeof(indexOrCharacter) === 'number'){
         setCharacterByIndex(indexOrCharacter, cha)
     }
-    cha.chats = cha.chats.map((v) => {
-        v.fmIndex ??= cha.firstMsgIndex ?? -1
-        return v
-    })
+    for(let i = 0; i < cha.chats.length; i++){
+        const chat = cha.chats[i]
+        chat.fmIndex ??= cha.firstMsgIndex ?? -1
+        if(!chat.id){
+            chat.id = uuidv4()
+        }
+        if(!chat.localLore){
+            chat.localLore = []
+        }
+    }
     return cha
 }
 
@@ -774,7 +795,7 @@ export async function makeGroupImage() {
             msg: ''
         })
     } catch (error) {
-        alertError(`${error}`)
+        alertError(error)
     }
 }
 
@@ -808,6 +829,7 @@ export async function removeChar(index:number,name:string, type:'normal'|'perman
     }
     checkCharOrder()
     db.characters = chars
+    requiresFullEncoderReload.state = true
     setDatabase(db)
     selectedCharID.set(-1)
 }

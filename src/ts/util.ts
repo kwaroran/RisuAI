@@ -1200,3 +1200,12 @@ try to put at least 1 image per output.
 Example: <img src="{{ele::{{chardisplayasset}}::0}}">
 <Image Tag Instruction>
 `
+
+export const jsonOutputTrimmer = (data:string) => {
+    
+    data = data.replace(/<Thoughts>(.+?)<\/Thoughts>/gms, '').trim()
+    if(data.startsWith('```json') && data.endsWith('```')){
+        data = data.slice(7, -3).trim()
+    }
+    return data.trim()
+}

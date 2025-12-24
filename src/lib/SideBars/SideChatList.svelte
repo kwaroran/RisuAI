@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from "svelte";
     import { v4 } from "uuid";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
-    import { DownloadIcon, PencilIcon, HardDriveUploadIcon, MenuIcon, TrashIcon, GitBranchIcon, SplitIcon, FolderPlusIcon } from "lucide-svelte";
+    import { DownloadIcon, PencilIcon, HardDriveUploadIcon, MenuIcon, TrashIcon, GitBranchIcon, SplitIcon, FolderPlusIcon, BookmarkCheckIcon } from "lucide-svelte";
 
     import type { Chat, ChatFolder, character, groupChat } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
@@ -18,6 +18,7 @@
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getModuleToggles } from "src/ts/process/modules";
+    import { bookmarkListOpen } from "src/ts/stores.svelte";
     import { language } from "src/lang";
   import Toggles from "./Toggles.svelte";
 
@@ -141,7 +142,7 @@
         const len = chara.chats.length
         let chats = chara.chats
         chats.unshift({
-            message:[], note:'', name:`New Chat ${len + 1}`, localLore:[], fmIndex: -1
+            message:[], note:'', name:`New Chat ${len + 1}`, localLore:[], fmIndex: -1, id: v4()
         })
         if(cha.type === 'group'){
             cha.characters.map((c) => {
@@ -266,6 +267,7 @@
                                     case 0:{
                                         const newChat = safeStructuredClone($state.snapshot(chara.chats[chara.chats.indexOf(chat)]))
                                         newChat.name = `Copy of ${newChat.name}`
+                                        newChat.id = v4()
                                         chara.chats.unshift(newChat)
                                         chara.chatPage = 0
                                         chara.chats = chara.chats
@@ -376,6 +378,7 @@
                             case 0:{
                                 const newChat = safeStructuredClone($state.snapshot(chara.chats[i]))
                                 newChat.name = `Copy of ${newChat.name}`
+                                newChat.id = v4()
                                 chara.chats.unshift(newChat)
                                 chara.chatPage = 0
                                 chara.chats = chara.chats
@@ -476,13 +479,18 @@
             }}>
                 <PencilIcon size={18}/>
             </button>
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 alertStore.set({
                   type: "branches",
                   msg: ""
                 })
             }}>
                 <SplitIcon size={18}/>
+            </button>
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
+                $bookmarkListOpen = true;
+            }}>
+                <BookmarkCheckIcon size={18}/>
             </button>
             <button class="ml-auto text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 if (!chara.chatFolders) {

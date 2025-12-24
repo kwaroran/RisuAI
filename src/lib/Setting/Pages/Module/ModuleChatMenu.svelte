@@ -82,8 +82,8 @@
                             {:else}
                                 <button class={(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].modules.includes(rmodule.id)) ?
                                         "mr-2 cursor-pointer text-blue-500" :
-                                        (DBState.db.characters[$selectedCharID].modules.includes(rmodule.id)) ?
-                                        "text-textcolor2 hover:text-violet-500 mr-2 cursor-pointer" :
+                                        (DBState.db.characters[$selectedCharID]?.modules?.includes(rmodule.id)) ?
+                                        "mr-2 cursor-pointer text-violet-500" :
                                         "text-textcolor2 hover:text-blue-400 mr-2 cursor-pointer"
                                 } onclick={async (e) => {
                                     e.stopPropagation()

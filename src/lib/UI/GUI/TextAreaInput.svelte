@@ -82,13 +82,6 @@
         oninput={(e) => {
             autoComplete()
         }}
-        onpaste={(e) => {
-            e.preventDefault()
-            const text = e.clipboardData.getData('text/plain')
-            if(text){
-                insertTextAtSelection(text)
-            }
-        }}
         onchange={(e) => {
             onchange()
         }}
@@ -273,7 +266,7 @@
                     return
             }
         }
-        if(e.key === 'Enter' && isFirefox){
+        if(e.key === 'Enter'){
             e.stopPropagation()
             e.preventDefault()
             insertTextAtSelection('\n')

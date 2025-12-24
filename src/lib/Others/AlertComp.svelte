@@ -8,7 +8,7 @@
     import { ChevronRightIcon, User } from 'lucide-svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
-    import { openURL } from 'src/ts/globalApi.svelte';
+    import { aiLawApplies, openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
     import { XIcon } from "lucide-svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
@@ -24,6 +24,8 @@
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
 
+    let showDetails = $state(false);
+
     let btn
     let input = $state('')
     let cardExportType = $state('realm')
@@ -36,6 +38,7 @@
         content:string,
     } = $state(null)
     $effect.pre(() => {
+        showDetails = false;
         if(btn){
             btn.focus()
         }
@@ -62,7 +65,7 @@
 </script>
 
 <svelte:window onmessage={async (e) => {
-    if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1") || e.origin === window.location.origin){
+    if(e.origin.startsWith("https://sv.risuai.xyz") || e.origin.startsWith("https://nightly.sv.risuai.xyz") || e.origin.startsWith("http://127.0.0.1") || e.origin === window.location.origin){
         if(e.data.msg?.data?.vaild && $alertStore.type === 'login'){
             $alertStore = {
                 type: 'none',
@@ -79,6 +82,8 @@
                 <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
             {:else if $alertStore.type === 'ask'}
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Confirm</h2>
+            {:else if $alertStore.type === 'pluginconfirm'}
+                <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Plugin Import</h2>
             {:else if $alertStore.type === 'selectChar'}
                 <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">Select</h2>
             {:else if $alertStore.type === 'input'}
@@ -98,10 +103,44 @@
                 <div class="text-textcolor">You should accept <a role="button" tabindex="0" class="text-green-600 hover:text-green-500 transition-colors duration-200 cursor-pointer" onclick={() => {
                     openURL('https://sv.risuai.xyz/hub/tos')
                 }}>Terms of Service</a> to continue</div>
+            {:else if $alertStore.type === 'pluginconfirm'}
+                {@const parts = $alertStore.msg.split('\n\n')}
+                {@const mainPart = parts[0]}
+                {@const confirmMessage = parts[1]}
+                {@const mainParts = mainPart.split('\n')}
+                {@const pluginName = mainParts[0]}
+                {@const warnings = mainParts.slice(1)}
+                <div class="plugin-confirm-content">
+                    <p class="plugin-name">{pluginName}</p>
+                    {#if warnings.length > 0}
+                        <ul class="warnings-list">
+                            {#each warnings as warning}
+                                <li class="warning-item">{warning}</li>
+                            {/each}
+                        </ul>
+                    {/if}
+                    <p class="confirm-message">{confirmMessage}</p>
+                </div>
             {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
-                <span class="text-gray-300">{$alertStore.msg}</span>
+                <span class="text-gray-300 whitespace-pre-wrap">{$alertStore.msg}</span>
                 {#if $alertStore.submsg && $alertStore.type !== 'progress'}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
+                {/if}
+
+                {#if $alertStore.type === 'error' && $alertStore.stackTrace}
+                    <div class="mt-4">
+                        <Button styled="outlined" size="sm" onclick={() => showDetails = !showDetails}>
+                            {showDetails ? language.hideErrorDetails : language.showErrorDetails}
+                            {#if showDetails}
+                                <XIcon class="inline ml-2" />
+                            {:else}
+                                <ChevronRightIcon class="inline ml-2" />
+                            {/if}
+                        </Button>
+                        {#if showDetails}
+                            <pre class="stack-trace">{@html $alertStore.stackTrace}</pre>
+                        {/if}
+                    </div>
                 {/if}
             {/if}
             {#if $alertStore.type === 'progress'}
@@ -113,7 +152,7 @@
                 </div>
             {/if}
 
-            {#if $alertStore.type === 'ask'}
+            {#if $alertStore.type === 'ask' || $alertStore.type === 'pluginconfirm'}
                 <div class="flex gap-2 w-full">
                     <Button className="mt-4 flex-grow" onclick={() => {
                         alertStore.set({
@@ -229,6 +268,11 @@
                     {/each}
                 </div>
             {:else if $alertStore.type === 'requestdata'}
+                {#if aiLawApplies()}
+                <div>
+                    {language.generatedByAIDisclaimer}
+                </div>
+                {/if}
                 <div class="flex flex-wrap gap-2">
                     <Button selected={generationInfoMenuIndex === 0} size="sm" onclick={() => {generationInfoMenuIndex = 0}}>
                         {language.tokens}
@@ -720,6 +764,26 @@
 {/if}
 
 <style>
+    .plugin-confirm-content .plugin-name {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: white;
+    }
+    .plugin-confirm-content .warnings-list {
+        list-style-type: disc;
+        list-style-position: inside;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        padding-left: 1rem;
+        color: #f87171; /* red-400 */
+    }
+    .plugin-confirm-content .warning-item {
+        margin-bottom: 0.25rem;
+    }
+    .plugin-confirm-content .confirm-message {
+        margin-top: 1rem;
+        color: #d1d5db; /* gray-300 */
+    }
     .break-any{
         word-break: normal;
         overflow-wrap: anywhere;
@@ -743,5 +807,20 @@
     .vis{
         opacity: 1 !important;
         --tw-bg-opacity: 1 !important;
+    }
+
+    .stack-trace {
+        background-color: var(--risu-theme-bgcolor);
+        color: var(--risu-theme-textcolor2);
+        border: 1px solid var(--risu-theme-darkborderc);
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        font-family: monospace;
+        font-size: 0.75rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 200px;
+        overflow-y: auto;
     }
 </style>
