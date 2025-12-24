@@ -457,7 +457,32 @@ export function setDatabase(data:Database){
     data.top_a ??= 0
     data.customTokenizer ??= 'tik'
     data.instructChatTemplate ??= "chatml"
-    data.openrouterProvider ??= ''
+    // Migration: convert old string type into new provider object
+    if (typeof data.openrouterProvider === 'string') {
+        const oldProvider = data.openrouterProvider as unknown as string;
+        data.openrouterProvider = {
+            order: oldProvider ? [oldProvider] : [],
+            only: [],
+            ignore: []
+        }
+    }
+    if (data.botPresets) {
+        for (const preset of data.botPresets) {
+            if (typeof preset.openrouterProvider === 'string') {
+                const oldProvider = preset.openrouterProvider as unknown as string;
+                preset.openrouterProvider = {
+                    order: oldProvider ? [oldProvider] : [],
+                    only: [],
+                    ignore: []
+                }
+            }
+        }
+    }
+    data.openrouterProvider ??= {
+        order: [],
+        only: [],
+        ignore: []
+    }
     data.useInstructPrompt ??= false
     data.hanuraiEnable ??= false
     data.hanuraiSplit ??= false
@@ -915,7 +940,11 @@ export interface Database{
     customTokenizer:string
     instructChatTemplate:string
     JinjaTemplate:string
-    openrouterProvider:string
+    openrouterProvider: {
+        order: string[]
+        only: string[]
+        ignore: string[]
+    }
     useInstructPrompt:boolean
     hanuraiTokens:number
     hanuraiSplit:boolean
@@ -1406,7 +1435,11 @@ export interface botPreset{
     repetition_penalty?:number
     min_p?:number
     top_a?:number
-    openrouterProvider?:string
+    openrouterProvider?: {
+        order: string[]
+        only: string[]
+        ignore: string[]
+    }
     useInstructPrompt?:boolean
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string

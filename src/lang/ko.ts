@@ -131,6 +131,9 @@ export const languageKorean = {
         "v2RegexTest": "정규표현식에 매칭이 되면 1, 매칭이 되지 않으면 0을 출력합니다.",
         "v2Calculate": "기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.",
         "realmDirectOpen": "활성화되면 RisuRealm 미리보기에서 캐릭터를 클릭할 때 캐릭터 설명이 바로 열립니다."
+        "openrouterProviderOrder": "사용할 제공자 순서입니다. 첫 번째 제공자가 먼저 사용되며, 제공자를 사용할 수 없는 경우 다음 제공자를 사용합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers 를 참조하세요",
+        "openrouterProviderOnly": "이 목록의 제공자만 사용합니다. 모든 제공자를 사용할 수 없는 경우 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers 를 참조하세요",
+        "openrouterProviderIgnore": "이 목록의 제공자를 무시합니다. 모든 제공자가 무시되면 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers 를 참조하세요",
     },
     "setup": {
         "chooseProvider": "AI 제공자를 선택해 주세요",
@@ -887,6 +890,9 @@ export const languageKorean = {
     "maxThoughtTagDepth": "Thought 태그 최대 깊이",
     "openrouterFallback": "Openrouter 폴백",
     "openrouterMiddleOut": "Openrouter 미들 아웃",
+    "openrouterProviderOrder": "제공자 순서",
+    "openrouterProviderOnly": "제공자만 사용",
+    "openrouterProviderIgnore": "제공자 무시",
     "geminiApiKey": "Gemini API Key",
     "removePunctuationHypa": "장기기억 내 문장부호 제거",
     "memoryLimitThickness": "기억 한계선 두께",
