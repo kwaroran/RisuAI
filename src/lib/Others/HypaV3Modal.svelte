@@ -4,7 +4,6 @@
   import { 
     type SerializableSummary, 
     summarize,
-    type OpenAIChat 
   } from "src/ts/process/memory/hypav3";
   import { alertNormalWait } from "src/ts/alert";
   import { DBState, selectedCharID, hypaV3ModalOpen } from "src/ts/stores.svelte";
@@ -40,6 +39,7 @@
     handleDualAction,
     parseSelectionInput,
   } from "./HypaV3Modal/utils";
+    import type { OpenAIChat } from "src/ts/process/index.svelte";
 
   const hypaV3Data = $derived(
     DBState.db.characters[$selectedCharID].chats[
