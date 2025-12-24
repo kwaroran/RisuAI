@@ -16,6 +16,7 @@
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import { onDestroy, onMount } from "svelte";
+    import {defaultAutoSuggestPrompt} from "../../../ts/storage/defaultPrompts";
 
     let sorted = 0
     let opened = 0
@@ -285,6 +286,8 @@
     <TextAreaInput bind:value={DBState.db.templateDefaultVariables}/>
     <span class="text-textcolor mt-4">{language.predictedOutput}</span>
     <TextAreaInput bind:value={DBState.db.OAIPrediction}/>
+    <span class="text-textcolor mt-4">{language.autoSuggest} <Help key='autoSuggest' /></span>
+    <TextAreaInput bind:value={DBState.db.autoSuggestPrompt} placeholder={defaultAutoSuggestPrompt}/>
     <span class="text-textcolor mt-4">{language.groupInnerFormat} <Help key='groupInnerFormat' /></span>
     <TextAreaInput placeholder={`<{{char}}\'s Message>\n{{slot}}\n</{{char}}\'s Message>`} bind:value={DBState.db.groupTemplate}/>
     <span class="text-textcolor mt-4">{language.systemContentReplacement} <Help key="systemContentReplacement"/></span>

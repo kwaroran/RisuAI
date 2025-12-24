@@ -988,6 +988,20 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
+        name: 'Claude 4.5 Sonnet (20250929) v1',
+        id: 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+        provider: LLMProvider.AWS,
+        format: LLMFormat.AWSBedrockClaude,
+        flags: [
+            LLMFlags.hasPrefill,
+            LLMFlags.hasImageInput,
+            LLMFlags.hasFirstSystemPrompt,
+            LLMFlags.claudeThinking
+        ],
+        parameters: [...ClaudeParameters, 'thinking_tokens'],
+        tokenizer: LLMTokenizer.Claude
+    },
+    {
         name: 'Claude 4.1 Opus (20250805) v1',
         id: 'anthropic.claude-opus-4-1-20250805-v1:0',
         provider: LLMProvider.AWS,
@@ -1078,30 +1092,6 @@ export const LLMModels: LLMModel[] = [
         flags: [
             LLMFlags.hasPrefill,
             LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
-        ],
-        parameters: ClaudeParameters,
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
-        name: 'Claude 2.1',
-        id: 'anthropic.claude-v2:1',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [
-            LLMFlags.hasPrefill,
-            LLMFlags.hasFirstSystemPrompt
-        ],
-        parameters: ClaudeParameters,
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
-        name: 'Claude 2',
-        id: 'anthropic.claude-v2',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [
-            LLMFlags.hasPrefill,
             LLMFlags.hasFirstSystemPrompt
         ],
         parameters: ClaudeParameters,

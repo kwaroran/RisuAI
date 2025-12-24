@@ -802,7 +802,11 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
     "repetition_penalty": 1,
     "min_p": 0,
     "top_a": 0,
-    "openrouterProvider": "",
+    "openrouterProvider": {
+        "order": [],
+        "only": [],
+        "ignore": []
+    },
     "useInstructPrompt": false,
     "customPromptTemplateToggle": "",
     "templateDefaultVariables": ""

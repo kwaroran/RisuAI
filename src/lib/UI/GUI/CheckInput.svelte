@@ -3,7 +3,7 @@
 
     interface Props {
         check?: boolean;
-        onChange?: any;
+        onChange?: (check:boolean) => any,
         margin?: boolean;
         name?: string;
         hiddenName?: boolean;

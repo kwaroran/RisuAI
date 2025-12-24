@@ -23,7 +23,7 @@ const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz';
 const NIGHTLY_HUB_URL = 'https://nightly.sv.risuai.xyz'
 export const hubURL = typeof window !== 'undefined' && (window as any).__NODE__ === true
     ? '/hub-proxy'
-    : (window.location.hostname === 'nightly.risuai.xyz')
+    : (window.location.hostname === 'nightly.risuai.xyz' || localStorage.getItem('hub') === 'nightly')
     ? NIGHTLY_HUB_URL 
     : EXTERNAL_HUB_URL;
 
@@ -75,7 +75,6 @@ export async function importCharacterProcess(f:{
             return
         }
     }
-
     let db = getDatabase()
     db.statics.imports += 1
 
@@ -1659,7 +1658,7 @@ export async function shareRisuHub2(char:character, arg:{
     
         const fetchPromise = fetch(hubURL + '/hub/realm/upload', {
             method: "POST",
-            body: writer.buf.buffer,
+            body: writer.buf.buffer as any,
             headers: {
                 "Content-Type": 'image/png',
                 "x-risu-api-version": "4",

@@ -13,6 +13,7 @@ const {pipeline} = require('stream/promises')
 const https = require('https');
 const sslPath = path.join(process.cwd(), 'server/node/ssl/certificate');
 const hubURL = 'https://sv.risuai.xyz'; 
+const openid = require('openid-client');
 
 let password = ''
 
@@ -25,6 +26,8 @@ const passwordPath = path.join(process.cwd(), 'save', '__password')
 if(existsSync(passwordPath)){
     password = readFileSync(passwordPath, 'utf-8')
 }
+
+const authCodePath = path.join(process.cwd(), 'save', '__authcode')
 const hexRegex = /^[0-9a-fA-F]+$/;
 function isHex(str) {
     return hexRegex.test(str.toUpperCase().trim()) || str === '__password';
@@ -70,6 +73,16 @@ const reverseProxyFunc = async (req, res, next) => {
     const header = req.headers['risu-header'] ? JSON.parse(decodeURIComponent(req.headers['risu-header'])) : req.headers;
     if(!header['x-forwarded-for']){
         header['x-forwarded-for'] = req.ip
+    }
+
+    if(req.headers['authorization']?.startsWith('X-SERVER-REGISTER')){
+        if(!existsSync(authCodePath)){
+            delete header['authorization']
+        }
+        else{
+            const authCode = fs.readFileSync(authCodePath, 'utf-8')
+            header['authorization'] = `Bearer ${authCode}`
+        }
     }
     let originalResponse;
     try {
@@ -162,6 +175,68 @@ const reverseProxyFunc_get = async (req, res, next) => {
     }
 }
 
+let accessTokenCache = {
+    token: null,
+    expiry: 0
+}
+async function getSionywAccessToken() {
+    if(accessTokenCache.token && Date.now() < accessTokenCache.expiry){
+        return accessTokenCache.token;
+    }
+    //Schema of the client data file
+    // {
+    //     refresh_token: string;
+    //     client_id: string;
+    //     client_secret: string;
+    // }
+    
+    const clientDataPath = path.join(process.cwd(), 'save', '__sionyw_client_data.json');
+    let refreshToken = ''
+    let clientId = ''
+    let clientSecret = ''
+    if(!existsSync(clientDataPath)){
+        throw new Error('No Sionyw client data found');
+    }
+    const clientDataRaw = readFileSync(clientDataPath, 'utf-8');
+    const clientData = JSON.parse(clientDataRaw);
+    refreshToken = clientData.refresh_token;
+    clientId = clientData.client_id;
+    clientSecret = clientData.client_secret;
+
+    //Oauth Refresh Token Flow
+    
+    const tokenResponse = await fetch('account.sionyw.com/account/api/oauth/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+            client_id: clientId,
+            client_secret: clientSecret
+        })
+    })
+
+    if(!tokenResponse.ok){
+        throw new Error('Failed to refresh Sionyw access token');
+    }
+
+    const tokenData = await tokenResponse.json();
+
+    //Update the refresh token in the client data file
+    if(tokenData.refresh_token && tokenData.refresh_token !== refreshToken){
+        clientData.refresh_token = tokenData.refresh_token;
+        writeFileSync(clientDataPath, JSON.stringify(clientData), 'utf-8');
+    }
+
+    accessTokenCache.token = tokenData.access_token;
+    accessTokenCache.expiry = Date.now() + (tokenData.expires_in * 1000) - (5 * 60 * 1000); //5 minutes early
+
+    return tokenData.access_token;
+}
+
+
 async function hubProxyFunc(req, res) {
     const excludedHeaders = [
         'content-encoding',
@@ -170,16 +245,39 @@ async function hubProxyFunc(req, res) {
     ];
 
     try {
-        const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
-        const externalURL = hubURL + pathAndQuery;
+        let externalURL = '';
+
+        const pathHeader = req.headers['x-risu-node-path'];
+        if (pathHeader) {
+            const decodedPath = decodeURIComponent(pathHeader);
+            externalURL = decodedPath;
+        } else {
+            const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
+            externalURL = hubURL + pathAndQuery;
+        }
         
         const headersToSend = { ...req.headers };
         delete headersToSend.host;
         delete headersToSend.connection;
         delete headersToSend['content-length'];
-        
+        delete headersToSend['x-risu-node-path'];
+
         const hubOrigin = new URL(hubURL).origin;
         headersToSend.origin = hubOrigin;
+
+        //if Authorization header is "Server-Auth, set the token to be Server-Auth
+        if(headersToSend['Authorization'] === 'X-Node-Server-Auth'){
+            //this requires password auth
+            const authHeader = req.headers['risu-auth'];
+            if(!authHeader || authHeader.trim() !== password.trim()){
+                console.log('incorrect', 'received:', authHeader, 'expected:', password)
+                throw new Error('Incorrect password for server auth');
+            }
+
+            headersToSend['Authorization'] = "Bearer " + await getSionywAccessToken();
+            delete headersToSend['risu-auth'];
+        }
+        
         
         const response = await fetch(externalURL, {
             method: req.method,
@@ -197,7 +295,7 @@ async function hubProxyFunc(req, res) {
             res.setHeader(key, value);
         }
         res.status(response.status);
-        
+
         if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
             const redirectUrl = response.headers.get('location');
             const newHeaders = { ...headersToSend };
@@ -215,11 +313,19 @@ async function hubProxyFunc(req, res) {
                 res.setHeader(key, value);
             }
             res.status(redirectResponse.status);
-            await pipeline(redirectResponse.body, res);
+            if (redirectResponse.body) {
+                await pipeline(redirectResponse.body, res);
+            } else {
+                res.end();
+            }
             return;
         }
         
-        await pipeline(response.body, res);
+        if (response.body) {
+            await pipeline(response.body, res);
+        } else {
+            res.end();
+        }
         
     } catch (error) {
         console.error("[Hub Proxy] Error:", error);
@@ -391,6 +497,114 @@ app.post('/api/write', async (req, res, next) => {
         next(error);
     }
 });
+
+const oauthData = {
+    client_id: '',
+    client_secret: '',
+    config: {},
+    code_verifier: ''
+
+}
+app.get('/api/oauth_login', async (req, res) => {
+    const redirect_uri = (new URL (req.url)).host + '/api/oauth_callback'
+
+    if(!redirect_uri){
+        res.status(400).send({ error: 'redirect_uri is required' });
+        return
+    }
+    if(!oauthData.client_id || !oauthData.client_secret){
+        const discovery = await openid.discovery('https://your-identity-provider.com','');
+        oauthData.config = discovery;
+
+        //oauth dynamic client registration
+        //https://datatracker.ietf.org/doc/html/rfc7591
+
+        const serverMeta = discovery.serverMetadata()
+        //since we can't find a good library to do this, we will do it manually
+        const registrationResponse = await fetch(serverMeta.registration_endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (serverMeta.registration_access_token || '')
+            },
+            body: JSON.stringify({
+                client_id: oauthData.client_id,
+                client_secret: oauthData.client_secret,
+                redirect_uris: [redirect_uri],
+                response_types: ['code'],
+                grant_types: ['authorization_code'],
+                scope: 'risuai risuai:node',
+                token_endpoint_auth_method: 'client_secret_basic',
+                client_name: 'Risuai Node Server',
+            })
+        });
+
+        if(registrationResponse.status === 201 || registrationResponse.status === 200){
+            const registrationData = await registrationResponse.json();
+            oauthData.client_id = registrationData.client_id;
+            oauthData.client_secret = registrationData.client_secret;
+            discovery.clientMetadata().client_id = oauthData.client_id;
+            discovery.clientMetadata().client_secret = oauthData.client_secret;
+        }
+        else{
+            console.error('[Server] OAuth2 dynamic client registration failed:', registrationResponse.statusText);
+            res.status(500).send({ error: 'OAuth2 client registration failed' });
+            return
+        }
+
+
+        //now lets request
+
+        let code_verifier = openid.randomPKCECodeVerifier();
+        let code_challenge = await openid.calculatePKCECodeChallenge(code_verifier);
+
+        oauthData.code_verifier = code_verifier;
+        let redirectTo = openid.buildAuthorizationUrl(oauthData.config, {
+            redirect_uri,
+            scope: 'openid profile email',
+            code_challenge,
+            code_challenge_method: 'S256',
+            scope: 'risuai risuai:node',
+        })
+
+        res.redirect(redirectTo.toString());
+
+        return;
+
+    }
+    
+    res.status(500).send({ error: 'OAuth2 login failed' });
+});
+
+app.get('/api/oauth_callback', async (req, res) => {
+
+    //since this is a callback we don't need to check password
+
+    const params = (new URL(req.url, `http://${req.headers.host}`)).searchParams;
+    const code = params.get('code');
+
+    if(!code){
+        res.status(400).send({ error: 'code is required' });
+        return
+    }
+    if(!oauthData.client_id || !oauthData.client_secret || !oauthData.code_verifier){
+        res.status(400).send({ error: 'OAuth2 not initialized' });
+        return
+    }
+
+    let tokens = await openid.authorizationCodeGrant(
+        oauthData.config,   
+        getCurrentUrl(),
+        {
+            pkceCodeVerifier: oauthData.code_verifier,
+        },
+    )
+
+    fs.writeFileSync(authCodePath, tokens.access_token, 'utf-8')
+
+    res.send(tokens)
+            
+})
 
 async function getHttpsOptions() {
 

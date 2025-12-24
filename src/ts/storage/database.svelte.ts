@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "166.3.0"
+export let appVer = "166.3.3"
 export let webAppSubVer = ''
 
 
@@ -457,7 +457,32 @@ export function setDatabase(data:Database){
     data.top_a ??= 0
     data.customTokenizer ??= 'tik'
     data.instructChatTemplate ??= "chatml"
-    data.openrouterProvider ??= ''
+    // Migration: convert old string type into new provider object
+    if (typeof data.openrouterProvider === 'string') {
+        const oldProvider = data.openrouterProvider as unknown as string;
+        data.openrouterProvider = {
+            order: oldProvider ? [oldProvider] : [],
+            only: [],
+            ignore: []
+        }
+    }
+    if (data.botPresets) {
+        for (const preset of data.botPresets) {
+            if (typeof preset.openrouterProvider === 'string') {
+                const oldProvider = preset.openrouterProvider as unknown as string;
+                preset.openrouterProvider = {
+                    order: oldProvider ? [oldProvider] : [],
+                    only: [],
+                    ignore: []
+                }
+            }
+        }
+    }
+    data.openrouterProvider ??= {
+        order: [],
+        only: [],
+        ignore: []
+    }
     data.useInstructPrompt ??= false
     data.hanuraiEnable ??= false
     data.hanuraiSplit ??= false
@@ -546,6 +571,7 @@ export function setDatabase(data:Database){
     data.hypaV3PresetId ??= 0
     data.showDeprecatedTriggerV2 ??= false
     data.returnCSSError ??= true
+    data.realmDirectOpen ??= false
     data.useExperimentalGoogleTranslator ??= false
     if(data.antiClaudeOverload){ //migration
         data.antiClaudeOverload = false
@@ -914,7 +940,11 @@ export interface Database{
     customTokenizer:string
     instructChatTemplate:string
     JinjaTemplate:string
-    openrouterProvider:string
+    openrouterProvider: {
+        order: string[]
+        only: string[]
+        ignore: string[]
+    }
     useInstructPrompt:boolean
     hanuraiTokens:number
     hanuraiSplit:boolean
@@ -1009,6 +1039,7 @@ export interface Database{
     hypaV3Settings: HypaV3Settings // legacy
     hypaV3Presets: HypaV3Preset[]
     hypaV3PresetId: number
+    realmDirectOpen:boolean
     OaiCompAPIKeys: {[key:string]:string}
     inlayErrorResponse:boolean
     reasoningEffort:number
@@ -1084,6 +1115,8 @@ export interface Database{
     streamGeminiThoughts:boolean
     verbosity:number
     dynamicOutput?:DynamicOutput
+    hubServerType?:string
+    pluginCustomStorage:{[key:string]:any}
     ImagenModel:string
     ImagenImageSize:string
     ImagenAspectRatio:string
@@ -1402,7 +1435,11 @@ export interface botPreset{
     repetition_penalty?:number
     min_p?:number
     top_a?:number
-    openrouterProvider?:string
+    openrouterProvider?: {
+        order: string[]
+        only: string[]
+        ignore: string[]
+    }
     useInstructPrompt?:boolean
     customPromptTemplateToggle?:string
     templateDefaultVariables?:string
@@ -1603,6 +1640,8 @@ export interface Chat{
     hypaV3Data?:SerializableHypaV3Data
     folderId?:string
     lastDate?:number
+    bookmarks?: string[];
+    bookmarkNames?: { [chatId: string]: string };
 }
 
 export interface ChatFolder{
