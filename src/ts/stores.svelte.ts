@@ -5,6 +5,7 @@ import type { alertData } from "./alert";
 import { getModules, moduleUpdate } from "./process/modules";
 import { resetScriptCache } from "./process/scripts";
 import type { hubType } from "./characterCards";
+import type { PluginSafetyErrors } from "./plugins/pluginSafety";
 
 function updateSize(){
     SizeStore.set({
@@ -114,7 +115,22 @@ export const QuickSettings = $state({
     index: 0
 })
 
+export const pluginAlertModalStore = $state({
+    open: false,
+    errors: [] as PluginSafetyErrors[]
+})
+
 export const disableHighlight = writable(true)
+
+export type MenuDef = {
+    name: string,
+    icon: string,
+    iconType:'html'|'img'|'none',
+    callback: any
+}
+
+export const additionalSettingsMenu = $state([] as MenuDef[])
+export const additionalFloatingActionButtons = $state([] as MenuDef[])
 
 ReloadGUIPointer.subscribe(() => {
     ReloadChatPointer.set({})

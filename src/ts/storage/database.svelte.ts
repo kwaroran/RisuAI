@@ -13,7 +13,7 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "166.3.0"
+export let appVer = "166.3.3"
 export let webAppSubVer = ''
 
 
@@ -1086,6 +1086,8 @@ export interface Database{
     streamGeminiThoughts:boolean
     verbosity:number
     dynamicOutput?:DynamicOutput
+    hubServerType?:string
+    pluginCustomStorage:{[key:string]:any}
     ImagenModel:string
     ImagenImageSize:string
     ImagenAspectRatio:string

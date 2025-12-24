@@ -737,4 +737,6 @@ export const languageSpanish = {
         "summarizationConditionLabel": "Consejo: HypaV3 comienza a resumir cuando los tokens de entrada superan el tamaño máximo de contexto.",
         "emptySelectedFirstMessageLabel": "ADVERTENCIA: El primer mensaje seleccionado está vacío"
     },
+    generatedByAIDisclaimer: "Este contenido fue generado por IA y puede contener inexactitudes o sesgos.",
+    aiGenerationWarning: "El contenido será generado por IA y puede contener inexactitudes o sesgos."
 }

@@ -21,6 +21,7 @@
     disabled={disabled}
     bind:value
     onchange={onChange}
+    placeholder={placeholder}
 />
 
 <script lang="ts">
@@ -39,6 +40,7 @@
         }) => any;
         className?: string;
         disabled?: boolean;
+        placeholder?: string;
     }
 
     let {
@@ -53,7 +55,8 @@
         fullh = false,
         onChange = () => {},
         className = '',
-        disabled = false
+        disabled = false,
+        placeholder
     }: Props = $props();
 </script>
 

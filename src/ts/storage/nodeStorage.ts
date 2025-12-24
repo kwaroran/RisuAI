@@ -126,6 +126,9 @@ export class NodeStorage{
         }
     }
 
+    getAuth():string{
+        return auth
+    }
 
     listItem = this.keys
 }
