@@ -371,6 +371,7 @@ export async function loadLoreBookV3Prompt(){
                         if(((char.chats[page].fmIndex ?? -1) + 1) !== int){
                             activated = false
                         }
+                        return
                     }
                     case 'position':{
                         if(arg[0].startsWith('pt_') || ["after_desc", "before_desc", "personality", "scenario"].includes(arg[0])){
@@ -480,6 +481,7 @@ export async function loadLoreBookV3Prompt(){
                         if(Math.random() * 100 > parseInt(arg[0])){
                             activated = false
                         }
+                        return
                     }
                     case 'priority':{
                         priority = parseInt(arg[0])
