@@ -498,5 +498,7 @@ export const languageGerman = {
     showOriginal: "Original-Code-Adresse anzeigen",
     translate: "Code-Adresse übersetzen",
     generatedByAIDisclaimer: "Dieser Inhalt wurde von einer KI generiert und kann Ungenauigkeiten oder Verzerrungen enthalten.",
-    aiGenerationWarning: "Die Inhalte werden von einer KI generiert und können Ungenauigkeiten oder Verzerrungen enthalten."
+    aiGenerationWarning: "Die Inhalte werden von einer KI generiert und können Ungenauigkeiten oder Verzerrungen enthalten.",
+    apply: "Anwenden",
+    add: "Hinzufügen",
 }

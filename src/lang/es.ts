@@ -749,5 +749,7 @@ export const languageSpanish = {
     showOriginal: "Mostrar dirección de código original",
     translate: "Traducir dirección de código",
     generatedByAIDisclaimer: "Este contenido fue generado por IA y puede contener inexactitudes o sesgos.",
-    aiGenerationWarning: "El contenido será generado por IA y puede contener inexactitudes o sesgos."
+    aiGenerationWarning: "El contenido será generado por IA y puede contener inexactitudes o sesgos.",
+    apply: "Aplicar",
+    add: "Añadir",
 }
