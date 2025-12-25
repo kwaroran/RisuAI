@@ -494,6 +494,9 @@ export const languageGerman = {
         "emptySelectedFirstMessageLabel": "WARNUNG: Ausgewählte erste Nachricht ist leer"
     },
     sourcemapTranslate: "Stack-Traces mit Sourcemaps übersetzen",
+    enableSettingsSearch: "Einstellungssuche aktivieren",
+    searchSettings: "Einstellungen durchsuchen...",
+    noSearchResults: "Keine Ergebnisse gefunden",
     translating: "Übersetze...",
     showOriginal: "Original-Code-Adresse anzeigen",
     translate: "Code-Adresse übersetzen",

@@ -468,6 +468,9 @@ export const LanguageVietnamese = {
         "emptySelectedFirstMessageLabel": "CẢNH BÁO: Tin nhắn đầu tiên được chọn trống"
     },
     sourcemapTranslate: "Dịch dấu vết ngăn xếp bằng bản đồ nguồn",
+    enableSettingsSearch: "Bật Tìm kiếm Cài đặt",
+    searchSettings: "Tìm kiếm cài đặt...",
+    noSearchResults: "Không tìm thấy kết quả",
     translating: "Đang dịch...",
     showOriginal: "Hiển thị địa chỉ mã gốc",
     translate: "Dịch địa chỉ mã",

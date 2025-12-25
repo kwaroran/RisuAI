@@ -745,6 +745,9 @@ export const languageSpanish = {
         "emptySelectedFirstMessageLabel": "ADVERTENCIA: El primer mensaje seleccionado está vacío"
     },
     sourcemapTranslate: "Traducir seguimientos de pila usando sourcemaps",
+    enableSettingsSearch: "Habilitar Búsqueda de Configuración",
+    searchSettings: "Buscar configuración...",
+    noSearchResults: "No se encontraron resultados",
     translating: "Traduciendo...",
     showOriginal: "Mostrar dirección de código original",
     translate: "Traducir dirección de código",

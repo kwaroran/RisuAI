@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, PackageIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon, KeyboardIcon } from "lucide-svelte";
+    import { AccessibilityIcon, ActivityIcon, AlignLeft, BookIcon, PackageIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, DiamondIcon, FolderIcon, LanguagesIcon, MonitorIcon, Sailboat, ScrollTextIcon, UserIcon, XCircleIcon, KeyboardIcon, SearchIcon } from "lucide-svelte";
     import { language } from "src/lang";
+    import { DBState } from "src/ts/stores.svelte";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
     import BotSettings from "./Pages/BotSettings.svelte";
@@ -24,6 +25,7 @@
     import HotkeySettings from "./Pages/HotkeySettings.svelte";
 
     let openLoreList = $state(false)
+    let searchQuery = $state('')
     if(window.innerWidth >= 900 && $SettingsMenuIndex === -1 && !$MobileGUI){
         $SettingsMenuIndex = 1
     }
@@ -34,8 +36,22 @@
         {#if (window.innerWidth >= 700 && !$MobileGUI) || $SettingsMenuIndex === -1}
             <div class="flex h-full flex-col p-4 pt-8 gap-2 overflow-y-auto relative rs-setting-cont-3 flex-shrink-0"
                 class:w-full={window.innerWidth < 700 || $MobileGUI}
+                class:w-52={window.innerWidth >= 700 && !$MobileGUI}
                 class:bg-darkbg={!$MobileGUI} class:bg-bgcolor={$MobileGUI}
             >
+                {#if DBState.db.enableSettingsSearch}
+                    <div class="mb-4 w-full">
+                        <div class="flex items-center gap-2 bg-darkbutton rounded-lg px-3 py-2 w-full">
+                            <SearchIcon class="w-4 h-4 text-textcolor2 flex-shrink-0" />
+                            <input 
+                                type="text"
+                                bind:value={searchQuery}
+                                placeholder={language.searchSettings}
+                                class="bg-transparent outline-none w-full min-w-0 text-textcolor text-sm placeholder:text-textcolor2"
+                            />
+                        </div>
+                    </div>
+                {/if}
                 
                 {#if !$isLite}
                     <button class="flex gap-2 items-center hover:text-textcolor"

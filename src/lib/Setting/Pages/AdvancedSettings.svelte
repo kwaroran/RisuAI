@@ -280,6 +280,11 @@
             <Help key="unrecommended" unrecommended/>
         </Check>
     </div>
+    <div class="flex items-center mt-4">
+        <Check bind:check={DBState.db.enableSettingsSearch} name={language.enableSettingsSearch}>
+            <Help key="experimental"/>
+        </Check>
+    </div>
 {/if}
 {#if DBState.db?.account?.useSync}
     <div class="flex items-center mt-4">
