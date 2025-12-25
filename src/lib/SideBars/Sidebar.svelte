@@ -35,11 +35,9 @@
   } from "../../ts/characters";
     import CharConfig from "./CharConfig.svelte";
     import { language } from "../../lang";
-    import { onDestroy } from "svelte";
     import { isEqual } from "lodash";
     import SidebarAvatar from "./SidebarAvatar.svelte";
     import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
-    import { get } from "svelte/store";
     import { getCharacterIndexObject, selectSingleFile } from "src/ts/util";
     import { v4 } from "uuid";
     import { checkCharOrder, getFileSrc, saveAsset } from "src/ts/globalApi.svelte";

@@ -10,9 +10,8 @@
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import { ReloadGUIPointer } from "src/ts/stores.svelte";
-
-  interface Props {
+  
+interface Props {
     value: customscript;
     onRemove?: () => void;
     onClose?: () => void;

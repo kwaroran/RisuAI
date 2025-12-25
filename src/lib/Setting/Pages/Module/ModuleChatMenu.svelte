@@ -5,7 +5,7 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import type { RisuModule } from "src/ts/process/modules";
     
-    import { DBState, ReloadGUIPointer } from 'src/ts/stores.svelte';
+    import { DBState } from 'src/ts/stores.svelte';
     import { selectedCharID } from "src/ts/stores.svelte";
     import { SettingsMenuIndex, settingsOpen } from "src/ts/stores.svelte";
 

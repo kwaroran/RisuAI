@@ -2,7 +2,6 @@
   import { StarIcon } from "lucide-svelte";
   import { DBState, selectedCharID } from "src/ts/stores.svelte";
   import type { BulkEditState, Category } from "./types";
-  import { parseSelectionInput, shouldShowSummary } from "./utils";
   import { language } from "src/lang";
 
   interface Props {
