@@ -1005,6 +1005,13 @@ export async function runScripted(code:string, arg:{
                         }
                         break
                     }
+                    case 'onFormSubmit':{
+                        const func = luaEngine.global.get('onFormSubmit')
+                        if(func){
+                            res = await func(accessKey, data, JSON.stringify(meta))
+                        }
+                        break
+                    }
                     case 'editRequest':
                     case 'editDisplay':
                     case 'editInput':
@@ -1338,10 +1345,10 @@ export async function runLuaEditTrigger<T extends string|OpenAIChat[]>(char:char
     }
 }
 
-export async function runLuaButtonTrigger(char:character|groupChat|simpleCharacterArgument, data:string):Promise<any>{
+export async function runLuaButtonTrigger(char:character|simpleCharacterArgument, triggerKey:string):Promise<any>{
     let runResult
     try {
-        const triggers = char.type === 'group' ? getModuleTriggers() : char.triggerscript.map<triggerscript>((v) => ({
+        const triggers = char.triggerscript.map<triggerscript>((v) => ({
             ...v,
             lowLevelAccess: char.type !== 'simple' ? char.lowLevelAccess ?? false : false
         })).concat(getModuleTriggers())
@@ -1350,9 +1357,34 @@ export async function runLuaButtonTrigger(char:character|groupChat|simpleCharact
             if(trigger?.effect?.[0]?.type === 'triggerlua'){
                 runResult = await runScripted(trigger.effect[0].code, {
                     char: char,
+                    data: triggerKey,
                     lowLevelAccess: trigger.lowLevelAccess,
                     mode: 'onButtonClick',
-                    data: data
+                })
+            }
+        }
+    } catch (error) {
+        throw(error)
+    }
+    return runResult   
+}
+
+export async function runLuaFormTrigger(char:character|simpleCharacterArgument, triggerKey:string, meta?:object):Promise<any>{
+    let runResult
+    try {
+        const triggers = char.triggerscript.map<triggerscript>((v) => ({
+            ...v,
+            lowLevelAccess: char.type !== 'simple' ? char.lowLevelAccess ?? false : false
+        })).concat(getModuleTriggers())
+
+        for(let trigger of triggers){
+            if(trigger?.effect?.[0]?.type === 'triggerlua'){
+                runResult = await runScripted(trigger.effect[0].code, {
+                    char: char,
+                    data: triggerKey,
+                    lowLevelAccess: trigger.lowLevelAccess,
+                    meta,
+                    mode: 'onFormSubmit',
                 })
             }
         }
