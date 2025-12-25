@@ -9,6 +9,7 @@ import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 import { alertError, alertNormal, alertWait, showHypaV2Alert } from "src/ts/alert";
+import { language } from "src/lang";
 import { addFetchLog } from "src/ts/globalApi.svelte"
 
 type GeminiFunctionCall = {
@@ -479,7 +480,7 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         if(db.vertexAccessTokenExpires < Date.now()){
             if (!db.vertexClientEmail || !db.vertexPrivateKey) {
-                alertError(language.vertexAuthError || "Vertex AI authentication details are missing.");
+                alertError(language.errors.vertexAuthError);
                 return { type: 'fail', result: 'Vertex AI authentication details are missing.' };
             }
             headers['Authorization'] = "Bearer " + await generateToken(db.vertexClientEmail, db.vertexPrivateKey)

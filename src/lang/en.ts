@@ -25,6 +25,7 @@ export const languageEnglish = {
         noUserIcon: "You must set your icon first.",
         emptyText: "Text is empty.",
         wrongPassword: "Wrong Password",
+        vertexAuthError: "Vertex AI authentication details are missing.",
         networkFetch: "This happens when the network is unstable or the server is down.",
         networkFetchWeb: "This can be a CORS error. this only happens when using web version dude to limitations of the browser. try using desktop local version, or other version of Risuai.",
         networkFetchPlain: "This can be a plain fetch error. try disabling force plain fetch option in settings.",
