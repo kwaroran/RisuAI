@@ -53,7 +53,7 @@
         for(let i=messages.length - 1 ; i >= messages.length - loadPages; i--){
             if(i < 0) break; // Prevent out of bounds
             const message = messages[i];
-            const messageLargePortrait = message.role === 'user' ? (userIconPortrait ?? false) : (currentCharacter as character).largePortrait;
+            const messageLargePortrait = (message.role === 'user' ? userIconPortrait : (currentCharacter as character).largePortrait) ?? false
             let hashd = message.data + (message.chatId ?? '') + i.toString() + messageLargePortrait.toString()
             const currentHash = hashCode(hashd);
             currentHashes.add(currentHash);
