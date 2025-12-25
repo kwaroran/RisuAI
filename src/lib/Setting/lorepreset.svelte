@@ -3,7 +3,7 @@
     import { language } from "../../lang";
     
     import { DBState } from 'src/ts/stores.svelte';
-    import { EditIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { EditIcon, PlusIcon, TrashIcon, XIcon } from "@lucide/svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     let editMode = $state(false)
     /** @type {{close?: any}} */

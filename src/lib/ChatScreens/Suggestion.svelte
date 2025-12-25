@@ -5,7 +5,7 @@
 	import { DBState } from 'src/ts/stores.svelte';
     import { selectedCharID } from "../../ts/stores.svelte";
     import { translate } from "src/ts/translator/translator";
-    import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
+    import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "@lucide/svelte";
     import { alertConfirm } from "src/ts/alert";
     import { language } from "src/lang";
     import { getUserName, replacePlaceholders } from "../../ts/util";

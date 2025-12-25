@@ -3,7 +3,6 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import {sveltePreprocess} from "svelte-preprocess";
 import wasm from "vite-plugin-wasm";
 import { internalIpV4 } from 'internal-ip'
-import topLevelAwait from "vite-plugin-top-level-await";
 import strip from '@rollup/plugin-strip';
 // https://vitejs.dev/config/
 export default defineConfig(({command, mode}) => {

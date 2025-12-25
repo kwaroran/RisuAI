@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DownloadIcon, HardDriveUploadIcon, PlusIcon } from "lucide-svelte";
+    import { DownloadIcon, HardDriveUploadIcon, PlusIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
     

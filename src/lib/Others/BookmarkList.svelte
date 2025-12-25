@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon } from "lucide-svelte";
+    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon } from "@lucide/svelte";
     import Chat from "../ChatScreens/Chat.svelte";
     import { getCharImage } from "src/ts/characters";
     import { findCharacterbyId, getUserName, getUserIcon } from "src/ts/util";

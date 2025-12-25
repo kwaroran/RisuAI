@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PlusIcon, ArrowLeftIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
+    import { PlusIcon, ArrowLeftIcon, DownloadIcon, UploadIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";

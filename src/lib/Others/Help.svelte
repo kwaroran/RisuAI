@@ -15,7 +15,7 @@
     {/if}    
 </button>
 <script lang="ts">
-    import { AlertTriangle, FlaskConicalIcon, HelpCircleIcon } from "lucide-svelte";
+    import { AlertTriangle, FlaskConicalIcon, HelpCircleIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertMd } from "src/ts/alert";
 

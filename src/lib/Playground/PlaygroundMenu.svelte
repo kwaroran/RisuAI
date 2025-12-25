@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft } from "lucide-svelte";
+    import { ArrowLeft } from "@lucide/svelte";
     import { language } from "src/lang";
     import { PlaygroundStore, SizeStore, selectedCharID } from "src/ts/stores.svelte";
     import PlaygroundEmbedding from "./PlaygroundEmbedding.svelte";

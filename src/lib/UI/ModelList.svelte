@@ -6,7 +6,7 @@
     import { language } from "src/lang";
     import CheckInput from "./GUI/CheckInput.svelte";
     import { getModelInfo, getModelList } from 'src/ts/model/modellist';
-    import { ArrowLeft } from "lucide-svelte";
+    import { ArrowLeft } from "@lucide/svelte";
 
     interface Props {
         value?: string;

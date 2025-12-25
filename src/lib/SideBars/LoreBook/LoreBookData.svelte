@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { XIcon, LinkIcon, SunIcon, BookCopyIcon, FolderIcon, FolderOpen, FolderInputIcon, PlusIcon, PencilIcon } from "lucide-svelte";
+    import { XIcon, LinkIcon, SunIcon, BookCopyIcon, FolderIcon, FolderOpen, FolderInputIcon, PlusIcon, PencilIcon } from "@lucide/svelte";
     import { v4 } from "uuid";
     import { language } from "../../../lang";
     import { getCurrentCharacter, getCurrentChat, type loreBook } from "../../../ts/storage/database.svelte";

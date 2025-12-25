@@ -5,12 +5,12 @@
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser.svelte';
     import BarIcon from '../SideBars/BarIcon.svelte';
-    import { ChevronRightIcon, User } from 'lucide-svelte';
+    import { ChevronRightIcon, User } from '@lucide/svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { aiLawApplies, openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon } from "lucide-svelte";
+    import { XIcon } from "@lucide/svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';

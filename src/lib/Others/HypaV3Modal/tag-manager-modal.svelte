@@ -4,7 +4,7 @@
     EditIcon,
     Trash2Icon,
     CheckIcon,
-  } from "lucide-svelte";
+  } from "@lucide/svelte";
   import { language } from "src/lang";
   import { DBState, selectedCharID } from "src/ts/stores.svelte";
   import type { TagManagerState } from "./types";

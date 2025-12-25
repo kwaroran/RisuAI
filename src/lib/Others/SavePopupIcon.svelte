@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AlertOctagon, SaveIcon } from "lucide-svelte";
+  import { AlertOctagon, SaveIcon } from "@lucide/svelte";
   import { alertMd } from "src/ts/alert";
   import { saving } from "src/ts/globalApi.svelte";
   import { AccountWarning } from "src/ts/storage/accountStorage";

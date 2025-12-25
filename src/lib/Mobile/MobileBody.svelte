@@ -5,7 +5,7 @@
     import MobileCharacters from "./MobileCharacters.svelte";
     import ChatScreen from "../ChatScreens/ChatScreen.svelte";
     import CharConfig from "../SideBars/CharConfig.svelte";
-    import { WrenchIcon } from "lucide-svelte";
+    import { WrenchIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import SideChatList from "../SideBars/SideChatList.svelte";
     import DevTool from "../SideBars/DevTool.svelte";

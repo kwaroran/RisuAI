@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, PlusIcon, TrashIcon } from "lucide-svelte";
+    import { ArrowLeft, PlusIcon, TrashIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import PromptDataItem from "src/lib/UI/PromptDataItem.svelte";
     import { tokenizePreset, type PromptItem } from "src/ts/process/prompt";

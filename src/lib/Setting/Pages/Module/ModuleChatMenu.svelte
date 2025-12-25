@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CheckCircle2Icon, Waypoints, XIcon } from "lucide-svelte";
+    import { CheckCircle2Icon, Waypoints, XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
