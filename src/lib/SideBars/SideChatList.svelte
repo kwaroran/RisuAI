@@ -265,7 +265,7 @@
                                 const option = await alertChatOptions()
                                 switch(option){
                                     case 0:{
-                                        const newChat = safeStructuredClone($state.snapshot(chara.chats[chara.chats.indexOf(chat)]))
+                                        const newChat = $state.snapshot(chara.chats[chara.chats.indexOf(chat)])
                                         newChat.name = `Copy of ${newChat.name}`
                                         newChat.id = v4()
                                         chara.chats.unshift(newChat)
@@ -376,7 +376,7 @@
                         const option = await alertChatOptions()
                         switch(option){
                             case 0:{
-                                const newChat = safeStructuredClone($state.snapshot(chara.chats[i]))
+                                const newChat = $state.snapshot(chara.chats[i])
                                 newChat.name = `Copy of ${newChat.name}`
                                 newChat.id = v4()
                                 chara.chats.unshift(newChat)
