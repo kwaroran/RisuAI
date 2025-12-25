@@ -748,6 +748,35 @@
   </div>
 {/snippet}
 
+{#snippet rangeControl(label: string, value: number, setValue: (v: number) => void, min = 0, max = 5, disabled = false)}
+  <div class="flex items-center gap-2">
+    <span class={`text-xs ${disabled ? 'text-textcolor2/50' : 'text-textcolor2'}`}>
+      {label}
+    </span>
+    <input
+      type="range"
+      min={min}
+      max={max}
+      step="1"
+      value={value}
+      class="w-24 accent-green-500 disabled:opacity-40"
+      {disabled}
+      oninput={(e) => {
+        if (disabled) return
+        const target = e.currentTarget as HTMLInputElement
+        setValue(parseInt(target.value, 10))
+      }}
+    />
+    <span
+      class={`text-[11px] w-4 text-right ${
+        disabled ? 'text-textcolor2/40' : 'text-textcolor2/80'
+      }`}
+    >
+      {value}
+    </span>
+  </div>
+{/snippet}
+
 {#snippet renderCounts(counts: DiffCounts)}
   <div class="flex flex-wrap gap-3 text-xs text-textcolor2 mb-3">
     <span class="inline-flex items-center gap-2">
@@ -905,6 +934,7 @@
         {@render checkboxToggle('Flat Text', isFlatText, (v) => (isFlatText = v))}
         {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), diffStyle !== 'line', true)}
         {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v))}
+        {@render rangeControl('Context', contextRadius, (v) => (contextRadius = v), 0, 5, !showOnlyChanges)}
       </div>
 
       <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
