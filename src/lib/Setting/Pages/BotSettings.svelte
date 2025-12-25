@@ -745,7 +745,7 @@
             const canvas = document.createElement('canvas')
             const ctx = canvas.getContext('2d')
             const img = new Image()
-            //@ts-ignore, works fine, don't touch
+            //@ts-expect-error selectSingleFile can return null, but UI flow ensures sel is non-null here
             const blob = new Blob([sel.data], {type: "image/png"})
             img.src = URL.createObjectURL(blob)
             await img.decode()

@@ -336,11 +336,11 @@ export function promptConvertion(files:{ name: string, content: string, type:str
             }
             let multiplier = arg.multiplier ?? 1
             if(samplers.includes(getname)){
-                //@ts-ignore
+                //@ts-expect-error dynamic key access on preset with value from parsed JSON
                 preset[setname] = data[getname] * multiplier
             }
             else{
-                // @ts-ignore
+                //@ts-expect-error dynamic key assignment to preset, -1000 indicates unset sampler
                 preset[setname] = -1000
             }
     

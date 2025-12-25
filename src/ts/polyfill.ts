@@ -41,9 +41,9 @@ try {
 globalThis.safeStructuredClone = safeStructuredClone
 
 globalThis.Buffer = BufferPolyfill
-//@ts-ignore
+//@ts-expect-error ponyfill WritableStream type is incompatible with globalThis.WritableStream
 globalThis.WritableStream = globalThis.WritableStream ?? WritableStream
-//@ts-ignore
+//@ts-expect-error ponyfill ReadableStream type is incompatible with globalThis.ReadableStream
 globalThis.ReadableStream = globalThis.ReadableStream ?? ReadableStream
-//@ts-ignore
-    globalThis.TransformStream = globalThis.TransformStream ?? TransformStream   
+//@ts-expect-error ponyfill TransformStream type is incompatible with globalThis.TransformStream
+globalThis.TransformStream = globalThis.TransformStream ?? TransformStream   

@@ -490,7 +490,7 @@ export async function characterURLImport() {
                 await importFile(f.name, data);
             }
         }
-        //@ts-ignore
+        //@ts-expect-error launchQueue is File Handling API for PWA, not yet in TypeScript's Window interface
         window.launchQueue.setConsumer((launchParams) => {
             if (launchParams.files && launchParams.files.length) {
                 const files = launchParams.files as FileSystemFileHandle[]
@@ -500,7 +500,7 @@ export async function characterURLImport() {
     }
 
     if("tauriOpenedFiles" in window){
-        //@ts-ignore
+        //@ts-expect-error tauriOpenedFiles is custom Tauri property, not defined in Window interface
         const files:string[] = window.tauriOpenedFiles
         if(files){
             for(const file of files){
@@ -1084,7 +1084,6 @@ function convertCharbook(arg:{
             extentions: {...extensions, risu_case_sensitive: book.case_sensitive},
             activationPercent: book.extensions?.risu_activationPercent,
             loreCache: book.extensions?.risu_loreCache ?? null,
-            //@ts-ignore
             useRegex: book.use_regex ?? false,
             folder: book.folder
         })

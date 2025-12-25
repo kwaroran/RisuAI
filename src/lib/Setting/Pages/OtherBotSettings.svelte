@@ -686,7 +686,7 @@
             DBState.db.supaModelType !== 'none' ? 'supaMemory' :
             DBState.db.hanuraiEnable ? 'hanuraiMemory' : 'none'
         } onchange={(v) => {
-            //@ts-ignore
+            //@ts-expect-error Svelte onchange event type doesn't properly infer target.value
             const value = v.target.value
             if (value === 'supaMemory'){
                 DBState.db.supaModelType = 'distilbart'

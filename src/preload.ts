@@ -3,9 +3,8 @@ import { Capacitor } from "@capacitor/core";
 export function preLoadCheck(){
     const searchParams = new URLSearchParams(location.search);
 
-    //@ts-ignore
+    //@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
     const isTauri = !!window.__TAURI_INTERNALS__
-    //@ts-ignore
     const isNodeServer = !!globalThis.__NODE__
     const isCapacitor = Capacitor.isNativePlatform();
 

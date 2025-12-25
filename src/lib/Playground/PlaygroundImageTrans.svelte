@@ -36,7 +36,7 @@
         }
         const img = new Image();
         inputImage = img;
-        //@ts-ignore
+        //@ts-expect-error TypeScript doesn't narrow file.data after null check on file
         img.src = URL.createObjectURL(new Blob([file.data]));
         await img.decode();
         aspectRatio = img.width / img.height;

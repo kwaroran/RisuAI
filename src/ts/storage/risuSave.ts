@@ -22,12 +22,12 @@ const magicRisuSaveHeader = new TextEncoder().encode("RISUSAVE\0");
 async function checkCompressionStreams(){
     if(!CompressionStream){
         const {makeCompressionStream} = await import('compression-streams-polyfill/ponyfill');
-        //@ts-ignore
+        //@ts-expect-error polyfill CompressionStream type is incompatible with globalThis.CompressionStream
         globalThis.CompressionStream = makeCompressionStream(TransformStream);
     }
     if(!DecompressionStream){
         const {makeDecompressionStream} = await import('compression-streams-polyfill/ponyfill');
-        //@ts-ignore
+        //@ts-expect-error polyfill DecompressionStream type is incompatible with globalThis.DecompressionStream
         globalThis.DecompressionStream = makeDecompressionStream(TransformStream);
     }
 }
@@ -278,7 +278,7 @@ export class RisuSaveDecoder {
     async decode(data: Uint8Array): Promise<Database> {
         console.log('Decoding RisuSave data');
         let offset = magicRisuSaveHeader.length;
-        //@ts-ignore
+        //@ts-expect-error Database has required fields, but we initialize empty and populate incrementally during decode
         let db:Database = {}
         const loadedBlocks = new Set<string>();
         while (offset < data.length) {

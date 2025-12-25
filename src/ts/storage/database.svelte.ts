@@ -421,7 +421,7 @@ export function setDatabase(data:Database){
         //idk why type changes, but it does so this is a fix
         data.top_p = 1
     }
-    //@ts-ignore
+    //@ts-expect-error data.google has required fields (accessToken, projectId), but we use empty object as default and populate below
     data.google ??= {}
     data.google.accessToken ??= ''
     data.google.projectId ??= ''
@@ -609,7 +609,7 @@ export function setDatabase(data:Database){
     data.ImagenImageSize ??= '1K'
     data.ImagenAspectRatio ??= '1:1'
     data.ImagenPersonGeneration ??= 'allow_all'
-    //@ts-ignore
+    //@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
         data.promptInfoInsideChat = false
@@ -1986,7 +1986,6 @@ export function setPreset(db:Database, newPres: botPreset){
         mode: 'instruct'
     }
     db.top_p = newPres.top_p ?? 1
-    //@ts-ignore //for legacy mistpings
     db.promptSettings = safeStructuredClone(newPres.promptSettings) ?? {
         assistantPrefill: '',
         postEndInnerFormat: '',

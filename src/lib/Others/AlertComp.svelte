@@ -264,7 +264,7 @@
                 <Button className="mt-4" onclick={() => {
                     alertStore.set({
                         type: 'none',
-                        //@ts-ignore
+                        //@ts-expect-error querySelector returns Element | null, but we know it's HTMLInputElement with value
                         msg: document.querySelector('#alert-input')?.value
                     })
                 }}>OK</Button>
@@ -290,21 +290,18 @@
                             {#if char.image}
                                 {#await getCharImage(DBState.db.characters[i].image, 'css')}
                                     <BarIcon onClick={() => {
-                                        //@ts-ignore
                                         alertStore.set({type: 'none',msg: char.chaId})
                                     }}>
                                         <User/>
                                     </BarIcon>
                                 {:then im} 
                                     <BarIcon onClick={() => {
-                                        //@ts-ignore
                                         alertStore.set({type: 'none',msg: char.chaId})
                                     }} additionalStyle={im} />
                                     
                                 {/await}
                             {:else}
                                 <BarIcon onClick={() => {
-                                    //@ts-ignore
                                     alertStore.set({type: 'none',msg: char.chaId})
                                 }}>
                                 <User/>

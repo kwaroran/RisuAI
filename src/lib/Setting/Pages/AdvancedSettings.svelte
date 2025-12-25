@@ -544,7 +544,7 @@ Show Statistics
             }
         }
 
-        //@ts-ignore
+        //@ts-expect-error meta is not defined in Database type, added for settings export report
         db.meta = {
             isTauri: isTauri,
             isNodeServer: isNodeServer,

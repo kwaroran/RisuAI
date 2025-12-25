@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getAllContexts, mount, onDestroy, onMount, unmount } from "svelte";
-    //@ts-ignore
 	import PortalConsumer from "./PortalConsumer.svelte";
     import { sleep } from "src/ts/util";
 
