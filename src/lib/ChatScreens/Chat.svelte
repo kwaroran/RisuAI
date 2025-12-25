@@ -4,7 +4,7 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
     import { getModelInfo } from "src/ts/model/modellist"
-    import { runLuaButtonTrigger, runLuaFormTrigger } from 'src/ts/process/scriptings'
+    import { runLuaInteractionTrigger } from 'src/ts/process/scriptings'
     import { risuChatParser } from "src/ts/process/scripts"
     import { runTrigger } from 'src/ts/process/triggers'
     import { sayTTS } from "src/ts/process/tts"
@@ -191,7 +191,7 @@
                     triggerId: triggerId || undefined,
                 }) :
             btnEvent ?
-                await runLuaButtonTrigger(currentChar, btnEvent) :
+                await runLuaInteractionTrigger('button', currentChar, btnEvent) :
             null
 
         if(triggerResult) {
@@ -238,7 +238,7 @@
             }
         }
 
-        const triggerResult =  formEvent ? await runLuaFormTrigger(currentChar, formEvent, { data: obj }) : null
+        const triggerResult =  formEvent ? await runLuaInteractionTrigger('form', currentChar, formEvent, { data: obj }) : null
 
         if(triggerResult) {
             setCurrentChat(triggerResult.chat)
