@@ -1,6 +1,7 @@
 <script lang="ts">
     import { XIcon } from "lucide-svelte";
     import { language } from "src/lang";
+    import { ReloadGUIPointer } from "src/ts/stores.svelte";
     import { alertConfirm } from "src/ts/alert";
     import type { customscript } from "src/ts/storage/database.svelte";
     import Check from "../../UI/GUI/CheckInput.svelte";

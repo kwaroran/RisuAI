@@ -1,4 +1,5 @@
 import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
+import { language } from "src/lang"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
 import { simplifySchema } from "src/ts/util"
