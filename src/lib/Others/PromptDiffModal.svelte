@@ -128,11 +128,6 @@
         { value: 'card', label: 'Card' },
     ] as const
 
-    const groupingOptions = [
-        { value: 'flattext', label: 'Flat text' },
-        { value: 'cardline', label: 'Card Line' },
-    ] as const
-
     const firstCards = getPromptCards(firstPresetId)
     const secondCards = getPromptCards(secondPresetId)
 
@@ -140,7 +135,6 @@
         if (!firstCards || !secondCards) return
         diffStyle
         isFlatText
-        viewStyle
         void recomputeDiff(firstCards, secondCards)
     })
 
