@@ -1421,6 +1421,8 @@ export const languageEnglish = {
     translating: "Translating...",
     showOriginal: "Show Original Code Address",
     translate: "Translate Code Address",
+    apply: "Apply",
+    add: "Add",
     nightlyWarning:
         "## Nightly Builds\n\nYou are connecting to a nightly build of the software. This version is meant for testing and most likely contains bugs. **In this version, even if you encounter issues, we do not support resolving them directly.**",
     loginSionyw: "Login with Sionyw Account",

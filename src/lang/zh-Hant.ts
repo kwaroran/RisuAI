@@ -134,7 +134,6 @@ export const languageChineseTraditional = {
         "presetChain": "若欄位不為空，則每次使用者發送訊息時，系統會從此輸入中的預設列表中隨機變更並應用預設設定。預設列表應以逗號分隔，例如 `preset1,preset2`。",
         "legacyMediaFindings": "啟用後，將使用舊版方法尋找媒體資源，而不使用額外的搜尋演算法。",
         "comfyWorkflow": "請輸入 Comfy UI 的 API 工作流程。您可以在 Comfy UI 中點選「Workflow > Export (API)」按鈕以取得您的 API 工作流程。此外，您必須在工作流程文本中加入 {{risu_prompt}}，該佔位符將被 Risu 提供的提示詞替換。",
-        APIPool: "啟用後，系統將連接到 RisuAI 的 API 池。已啟用的使用者可共享免費、速率受限模型的 API 金鑰，從而利用其他使用者未充分利用的金鑰，增加對速率受限模型的請求次數。",
         sourcemapTranslate: "如果啟用，錯誤的堆疊追蹤將使用來源地圖自動翻譯，以顯示原始原始碼位置。這對於偵錯非常有用。",
         "openrouterProviderOrder": "提供商使用順序，優先使用第一個提供商，若該提供商不可用，將使用下一個。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ordering-specific-providers",
         "openrouterProviderOnly": "僅使用此列表中的提供商，若所有提供商均不可用，請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
@@ -204,7 +203,6 @@ export const languageChineseTraditional = {
         "finallyOption1Desc": "使用進階工具會使界面變得更複雜。推薦進階使用者使用。",
         "finallyOption2": "否",
         "finallyOption2Desc": "不使用高級工具將使界面更簡潔。推薦新使用者使用。",
-        "openAIProvider": "OpenAI GPT 是高品質的 AI 模型，但需付費且經內容審核。"
     },
     "confirm": "確定",
     "goback": "返回",
@@ -821,7 +819,6 @@ export const languageChineseTraditional = {
     "checkCorruption": "檢查損壞",
     "showPromptComparison": "顯示提示比較",
     "inlayErrorResponse": "嵌入錯誤回應",
-    "APIPool": "API 工具",
     "hypaV3Settings": {
         "descriptionLabel": "HypaMemory V3 是一個使用摘要和向量搜索的長期記憶系統。",
         "supaMemoryPromptPlaceHolder": "留空以使用預設值",

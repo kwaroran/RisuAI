@@ -199,7 +199,6 @@ export const languageChinese = {
         "finallyOption1Desc": "使用进阶工具会使界面变得更複杂。推荐高级用户使用。",
         "finallyOption2": "否",
         "finallyOption2Desc": "不使用高级工具将使界面更简洁。推荐新使用者使用。",
-        "openAIProvider": "OpenAI GPT 是高质量的 AI 模型，但属于付费并经内容审核。"
     },
     "confirm": "确定",
     "goback": "返回",

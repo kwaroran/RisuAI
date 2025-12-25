@@ -423,7 +423,6 @@ export const languageGerman = {
     innerFormat: "Inner-Format",
     HypaMemory: "HypaMemory",
     ToggleHypaMemory: "HypaMemory umschalten",
-    resetAnweisungsTemplateConfirm: "Möchten Sie die Anweisungs-Vorlage wirklich zurücksetzen?",
     emotionMethod: "Emotionsmethode",
     continueResponse: "Antwort fortsetzen",
     showMenuChatList: "Menü-Chatliste anzeigen",
@@ -497,6 +496,8 @@ export const languageGerman = {
     translating: "Übersetze...",
     showOriginal: "Original-Code-Adresse anzeigen",
     translate: "Code-Adresse übersetzen",
+    apply: "Anwenden",
+    add: "Hinzufügen",
     generatedByAIDisclaimer: "Dieser Inhalt wurde von einer KI generiert und kann Ungenauigkeiten oder Verzerrungen enthalten.",
     aiGenerationWarning: "Die Inhalte werden von einer KI generiert und können Ungenauigkeiten oder Verzerrungen enthalten."
 }

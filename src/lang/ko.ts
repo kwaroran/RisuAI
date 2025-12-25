@@ -1372,6 +1372,8 @@ export const languageKorean = {
     translating: "번역 중...",
     showOriginal: "기존 코드 주소 보기",
     translate: "코드 주소 번역하기",
+    apply: "적용",
+    add: "추가",
     nightlyWarning:
         "## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**",
     loginSionyw: "Sionyw 계정으로 로그인",

@@ -155,7 +155,6 @@ export const languageSpanish = {
         inputName: "Por último, ingresa tu apodo.",
         welcome: "¡Bienvenido a RisuAI! Aquí te guiaré para configurarlo. Primero, ¿cómo puedo llamarte?",
         welcome2: "Hola {username}! Antes de empezar, te haré algunas preguntas. Puedes cambiar estas configuraciones más tarde en la configuración.\n\nPrimero selecciona el proveedor de IA.",
-        openAIProvider: "OpenAI GPT es un modelo de IA de alta calidad, pero es de pago y filtrado.",
         openrouterProvider: "Openrouter tiene muchos modelos, algunos de ellos sin filtro y algunos gratuitos, pero no es tan bueno como OpenAI.",
         hordeProvider: "Horde es un proveedor gratuito, pero el tiempo de respuesta es largo y la calidad es baja.",
         setProviderLater: "Hay otros proveedores, pero puedes configurarlo más tarde en la configuración. selecciona esto si deseas configurarlo más tarde.",
@@ -748,6 +747,8 @@ export const languageSpanish = {
     translating: "Traduciendo...",
     showOriginal: "Mostrar dirección de código original",
     translate: "Traducir dirección de código",
+    apply: "Aplicar",
+    add: "Agregar",
     generatedByAIDisclaimer: "Este contenido fue generado por IA y puede contener inexactitudes o sesgos.",
     aiGenerationWarning: "El contenido será generado por IA y puede contener inexactitudes o sesgos."
 }
