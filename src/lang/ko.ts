@@ -1,5 +1,5 @@
 export const languageKorean = {
-    formating:{
+    formating: {
         main: '메인 프롬프트',
         jailbreak: '탈옥 프롬프트',
         chats: '과거 채팅',
@@ -13,7 +13,7 @@ export const languageKorean = {
         memory: '장기 기억',
         postEverything: '최종 삽입 프롬프트',
     },
-    errors:{
+    errors: {
         toomuchtoken: '에러: 요청에 필요한 최소 토큰이 최대 토큰보다 큽니다.',
         unknownModel: '에러: 알수없는 모델 선택됨',
         httpError: '요청 에러:',
@@ -30,7 +30,7 @@ export const languageKorean = {
         requestLogRemovedDesc: '요청 로그는 앱이 재시작되거나 새로고침되면 삭제됩니다.',
     },
     showHelp: '도움말 보기',
-    help:{
+    help: {
         model: '채팅에서 사용되는 모델입니다.',
         submodel: '보조 모델은 감정 이미지, 자동 제안등을 분석하는 데 사용되는 모델입니다. gpt3.5가 권장됩니다.',
         oaiapikey: 'OpenAI용 API 키입니다. https://platform.openai.com/account/api-keys에서 구하실 수 있습니다.',
@@ -40,8 +40,7 @@ export const languageKorean = {
         autoSuggest: '자동으로 유저의 응답을 제안할 때 선택지를 생성하기 위해 사용되는 프롬프트입니다.',
         formatOrder: '프롬프트의 배치 순서입니다. 아래쪽에 있을 수록 더 큰 영향을 줍니다.',
         forceUrl: '공백이 아닐 경우. 리퀘스트가 다음 URL로 갑니다.',
-        tempature: `값이 낮을수록 캐릭터가 프롬프트를 잘 따르지만 기계처럼 반응할 가능성이 높아집니다.
-값이 높을수록 창의적인 동작이 가능하지만 캐릭터의 반응이 이상해질 수 있습니다.`,
+        tempature: '값이 낮을수록 캐릭터가 프롬프트를 잘 따르지만 기계처럼 반응할 가능성이 높아집니다.\n값이 높을수록 창의적인 동작이 가능하지만 캐릭터의 반응이 이상해질 수 있습니다.',
         frequencyPenalty: '값이 높을수록 응답 내에서 대사가 반복되는 걸 줄여주지만, 값이 높으면 캐릭터의 반응이 이상해질 수 있습니다.',
         presensePenalty: '값이 높을수록 전체 콘텍스트 내에서 대사가 반복되는 걸 줄여주지만, 값이 높으면 캐릭터의 반응이 이상해질 수 있습니다.',
         sdProvider: '이미지 생성의 제공자 옵션입니다.',
@@ -54,69 +53,13 @@ export const languageKorean = {
         loreName: '로어의 이름입니다. AI에 영향을 주지 않습니다.',
         loreActivationKey: '활성화 키 중 하나가 컨텍스트에 존재하면 해당 로어가 활성화됩니다. 쉼표로 구분된 활성화를 구분하세요.',
         loreorder: '순서가 높을수록 모델에 더 많은 영향을 미치며, 활성화된 로어가 많을 때 잘리지 않습니다.',
-        bias: `바이어스는 문자열이 나타날 가능성을 수정하는 키-값 데이터로, -100에서 100까지 가능하며 값이 클수록 나타날 가능성이 높고, 값이 작을수록 나타날 가능성이 낮습니다 
-경고: 토크나이저가 잘못되면 제대로 작동하지 않습니다. 추가적으로, -101로 설정하면 일부 모델에서는 '강력한 단어 밴'으로 작동합니다`,
+        bias: '바이어스는 문자열이 나타날 가능성을 수정하는 키-값 데이터로, -100에서 100까지 가능하며 값이 클수록 나타날 가능성이 높고, 값이 작을수록 나타날 가능성이 낮습니다 \n경고: 토크나이저가 잘못되면 제대로 작동하지 않습니다. 추가적으로, -101로 설정하면 일부 모델에서는 \'강력한 단어 밴\'으로 작동합니다',
         emotion: '감정 이미지 옵션은 캐릭터의 반응으로 분석된 캐릭터의 감정에 따라 이미지를 표시합니다. 감정 이름은 단어 *(예시: joy, happy, fear 등)* 로 입력해야 하며, **neutral** 이라는 이름의 감정이 존재하면 기본 감정이 됩니다. 제대로 작동하려면 이미지가 3개 이상이어야 합니다.',
         imggen: '채팅을 분석한 후 프롬프트를 {{slot}}에 적용합니다.',
-        regexScript: `정규식 스크립트는 IN에 매칭되는 텍스트를 OUT으로 변경하는 스크립트입니다.
-
-네가지 옵션이 있습니다.
-
-- **입력문 수정** 유저의 입력을 수정합니다
-
-- **출력문 수정** 캐릭터의 출력을 수정합니다
-
-- **리퀘스트 데이터 수정** 리퀘스트 시 데이터를 수정합니다
-
-- **디스플레이 수정** 실제 데이터를 건들지 않고, 표시되는 것만 수정합니다.
-
-IN은 슬래시와 플레그가 없는 정규식이여야 합니다.
-
-OUT은 특수한 패턴이 포함될수 있는 문자열입니다. 패턴은 다음과 같습니다:
-
-- $$
-
-    - inserts $
-
-- $&
-
-    - inserts the matched substring.
-
-- $\`
-
-    - inserts the portion of the string that precedes the matched substring.
-
-- $1
-
-    - inserts the first matching group. works with other number like 2, 3...
-
-- $(name)
-
-    - inserts the named group
-
-OUT이 **@@**로 시작 시, 문자열을 교체하지 않고, 특수한 효과를 냅니다. 효과는 다음과 같습니다:
-
-- @@emo (emotion name)
-
-    - 캐릭터가 감정 이미지 모드일시, 감정을 (emotion name)으로 정하고 감정을 더이상 교체하지 않습니다.`,
+        regexScript: '정규식 스크립트는 IN에 매칭되는 텍스트를 OUT으로 변경하는 스크립트입니다.\n\n네가지 옵션이 있습니다.\n\n- **입력문 수정** 유저의 입력을 수정합니다\n\n- **출력문 수정** 캐릭터의 출력을 수정합니다\n\n- **리퀘스트 데이터 수정** 리퀘스트 시 데이터를 수정합니다\n\n- **디스플레이 수정** 실제 데이터를 건들지 않고, 표시되는 것만 수정합니다.\n\nIN은 슬래시와 플레그가 없는 정규식이여야 합니다.\n\nOUT은 특수한 패턴이 포함될수 있는 문자열입니다. 패턴은 다음과 같습니다:\n\n- $$\n\n    - inserts $\n\n- $&\n\n    - inserts the matched substring.\n\n- $`\n\n    - inserts the portion of the string that precedes the matched substring.\n\n- $1\n\n    - inserts the first matching group. works with other number like 2, 3...\n\n- $(name)\n\n    - inserts the named group\n\nOUT이 **@@**로 시작 시, 문자열을 교체하지 않고, 특수한 효과를 냅니다. 효과는 다음과 같습니다:\n\n- @@emo (emotion name)\n\n    - 캐릭터가 감정 이미지 모드일시, 감정을 (emotion name)으로 정하고 감정을 더이상 교체하지 않습니다.',
         experimental: '실험적 기능입니다. 불안정할 수 있습니다.',
-        oogaboogaURL: `웹 UI가 이전 버전의 API를 지원하는 경우, URL은 *https:.../run/textgen*과 같아야 합니다.
-
-웹 UI가 새 버전의 API를 지원하는 경우, URL은 *https://.../api/v1/generate*와 같아야 하며, API 서버를 호스트로 사용하고 인수에 --api를 추가해야 합니다.`,
-        exampleMessage: `캐릭터의 출력에 영향을 주는 예시 대화입니다. 토큰을 영구적으로 사용하지 않습니다.
-
-대화의 예시 형식:
-
-\`\`\`
-<START>
-{{user}}: 안녕
-{{char}}: 안녕하세요
-<START>
-{{user}}: 안녕
-하루이: 안녕하세요
-\`\`\`
-
-\`\`\`<START>\`\`\`는 새로운 대화의 시작을 나타냅니다.`,
+        oogaboogaURL: '웹 UI가 이전 버전의 API를 지원하는 경우, URL은 *https:.../run/textgen*과 같아야 합니다.\n\n웹 UI가 새 버전의 API를 지원하는 경우, URL은 *https://.../api/v1/generate*와 같아야 하며, API 서버를 호스트로 사용하고 인수에 --api를 추가해야 합니다.',
+        exampleMessage: '캐릭터의 출력에 영향을 주는 예시 대화입니다. 토큰을 영구적으로 사용하지 않습니다.\n\n대화의 예시 형식:\n\n```\n<START>\n{{user}}: 안녕\n{{char}}: 안녕하세요\n<START>\n{{user}}: 안녕\n하루이: 안녕하세요\n```\n\n```<START>```는 새로운 대화의 시작을 나타냅니다.',
         creatorQuotes: '캐릭터에 대한 정보를 사용자에게 알리기 위해 첫 번째 메시지 위에 나타납니다. 프롬프트에 포함되지 않습니다.',
         systemPrompt: '메인 프롬프트가 비어있지 않은 경우 설정에서 메인 프롬프트를 대체하는 프롬프트입니다.',
         chatNote: '현재 채팅에 포함되는 메모리 또는 UJB라고도 알려진 프롬프트입니다.',
@@ -125,29 +68,12 @@ OUT이 **@@**로 시작 시, 문자열을 교체하지 않고, 특수한 효과�
         utilityBot: '활성화되면 메인 프롬프트, jailbreak 및 기타 프롬프트를 무시합니다. 역할극이 아닌 유틸리티용 봇에 사용됩니다.',
         loreSelective: '선택 모드가 토글되면 활성화 키와 보조 키 모두 일치해야 로어가 활성화됩니다.',
         loreRandomActivation: '확률 조건 사용이 활성화된 경우, 로어의 다른 조건이 모두 충족되면 로어가 활성화되며, 각 채팅을 보낼 때마다 설정된 확률에 따라 활성화됩니다.',
-        additionalAssets: `채팅에 표시할 추가 에셋입니다.
-
-- 경로로 사용하려면 \`{{raw::<에셋 이름>}}\`을
-- 이미지로 사용하려면 \`{{image::<에셋 이름>}}\`을
-- 비디오로 사용하려면 \`{{video::<에셋 이름>}}\`을
-- 오디오로 사용하려면 \`{{audio::<에셋 이름>}}\`을 사용하세요.
-`,
-        superMemory: `SuperMemory는 AI에게 요약된 데이터를 제공하여 캐릭터가 더 많이 기억하도록합니다.
-
-SuperMemory 모델은 해당 텍스트를 요약하는 모델입니다. 보조 모델은 2000개 이상의 토큰을 가진 필터되지 않은 모델이 아닌 경우 권장되지 않습니다.
-
-SuperMemory 프롬프트는 요약을 보내기 위해 어떤 프롬프트를 보내야 하는지 결정합니다. 비워두면 기본 프롬프트를 사용합니다. 비워두는 것이 권장됩니다.
-
-모두 설정한 후 캐릭터의 설정에서 활성화할 수 있습니다.`,
+        additionalAssets: '채팅에 표시할 추가 에셋입니다.\n\n- 경로로 사용하려면 `{{raw::<에셋 이름>}}`을\n- 이미지로 사용하려면 `{{image::<에셋 이름>}}`을\n- 비디오로 사용하려면 `{{video::<에셋 이름>}}`을\n- 오디오로 사용하려면 `{{audio::<에셋 이름>}}`을 사용하세요.\n',
+        superMemory: 'SuperMemory는 AI에게 요약된 데이터를 제공하여 캐릭터가 더 많이 기억하도록합니다.\n\nSuperMemory 모델은 해당 텍스트를 요약하는 모델입니다. 보조 모델은 2000개 이상의 토큰을 가진 필터되지 않은 모델이 아닌 경우 권장되지 않습니다.\n\nSuperMemory 프롬프트는 요약을 보내기 위해 어떤 프롬프트를 보내야 하는지 결정합니다. 비워두면 기본 프롬프트를 사용합니다. 비워두는 것이 권장됩니다.\n\n모두 설정한 후 캐릭터의 설정에서 활성화할 수 있습니다.',
         replaceGlobalNote: '비어 있지 않으면 현재 글로벌 노트를 이로 대체합니다.',
-        backgroundHTML: `채팅 화면의 배경에 삽입 될 마크다운/HTML 데이터입니다.
-
-추가 에셋을 사용할 수도 있습니다. 예를 들어, 배경 음악에 \`{{audio::<에셋 이름>}}\`을 사용할 수 있습니다.
-
-또한 다음과 같은 추가 에셋을 사용할 수 있습니다:
- - \`{{bg::<에셋 이름>}}\`: 에셋으로 배경을 삽입합니다.`,
+        backgroundHTML: '채팅 화면의 배경에 삽입 될 마크다운/HTML 데이터입니다.\n\n추가 에셋을 사용할 수도 있습니다. 예를 들어, 배경 음악에 `{{audio::<에셋 이름>}}`을 사용할 수 있습니다.\n\n또한 다음과 같은 추가 에셋을 사용할 수 있습니다:\n - `{{bg::<에셋 이름>}}`: 에셋으로 배경을 삽입합니다.',
         additionalText: 'AI가 필요한 경우에만 캐릭터 설명에 추가 될 텍스트입니다. 두 개의 새 줄로 구분합니다.',
-        charjs: `캐릭터와 함께 실행될 자바스크립트 코드입니다. 예를 들어, \`https://github.com/kwaroran/RisuAI/blob/main/src/etc/example-char.js\`를 확인할 수 있습니다. 현재 보안 문제로 인해 사용을 권장하지 않습니다. 엑스포트에는 포함되지 않습니다.`,
+        charjs: '캐릭터와 함께 실행될 자바스크립트 코드입니다. 예를 들어, `https://github.com/kwaroran/RisuAI/blob/main/src/etc/example-char.js`를 확인할 수 있습니다. 현재 보안 문제로 인해 사용을 권장하지 않습니다. 엑스포트에는 포함되지 않습니다.',
         romanizer: '로마자 변환기는 비로마자 문자를 로마자 문자로 변환하여 데이터 요청 시 비로마자 문자를 사용할 때 토큰을 줄이는 데 사용되는 플러그인입니다. 이로 인해 원래 모델과 다른 출력이 나올 수 있습니다. 채팅에서 로마자 문자를 사용할 때 이 플러그인을 사용하는 것은 권장되지 않습니다.',
         oaiRandomUser: '활성화되면 요청에 사용자 매개 변수로 임의의 UUID가 입력되고 새로 고침할 때마다 변경됩니다. AI가 사용자를 식별하는 것을 방지하는 데 사용할 수 있습니다.',
         inlayImages: '활성화하면 이미지를 채팅에 삽입할 수 있으며, 지원하는 경우 AI가 볼 수 있습니다.',
@@ -168,94 +94,46 @@ SuperMemory 프롬프트는 요약을 보내기 위해 어떤 프롬프트를 �
         requestretrys: '이 옵션은 요청이 실패할 때 요청을 다시 시도할 횟수를 설정하는 데 사용됩니다.',
         emotionPrompt: '이 옵션은 감정을 감지하는 데 사용되는 프롬프트를 설정하는 데 사용됩니다. 비어 있으면 기본 프롬프트를 사용합니다.',
         removePunctuationHypa: '활성화되면 HypaMemory를 실행하기 전에 구두점을 제거합니다.',
-        additionalParams: `Additional parameters that would be added to the request body. if you want to exclude some parameters, you can put \`{{none}}\` to the value. if you want to add a header instead of body, you can put \`header::\` in front of the key like \`header::Authorization\`. if you want value as json, you can put \`json::\` in front of the value like \`json::{"key":"value"}\`. otherwise, type of the value would be determined automatically.`,
+        additionalParams: 'Additional parameters that would be added to the request body. if you want to exclude some parameters, you can put `{{none}}` to the value. if you want to add a header instead of body, you can put `header::` in front of the key like `header::Authorization`. if you want value as json, you can put `json::` in front of the value like `json::{"key":"value"}`. otherwise, type of the value would be determined automatically.',
         antiClaudeOverload: 'If Claude overload happens, RisuAI would try to prevent it by continuing with same prompt, making it less likely to happen. works only for streamed responses. this could not work for non-official api endpoints.',
-        triggerScript: `Trigger Script is a custom script that runs when a condition is met. it can be used to modify the chat data, run a command, change variable, and etc. the type depends when it is triggered. it can also be run by buttons, which can be used with {{button::Display::TriggerName}}, or HTML buttons with \`risu-trigger="<TriggerName>"\` attribute.`,
+        triggerScript: 'Trigger Script is a custom script that runs when a condition is met. it can be used to modify the chat data, run a command, change variable, and etc. the type depends when it is triggered. it can also be run by buttons, which can be used with {{button::Display::TriggerName}}, or HTML buttons with `risu-trigger="<TriggerName>"` attribute.',
         autoContinueChat: 'If enabled, it will try to continue the chat if it doesn\'t ends with a punctuation. DONT USE THIS WITH LANGUAGES THAT DOESN\'T USE PUNCTUATION.',
-        combineTranslation: `활성화된 경우, 한 문장이지만 HTML 태그로 분리된 텍스트를 모두 합쳐서 번역한 후, 번역된 결과에 다시 디스플레이 수정 스크립트를 적용합니다.
-이를 통해 번역기가 올바른 번역을 하도록 도와줍니다.
-이 옵션을 활성화하고 UI가 이상해지면 옵션을 끄고 제보해 주세요.`,
+        combineTranslation: '활성화된 경우, 한 문장이지만 HTML 태그로 분리된 텍스트를 모두 합쳐서 번역한 후, 번역된 결과에 다시 디스플레이 수정 스크립트를 적용합니다.\n이를 통해 번역기가 올바른 번역을 하도록 도와줍니다.\n이 옵션을 활성화하고 UI가 이상해지면 옵션을 끄고 제보해 주세요.',
         dynamicAssets: 'If enabled, if the asset name is not found when processing data, it will try to find the closest asset name by using vector search and replace it with the closest asset name.',
         dynamicAssetsEditDisplay: 'If enabled, the dynamic assets will be applied to the Modify Display stage too. however, this can cause performance issues.',
         nickname: 'Nickname would used be in {{char}} or <char> in chat instead of character\'s name if it is set.',
         useRegexLorebook: 'If enabled, it will use regex for lorebook search, instead of string matching. it uses /regex/flags format.',
         customChainOfThought: 'Warning: chain of thought toggle is no longer recommended to use. put chain of thought prompt in other prompt entries instead.',
-        customPromptTemplateToggle: `Here you can define your own prompt toggles. use \`<toggle variable>=<toggle name>\` format, seperated by newline. for example, \`cot=Toggle COT\`. you can use these toggles in prompt by using \`{{getglobalvar::toggle_<toggle variable>}}\`. like \`{{getglobalvar::toggle_cot}}\`.`,
-        defaultVariables: `여기에서는 기본 변수를 정의할 수 있습니다. \`<변수 이름>=<변수 값>\` 형식으로 작성하고 개행으로 구분합니다. 예를 들어, \`name=RisuAI\`는 트리거 스크립트 및 변수 CBS와 함께 \`{{getvar::A}}\`, \`{{setvar::A::B}}\` 또는 \`{{? $A + 1}}\`과 같이 사용할 수 있습니다. 프롬프트 템플릿의 기본 변수와 캐릭터의 기본 변수가 동일한 이름을 가진 경우 캐릭터의 기본 변수가 사용됩니다.`,
+        customPromptTemplateToggle: 'Here you can define your own prompt toggles. use `<toggle variable>=<toggle name>` format, seperated by newline. for example, `cot=Toggle COT`. you can use these toggles in prompt by using `{{getglobalvar::toggle_<toggle variable>}}`. like `{{getglobalvar::toggle_cot}}`.',
+        defaultVariables: '여기에서는 기본 변수를 정의할 수 있습니다. `<변수 이름>=<변수 값>` 형식으로 작성하고 개행으로 구분합니다. 예를 들어, `name=RisuAI`는 트리거 스크립트 및 변수 CBS와 함께 `{{getvar::A}}`, `{{setvar::A::B}}` 또는 `{{? $A + 1}}`과 같이 사용할 수 있습니다. 프롬프트 템플릿의 기본 변수와 캐릭터의 기본 변수가 동일한 이름을 가진 경우 캐릭터의 기본 변수가 사용됩니다.',
         lowLevelAccess: 'If enabled, it will enable access to features that requires high computing powers and executing AI model via triggers in the character. do not enable this unless you really need these features.',
-        triggerLLMPrompt: `A prompt that would be sent to the model. you can use multi turns and roles by using \`@@role user\`, \`@@role system\`, \`@@role assistant\`. for example, 
-\`\`\`
-@@role system
-respond as hello
-@@role assistant
-hello
-@@role user
-hi
-\`\`\``,
+        triggerLLMPrompt: 'A prompt that would be sent to the model. you can use multi turns and roles by using `@@role user`, `@@role system`, `@@role assistant`. for example, \n```\n@@role system\nrespond as hello\n@@role assistant\nhello\n@@role user\nhi\n```',
         legacyTranslation: 'If enabled, it will use the old translation method, which preprocess markdown and quotes before translations instead of postprocessing after translations.',
         luaHelp: 'You can use Lua scripts as a trigger script. you can define onInput, onOutput, onStart functions. onInput is called when user sends a message, onOutput is called when character sends a message, onStart is called when the chat starts. for more information, see the documentation.',
         claudeCachingExperimental: 'Caching in Claude is experimental feature that can reduce the cost of the model, but it can also increase the cost if you use it without reroll. since this is a experimental feature, it can be unstable and behavior can be changed in the future.',
-        urllora: `You can use direct download link of the model file. you can make direct url from google drive like website like https://sites.google.com/site/gdocs2direct/ , or use civitai URL, copy the the AIR (looks like \`urn:air:flux1:lora:civitai:180891@776656\` or just \`civitai:180891@776656\`) and paste it.`,
+        urllora: 'You can use direct download link of the model file. you can make direct url from google drive like website like https://sites.google.com/site/gdocs2direct/ , or use civitai URL, copy the the AIR (looks like `urn:air:flux1:lora:civitai:180891@776656` or just `civitai:180891@776656`) and paste it.',
         v2GetAlertSelect: '선택지는 | 로 구분합니다.',
         v2RegexTest: '정규표현식에 매칭이 되면 1, 매칭이 되지 않으면 0을 출력합니다.',
         v2Calculate: '기본 산술 연산(+, -, *, /, %, ^), 비교 연산자(<, >, <=, >=, =, !=), 논리 연산자(&&, ||, !), 괄호를 사용한 우선순위 설정, $변수명 형태의 변수 치환을 지원하는 수학 표현식을 계산합니다. 변수는 자동으로 숫자로 변환되며 유효하지 않은 경우 0으로 처리됩니다.',
         namespace: 'Namespace is a unique identifier for the module. it is used to prevent conflicts between modules, and for interaction of presets, other modules and etc. if you are not sure what to put, leave it blank.',
-        moduleIntergration: `You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, \`module1,module2,module3\`. this is for advanced users, who wants to vary the use of modules by presets.`,
+        moduleIntergration: 'You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, `module1,module2,module3`. this is for advanced users, who wants to vary the use of modules by presets.',
         customCSS: 'Custom CSS for styling. you can also disable/enable it by pressing (Ctrl + .) if something goes wrong.',
         betaMobileGUI: 'If enabled, it will use beta mobile GUI on small (less than 800px) screens. requires refresh.',
         unrecommended: 'This is a unrecommended setting. it is not recommended to use this setting.',
-        jsonSchema: `This is a JSON Schema that will be sent to the AI model if AI model supports JSON Schema.
-
-However, since JSON Schema is hard to learn, In RisuAI, you can use subset of TypeScript interface instead of JSON Schema. RisuAI will convert it in runtime.For example, if you want to send a JSON like this:
-
-\`\`\`js
-{
-  "name": "RisuAI", //name must be RisuAI,
-  "age": 1, //age must be number,
-  "icon": "slim", //icon must be 'slim' or 'rounded'
-  "thoughts": ["Good View!", "Lorem"] //thoughts must be array of strings
-}
-\`\`\`
-
-You can put this TypeScript interface:
-
-\`\`\`typescript
-interface Schema {
-  name: string;
-  age: number;
-  icon: 'slim'|'rounded'
-  thoughts: string[]
-}
-\`\`\`
-
-Name of the interface doesn't matter. for more information, see the typescript documentation. (https://www.typescriptlang.org/docs/handbook/interfaces.html), and to Check what subset of TypeScript is supported, see the below.<details><summary>Supported TypeScript Subset</summary>
-
-Supported types are \`boolean\`, \`number\`, \`string\`, \`Array\`. Advanced typing like unit types, intersection types, union types, optional, literal types, and etc. are not supported except for these cases:
-
-        - Array of primitive types: (ex. \`string[]\`, \`Array<boolean>)\`
-        - Unit types between strings: (ex. \`'slim'|'rounded'\`).
-
-        Properties must be one in a line. if there is multiple properties in a line, it will throw an error. Properties and name of the interface must be only in latin characters, in ASCII range. name of the properties must not be surrounded by quotes or double quotes. Nesting inside the interface is not supported. it is not allowed to put \`{\` or \`}\` in the line that properties are defined. If you want to use more advanced types, use JSON Schema instead.
-        </details>`,
+        jsonSchema: 'This is a JSON Schema that will be sent to the AI model if AI model supports JSON Schema.\n\nHowever, since JSON Schema is hard to learn, In RisuAI, you can use subset of TypeScript interface instead of JSON Schema. RisuAI will convert it in runtime.For example, if you want to send a JSON like this:\n\n```js\n{\n  "name": "RisuAI", //name must be RisuAI,\n  "age": 1, //age must be number,\n  "icon": "slim", //icon must be \'slim\' or \'rounded\'\n  "thoughts": ["Good View!", "Lorem"] //thoughts must be array of strings\n}\n```\n\nYou can put this TypeScript interface:\n\n```typescript\ninterface Schema {\n  name: string;\n  age: number;\n  icon: \'slim\'|\'rounded\'\n  thoughts: string[]\n}\n```\n\nName of the interface doesn\'t matter. for more information, see the typescript documentation. (https://www.typescriptlang.org/docs/handbook/interfaces.html), and to Check what subset of TypeScript is supported, see the below.<details><summary>Supported TypeScript Subset</summary>\n\nSupported types are `boolean`, `number`, `string`, `Array`. Advanced typing like unit types, intersection types, union types, optional, literal types, and etc. are not supported except for these cases:\n\n        - Array of primitive types: (ex. `string[]`, `Array<boolean>)`\n        - Unit types between strings: (ex. `\'slim\'|\'rounded\'`).\n\n        Properties must be one in a line. if there is multiple properties in a line, it will throw an error. Properties and name of the interface must be only in latin characters, in ASCII range. name of the properties must not be surrounded by quotes or double quotes. Nesting inside the interface is not supported. it is not allowed to put `{` or `}` in the line that properties are defined. If you want to use more advanced types, use JSON Schema instead.\n        </details>',
         strictJsonSchema: 'If enabled, it will strictly follow the Provided Schema for JSON on some models. if it is disabled, it may ignore the JSON Schema.',
-        extractJson: `If it is not blank, it will extract specific JSON data from the response. for example, if you want to extract \`response.text[0]\` in response \`{"response": {"text": ["hello"]}}\`, you can put \`response.text.0\`.`,
-        translatorNote: `여기에서 캐릭터마다 별도의 번역 프롬프트를 넣을 수 있습니다. 해당 옵션은  Ax. model 번역을 사용할 때만 적용됩니다. 언어 설정에서 \`{{slot::tnote}}\`를 넣으세요. 그룹챗에서는 작동하지 않습니다.`,
-        groupInnerFormat: `This defines a format that is used in group chat for characters that isn't speaker. if it is not blank, it will use this format instead of the default format. if \`Group Other Bot Role\` is \`assistant\`, it will also be applied to the speaker.`,
+        extractJson: 'If it is not blank, it will extract specific JSON data from the response. for example, if you want to extract `response.text[0]` in response `{"response": {"text": ["hello"]}}`, you can put `response.text.0`.',
+        translatorNote: '여기에서 캐릭터마다 별도의 번역 프롬프트를 넣을 수 있습니다. 해당 옵션은  Ax. model 번역을 사용할 때만 적용됩니다. 언어 설정에서 `{{slot::tnote}}`를 넣으세요. 그룹챗에서는 작동하지 않습니다.',
+        groupInnerFormat: 'This defines a format that is used in group chat for characters that isn\'t speaker. if it is not blank, it will use this format instead of the default format. if `Group Other Bot Role` is `assistant`, it will also be applied to the speaker.',
         groupOtherBotRole: 'This defines a role that is used in group chat for characters that isn\'t speaker.',
-        chatHTML: `A HTML that would be inserted as each chat.
-
-You can use CBS and special tags.
-- \`<risutextbox>\`: a textbox that would be used to render text
-- \`<risuicon>\`: an icon for user or assistant
-- \`<risubuttons>\`: icon buttons for chat edit, translations and etc.
-- \`<risugeninfo>\`: generation information button.`,
+        chatHTML: 'A HTML that would be inserted as each chat.\n\nYou can use CBS and special tags.\n- `<risutextbox>`: a textbox that would be used to render text\n- `<risuicon>`: an icon for user or assistant\n- `<risubuttons>`: icon buttons for chat edit, translations and etc.\n- `<risugeninfo>`: generation information button.',
         systemContentReplacement: 'The prompt format that replaces system prompt if the model doesn\'t support system prompt.',
         systemRoleReplacement: 'The role that replaces system role if the model doesn\'t support system role.',
         summarizationPrompt: 'The prompt that is used for summarization. if it is blank, it will use the default prompt. you can also use ChatML formating with {{slot}} for the chat data.',
         translatorPrompt: 'The prompt that is used for translation. if it is blank, it will use the default prompt. you can also use ChatML formating with {{slot}} for the dest language, {{solt::content}} for the content, and {{slot::tnote}} for the translator note.',
         translateBeforeHTMLFormatting: 'If enabled, it will translate the text before Regex scripts and HTML formatting. this could make the token lesser but could break the formatting.',
         autoTranslateCachedOnly: '자동 번역 옵션이 켜진 상태에서 활성화하면, 사용자가 이전에 번역한 메시지만 자동으로 번역됩니다.',
-        presetChain: `If it is not blank, the preset will be changed and applied randomly every time when user sends a message in the preset list in this input. preset list should be seperated by comma, for example, \`preset1,preset2\`.`,
+        presetChain: 'If it is not blank, the preset will be changed and applied randomly every time when user sends a message in the preset list in this input. preset list should be seperated by comma, for example, `preset1,preset2`.',
         legacyMediaFindings: 'If enabled, it will use the old method to find media assets, without using the additional search algorithm.',
         comfyWorkflow: 'Put the API workflow of comfy UI. you can get your API workflow in comfy UI by pressing the \'Workflow > Export (API)\' button. you must also put {{risu_prompt}} in you workflow text. the {{risu_prompt}} will be replaced with the prompt provided by the Risu.',
         automaticCachePoint: 'Automatically creates cache point after the chat ends, if the caching point doesn\'t exist.',
@@ -274,7 +152,7 @@ You can use CBS and special tags.
         openrouterProviderOnly: '이 목록의 제공자만 사용합니다. 모든 제공자를 사용할 수 없는 경우 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers 를 참조하세요',
         openrouterProviderIgnore: '이 목록의 제공자를 무시합니다. 모든 제공자가 무시되면 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers 를 참조하세요',
     },
-    setup:{
+    setup: {
         chooseProvider: 'AI 제공자를 선택해 주세요',
         openaikey: 'OpenAI & API Key (권장)',
         openaiProxy: 'OpenAI 리버스 프록시',
@@ -293,37 +171,23 @@ You can use CBS and special tags.
         openrouterProvider: 'Openrouter는 여러 무료/유료 모델이 있습니다. 기본적으로 무료로 설정됩니다.',
         hordeProvider: 'Horde는 특별한 설정이 필요없는 무료 모델입니다. 하지만, 성능이 좋지 않습니다.',
         setProviderLater: '다른 설정을 먼저 하고, 나중에 설정해도 됩니다.',
-        setupOpenAI: `OpenAI를 사용하려면, API키가 필요해요. 
-1. https://beta.openai.com/ 에 접속해주세요. 
-2. 로그인 또는 회원가입 해주세요. 
-3. https://beta.openai.com/account/api-keys 에 접속해주세요. 
-4. 'Create New API Key'를 눌러주세요. 
-5. 키 이름은 아무거나 하셔도 괜찮습니다. 
-6.생성된 키를 복사해주세요.
-7. 리스AI로 돌아와 주세요.
-8. 입력칸에 붙여넣고, 전송 버튼을 눌러주세요.`,
+        setupOpenAI: 'OpenAI를 사용하려면, API키가 필요해요. \n1. https://beta.openai.com/ 에 접속해주세요. \n2. 로그인 또는 회원가입 해주세요. \n3. https://beta.openai.com/account/api-keys 에 접속해주세요. \n4. \'Create New API Key\'를 눌러주세요. \n5. 키 이름은 아무거나 하셔도 괜찮습니다. \n6.생성된 키를 복사해주세요.\n7. 리스AI로 돌아와 주세요.\n8. 입력칸에 붙여넣고, 전송 버튼을 눌러주세요.',
         setupClaude: 'Claude를 사용하려면 API키가 필요해요.',
         setupClaudeSteps: [
-            "이 URL로 이동하고 구글로 로그인하세요",
-            "정보를 입력하고 'Continue'을 눌러주세요",
-            "조직 페이지에서, 첫 번째 상자에 아무 이름만 입력하고 'Create Account'를 눌러주세요",
-            "'Buy Credits' 버튼을 눌러주세요",
-            "'Complete Setup' 버튼을 눌러주세요",
-            "위 이미지와 같이 입력하되, 국가 부분은 자신의 국가를 입력해주세요. 그리고 'Continue'를 눌러주세요",
-            "결제 방법을 추가하고 'Continue'를 눌러주세요",
-            "결제가 등록되면 'Add Funds'를 눌러 자금을 추가하세요. 최소 5$를 추가할 수 있으며, 자동 추가 재충전을 설정할 수 있습니다.",
-            "자금을 추가한 후, 대시보드 페이지로 이동하여 'Get API Keys' 버튼을 눌러주세요",
-            "'Create API Key' 버튼을 눌러주세요",
-            "위 이미지와 같이 입력하고 'Add'를 눌러주세요",
-            "키를 복사하고, 이곳에 붙여넣고 전송해주세요."
+            '이 URL로 이동하고 구글로 로그인하세요',
+            '정보를 입력하고 \'Continue\'을 눌러주세요',
+            '조직 페이지에서, 첫 번째 상자에 아무 이름만 입력하고 \'Create Account\'를 눌러주세요',
+            '\'Buy Credits\' 버튼을 눌러주세요',
+            '\'Complete Setup\' 버튼을 눌러주세요',
+            '위 이미지와 같이 입력하되, 국가 부분은 자신의 국가를 입력해주세요. 그리고 \'Continue\'를 눌러주세요',
+            '결제 방법을 추가하고 \'Continue\'를 눌러주세요',
+            '결제가 등록되면 \'Add Funds\'를 눌러 자금을 추가하세요. 최소 5$를 추가할 수 있으며, 자동 추가 재충전을 설정할 수 있습니다.',
+            '자금을 추가한 후, 대시보드 페이지로 이동하여 \'Get API Keys\' 버튼을 눌러주세요',
+            '\'Create API Key\' 버튼을 눌러주세요',
+            '위 이미지와 같이 입력하고 \'Add\'를 눌러주세요',
+            '키를 복사하고, 이곳에 붙여넣고 전송해주세요.'
         ],
-        setupOpenrouter: `Openrouter를 사용하려면, API키가 필요합니다. 
-1. https://openrouter.ai/keys 에 접속하고 로그인 또는 회원가입 해주세요.
-2. 'Create Key'를 눌러주세요. 
-3. 키 이름은 아무거나 하셔도 괜찮습니다.
-4. 생성된 키를 복사해주세요.
-5. 리스AI로 돌아와주세요.
-6. 입력칸에 붙여넣고, 전송 버튼을 눌러주세요.`,
+        setupOpenrouter: 'Openrouter를 사용하려면, API키가 필요합니다. \n1. https://openrouter.ai/keys 에 접속하고 로그인 또는 회원가입 해주세요.\n2. \'Create Key\'를 눌러주세요. \n3. 키 이름은 아무거나 하셔도 괜찮습니다.\n4. 생성된 키를 복사해주세요.\n5. 리스AI로 돌아와주세요.\n6. 입력칸에 붙여넣고, 전송 버튼을 눌러주세요.',
         allDone: '모든 설정이 끝났어요! 잠시만 기다려주세요. 나머지 작업은 제가 처리할게요.',
         setupLaterMessage: '{username}님 환영해요! 셋업을 직접 하겠어요? 아니면 제 가이드를 받아보실래요?',
         setupMessageOption1: '셋업을 가이드해주세요',
@@ -354,7 +218,7 @@ You can use CBS and special tags.
         finallyOption2Desc: '이것은 고급 도구를 비활성화하며, UI를 더 간단하게 만듭니다. 신규 사용자에게 추천합니다.',
         igpPrompt: 'if IGP Prompt is not a blank, it will be executed after the main model request, after main model execution, as a emotion model, adding the result after the main model response.',
     },
-    triggerCategories:{
+    triggerCategories: {
         Special: '특수',
         Control: '제어',
         Chat: '채팅',
@@ -367,7 +231,7 @@ You can use CBS and special tags.
         Others: '기타',
         Deprecated: '비권장',
     },
-    triggerDesc:{
+    triggerDesc: {
         v2Header: '헤더',
         v2HeaderDesc: '헤더',
         v2If: '만약 ~이라면',
@@ -573,7 +437,7 @@ You can use CBS and special tags.
         v2ReplaceString: '문자열 치환',
         v2ReplaceStringDesc: '{{source}} 에서 정규식 {{regex}} 를 {{replacement}} 로 치환 => {{outputVar}}',
     },
-    triggerInputLabels:{
+    triggerInputLabels: {
         value: '값',
         var: '변수',
         varName: '변수명',
@@ -1294,7 +1158,7 @@ You can use CBS and special tags.
     delimiter: 'Delimiter',
     deleteCount: 'Delete Count',
     triggerEffRunAxLLM: '보조 모델 실행',
-    hypaV3Settings:{
+    hypaV3Settings: {
         descriptionLabel: 'HypaMemory V3는 요약과 벡터 검색을 모두 사용하는 장기 기억 시스템입니다.',
         supaMemoryPromptPlaceHolder: '기본값을 사용하려면 비워두세요',
         maxMemoryTokensRatioLabel: '최대 메모리 토큰 비율 (추정)',
@@ -1310,7 +1174,7 @@ You can use CBS and special tags.
         applyRegexScriptWhenRerollingLabel: '재생성 시 정규식 스크립트 적용',
         doNotSummarizeUserMessageLabel: '유저 메시지 요약하지 않기',
     },
-    hypaV3Modal:{
+    hypaV3Modal: {
         titleLabel: 'HypaV3',
         resetConfirmMessage: '이 작업은 되돌릴 수 없습니다. HypaV3 데이터를 초기화하시겠습니까?',
         resetConfirmSecondMessage: '이 작업은 복구할 수 없습니다. 정말로, 정말로 HypaV3 데이터를 초기화하시겠습니까?',
@@ -1388,7 +1252,7 @@ You can use CBS and special tags.
     tools: 'Tools',
     action: 'Action',
     hotkey: 'Hotkey',
-    hotkeyDesc:{
+    hotkeyDesc: {
         reroll: 'Reroll',
         unreroll: 'Undo Reroll',
         translate: 'Translate',
@@ -1467,22 +1331,20 @@ You can use CBS and special tags.
     translating: '번역 중...',
     showOriginal: '기존 코드 주소 보기',
     translate: '코드 주소 번역하기',
-    nightlyWarning: `## 나이틀리 빌드
-
-나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**`,
+    nightlyWarning: '## 나이틀리 빌드\n\n나이틀리 빌드에 연결하려고 합니다. 이 버전은 테스트용이며 버그가 포함되어 있을 수 있습니다. **이 버전에서는 버그 등 문제가 발생하더라도 직접적으로 해결하는 것을 지원하지 않습니다.**',
     loginSionyw: 'Login with Sionyw Account',
     pluginRiskDetectedAlert: 'Risuai가 API 키나 개인 데이터를 훔칠 수도 있는 위험한 코드를 감지했습니다. 이 플러그인을 설치하지 않는 것을 권장합니다.',
     doNotInstall: '설치하지 않음',
     continueAnyway: '무시하고 계속',
     pluginNoRiskButAlert: 'Risuai가 위험한 코드를 감지하지 못했지만, 신뢰할 수 없는 출처의 플러그인을 설치하면 보안 위험이 발생할 수 있습니다.',
-    pluginRisksInuserFriendly:{
+    pluginRisksInuserFriendly: {
         eval: '문자열에서 코드 실행',
         globalAccess: '글로벌 변수 접근',
         thisOutsideClass: '클래스 컨텍스트 외부에서 \'this\' 사용',
         errorInVerification: '검증 과정 중 오류 발생',
         storageAccess: '스토리지 접근',
     },
-    pluginRisksInuserFriendlyDesc:{
+    pluginRisksInuserFriendlyDesc: {
         eval: '플러그인이 문자열에서 코드를 실행하려고 합니다. 악성 코드를 숨기기 위해 문자열이 난독화되었을 수 있습니다.',
         globalAccess: '플러그인이 글로벌 변수에 접근하려고 합니다. 이는 의도치 않은 부작용이나 보안 취약점으로 이어질 수 있습니다.',
         thisOutsideClass: '플러그인이 클래스 컨텍스트 외부에서 \'this\' 키워드를 사용하고 있습니다. 이는 의도치 않은 동작이나 보안 문제로 이어질 수 있습니다.',
