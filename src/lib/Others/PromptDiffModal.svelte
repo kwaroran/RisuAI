@@ -58,12 +58,28 @@
 
     type DiffResult = { parts: DiffPart[]; counts: DiffCounts }
 
+    type ModifyPart = Extract<DiffPart, { k: 'modify' }>
+    type RenderLine =
+        | { kind: 'simple'; part: DiffPart }
+        | { kind: 'modifyGroup'; parts: ModifyPart[] }
+
+    type DiffSegment = { kind: 'context' | 'changes'; parts: DiffPart[] }
+
+    type SegmentOptions = {
+        showOnlyChanges?: boolean
+        contextRadius?: number
+    }
+
+    type NonModifyPart = Exclude<DiffPart, { k: 'modify' }>
+    type TokenClassPack = {add: string; remove: string; same: string}
+
     type DiffStyle = 'line' | 'intraline'
     type ViewStyle = 'raw' | 'card'
     
     let diffStyle = $state<DiffStyle>('intraline')
     let viewStyle = $state<ViewStyle>('raw')
     let isFlatText = $state(false)
+    let isGrouped = $state(false)
 
     let diffResult = $state<DiffResult | null>(null)
     let cardDiffResult = $state<CardDiffResult | null>(null)
@@ -135,13 +151,51 @@
 
     const nameHeaderTagClass = 'shrink-0 text-[10px] px-1.5 py-0.5 rounded border border-white/15 text-textcolor2 bg-black/20'
 
+    const tokenPackLineAdd: TokenClassPack = {
+      add: 'bg-green-500/20 rounded px-0.5',
+      remove: '',
+      same: 'text-green-200/90',
+    }
 
-    function isNameLine(part: DiffPart, idx: number) {
-        return part.src === 'linebyline' && part.k !== 'modify' && part.line.lineRole === 'name' && idx > 0
+    const tokenPackLineRemove: TokenClassPack = {
+      add: '',
+      remove: 'bg-red-500/20 rounded px-0.5',
+      same: 'text-red-200/90',
+    }
+
+    const tokenPackIntraline: TokenClassPack = {
+      add: tokenAddClass,
+      remove: tokenRemoveClass,
+      same: tokenSameClass,
+    }
+
+    function lineClassOf(part: NonModifyPart) {
+        if (part.k === 'same') return `${diffLineBase} ${diffSameClass}`
+        if (part.k === 'add')  return `${diffLineBase} ${diffAddClass}`
+        return `${diffLineBase} ${diffRemoveClass}`
+    }
+
+    function lineTextOf(part: NonModifyPart) {
+        return part.src === 'flattext' ? part.v : part.line.text
+    }
+
+    function isLineby(part: DiffPart): part is Extract<DiffPart, { src: 'linebyline' }> {
+        return part.src === 'linebyline'
+    }
+
+    function isNameLine(part: DiffPart) {
+        return part.src === 'linebyline' && part.k !== 'modify' && part.line.lineRole === 'name'
     }
 
     function isHeaderLine(part: DiffPart) {
         return part.src === 'linebyline' && part.k !== 'modify' && part.line.lineRole === 'header'
+    }
+
+    function tagText(part: ModifyPart): string | null {
+        if ((part.src === 'linebyline') && (part.right.lineRole === 'name' || part.right.lineRole === 'header')) {
+            return part.right.lineRole === 'name' ? 'NAME' : 'TYPE'
+        }
+        return null
     }
 
     // ------------------ //
@@ -560,62 +614,267 @@
         })
     }
 
+    function buildSegments(parts: DiffPart[], opts?: SegmentOptions): DiffSegment[] {
+        const segs: DiffSegment[] = []
+        let current: DiffSegment | null = null
+
+        const isContext = (part: DiffPart) => part.k === 'same'
+
+        for (const part of parts) {
+            const ctx = isContext(part)
+
+            if (!current) {
+                current = { kind: ctx ? 'context' : 'changes', parts: [part] }
+                continue
+            }
+
+            if (ctx && current.kind === 'context') {
+                current.parts.push(part)
+                continue
+            }
+
+            if (!ctx && current.kind === 'changes') {
+                current.parts.push(part)
+                continue
+            }
+
+            segs.push(current)
+            current = { kind: ctx ? 'context' : 'changes', parts: [part] }
+        }
+
+        if (current) segs.push(current)
+
+        return segs
+    }
+
+    function buildLines(parts: DiffPart[]): RenderLine[] {
+        if (!isGrouped) return parts.map((part) => ({ kind: 'simple', part}))
+
+        const lines: RenderLine[] = []
+        let buffer: ModifyPart[] = []
+
+        const flushBuffer = () => {
+            if (!buffer.length) return
+            if (buffer.length === 1) {
+                lines.push({ kind: 'simple', part: buffer[0] })
+            }
+            else {
+                lines.push({ kind: 'modifyGroup', parts: buffer })
+            }
+            buffer = []
+        }
+        for (const part of parts) {
+            if (part.k === 'modify') {
+                buffer.push(part)
+            }
+            else {
+                flushBuffer()
+                lines.push({ kind: 'simple', part })
+            }
+        }
+        flushBuffer()
+
+        return lines
+    }
+
 </script>
 
+{#snippet pillRadioGroup(label: string, name: string, options: readonly { value: string; label: string }[], value: string, setValue: (v: string) => void)}
+  <div class="flex items-center gap-2">
+    <span class="text-xs text-textcolor2">{label}</span>
+    <div class="flex rounded-md border border-darkborderc overflow-hidden">
+      {#each options as opt (opt.value)}
+        <label class={`${pillBase} ${value === opt.value ? pillActive : pillInactive}`}>
+          <input
+            class="hidden"
+            type="radio"
+            {name}
+            value={opt.value}
+            checked={value === opt.value}
+            onchange={() => setValue(opt.value)}
+          />
+          {opt.label}
+        </label>
+      {/each}
+    </div>
+  </div>
+{/snippet}
+
+{#snippet checkboxToggle(label: string, checked: boolean, setChecked: (v: boolean) => void, disabled = false, dimWhenDisabled = false)}
+  <div class="flex items-center gap-2">
+    <label
+      class={`flex items-center gap-1 text-xs cursor-pointer select-none ${
+        disabled && dimWhenDisabled ? 'text-textcolor2/50' : 'text-textcolor2'
+      }`}
+    >
+      <input
+        type="checkbox"
+        class="accent-green-500"
+        {disabled}
+        checked={checked}
+        onchange={(e) => setChecked((e.currentTarget as HTMLInputElement).checked)}
+      />
+      {label}
+    </label>
+  </div>
+{/snippet}
+
+{#snippet renderCounts(counts: DiffCounts)}
+  <div class="flex flex-wrap gap-3 text-xs text-textcolor2 mb-3">
+    <span class="inline-flex items-center gap-2">
+      <span class="inline-block w-1 h-4 rounded bg-blue-500"></span>
+      {counts.modifiedCount}
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="inline-block w-1 h-4 rounded bg-green-500"></span>
+      {counts.addedCount}
+    </span>
+    <span class="inline-flex items-center gap-2">
+      <span class="inline-block w-1 h-4 rounded bg-red-500"></span>
+      {counts.removedCount}
+    </span>
+  </div>
+{/snippet}
+
+{#snippet renderSimpleLine(part: NonModifyPart)}
+  <div
+    class={lineClassOf(part)}
+    class:mt-5={isNameLine(part)}
+    class:mb-5={isHeaderLine(part)}
+  >
+    {#if isLineby(part) && part.line.lineRole === 'body' && part.line.text === ''}
+      <br />
+    {:else}
+      {lineTextOf(part)}{#if isLineby(part) && (part.line.lineRole === 'name' || part.line.lineRole === 'header')}
+        <span class={nameHeaderTagClass}>
+          {part.line.lineRole === 'name' ? 'NAME' : 'TYPE'}
+        </span>
+      {/if}
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet renderTokens(tokens: WordToken[], skip: SimpleDiff | null, pack: TokenClassPack)}
+  {#each tokens as tok, j (j)}
+    {#if skip === null || tok.t !== skip}
+      <span class={tok.t === 'add' ? pack.add : tok.t === 'remove' ? pack.remove : pack.same}>
+        {tok.v}
+      </span>
+    {/if}
+  {/each}
+{/snippet}
+
+{#snippet renderModify(part: ModifyPart, idx: number)}
+  {@const tag = tagText(part)}
+  {#if diffStyle === 'line'}
+    <!-- line diff -->
+    <div
+      class={`whitespace-pre-wrap ${lineRemoveClass}`}
+      class:mt-5={isLineby(part) && part.right.lineRole === 'name' && idx > 0}
+    >
+      {@render renderTokens(part.tokens, 'add', tokenPackLineRemove)}{#if tag}<span class={nameHeaderTagClass}>{tag}</span>{/if}
+    </div>
+
+    <div
+      class={`whitespace-pre-wrap ${lineAddClass}`}
+      class:mb-5={isLineby(part) && part.right.lineRole === 'header'}
+    >
+      {#if part.src === 'linebyline' && part.right.text === ''}
+        <span class="text-textcolor2/60 italic">[empty line]</span>
+      {:else}
+        {@render renderTokens(part.tokens, 'remove', tokenPackLineAdd)}{#if tag}<span class={nameHeaderTagClass}>{tag}</span>{/if}
+      {/if}
+    </div>
+
+  {:else} <!-- intraline diff -->
+    <div
+      class={`whitespace-pre-wrap ${lineModifyClass}`}
+      class:mt-5={isLineby(part) && part.right.lineRole === 'name' && idx > 0}
+      class:mb-5={isLineby(part) && part.right.lineRole === 'header'}
+    >
+      {@render renderTokens(part.tokens, null, tokenPackIntraline)}{#if tag}<span class={nameHeaderTagClass}>{tag}</span>{/if}
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet renderModifyGroup(parts: ModifyPart[])}
+  {#if diffStyle === 'line'}
+    <!-- grouped + line diff -->
+    <div class={`whitespace-pre-wrap ${lineRemoveClass}`}>
+    {#each parts as part, i (i)}
+      {@render renderTokens(part.tokens, 'add', tokenPackLineRemove)}{#if tagText(part)}<span class={nameHeaderTagClass}>{tagText(part)}</span>{/if}
+
+      {#if i < parts.length - 1}
+        {'\n'}
+      {/if}
+    {/each}
+    </div>
+
+    <div class={`whitespace-pre-wrap ${lineAddClass}`}>
+    {#each parts as part, i (i)}
+      {#if part.src === 'linebyline' && part.right.text === ''}
+        <span class="text-textcolor2/60 italic">[empty line]</span>
+      {:else}
+        {@render renderTokens(part.tokens, 'remove', tokenPackLineAdd)}{#if tagText(part)}<span class={nameHeaderTagClass}>{tagText(part)}</span>{/if}
+      {/if}
+
+      {#if i < parts.length - 1}
+        {'\n'}
+      {/if}
+    {/each}
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet renderCardMeta(part: DiffPart, type: string)}
+  <div class="flex flex-col gap-1">
+    <span class="text-[10px] uppercase tracking-wide text-textcolor2">{type}</span>
+
+    {#if part && part.src === 'linebyline'}
+      {#if part.k === 'modify'}
+        {#if diffStyle === 'line'}
+          <!-- line diff -->
+          <div class="whitespace-pre-wrap text-red-400">
+            {@render renderTokens(part.tokens, 'add', tokenPackLineRemove)}
+          </div>
+          <div class="whitespace-pre-wrap text-green-400">
+            {@render renderTokens(part.tokens, 'remove', tokenPackLineAdd)}
+          </div>
+        {:else}
+          <!-- intraline diff -->
+          <div class="whitespace-pre-wrap">
+            {@render renderTokens(part.tokens, null, tokenPackIntraline)}
+          </div>
+        {/if}
+      {:else}
+        <!-- same/add/remove -->
+        <div
+          class={`whitespace-pre-wrap ${
+            part.k === 'same'
+              ? 'text-textcolor'
+              : part.k === 'add'
+              ? 'text-green-400'
+              : 'text-red-400'
+          }`}
+        >
+          {part.line.text}
+        </div>
+      {/if}
+    {:else}
+      <div class="text-xs text-textcolor2 italic">No {type}</div>
+    {/if}
+  </div>
+{/snippet}
 
 <div class="absolute inset-0 z-50 bg-black bg-opacity-60 flex justify-center items-center p-4">
   <div class="bg-darkbg rounded-md w-full max-w-4xl max-h-full overflow-hidden flex flex-col">
     
     <div class="flex items-center justify-between px-4 py-3 border-b border-darkborderc">
       <div class="flex items-center gap-4 flex-wrap">
-
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-textcolor2">Diff</span>
-          <div class="flex rounded-md border border-darkborderc overflow-hidden">
-            {#each diffOptions as opt (opt.value)}
-              <label class={`${pillBase} ${diffStyle === opt.value ? pillActive : pillInactive}`}>
-                <input
-                  class="hidden"
-                  type="radio"
-                  name="diffStyle"
-                  value={opt.value}
-                  bind:group={diffStyle}
-                />
-                  {opt.label}
-              </label>
-            {/each}
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <span class="text-xs text-textcolor2">View</span>
-          <div class="flex rounded-md border border-darkborderc overflow-hidden">
-            {#each viewOptions as opt (opt.value)}
-              <label class={`${pillBase} ${viewStyle === opt.value ? pillActive : pillInactive}`}>
-                <input
-                  class="hidden"
-                  type="radio"
-                  name="viewStyle"
-                  value={opt.value}
-                  bind:group={viewStyle}
-                />
-                  {opt.label}
-              </label>
-            {/each}
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <label class="flex items-center gap-1 text-xs text-textcolor2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              bind:checked={isFlatText}
-              class="accent-green-500"
-            />
-            Flat Text
-          </label>
-        </div>
-
+        {@render pillRadioGroup('Diff', 'diffStyle', diffOptions, diffStyle, (v) => (diffStyle = v as DiffStyle))}
+        {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle))}
+        {@render checkboxToggle('Flat Text', isFlatText, (v) => (isFlatText = v))}
+        {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), diffStyle !== 'line', true)}
       </div>
 
       <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
@@ -623,32 +882,14 @@
       </button>
     </div>
 
-
     <div class="p-4 overflow-y-auto">
       <!-- card view -->
       {#if !isFlatText && viewStyle === 'card'}
         {#if cardDiffResult}
-          {@const cardChangedTotal =
-            cardDiffResult.cardCounts.modifiedCount
-            + cardDiffResult.cardCounts.addedCount
-            + cardDiffResult.cardCounts.removedCount}
+          {@const cardChangedTotal = cardDiffResult.cardCounts.modifiedCount + cardDiffResult.cardCounts.addedCount + cardDiffResult.cardCounts.removedCount}
 
           <div class="flex items-center justify-between mb-3 text-xs text-textcolor2">
-            <div class="flex flex-wrap gap-3">
-              <span class="inline-flex items-center gap-2">
-                <span class="inline-block w-1 h-4 rounded bg-blue-500"></span>
-                {cardDiffResult.counts.modifiedCount}
-              </span>
-              <span class="inline-flex items-center gap-2">
-                <span class="inline-block w-1 h-4 rounded bg-green-500"></span>
-                {cardDiffResult.counts.addedCount}
-              </span>
-              <span class="inline-flex items-center gap-2">
-                <span class="inline-block w-1 h-4 rounded bg-red-500"></span>
-                {cardDiffResult.counts.removedCount}
-              </span>
-            </div>
-
+            {@render renderCounts(cardDiffResult.counts)}
             <div class="text-xs text-textcolor2">
               Cards changed: {cardChangedTotal} / {cardDiffResult.parts.length}
             </div>
@@ -679,124 +920,8 @@
                 <!-- name / header / card diff -->
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex flex-col gap-2 min-w-0">
-                    <!-- Name -->
-                    <div class="flex flex-col gap-1">
-                      <span class="text-[10px] uppercase tracking-wide text-textcolor2">Name</span>
-
-                      {#if namePart && namePart.src === 'linebyline'}
-                        {#if namePart.k === 'modify'}
-                          {#if diffStyle === 'line'}
-                            <!-- name: line diff -->
-                            <div class="whitespace-pre-wrap text-red-400">
-                              {#each namePart.tokens as tok, j (j)}
-                                {#if tok.t !== 'add'}
-                                  <span class={tok.t === 'remove' ? 'bg-red-500/20 rounded px-0.5' : 'text-red-200/90'}>
-                                    {tok.v}
-                                  </span>
-                                {/if}
-                              {/each}
-                            </div>
-                            <div class="whitespace-pre-wrap text-green-400">
-                              {#each namePart.tokens as tok, j (j)}
-                                {#if tok.t !== 'remove'}
-                                  <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
-                                    {tok.v}
-                                  </span>
-                                {/if}
-                              {/each}
-                            </div>
-                          {:else}
-                            <!-- name: intraline diff -->
-                            <div class="whitespace-pre-wrap">
-                              {#each namePart.tokens as tok, j (j)}
-                                <span
-                                  class={tok.t === 'add'
-                                    ? tokenAddClass
-                                    : tok.t === 'remove'
-                                      ? tokenRemoveClass
-                                      : tokenSameClass}
-                                >
-                                  {tok.v}
-                                </span>
-                              {/each}
-                            </div>
-                          {/if}
-                        {:else}
-                          <!-- same/add/remove -->
-                          <div
-                            class={`whitespace-pre-wrap ${
-                              namePart.k === 'same'
-                                ? 'text-textcolor'
-                                : namePart.k === 'add'
-                                ? 'text-green-400'
-                                : 'text-red-400'
-                            }`}
-                          >
-                            {namePart.line.text}
-                          </div>
-                        {/if}
-                      {:else}
-                        <div class="text-xs text-textcolor2 italic">No name</div>
-                      {/if}
-                    </div>
-
-                    <!-- Header / Type -->
-                    <div class="flex flex-col gap-1">
-                      <span class="text-[10px] uppercase tracking-wide text-textcolor2">TYPE</span>
-
-                      {#if headerPart && headerPart.src === 'linebyline'}
-                        {#if headerPart.k === 'modify'}
-                          {#if diffStyle === 'line'}
-                            <div class="whitespace-pre-wrap text-red-400">
-                              {#each headerPart.tokens as tok, j (j)}
-                                {#if tok.t !== 'add'}
-                                  <span class={tok.t === 'remove' ? 'bg-red-500/20 rounded px-0.5' : 'text-red-200/90'}>
-                                    {tok.v}
-                                  </span>
-                                {/if}
-                              {/each}
-                            </div>
-                            <div class="whitespace-pre-wrap text-green-400">
-                              {#each headerPart.tokens as tok, j (j)}
-                                {#if tok.t !== 'remove'}
-                                  <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
-                                    {tok.v}
-                                  </span>
-                                {/if}
-                              {/each}
-                            </div>
-                          {:else}
-                            <div class="whitespace-pre-wrap">
-                              {#each headerPart.tokens as tok, j (j)}
-                                <span
-                                  class={tok.t === 'add'
-                                    ? tokenAddClass
-                                    : tok.t === 'remove'
-                                      ? tokenRemoveClass
-                                      : tokenSameClass}
-                                >
-                                  {tok.v}
-                                </span>
-                              {/each}
-                            </div>
-                          {/if}
-                        {:else}
-                          <div
-                            class={`whitespace-pre-wrap ${
-                              headerPart.k === 'same'
-                                ? 'text-textcolor2'
-                                : headerPart.k === 'add'
-                                ? 'text-green-400'
-                                : 'text-red-400'
-                            }`}
-                          >
-                            {headerPart.line.text}
-                          </div>
-                        {/if}
-                      {:else}
-                        <div class="text-xs text-textcolor2 italic">No header</div>
-                      {/if}
-                    </div>
+                    {@render renderCardMeta(namePart, 'name')}
+                    {@render renderCardMeta(headerPart, 'type')}
                   </div>
 
                   <!-- card diff -->
@@ -818,67 +943,28 @@
                   {#if bodyParts.length === 0}
                     <div class="text-textcolor2 italic">No body content</div>
                   {:else}
-                    {#each bodyParts as part, i (i)}
-                      {@const isModify = part.k === 'modify'}
-
-                      {#if !isModify}
-                        {@const lineClass =
-                          part.k === 'same'
-                            ? `${diffLineBase} ${diffSameClass}`
-                            : part.k === 'add'
-                            ? `${diffLineBase} ${diffAddClass}`
-                            : `${diffLineBase} ${diffRemoveClass}`}
-
-                        <div class={lineClass}>
-                          {#if part.src === 'linebyline' && part.line.text === ''}
-                            <br />
-                          {:else}
-                            {#if part.src === 'flattext'}
-                              {part.v}
-                            {:else}
-                              {part.line.text}
-                            {/if}
+                    {@const segments = buildSegments(bodyParts)}
+                    {#each segments as seg, sIdx (sIdx)}
+                      {#if seg.kind === 'context'}
+                        {#each seg.parts as part, idx (idx)}
+                          {#if part.k !== 'modify'}
+                            {@render renderSimpleLine(part)}
                           {/if}
-                        </div>
-                      {:else}
-                        {#if diffStyle === 'line'}
-                          <div class={`whitespace-pre-wrap ${lineRemoveClass}`}>
-                            {#each part.tokens as tok, j (j)}
-                              {#if tok.t !== 'add'}
-                                <span class={tok.t === 'remove' ? 'bg-red-500/20 rounded px-0.5' : 'text-red-200/90'}>
-                                  {tok.v}
-                                </span>
-                              {/if}
-                            {/each}
-                          </div>
-                          <div class={`whitespace-pre-wrap ${lineAddClass}`}>
-                            {#if part.src === 'linebyline' && part.right.text === ''}
-                              <span class="text-textcolor2/60 italic">[empty line]</span>
-                            {:else}
-                              {#each part.tokens as tok, j (j)}
-                                {#if tok.t !== 'remove'}
-                                  <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
-                                    {tok.v}
-                                  </span>
-                                {/if}
-                              {/each}
+                        {/each}
+                      {:else} <!-- change segment -->
+                        {@const lines = buildLines(seg.parts)}
+                        {#each lines as line, idx (idx)}
+                          {#if line.kind === 'simple'}
+                          {@const part = line.part}
+                            {#if part.k !== 'modify'}
+                              {@render renderSimpleLine(part)}
+                            {:else} <!-- modify -->
+                              {@render renderModify(part, idx)}
                             {/if}
-                          </div>
-                        {:else}
-                          <div class={`whitespace-pre-wrap ${lineModifyClass}`}>
-                            {#each part.tokens as tok, j (j)}
-                              <span
-                                class={tok.t === 'add'
-                                  ? tokenAddClass
-                                  : tok.t === 'remove'
-                                    ? tokenRemoveClass
-                                    : tokenSameClass}
-                              >
-                                {tok.v}
-                              </span>
-                            {/each}
-                          </div>
-                        {/if}
+                          {:else} <!-- modifyGroup -->
+                            {@render renderModifyGroup(line.parts)}
+                          {/if}
+                        {/each}
                       {/if}
                     {/each}
                   {/if}
@@ -891,121 +977,31 @@
         {/if}
       {:else}<!-- raw view -->
         {#if currentFlatResult}
-          {@const result = currentFlatResult}
-
-          <div class="flex flex-wrap gap-3 text-xs text-textcolor2 mb-3">
-            <span class="inline-flex items-center gap-2">
-              <span class="inline-block w-1 h-4 rounded bg-blue-500"></span>
-              {result!.counts.modifiedCount}
-            </span>
-            <span class="inline-flex items-center gap-2">
-              <span class="inline-block w-1 h-4 rounded bg-green-500"></span>
-              {result!.counts.addedCount}
-            </span>
-            <span class="inline-flex items-center gap-2">
-              <span class="inline-block w-1 h-4 rounded bg-red-500"></span>
-              {result!.counts.removedCount}
-            </span>
-          </div>
+          {@const segments = buildSegments(currentFlatResult.parts)}
+          {@render renderCounts(currentFlatResult.counts)}
 
           <div class="font-mono text-sm leading-5">
-            {#each result!.parts as part, idx (idx)}
-              {@const isModify   = part.k === 'modify'}
-              {@const isFlattext = part.src === 'flattext'}
-              {@const isLineby   = part.src === 'linebyline'}
-
-              {#if !isModify}
-                {@const lineClass =
-                  part.k === 'same'
-                    ? `${diffLineBase} ${diffSameClass}`
-                    : part.k === 'add'
-                    ? `${diffLineBase} ${diffAddClass}`
-                    : `${diffLineBase} ${diffRemoveClass}`}
-
-                <div
-                  class={lineClass}
-                  class:mt-5={isNameLine(part, idx)}
-                  class:mb-5={isHeaderLine(part)}
-                >
-                  {#if isLineby && part.line.lineRole === 'body' && part.line.text === ''}
-                    <br />
-                  {:else}
-                    {#if isFlattext}
-                      {part.v}
-                    {:else}
-                      {part.line.text}
-                      {#if isLineby && (part.line.lineRole === 'name' || part.line.lineRole === 'header')}
-                        <span class={nameHeaderTagClass}>
-                          {part.line.lineRole === 'name' ? 'NAME' : 'TYPE'}
-                        </span>
-                      {/if}
-                    {/if}
+            {#each segments as seg, sIdx (sIdx)}
+              {#if seg.kind === 'context'}
+                {#each seg.parts as part, idx (idx)}
+                  {#if part.k !== 'modify'}
+                    {@render renderSimpleLine(part)}
                   {/if}
-                </div>
-              {:else} <!-- modify -->
-                {#if diffStyle === 'line'}
-                  <!-- line diff -->
-                  <div
-                    class={`whitespace-pre-wrap ${lineRemoveClass}`}
-                    class:mt-5={isLineby && part.right.lineRole === 'name' && idx > 0}
-                  >
-                    {#each part.tokens as tok, j (j)}
-                      {#if tok.t !== 'add'}
-                        <span class={tok.t === 'remove' ? 'bg-red-500/20 rounded px-0.5' : 'text-red-200/90'}>
-                          {tok.v}
-                        </span>
-                      {/if}
-                    {/each}{#if isLineby && (part.right.lineRole === 'name' || part.right.lineRole === 'header')}
-                      <span class={nameHeaderTagClass}>
-                        {part.right.lineRole === 'name' ? 'NAME' : 'TYPE'}
-                      </span>
+                {/each}
+              {:else} <!-- change segment -->
+                {@const lines = buildLines(seg.parts)}
+                {#each lines as line, idx (idx)}
+                  {#if line.kind === 'simple'}
+                    {@const part = line.part}
+                    {#if part.k !== 'modify'}
+                      {@render renderSimpleLine(part)}
+                    {:else} <!-- modify -->
+                      {@render renderModify(part, idx)}
                     {/if}
-                  </div>
-
-                  <div
-                    class={`whitespace-pre-wrap ${lineAddClass}`}
-                    class:mb-5={isLineby && part.right.lineRole === 'header'}
-                  >
-                    {#if part.src === 'linebyline' && part.right.text === ''}
-                      <span class="text-textcolor2/60 italic">[empty line]</span>
-                    {:else}
-                      {#each part.tokens as tok, j (j)}
-                        {#if tok.t !== 'remove'}
-                          <span class={tok.t === 'add' ? 'bg-green-500/20 rounded px-0.5' : 'text-green-200/90'}>
-                            {tok.v}
-                          </span>
-                        {/if}
-                      {/each}{#if isLineby && (part.right.lineRole === 'name' || part.right.lineRole === 'header')}
-                        <span class={nameHeaderTagClass}>
-                          {part.right.lineRole === 'name' ? 'NAME' : 'TYPE'}
-                        </span>
-                      {/if}
-                    {/if}
-                  </div>
-
-                {:else} <!-- intraline diff -->
-                  <div
-                    class={`whitespace-pre-wrap ${lineModifyClass}`}
-                    class:mt-5={isLineby && part.right.lineRole === 'name' && idx > 0}
-                    class:mb-5={isLineby && part.right.lineRole === 'header'}
-                  >
-                    {#each part.tokens as tok, j (j)}
-                      <span
-                        class={tok.t === 'add'
-                          ? tokenAddClass
-                          : tok.t === 'remove'
-                            ? tokenRemoveClass
-                            : tokenSameClass}
-                      >
-                        {tok.v}
-                      </span>
-                    {/each}{#if isLineby && (part.right.lineRole === 'name' || part.right.lineRole === 'header')}
-                      <span class={nameHeaderTagClass}>
-                        {part.right.lineRole === 'name' ? 'NAME' : 'TYPE'}
-                      </span>
-                    {/if}
-                  </div>
-                {/if}
+                  {:else} <!-- modifyGroup -->
+                    {@render renderModifyGroup(line.parts)}
+                  {/if}
+                {/each}
               {/if}
             {/each}
           </div>
