@@ -4,9 +4,9 @@ import { polyfill as dragPolyfill} from "mobile-drag-drop"
 import {scrollBehaviourDragImageTranslateOverride} from 'mobile-drag-drop/scroll-behaviour'
 import rfdc from 'rfdc'
 /**
- * Safe variant of structuredClone for svelte 5 states
- * if structuredClone is not available, it will use JSON.parse(JSON.stringify(data)) instead
-*/
+ * Polyfill for structuredClone.
+ * Falls back to rfdc (Really Fast Deep Clone) if structuredClone throws an error.
+ */
 
 const rfdcClone = rfdc({
   circles:false,
