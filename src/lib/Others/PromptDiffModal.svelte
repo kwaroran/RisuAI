@@ -66,8 +66,8 @@
     type DiffSegment = { kind: 'context' | 'changes'; parts: DiffPart[] }
 
     type SegmentOptions = {
-        showOnlyChanges?: boolean
-        contextRadius?: number
+        showOnlyChanges: boolean
+        contextRadius: number
     }
 
     type NonModifyPart = Exclude<DiffPart, { k: 'modify' }>
@@ -80,6 +80,8 @@
     let viewStyle = $state<ViewStyle>('raw')
     let isFlatText = $state(false)
     let isGrouped = $state(false)
+    let showOnlyChanges = $state(false)
+    let contextRadius = $state(3)
 
     let diffResult = $state<DiffResult | null>(null)
     let cardDiffResult = $state<CardDiffResult | null>(null)
@@ -614,13 +616,40 @@
         })
     }
 
-    function buildSegments(parts: DiffPart[], opts?: SegmentOptions): DiffSegment[] {
+    function buildSegments(parts: DiffPart[], opts: SegmentOptions): DiffSegment[] {
+        const { showOnlyChanges, contextRadius } = opts
+        const len = parts.length
+        if (len === 0) return []
+
         const segs: DiffSegment[] = []
         let current: DiffSegment | null = null
 
         const isContext = (part: DiffPart) => part.k === 'same'
 
-        for (const part of parts) {
+        let filteredParts: DiffPart[] = parts
+
+        if (showOnlyChanges) {
+            const keep = new Array<boolean>(len).fill(false)
+
+            for (let i = 0; i < len; i++) {
+                if (isContext(parts[i])) continue
+
+                const from = Math.max(0, i - contextRadius)
+                const to   = Math.min(len - 1, i + contextRadius)
+
+                for (let j = from; j <= to; j++) {
+                    keep[j] = true
+                }
+            }
+
+            filteredParts = []
+            for (let i = 0; i < len; i++) {
+                if (keep[i]) filteredParts.push(parts[i])
+            }
+            if (!filteredParts.length) return []
+        }
+
+        for (const part of filteredParts) {
             const ctx = isContext(part)
 
             if (!current) {
@@ -875,6 +904,7 @@
         {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle))}
         {@render checkboxToggle('Flat Text', isFlatText, (v) => (isFlatText = v))}
         {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), diffStyle !== 'line', true)}
+        {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v))}
       </div>
 
       <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
@@ -943,7 +973,7 @@
                   {#if bodyParts.length === 0}
                     <div class="text-textcolor2 italic">No body content</div>
                   {:else}
-                    {@const segments = buildSegments(bodyParts)}
+                    {@const segments = buildSegments(bodyParts, { showOnlyChanges, contextRadius })}
                     {#each segments as seg, sIdx (sIdx)}
                       {#if seg.kind === 'context'}
                         {#each seg.parts as part, idx (idx)}
@@ -977,7 +1007,7 @@
         {/if}
       {:else}<!-- raw view -->
         {#if currentFlatResult}
-          {@const segments = buildSegments(currentFlatResult.parts)}
+          {@const segments = buildSegments(currentFlatResult.parts, { showOnlyChanges, contextRadius })}
           {@render renderCounts(currentFlatResult.counts)}
 
           <div class="font-mono text-sm leading-5">
