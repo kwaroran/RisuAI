@@ -768,12 +768,6 @@
         <button class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
             {@render renderChilds(dom)}
         </button>
-    {:else if dom.tagName === 'STYLE'}
-        <!-- <div>
-            <style>
-                {dom.innerHTML}
-            </style>
-        </div> -->
     {:else if dom.tagName === 'RISUTEXTBOX'}
         {@render textBox()}
     {:else if dom.tagName === 'RISUICON'}
