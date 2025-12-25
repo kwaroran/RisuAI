@@ -452,24 +452,22 @@
                         const right = rightParts[j]
                         if (left.header === right.header) {
                             parts.push({ k: 'modify', left, right })
-                            if (style === 'intraline') {
-                                modifiedCount++
-                            }
-                            else {
-                                addedCount++
-                                removedCount++
-                            }
+                            modifiedCount++
                         }
                         else {
                             parts.push({ k: 'remove', card: left })
                             parts.push({ k: 'add', card: right })
+                            removedCount++
+                            addedCount++
                         }
                     }
                     for (let j = n; j < leftParts.length; j++) {
                         parts.push({ k: 'remove', card: leftParts[j]})
+                        removedCount++
                     }
                     for (let j = n; j < rightParts.length; j++) {
                         parts.push({ k: 'add', card: rightParts[j]})
+                        addedCount++
                     }
                     i++
                     continue
@@ -1021,8 +1019,25 @@
 
           <div class="flex items-center justify-between mb-3 text-xs text-textcolor2">
             {@render renderCounts(cardDiffResult.counts)}
-            <div class="text-xs text-textcolor2">
-              Cards changed: {cardChangedTotal} / {cardDiffResult.parts.length}
+            <div class="text-xs text-textcolor2 flex items-center gap-2 flex-wrap">
+              <span class="text-textcolor2">Cards changed:</span>
+              <span class="text-textcolor">{cardChangedTotal}</span>
+              <span class="text-textcolor2/60">/</span>
+              <span class="text-textcolor2">compared {cardDiffResult.parts.length}</span>
+              <span class="text-textcolor2/60">·</span>
+              <span class="text-textcolor2">total {firstCards.length} → {secondCards.length}</span>
+              <span class="text-textcolor2/60">·</span>
+              <span class="inline-flex items-center gap-1 text-blue-300">
+                ~{cardDiffResult.cardCounts.modifiedCount}
+              </span>
+              <span class="text-textcolor2/60">/</span>
+              <span class="inline-flex items-center gap-1 text-green-300">
+                +{cardDiffResult.cardCounts.addedCount}
+              </span>
+              <span class="text-textcolor2/60">/</span>
+              <span class="inline-flex items-center gap-1 text-red-300">
+                -{cardDiffResult.cardCounts.removedCount}
+              </span>
             </div>
           </div>
 
@@ -1064,7 +1079,7 @@
                       {cardChangeCount} change{cardChangeCount === 1 ? '' : 's'}
                     </span>
                     <span class="text-[11px] text-textcolor2">
-                      +{c.addedCount} / ~{c.modifiedCount} / -{c.removedCount}
+                      ~{c.modifiedCount} / +{c.addedCount} / -{c.removedCount}
                     </span>
                   </div>
                 </div>
