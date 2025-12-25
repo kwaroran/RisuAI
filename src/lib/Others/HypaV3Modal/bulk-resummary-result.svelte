@@ -6,11 +6,11 @@
     XIcon,
   } from "lucide-svelte";
   import { language } from "src/lang";
-  import type { bulkResummaryState } from "./types";
+  import type { BulkResummaryState } from "./types";
   import { handleDualAction } from "./utils";
 
   interface Props {
-    bulkResummaryState: bulkResummaryState;
+    bulkResummaryState: BulkResummaryState;
     onToggleTranslation: (regenerate: boolean) => void;
     onReroll: () => void;
     onApply: () => void;
