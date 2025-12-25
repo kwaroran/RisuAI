@@ -63,7 +63,9 @@
         | { kind: 'simple'; part: DiffPart }
         | { kind: 'modifyGroup'; parts: ModifyPart[] }
 
-    type DiffSegment = { kind: 'context' | 'changes'; parts: DiffPart[] }
+    type DiffSegment =
+        | { kind: 'context' | 'changes'; parts: DiffPart[] }
+        | { kind: 'divider'; pos: 'start' | 'between' | 'end'; omitted: number }
 
     type SegmentOptions = {
         showOnlyChanges: boolean
@@ -104,6 +106,16 @@
         if (!isFlatText && viewStyle === 'raw') return cardlineFlatResult
         if (isFlatText) return diffResult
         return null
+    })
+
+    const visibleCardParts = $derived.by<CardBodyDiff[]>(() => {
+        if (!cardDiffResult) return []
+        if (!showOnlyChanges) return cardDiffResult.parts
+
+        return cardDiffResult.parts.filter((p) => {
+            const c = p.bodyLines.counts
+            return c.modifiedCount + c.addedCount + c.removedCount > 0
+        })
     })
 
     const diffOptions = [
@@ -625,12 +637,9 @@
         let current: DiffSegment | null = null
 
         const isContext = (part: DiffPart) => part.k === 'same'
-
-        let filteredParts: DiffPart[] = parts
+        const keep = new Array<boolean>(len).fill(!showOnlyChanges)
 
         if (showOnlyChanges) {
-            const keep = new Array<boolean>(len).fill(false)
-
             for (let i = 0; i < len; i++) {
                 if (isContext(parts[i])) continue
 
@@ -641,16 +650,41 @@
                     keep[j] = true
                 }
             }
-
-            filteredParts = []
-            for (let i = 0; i < len; i++) {
-                if (keep[i]) filteredParts.push(parts[i])
-            }
-            if (!filteredParts.length) return []
+            if (!keep.some(Boolean)) return []
         }
 
-        for (const part of filteredParts) {
+        const flushCurrent = () => {
+            if (current) {
+                segs.push(current)
+                current = null
+            }
+        }
+
+        let inKeptRun = false
+        let lastKeptIndex = -1
+        let lastRunEnd = -1 
+
+        for (let i = 0; i < len; i++) {
+            if (!keep[i]) {
+                if (inKeptRun) {
+                    flushCurrent()
+                    inKeptRun = false
+                    lastRunEnd = i - 1
+                }
+            continue
+            }
+            
+            lastKeptIndex = i
+
+            const part = parts[i]
             const ctx = isContext(part)
+            if (!inKeptRun) {
+                if (showOnlyChanges) {
+                    const omitted = lastRunEnd >= 0 ? i - lastRunEnd - 1 : i
+                    segs.push({ kind: 'divider', pos: lastRunEnd >= 0 ? 'between' : 'start', omitted})
+                }
+                inKeptRun = true
+            }
 
             if (!current) {
                 current = { kind: ctx ? 'context' : 'changes', parts: [part] }
@@ -667,11 +701,16 @@
                 continue
             }
 
-            segs.push(current)
+            flushCurrent()
             current = { kind: ctx ? 'context' : 'changes', parts: [part] }
         }
 
-        if (current) segs.push(current)
+        flushCurrent()
+
+        if (showOnlyChanges) {
+            const omittedTail = (len - 1) - lastKeptIndex
+            segs.push({ kind: 'divider', pos: 'end', omitted: omittedTail })
+        }
 
         return segs
     }
@@ -924,6 +963,38 @@
   </div>
 {/snippet}
 
+{#snippet renderDivider(d: Extract<DiffSegment, { kind: 'divider' }>)}
+  <div class="my-3 flex items-center gap-3 text-xs text-textcolor2/70">
+    <div class="h-px flex-1 bg-white/10"></div>
+    {#if d.pos === 'start'}
+      <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10">
+        {#if d.omitted > 0}
+          … {d.omitted} lines above not shown …
+        {:else}
+          BOF
+        {/if}
+      </span>
+
+    {:else if d.pos === 'between'}
+      <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10">
+        … {d.omitted} lines skipped …
+      </span>
+
+    {:else} <!-- end -->
+      <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10">
+        {#if d.omitted > 0}
+          … {d.omitted} lines below not shown …
+        {:else}
+          EOF
+        {/if}
+      </span>
+    {/if}
+
+    <div class="h-px flex-1 bg-white/10"></div>
+  </div>
+{/snippet}
+
+
 <div class="absolute inset-0 z-50 bg-black bg-opacity-60 flex justify-center items-center p-4">
   <div class="bg-darkbg rounded-md w-full max-w-4xl max-h-full overflow-hidden flex flex-col">
     
@@ -956,7 +1027,7 @@
           </div>
 
           <div class="grid gap-3">
-            {#each cardDiffResult.parts as cardPart, idx (idx)}
+            {#each visibleCardParts as cardPart, idx (idx)}
               {@const lines = cardPart.bodyLines.parts}
               {@const namePart = lines[0]}
               {@const headerPart = lines[1]}
@@ -1005,7 +1076,9 @@
                   {:else}
                     {@const segments = buildSegments(bodyParts, { showOnlyChanges, contextRadius })}
                     {#each segments as seg, sIdx (sIdx)}
-                      {#if seg.kind === 'context'}
+                      {#if seg.kind === 'divider'}
+                        {@render renderDivider(seg)}
+                      {:else if seg.kind === 'context'}
                         {#each seg.parts as part, idx (idx)}
                           {#if part.k !== 'modify'}
                             {@render renderSimpleLine(part)}
@@ -1040,9 +1113,19 @@
           {@const segments = buildSegments(currentFlatResult.parts, { showOnlyChanges, contextRadius })}
           {@render renderCounts(currentFlatResult.counts)}
 
+          {#if showOnlyChanges && segments.length === 0}
+            <div class="flex items-center justify-center py-10">
+              <div class="flex items-center gap-2 px-3 py-2 rounded-lg border border-darkborderc bg-black/30 text-textcolor2">
+                <span class="inline-block w-2 h-2 rounded-full bg-green-500/70"></span>
+                <span class="text-sm">No changes</span>
+              </div>
+            </div>
+          {:else}
           <div class="font-mono text-sm leading-5">
             {#each segments as seg, sIdx (sIdx)}
-              {#if seg.kind === 'context'}
+              {#if seg.kind === 'divider'}
+                {@render renderDivider(seg)}
+              {:else if seg.kind === 'context'}
                 {#each seg.parts as part, idx (idx)}
                   {#if part.k !== 'modify'}
                     {@render renderSimpleLine(part)}
@@ -1065,6 +1148,7 @@
               {/if}
             {/each}
           </div>
+          {/if}
         {:else}
           <div class="text-textcolor2 text-sm">No diff computed yet.</div>
         {/if}
