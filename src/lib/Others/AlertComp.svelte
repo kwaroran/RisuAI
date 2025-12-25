@@ -264,7 +264,7 @@
                 <Button className="mt-4" onclick={() => {
                     alertStore.set({
                         type: 'none',
-                        //@ts-expect-error querySelector returns Element | null, but we know it's HTMLInputElement with value
+                        //@ts-expect-error 'value' doesn't exist on Element, but target is HTMLInputElement here
                         msg: document.querySelector('#alert-input')?.value
                     })
                 }}>OK</Button>

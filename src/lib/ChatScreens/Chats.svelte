@@ -94,7 +94,7 @@
             
         }
 
-        //@ts-expect-error Set.difference is ES2024 method, polyfilled by Core-js but not in TypeScript's lib
+        //@ts-expect-error Set<T> requires type arg, and Set.difference needs 'esnext' lib (polyfilled by Core-js)
         const toRemove:Set = hashes.difference(currentHashes);
         toRemove.forEach((hash) => {
             const inst = mountInstances.get(hash);

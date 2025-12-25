@@ -1,4 +1,5 @@
 <script>
+    // @ts-nocheck - Legacy file, not currently in use
     import { onDestroy, onMount } from 'svelte';
 
     /** @type {{width?: number, height?: number}} */
@@ -26,18 +27,15 @@
         const helper = new MMDAnimationHelper();
 
         loader.load( 'path/to/model.pmd', model => {
-            //@ts-expect-error MMDAnimationHelper.createMesh is not in @types/three
             const mesh = helper.createMesh(model);
             scene.add(mesh);
 
-            //@ts-expect-error VPDLoader is Three.js addon, not in @types/three
             const vpdLoader = new VPDLoader();
 
             vpdLoader.load( 'path/to/pose.vpd', vpd => {
             helper.pose(mesh, vpd);
             });
 
-            //@ts-expect-error MMDAnimationHelper.animate is not in @types/three
             helper.animate(mesh);
         });
 
