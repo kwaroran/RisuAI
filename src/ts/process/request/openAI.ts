@@ -409,8 +409,8 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         delete body.logit_bias
     }
 
-    if(aiModel.startsWith('gpt4o1') || arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
-        body.max_output_tokens = body.max_tokens
+    if(arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
+        body.max_completion_tokens = body.max_tokens
         delete body.max_tokens
     }
 
