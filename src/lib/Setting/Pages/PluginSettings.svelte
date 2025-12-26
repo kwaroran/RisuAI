@@ -5,7 +5,7 @@
     import { AlertTriangle } from '@lucide/svelte';
 
     import { DBState } from "src/ts/stores.svelte";
-    import { createBlankPlugin, importPlugin } from "src/ts/plugins/plugins";
+    import { checkPluginUpdate, createBlankPlugin, importPlugin, loadPlugins, updatePlugin } from "src/ts/plugins/plugins";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
@@ -65,6 +65,26 @@
                 {/each}
             {/if}
 
+            {#if plugin.updateURL}
+                {#await checkPluginUpdate(plugin) then updateInfo}
+                    {#if updateInfo}
+                        <button
+                            class="text-green-400 hover:gray-200 cursor-pointer"
+                            onclick={async () => {
+                                const v = await alertConfirm(
+                                    language.pluginUpdateFoundInstallIt
+                                );
+                                if (v) {
+                                    updatePlugin(plugin)
+                                }
+                            }}
+                        >
+                            <PlusIcon />
+                        </button>
+                    {/if}
+                {/await}
+            {/if}
+
             <!--Also, remove button.-->
             <button
                 class="textcolor2 hover:gray-200 cursor-pointer"
@@ -80,6 +100,7 @@
                         let plugins = DBState.db.plugins ?? [];
                         plugins.splice(i, 1);
                         DBState.db.plugins = plugins;
+                        loadPlugins()
                     }
                 }}
             >

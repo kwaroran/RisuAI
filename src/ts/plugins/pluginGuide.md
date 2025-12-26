@@ -77,6 +77,8 @@ It must be placed at the very top of your plugin script.
   //@name my_plugin
   ```
 
+  We do not recommend changing this after publishing, as it may break existing installations.
+
 - **`//@api`** - API version (use `3.0` for new plugins)
   ```javascript
   //@api 3.0
@@ -88,6 +90,8 @@ It must be placed at the very top of your plugin script.
   ```javascript
   //@display-name My Awesome Plugin
   ```
+
+  Unlike `//@name`, this can be changed freely without breaking installations.
 
 - **`//@arg`** - Define plugin arguments
   ```javascript
@@ -102,6 +106,23 @@ It must be placed at the very top of your plugin script.
   //@link https://example.com/docs Documentation
   //@link https://example.com/support Get Support
   ```
+
+  The links will appear in the plugin settings UI.
+
+- **`//@update-url`** - URL to check for updates
+  ```javascript
+  //@update-url https://example.com/my_plugin.js
+  ```
+
+  Put your plugin's latest raw js file URL here for automatic update checks. the server must support CORS and Range requests. We recommend hosting on GitHub repo and referencing the raw file URL. (e.g. `https://raw.githubusercontent.com/username/repo/branch/plugin.js`).
+
+- **`//@version`** - Version of your plugin
+  ```javascript
+  //@version 1.0.0
+  ```
+
+  Required for update checks. Although other version formats are supported, we recommend using [Semantic Versioning](https://semver.org/) (e.g. `1.0.0`, `2.1.3`).
+  This should be updated manually by you whenever you release a new version. unlike other metadata, this metadata requires to be high on the file, ideally right below the `//@name` and `//@api` metadata, so that the update checker can read it easily.
 
 ## API v3.0 Architecture
 

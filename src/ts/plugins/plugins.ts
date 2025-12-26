@@ -23,6 +23,8 @@ interface ProviderPlugin {
     version?: 1 | 2 | '2.1' | '3.0'
     customLink: ProviderPluginCustomLink[]
     argMeta: { [key: string]: {[key:string]:string} }
+    versionOfPlugin?: string
+    updateURL?: string
 }
 interface ProviderPluginCustomLink {
     link: string
@@ -42,6 +44,85 @@ export async function createBlankPlugin(){
 Risuai.log("Hello from New Plugin!");
 `.trim()
     )
+}
+
+const compareVersions = (v1: string, v2: string): 0|1|-1 => {
+    const v1parts = v1.split('.').map(Number);
+    const v2parts = v2.split('.').map(Number);
+    const len = Math.max(v1parts.length, v2parts.length);
+    for (let i = 0; i < len; i++) {
+        const part1 = v1parts[i] || 0;
+        const part2 = v2parts[i] || 0;
+        if (part1 > part2) return 1;
+        if (part1 < part2) return -1;
+    }
+    return 0;
+}
+
+const updateCache = new Map<string, { version: string, updateURL: string } | undefined>();
+
+export const checkPluginUpdate = async (plugin: RisuPlugin) => {
+    try {
+        if(!plugin.updateURL){
+            return
+        }
+
+        if(updateCache.has(plugin.name)){
+            const cached = updateCache.get(plugin.name)
+            if(compareVersions(cached.version, plugin.versionOfPlugin || '0.0.0') === 1){
+                return cached
+            }
+        }
+
+        const response = (await fetch(plugin.updateURL, {
+            method: 'GET',
+            headers: {
+                'Range': 'bytes=0-512'
+            }
+        }))
+
+        if(response.status >= 200 && response.status < 300){
+            const text = await response.text()
+            const versioRegex = /\/\/@version\s+([^\s]+)/;
+            const match = text.match(versioRegex);
+            if(match && match[1]){
+                const latestVersion = match[1].trim()
+                if(compareVersions(latestVersion, plugin.versionOfPlugin || '0.0.0') === 1){
+                    updateCache.set(plugin.name, {
+                        version: latestVersion,
+                        updateURL: plugin.updateURL
+                    })
+                    return {
+                        version: latestVersion,
+                        updateURL: plugin.updateURL
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to check plugin update:', error)
+    }
+}
+
+export async function updatePlugin(plugin: RisuPlugin) {
+    try {
+        if(!plugin.updateURL){
+            return false
+        }
+        const response = await fetch(plugin.updateURL)
+        if(response.status >= 200 && response.status < 300){
+            const jsFile = await response.text()
+            await importPlugin(jsFile, {
+                isUpdate: true,
+                originalPluginName: plugin.name
+            })
+            return true
+        }
+    } catch (error) {
+        console.error('Failed to update plugin:', error)
+    }
+    loadPlugins()
+    return false
 }
 
 export async function importPlugin(code:string|null = null, argu:{
@@ -80,6 +161,8 @@ export async function importPlugin(code:string|null = null, argu:{
         let realArg: { [key: string]: number | string } = {}
         let argMeta: { [key: string]: {[key:string]:string} } = {}
         let customLink: ProviderPluginCustomLink[] = []
+        let updateURL: string = ''
+        let versionOfPlugin: string = '' //This is the version of the plugin itself, not the API version
         let apiVersion = '2.0'
         for (const line of splitedJs) {
             if (line.startsWith('//@name')) {
@@ -177,10 +260,45 @@ export async function importPlugin(code:string|null = null, argu:{
                 }
             }
 
+            if(line.startsWith('//@update-url')){
+                updateURL = line.split(' ')[1]
+
+                try {
+                    const url = new URL(updateURL)
+                    if(url.protocol !== 'https:'){
+                        alertError('plugin update URL must start with https, did you put it correctly?')
+                        return
+                    }
+                } catch (error) {
+                    alertError('plugin update URL is not a valid URL, did you put it correctly?')
+                    return
+                }
+            }
+
+            if(line.startsWith('//@version')){
+                versionOfPlugin = line.split(' ').slice(1).join(' ').trim()
+
+                const versionLocation = jsFile.indexOf('//@version')
+                const numberOfBytesBefore = new TextEncoder().encode(jsFile.slice(0, versionLocation) + line).length
+                if(numberOfBytesBefore > 500){
+                    alertError('plugin version declaration must be within the first 512 Bytes of the file for proper parsing. move //@version line to the top of the file.')
+                    return
+                }
+            }
         }
 
         if (name.length === 0) {
             alertError('plugin name not found, did you put it correctly?')
+            return
+        }
+
+        if(updateURL && versionOfPlugin.length === 0){
+            alertError('plugin version not found, did you put it correctly? It is required when update URL is provided.')
+            return
+        }
+
+        if(compareVersions(versionOfPlugin, '0.0.1') === -1){
+            alertError('plugin version must be at least 0.0.1')
             return
         }
 
@@ -266,12 +384,20 @@ export async function importPlugin(code:string|null = null, argu:{
             displayName: displayName,
             version: apiInternalVersion,
             customLink: customLink,
-            argMeta: argMeta
+            argMeta: argMeta,
+            versionOfPlugin: versionOfPlugin,
+            updateURL: updateURL
         }
 
         db.plugins ??= []
 
-        const oldPluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === originalPluginName);
+        const oldPluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === pluginData.name);
+
+        if(originalPluginName && originalPluginName !== pluginData.name){
+            alertError(`When updating plugin "${originalPluginName}", the plugin name cannot be changed to "${pluginData.name}". Please keep the original name to update.`)
+            return
+        }
+
 
         if(!isUpdate && oldPluginIndex !== -1){
             const c = await alertConfirm(language.duplicatePluginFoundUpdateIt)
