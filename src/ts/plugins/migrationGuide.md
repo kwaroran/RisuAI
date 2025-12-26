@@ -534,10 +534,23 @@ API v3.0 implements multiple security layers:
    risuai.showContainer('fullscreen')
    ```
 
-3-1. **Migrate UI Registration:**
+3-1. **Migrate Settings UI Registration:**
    ```javascript
    // Old (v2.0 / v2.1)
    // This was one of the hacky way to build settings button
+    const observer = new MutationObserver(() => {
+      const menu = document.querySelector('.rs-setting-cont-3')
+      if (menu && !document.querySelector('.my-plugin-settings')) {
+        const button = document.createElement('div')
+        button.className = 'my-plugin-settings'
+        button.innerHTML = '⚙️ My Plugin Settings'
+        button.onclick = () => {
+          // Build your Modal at main document...
+        }
+        menu.appendChild(button)
+      }
+    })
+  observer.observe(document.body, { childList: true, subtree: true })
 
 
    // New (v3.0)
@@ -553,9 +566,43 @@ API v3.0 implements multiple security layers:
    )
    ```
 
-3-2. **Or use getRootDocument for main DOM access:**
+3-2. **Migrate Action Button Registration:**
+   ```javascript
+   // Old (v2.0 / v2.1)
+   // This was one of the hacky way to build floating action button
+   setInterval(() => {
+     if (!document.querySelector('.my-plugin-action-button')) {
+       const button = document.createElement('div')
+       button.style.position = 'fixed'
+       button.style.top = '10px'
+       button.style.right = '10px'
+       button.style.zIndex = '1000'
+       button.innerHTML = '<img src="https://example.com/icon.png" />'
+        button.className = 'my-plugin-action-button'
+       button.onclick = () => {
+         // Your action here...
+       }
+       document.body.appendChild(button)
+     }
+   },100)
 
-   Note: We recommend building your UI inside the iframe using standard Document APIs if possible. however, if you really need to access the main document, use `getRootDocument()`.
+   // New (v3.0)
+   // Now its officially supported to register action buttons
+   risuai.registerActionButton({
+       name: 'My Action',
+       callback: () => {
+         // Your action here...
+       },
+       icon: 'https://example.com/icon.png',
+       iconType: 'img',
+       location: 'topright'
+   })
+   ```
+
+3-3. **Or use getRootDocument for main DOM access:**
+
+   Note: We recommend building your UI inside the iframe using standard Document APIs, and using `registerSetting`/`registerActionButton` for UI integration. however, if you really need to access the main document, use `getRootDocument()`. we don't recommend using this method for building UIs, since it adds more restrictions and complexity.
+
    ```javascript
    // Old (v2.0 / v2.1)
    const element = document.querySelector('.my-class')
