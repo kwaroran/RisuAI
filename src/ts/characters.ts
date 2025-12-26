@@ -67,7 +67,7 @@ export async function getCharImage(loc:string, type:'plain'|'css'|'contain'|'lgc
     else if(type ==='css'){
         return `background: url("${filesrc}");background-size: cover;`
     }
-    else if(type ='lgcss'){
+    else if(type === 'lgcss'){
         return `background: url("${filesrc}");background-size: cover;height: 10.66rem;`
 
     }
