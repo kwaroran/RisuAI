@@ -1489,7 +1489,7 @@ export interface botPreset{
         model: string[]
     }
     fallbackWhenBlankResponse?: boolean
-    verbosity:number
+    verbosity?:number
     dynamicOutput?:DynamicOutput
 }
 

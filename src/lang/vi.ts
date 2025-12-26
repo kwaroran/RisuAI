@@ -472,5 +472,7 @@ export const LanguageVietnamese = {
     showOriginal: "Hiển thị địa chỉ mã gốc",
     translate: "Dịch địa chỉ mã",
     generatedByAIDisclaimer: "Nội dung này được tạo bởi AI và có thể chứa thông tin không chính xác hoặc thiên kiến.",
-    aiGenerationWarning: "Nội dung sẽ được tạo bởi AI và có thể chứa thông tin không chính xác hoặc thiên kiến."
+    aiGenerationWarning: "Nội dung sẽ được tạo bởi AI và có thể chứa thông tin không chính xác hoặc thiên kiến.",
+    apply: "Áp dụng",
+    add: "Thêm",
 }

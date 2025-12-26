@@ -1,6 +1,7 @@
 import { SourceMapConsumer } from 'source-map';
 
 // Initialize the source-map library with the wasm file location
+// @ts-expect-error initialize is a static method but typed as instance method
 SourceMapConsumer.initialize({
     'lib/mappings.wasm': 'https://cdn.jsdelivr.net/npm/source-map@0.7.4/lib/mappings.wasm'
 });

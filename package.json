@@ -72,7 +72,7 @@
     "libsodium-wrappers-sumo": "^0.7.13",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
-    "lucide-svelte": "^0.292.0",
+    "lucide-svelte": "^0.562.0",
     "markdown-it": "^14.1.0",
     "ml-distance": "^4.0.1",
     "mnemonist": "^0.40.3",
