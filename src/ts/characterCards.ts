@@ -1,14 +1,14 @@
-import { get, writable, type Writable } from "svelte/store"
-import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertSelect, alertStore, alertTOS, alertWait } from "./alert"
+import { writable, type Writable } from "svelte/store"
+import { alertCardExport, alertConfirm, alertError, alertInput, alertMd, alertNormal, alertStore, alertTOS, alertWait } from "./alert"
 import { defaultSdDataFunc, type character, setDatabase, type customscript, type loreSettings, type loreBook, type triggerscript, importPreset, type groupChat, setCurrentCharacter, getCurrentCharacter, getDatabase, setDatabaseLite, appVer } from "./storage/database.svelte"
-import { checkNullish, decryptBuffer, encryptBuffer, isKnownUri, selectFileByDom, selectMultipleFile, sleep } from "./util"
+import { checkNullish, decryptBuffer, isKnownUri, selectFileByDom, sleep } from "./util"
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
 import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./globalApi.svelte"
 import { SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores.svelte"
 import { checkImageType, convertImage, hasher } from "./parser.svelte"
-import { CCardLib, type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
+import { type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/inlays"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
@@ -490,7 +490,7 @@ export async function characterURLImport() {
                 await importFile(f.name, data);
             }
         }
-        //@ts-ignore
+        //@ts-expect-error launchQueue is File Handling API for PWA, not yet in TypeScript's Window interface
         window.launchQueue.setConsumer((launchParams) => {
             if (launchParams.files && launchParams.files.length) {
                 const files = launchParams.files as FileSystemFileHandle[]
@@ -500,7 +500,7 @@ export async function characterURLImport() {
     }
 
     if("tauriOpenedFiles" in window){
-        //@ts-ignore
+        //@ts-expect-error tauriOpenedFiles is custom Tauri property, not defined in Window interface
         const files:string[] = window.tauriOpenedFiles
         if(files){
             for(const file of files){
@@ -1084,7 +1084,6 @@ function convertCharbook(arg:{
             extentions: {...extensions, risu_case_sensitive: book.case_sensitive},
             activationPercent: book.extensions?.risu_activationPercent,
             loreCache: book.extensions?.risu_loreCache ?? null,
-            //@ts-ignore
             useRegex: book.use_regex ?? false,
             folder: book.folder
         })

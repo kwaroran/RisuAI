@@ -13,6 +13,7 @@
     import { capitalize, getUserIcon, getUserName } from "src/ts/util"
     import { onDestroy, onMount } from "svelte"
     import { type Unsubscriber } from "svelte/store"
+    import { v4 as uuidv4 } from 'uuid'
     import { language } from "../../lang"
     import { alertClear, alertConfirm, alertInput, alertNormal, alertRequestData, alertWait } from "../../ts/alert"
     import { ParseMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
@@ -214,10 +215,16 @@
 
     async function toggleBookmark() {
         const chat = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage];
-        const messageId = chat.message[idx]?.chatId;
+        
+        if(!chat.message[idx]) return;
+
+        let messageId = chat.message[idx]?.chatId;
         const messageContent = chat.message[idx]?.data;
 
-        if (!messageId) return;
+        if (!messageId) {
+            messageId = uuidv4();
+            chat.message[idx].chatId = messageId;
+        }
 
         chat.bookmarks ??= [];
         chat.bookmarkNames ??= {};
@@ -768,12 +775,6 @@
         <button class={dom.getAttribute('class') ?? ''} style={dom.getAttribute('style') ?? ''}>
             {@render renderChilds(dom)}
         </button>
-    {:else if dom.tagName === 'STYLE'}
-        <!-- <div>
-            <style>
-                {dom.innerHTML}
-            </style>
-        </div> -->
     {:else if dom.tagName === 'RISUTEXTBOX'}
         {@render textBox()}
     {:else if dom.tagName === 'RISUICON'}

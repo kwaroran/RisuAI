@@ -1,11 +1,11 @@
-import { get, writable } from 'svelte/store';
+import { get } from 'svelte/store';
 import { checkNullish, decryptBuffer, encryptBuffer, selectSingleFile } from '../util';
 import { changeLanguage, language } from '../../lang';
 import type { RisuPlugin } from '../plugins/plugins';
 import type {triggerscript as triggerscriptMain} from '../process/triggers';
 import { downloadFile, saveAsset as saveImageGlobal } from '../globalApi.svelte';
 import { defaultAutoSuggestPrompt, defaultJailbreak, defaultMainPrompt } from './defaultPrompts';
-import { alertError, alertNormal, alertSelect } from '../alert';
+import { alertNormal } from '../alert';
 import type { NAISettings } from '../process/models/nai';
 import { prebuiltNAIpresets, prebuiltPresets } from '../process/templates/templates';
 import { defaultColorScheme, type ColorScheme } from '../gui/colorscheme';
@@ -22,7 +22,7 @@ export function setDatabase(data:Database){
         data.characters = []
     }
     if(checkNullish(data.apiType)){
-        data.apiType = 'gpt35_0301'
+        data.apiType = 'gemini-3-flash-preview'
     }
     if(checkNullish(data.openAIKey)){
         data.openAIKey = ''
@@ -52,7 +52,7 @@ export function setDatabase(data:Database){
         data.PresensePenalty = 70
     }
     if(checkNullish(data.aiModel)){
-        data.aiModel = 'gpt35_0301'
+        data.aiModel = 'gemini-3-flash-preview'
     }
     if(checkNullish(data.jailbreakToggle)){
         data.jailbreakToggle = false
@@ -136,7 +136,7 @@ export function setDatabase(data:Database){
         data.theme = ''
     }
     if(checkNullish(data.subModel)){
-        data.subModel = 'gpt35_0301'
+        data.subModel = 'gemini-3-flash-preview'
     }
     if(checkNullish(data.timeOut)){
         data.timeOut = 120
@@ -421,7 +421,7 @@ export function setDatabase(data:Database){
         //idk why type changes, but it does so this is a fix
         data.top_p = 1
     }
-    //@ts-ignore
+    //@ts-expect-error data.google has required fields (accessToken, projectId), but we use empty object as default and populate below
     data.google ??= {}
     data.google.accessToken ??= ''
     data.google.projectId ??= ''
@@ -584,7 +584,7 @@ export function setDatabase(data:Database){
     }
     data.doNotChangeSeperateModels ??= false
     data.modelTools ??= []
-    data.hotkeys ??= structuredClone(defaultHotkeys)
+    data.hotkeys ??= safeStructuredClone(defaultHotkeys)
     data.fallbackModels ??= {
         memory: [],
         emotion: [],
@@ -609,7 +609,7 @@ export function setDatabase(data:Database){
     data.ImagenImageSize ??= '1K'
     data.ImagenAspectRatio ??= '1:1'
     data.ImagenPersonGeneration ??= 'allow_all'
-    //@ts-ignore
+    //@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
         data.promptInfoInsideChat = false
@@ -1489,7 +1489,7 @@ export interface botPreset{
         model: string[]
     }
     fallbackWhenBlankResponse?: boolean
-    verbosity:number
+    verbosity?:number
     dynamicOutput?:DynamicOutput
 }
 
@@ -1783,7 +1783,7 @@ export const defaultOoba:OobaSettings = {
 
 export const presetTemplate:botPreset = {
     name: "New Preset",
-    apiType: "gpt35_0301",
+    apiType: "gemini-3-flash-preview",
     openAIKey: "",
     mainPrompt: defaultMainPrompt,
     jailbreak: defaultJailbreak,
@@ -1794,8 +1794,8 @@ export const presetTemplate:botPreset = {
     frequencyPenalty: 70,
     PresensePenalty: 70,
     formatingOrder: ['main', 'description', 'personaPrompt','chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
-    aiModel: "gpt35_0301",
-    subModel: "gpt35_0301",
+    aiModel: "gemini-3-flash-preview",
+    subModel: "gemini-3-flash-preview",
     currentPluginProvider: "",
     textgenWebUIStreamURL: '',
     textgenWebUIBlockingURL: '',
@@ -1986,7 +1986,6 @@ export function setPreset(db:Database, newPres: botPreset){
         mode: 'instruct'
     }
     db.top_p = newPres.top_p ?? 1
-    //@ts-ignore //for legacy mistpings
     db.promptSettings = safeStructuredClone(newPres.promptSettings) ?? {
         assistantPrefill: '',
         postEndInnerFormat: '',
@@ -2063,7 +2062,6 @@ import type { SerializableHypaV2Data } from '../process/memory/hypav2';
 import { decodeRPack, encodeRPack } from '../rpack/rpack_bg';
 import { DBState, selectedCharID } from '../stores.svelte';
 import { LLMFlags, LLMFormat, LLMTokenizer } from '../model/modellist';
-import type { Parameter } from '../process/request/request';
 import type { HypaModel } from '../process/memory/hypamemory';
 import type { SerializableHypaV3Data } from '../process/memory/hypav3';
 import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';

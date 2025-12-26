@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import { doingChat, sendChat } from '../index.svelte';
 import { downloadFile, isTauri } from 'src/ts/globalApi.svelte';
 import { HypaProcesser } from '../memory/hypamemory';
-import { BufferToText as BufferToText, selectMultipleFile, sleep } from 'src/ts/util';
+import { BufferToText as BufferToText, selectMultipleFile } from 'src/ts/util';
 import { postInlayAsset } from './inlays';
 
 type sendFileArg = {

@@ -4,9 +4,9 @@ import { polyfill as dragPolyfill} from "mobile-drag-drop"
 import {scrollBehaviourDragImageTranslateOverride} from 'mobile-drag-drop/scroll-behaviour'
 import rfdc from 'rfdc'
 /**
- * Safe variant of structuredClone for svelte 5 states
- * if structuredClone is not available, it will use JSON.parse(JSON.stringify(data)) instead
-*/
+ * Polyfill for structuredClone.
+ * Falls back to rfdc (Really Fast Deep Clone) if structuredClone throws an error.
+ */
 
 const rfdcClone = rfdc({
   circles:false,
@@ -41,9 +41,9 @@ try {
 globalThis.safeStructuredClone = safeStructuredClone
 
 globalThis.Buffer = BufferPolyfill
-//@ts-ignore
+//@ts-expect-error ponyfill WritableStream type is incompatible with globalThis.WritableStream
 globalThis.WritableStream = globalThis.WritableStream ?? WritableStream
-//@ts-ignore
+//@ts-expect-error ponyfill ReadableStream type is incompatible with globalThis.ReadableStream
 globalThis.ReadableStream = globalThis.ReadableStream ?? ReadableStream
-//@ts-ignore
-    globalThis.TransformStream = globalThis.TransformStream ?? TransformStream   
+//@ts-expect-error ponyfill TransformStream type is incompatible with globalThis.TransformStream
+globalThis.TransformStream = globalThis.TransformStream ?? TransformStream   

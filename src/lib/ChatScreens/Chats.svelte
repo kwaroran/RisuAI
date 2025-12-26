@@ -53,7 +53,7 @@
         for(let i=messages.length - 1 ; i >= messages.length - loadPages; i--){
             if(i < 0) break; // Prevent out of bounds
             const message = messages[i];
-            const messageLargePortrait = (message.role === 'user' ? userIconPortrait : (currentCharacter as character).largePortrait) ?? false
+            const messageLargePortrait = message.role === 'user' ? (userIconPortrait ?? false) : ((currentCharacter as character).largePortrait ?? false);
             let hashd = message.data + (message.chatId ?? '') + i.toString() + messageLargePortrait.toString()
             const currentHash = hashCode(hashd);
             currentHashes.add(currentHash);
@@ -73,7 +73,7 @@
                         unReroll: unReroll,
                         rerollIcon: 'dynamic',
                         character: simpleChar,
-                        largePortrait: message.role === 'user' ? (userIconPortrait ?? false) : (currentCharacter as character).largePortrait,
+                        largePortrait: message.role === 'user' ? (userIconPortrait ?? false) : ((currentCharacter as character).largePortrait ?? false),
                         messageGenerationInfo: message.generationInfo,
                         role: message.role,
                         name: message.role === 'user' ? currentUsername : currentCharacter.name
@@ -94,7 +94,7 @@
             
         }
 
-        //@ts-ignore since API is available in Corejs
+        //@ts-expect-error Set<T> requires type arg, and Set.difference needs 'esnext' lib (polyfilled by Core-js)
         const toRemove:Set = hashes.difference(currentHashes);
         toRemove.forEach((hash) => {
             const inst = mountInstances.get(hash);

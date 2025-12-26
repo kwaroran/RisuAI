@@ -1,4 +1,5 @@
 <script>
+    // @ts-nocheck - Legacy file, not currently in use
     import { onDestroy, onMount } from 'svelte';
 
     /** @type {{width?: number, height?: number}} */
@@ -26,18 +27,15 @@
         const helper = new MMDAnimationHelper();
 
         loader.load( 'path/to/model.pmd', model => {
-            //@ts-ignore
             const mesh = helper.createMesh(model);
             scene.add(mesh);
 
-            //@ts-ignore
             const vpdLoader = new VPDLoader();
 
             vpdLoader.load( 'path/to/pose.vpd', vpd => {
             helper.pose(mesh, vpd);
             });
 
-            //@ts-ignore
             helper.animate(mesh);
         });
 

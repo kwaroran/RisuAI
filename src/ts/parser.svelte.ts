@@ -1,22 +1,22 @@
 import DOMPurify from 'dompurify';
 import markdownit from 'markdown-it'
-import { appVer, getCurrentCharacter, getDatabase, type Database, type Message, type character, type customscript, type groupChat, type loreBook, type triggerscript } from './storage/database.svelte';
+import { appVer, getCurrentCharacter, getDatabase, type Database, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
 import { DBState } from './stores.svelte';
-import { aiLawApplies, aiWatermarkingLawApplies, getFileSrc, isMobile, isNodeServer, isTauri } from './globalApi.svelte';
+import { aiWatermarkingLawApplies, getFileSrc, isNodeServer, isTauri } from './globalApi.svelte';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { SizeStore, selectedCharID } from './stores.svelte';
+import { selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand, replaceAsync} from './util';
-import { getInlayAsset, getInlayAssetBlob } from './process/files/inlays';
-import { getModuleAssets, getModuleLorebooks, getModules, type RisuModule } from './process/modules';
+import { getInlayAssetBlob } from './process/files/inlays';
+import { getModuleAssets, getModuleLorebooks, getModules } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
 import katex from 'katex'
-import { getModelInfo, type LLMModel } from './model/modellist';
+import { getModelInfo } from './model/modellist';
 import { registerCBS, type matcherArg, type RegisterCallback } from './cbs';
 
 const markdownItOptions = {

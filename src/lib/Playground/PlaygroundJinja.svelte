@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { language } from "src/lang";
     import { Template } from '@huggingface/jinja';
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     let input = $state("");

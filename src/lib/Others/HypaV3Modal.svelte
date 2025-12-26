@@ -23,8 +23,7 @@
     ExpandedMessageState,
     SearchState,
     SearchResult,
-    bulkResummaryState,
-    Category,
+    BulkResummaryState,
     CategoryManagerState,
     TagManagerState,
     BulkEditState,
@@ -35,8 +34,6 @@
   import {
     shouldShowSummary,
     isGuidLike,
-    getCategoryName,
-    handleDualAction,
     parseSelectionInput,
   } from "./HypaV3Modal/utils";
     import type { OpenAIChat } from "src/ts/process/index.svelte";
@@ -64,7 +61,7 @@
   let expandedMessageState = $state<ExpandedMessageState>(null);
   let searchState = $state<SearchState>(null);
   let filterSelected = $state(false);
-  let bulkResummaryState = $state<bulkResummaryState | null>(null);
+  let bulkResummaryState = $state<BulkResummaryState | null>(null);
 
   let categoryManagerState = $state<CategoryManagerState>({
     isOpen: false,

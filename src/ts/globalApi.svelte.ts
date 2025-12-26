@@ -7,24 +7,24 @@ import {
     readDir,
     remove
 } from "@tauri-apps/plugin-fs"
-import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "./util"
+import { changeFullscreen, checkNullish, sleep } from "./util"
 import { convertFileSrc, invoke } from "@tauri-apps/api/core"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import { open } from '@tauri-apps/plugin-shell'
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase, type character, appVer } from "./storage/database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase, appVer } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
 import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
-import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait, waitAlert } from "./alert";
+import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, waitAlert } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
 import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSaveCompressionStream, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
@@ -45,9 +45,8 @@ import { moduleUpdate } from "./process/modules";
 import type { AccountStorage } from "./storage/accountStorage";
 import { makeColdData } from "./process/coldstorage.svelte";
 
-//@ts-ignore
+//@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
 export const isTauri = !!window.__TAURI_INTERNALS__
-//@ts-ignore
 export const isNodeServer = !!globalThis.__NODE__
 export const forageStorage = new AutoStorage()
 export const googleBuild = false
@@ -705,7 +704,7 @@ export async function loadData() {
                 } catch (error) { }
             }
             try {
-                //@ts-ignore
+                //@ts-expect-error navigator.standalone is iOS Safari non-standard property, not in Navigator interface
                 const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || document.referrer.includes('android-app://');
                 if (isInStandaloneMode) {
                     await navigator.storage.persist()
@@ -2083,8 +2082,8 @@ export async function fetchNative(url: string, arg: {
                         error = parsedRes.body
                         resolved = true
                     }
-                } catch (error) {
-                    error = JSON.stringify(error)
+                } catch (e) {
+                    error = JSON.stringify(e)
                     resolved = true
                 }
             })
