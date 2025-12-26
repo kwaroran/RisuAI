@@ -1381,7 +1381,10 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                         }
 
                         let path = ''
-                        const name = `${assetIndex}`
+                        let name = card.data.assets[i].name || `asset_${assetIndex}`
+                        if(name.length > 100){
+                            name = name.substring(0,100)
+                        }
                         if(card.data.assets[i].ext === 'unknown'){
                             path = `assets/${type}/image/${name}.png`
                         }

@@ -23,6 +23,7 @@ export class CharXWriter{
     zip:fflate.Zip
     writeEnd:boolean = false
     apb = new AppendableBuffer()
+    #takenFilenames:Set<string> = new Set()
     constructor(private writer:LocalWriter|WritableStreamDefaultWriter<Uint8Array>|VirtualWriter){
         const handlerAsync = async (err:Error, dat:Uint8Array, final:boolean) => {
             if(dat){
@@ -64,6 +65,7 @@ export class CharXWriter{
     }
 
     async write(key:string,data:Uint8Array|string, level?:0|1|2|3|4|5|6|7|8|9){
+        key = this.#sanitizeZipFilename(key)
         console.log('write',key)
         let dat:Uint8Array
         if(typeof data === 'string'){
@@ -84,6 +86,31 @@ export class CharXWriter{
             await this.writer.close()
         }
         
+    }
+
+    #sanitizeZipFilename(filename:string) {
+        let sanitized = filename.replace(/[<>:"\\|?*\x00-\x1F]/g, '_');
+        sanitized = sanitized.replace(/[. ]+$/, '');
+        const reservedNames = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
+        if (reservedNames.test(sanitized)) {
+            sanitized = '_' + sanitized;
+        }
+        if (!sanitized || sanitized === '.' || sanitized === '..') {
+            sanitized = 'file_' + Date.now();
+        }
+
+        const splitName = sanitized.split('.');
+        let baseName = splitName.slice(0, -1).join('.');
+        const extension = splitName.length > 1 ? '.' + splitName[splitName.length - 1] : '';
+        let counter = 1;
+        let uniqueName = baseName + extension;
+        while (this.#takenFilenames.has(uniqueName)) {
+            uniqueName = `${baseName}_${counter}${extension}`;
+            counter++;
+        }
+        
+        this.#takenFilenames.add(uniqueName);
+        return uniqueName;
     }
 
     async end(){
