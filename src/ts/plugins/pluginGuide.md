@@ -502,12 +502,11 @@ risuai.registerActionButton({
     name: 'Quick Action',
     icon: 'https://example.com/icon.png', // Optional icon URL
     iconType: 'img', // Icon type: 'html', 'img', or 'none'
-    location: 'topright',
-    callback: async () => {
-        // Called when user clicks the button
-        const char = await risuai.getCharacter();
-        await risuai.log(`Current character: ${char.name}`);
-    }
+    location: 'topright'
+}, async () => {
+  // Called when user clicks the button
+  const char = await risuai.getCharacter();
+  await risuai.log(`Current character: ${char.name}`);
 });
 ```
 
@@ -941,7 +940,7 @@ Add clear comments and metadata:
       icon: '🛈',
       iconType: 'html',
       location: 'topright',
-      callback: async () => {
+    }, async () => {
         const char = await risuai.getCharacter();
 
         const rootDoc = risuai.getRootDocument();
@@ -972,7 +971,7 @@ Add clear comments and metadata:
           });
         }
       }
-    });
+    );
     risuai.log('Character info button registered');
   } catch (error) {
     risuai.log(`Error: ${error.message}`);

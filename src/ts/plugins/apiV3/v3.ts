@@ -460,11 +460,11 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                 name: string,
                 icon: string,
                 iconType: 'html'|'img'|'none',
-                callback: () => void
                 location?: 'topright'
-            }
+            },
+            callback: () => void
         ) => {
-            let { name, icon, iconType, callback, location } = arg;
+            let { name, icon, iconType, location } = arg;
             location = location || 'topright';
             //Reserved for future use
             if(iconType !== 'html' && iconType !== 'img' && iconType !== 'none'){

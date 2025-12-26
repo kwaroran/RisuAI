@@ -950,19 +950,17 @@ export interface RisuaiPluginAPI {
     /**
      * Registers a floating action button
      * @param name - Display name
+     * @param arg - Button configuration
      * @param callback - Callback function when clicked
-     * @param icon - Icon content (HTML or image URL)
-     * @param iconType - Icon type ('html', 'img', or 'none')
      *
      * @example
      * ```typescript
      * await risuai.registerActionButton({
      *   name: 'My Action',
      *   icon: '🔥',
-     *   iconType: 'html',
-     *   callback: async () => {
+     *   iconType: 'html'
+     * }, async () => {
      *     risuai.log('Action button clicked!');
-     *   },
      * });
      * ```
      */
@@ -970,9 +968,8 @@ export interface RisuaiPluginAPI {
         name: string,
         icon: string,
         iconType: 'html'|'img'|'none',
-        callback: () => void,
         location?: 'topright'
-    }): Promise<void>;
+    }, callback: () => void): Promise<void>;
 
     // ========== Provider APIs ==========
 

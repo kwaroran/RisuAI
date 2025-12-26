@@ -431,12 +431,11 @@ risuai.registerSetting(
 // Register a floating action button
 risuai.registerActionButton({
     name: 'My Action',
-    callback: () => {
-      // Callback when clicked
-    },
     icon: 'https://example.com/icon.png', // Optional icon
     iconType: 'img', // Icon type: 'html', 'img', or 'none'
     location: 'topright'
+}, () => {
+      // Callback when clicked
 })
 ```
 
@@ -590,12 +589,11 @@ API v3.0 implements multiple security layers:
    // Now its officially supported to register action buttons
    risuai.registerActionButton({
        name: 'My Action',
-       callback: () => {
-         // Your action here...
-       },
        icon: 'https://example.com/icon.png',
        iconType: 'img',
        location: 'topright'
+   }, () => {
+      // Your action here...
    })
    ```
 
