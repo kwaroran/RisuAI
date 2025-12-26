@@ -14,7 +14,8 @@
     "updatePlugin": "tsc public/pluginApi.ts",
     "runserver": "node server/node/server.cjs",
     "sync": "node electron/sync",
-    "electron": "node electron/dist/electron"
+    "electron": "node electron/dist/electron",
+    "hono:build": "vite build --sourcemap && node server/hono/src/utils/postbuild.js"
   },
   "dependencies": {
     "@adobe/css-tools": "4.3.2",
@@ -121,5 +122,19 @@
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
     "vite-plugin-wasm": "3.5.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "core-js",
+      "esbuild",
+      "msgpackr-extract",
+      "onnxruntime-node",
+      "protobufjs",
+      "sharp",
+      "svelte-preprocess"
+    ],
+    "ignoredBuiltDependencies": [
+      "sharp"
+    ]
   }
 }

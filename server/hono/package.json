@@ -3,10 +3,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start:bun": "bun run src/index.ts",
-    "start:cloudflare": "wrangler dev src/index.ts --local",
+    "start:bun": "bun run src/bun.ts",
+    "start:cloudflare": "wrangler dev src/cf.ts --local",
     "start:node": "tsx src/node.ts",
-    "start:vercel": "vercel dev src/index.ts"
+    "start:vercel": "vercel dev src/cf.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
