@@ -3,6 +3,8 @@ import * as fflate from "fflate";
 import { asBuffer, sleep } from "../util";
 import { alertStore } from "../alert";
 import { Capacitor } from "@capacitor/core";
+import { hasher } from "../parser.svelte";
+import { hubURL } from "../characterCards";
 
 export async function processZip(dataArray: Uint8Array): Promise<string> {
     const jszip = await import("jszip");
@@ -127,10 +129,23 @@ export class CharXReader{
     unzip:fflate.Unzip
     assets:{[key:string]:string} = {}
     assetBuffers:{[key:string]:AppendableBuffer} = {}
-    assetPromises:Promise<void>[] = []
+    assetSavePromises:{
+        id: string,
+        promise: Promise<void>
+    }[] = []
+    assetQueueDone:Set<string> = new Set()
     excludedFiles:string[] = []
     cardData:string|undefined
     moduleData:Uint8Array|undefined
+    allPushed:boolean = false
+    fullPromiseResolver:() => void = () => {}
+    alertInfo:boolean = false
+    assetQueueLength:number = 0
+    doneAssets:number = 0
+    onQueue: number = 0
+    expectedAssets:number = 0
+    hashSignal: string|undefined
+    skipSaving: boolean = false
     constructor(){
         this.unzip = new fflate.Unzip()
         this.unzip.register(fflate.UnzipInflate)
@@ -155,11 +170,12 @@ export class CharXReader{
                         //do nothing
                     }
                     else{
-                        this.assetPromises.push((async () => {
-                            const assetId = await saveAsset(assetData)
-                            this.assets[assetIndex] = assetId
-                        })())
+                        this.#processAssetQueue({
+                            id: assetIndex,
+                            data: assetData
+                        })
                     }
+                    delete this.assetBuffers[assetIndex]
                 }
             }
             
@@ -169,17 +185,79 @@ export class CharXReader{
         }
     }
 
+    async makePromise(){
+        return new Promise<void>((res, rej) => {
+            this.fullPromiseResolver = res
+        })
+    }
+
+    async #processAssetQueue(asset:{id:string, data:Uint8Array}){
+        this.assetQueueLength++
+        this.onQueue++
+        if(this.alertInfo){
+            alertStore.set({ 
+                type: 'progress',
+                msg: `Loading...`,
+                submsg: (this.doneAssets / this.assetQueueLength * 100).toFixed(2)
+            })
+        }
+        if(this.assetSavePromises.length >= 10){
+            await Promise.any(this.assetSavePromises.map(a => a.promise))
+        }
+        this.assetSavePromises = this.assetSavePromises.filter(a => !this.assetQueueDone.has(a.id))
+        this.onQueue--
+        if(this.assetSavePromises.length > 10){
+            this.assetQueueLength--
+            return this.#processAssetQueue(asset)
+        }
+        const savePromise = (async () => {
+            const assetSaveId = this.skipSaving ? `assets/${await hasher(asset.data)}.png` : (await saveAsset(asset.data))
+            this.assets[asset.id] = assetSaveId
+
+            this.doneAssets++
+            this.assetQueueDone.add(asset.id)
+            if(this.alertInfo){
+                alertStore.set({ 
+                    type: 'progress',
+                    msg: `Loading...`,
+                    submsg: (this.doneAssets / this.assetQueueLength * 100).toFixed(2)
+                })
+            }
+            
+            
+            if(this.allPushed && this.doneAssets >= this.assetQueueLength){
+                if(this.hashSignal){
+                    const signalId = await saveAsset(new TextEncoder().encode(this.hashSignal ?? ""))
+                    console.log('signal saved', signalId)
+                }
+                this.fullPromiseResolver?.()
+            }
+        })()
+        this.assetSavePromises.push({
+            id: asset.id,
+            promise: savePromise
+        })
+    }
+
+    async waitForQueue(){
+        
+        while(this.assetSavePromises.length + this.onQueue >= 30){
+            await sleep(100)
+        }
+    }
+
     async push(data:Uint8Array, final:boolean = false){
 
         if(data.byteLength > 1024 * 1024){
             let pointer = 0
             while(true){
                 const chunk = data.slice(pointer, pointer + 1024 * 1024)
+                await this.waitForQueue()
                 this.unzip.push(chunk, false)
-                await Promise.all(this.assetPromises)
                 if(pointer + 1024 * 1024 >= data.byteLength){
                     if(final){
                         this.unzip.push(new Uint8Array(0), final)
+                        this.allPushed = final
                     }
                     break
                 }
@@ -188,8 +266,9 @@ export class CharXReader{
             return
         }
 
+        await this.waitForQueue()
         this.unzip.push(data, final)
-        await Promise.all(this.assetPromises)
+        this.allPushed = final
     }
 
     async read(data:Uint8Array|File|ReadableStream<Uint8Array>, arg:{
@@ -230,32 +309,29 @@ export class CharXReader{
             }
         }
 
-        const alertInfo = () => {
-            if(arg.alertInfo){
-                alertStore.set({ 
-                    type: 'progress',
-                    msg: `Loading...`,
-                    submsg: (pointer / getLength() * 100).toFixed(2)
-                })
-            }
-        }
-
         let pointer = 0
         while(true){
             const chunk = await getSlice(pointer, pointer + 1024 * 1024)
             await this.push(chunk, false)
-            alertInfo()
             if(pointer + 1024 * 1024 >= getLength()){
                 await this.push(new Uint8Array(0), true)
                 break
             }
             pointer += 1024 * 1024
-            if(!isTauri && !Capacitor.isNativePlatform() &&!isNodeServer){
-                const promiseLength = this.assetPromises.length
-                this.assetPromises = []
-                await sleep(promiseLength * 100)
-            }
         }
         await sleep(100)
+    }
+}
+
+
+export async function CharXSkippableChecker(data:Uint8Array){
+    const hashed = await hasher(data)
+    const reHashed = await hasher(new TextEncoder().encode(hashed))
+    const x = await fetch(hubURL + '/rs/assets/' + reHashed + '.png')
+
+    console.log('CharXSkippableChecker', x.status, reHashed)
+    return {
+        success: x.status >= 200 && x.status < 300,
+        hash: hashed
     }
 }

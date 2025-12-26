@@ -5,18 +5,19 @@ import { checkNullish, decryptBuffer, isKnownUri, selectFileByDom, sleep } from 
 import { language } from "src/lang"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { characterFormatUpdate } from "./characters"
-import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./globalApi.svelte"
+import { AppendableBuffer, BlankWriter, checkCharOrder, downloadFile, forageStorage, isNodeServer, isTauri, loadAsset, LocalWriter, openURL, readImage, saveAsset, VirtualWriter } from "./globalApi.svelte"
 import { SettingsMenuIndex, ShowRealmFrameStore, selectedCharID, settingsOpen } from "./stores.svelte"
 import { checkImageType, convertImage, hasher } from "./parser.svelte"
 import { type CharacterCardV3, type LorebookEntry } from '@risuai/ccardlib'
 import { reencodeImage } from "./process/files/inlays"
 import { PngChunk } from "./pngChunk"
 import type { OnnxModelFiles } from "./process/transformers"
-import { CharXReader, CharXWriter } from "./process/processzip"
+import { CharXReader, CharXSkippableChecker, CharXWriter } from "./process/processzip"
 import { Capacitor } from "@capacitor/core"
 import { exportModule, readModule, type RisuModule } from "./process/modules"
 import { readFile } from "@tauri-apps/plugin-fs"
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
+import { AccountStorage } from "./storage/accountStorage"
 
 
 const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz';
@@ -84,7 +85,26 @@ export async function importCharacterProcess(f:{
             type: 'wait',
             msg: 'Loading... (Reading)'
         })
+
+        let charXMode:'normal'|'skippable'|'signal' = 'normal'
+        let signal = ''
+        if(forageStorage.realStorage instanceof AccountStorage){
+            const rsp = new Response(f.data as any)
+            f.data = new Uint8Array(await rsp.arrayBuffer())
+            const v = await CharXSkippableChecker(f.data)
+            signal = v.hash
+            charXMode = v.success ? 'skippable' : 'signal'
+        }
+        
         const reader = new CharXReader()
+        reader.alertInfo = true
+        if(charXMode === 'skippable'){
+            reader.skipSaving = true
+        }
+        if(charXMode === 'signal'){
+            reader.hashSignal = signal
+        }
+        const promise = reader.makePromise()
         await reader.read(f.data, {
             alertInfo: true
         })
@@ -109,6 +129,7 @@ export async function importCharacterProcess(f:{
                 lorebook = md.lorebook
             }
         }
+        await promise
         await importCharacterCardSpec(card, undefined, 'normal', reader.assets, lorebook)
         let db = getDatabase()
         return db.characters.length - 1
@@ -734,7 +755,10 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
                     msg: `Loading... (Loading Assets)`,
                     submsg: (i / risuext.additionalAssets.length * 100).toFixed(2)
                 })
-                await sleep(10)
+
+                if(i % 100 === 0){
+                    await sleep(10)
+                }
                 let fileName = ''
                 if(risuext.additionalAssets[i].length >= 3)
                     fileName = risuext.additionalAssets[i][2]
@@ -802,7 +826,9 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
                     msg: `Loading... (Assets)`,
                     submsg: (i / data.assets.length * 100).toFixed(2)
                 })
-                await sleep(10)
+                if(i % 100 === 0){
+                    await sleep(10)
+                }
                 let fileName = ''
                 let imgp = ''
                 if(data.assets[i].name){
