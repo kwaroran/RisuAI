@@ -9,9 +9,7 @@ import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
 import { alertError, alertNormal, alertWait, showHypaV2Alert } from "src/ts/alert";
-import { language } from "src/lang";
 import { addFetchLog } from "src/ts/globalApi.svelte"
-import { language } from "src/lang"
 
 type GeminiFunctionCall = {
     id?: string;
