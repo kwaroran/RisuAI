@@ -65,11 +65,14 @@
 
     type DiffSegment =
         | { kind: 'context' | 'changes'; parts: DiffPart[] }
-        | { kind: 'divider'; pos: 'start' | 'between' | 'end'; omitted: number }
+        | { kind: 'divider'; pos: 'start' | 'between' | 'end'; omitted: number; id: string; from: number; to: number }
 
+    type ExpandedRange = { scope: string; from: number; to: number }
     type SegmentOptions = {
         showOnlyChanges: boolean
         contextRadius: number
+        scope: string
+        expandedRanges: ExpandedRange[]
     }
 
     type NonModifyPart = Exclude<DiffPart, { k: 'modify' }>
@@ -87,6 +90,7 @@
 
     let diffResult = $state<DiffResult | null>(null)
     let cardDiffResult = $state<CardDiffResult | null>(null)
+    let expandedRanges = $state<ExpandedRange[]>([])
     const cardlineFlatResult = $derived.by<DiffResult | null>(() => {
         if (!cardDiffResult) return null
 
@@ -135,9 +139,17 @@
         if (!firstCards || !secondCards) return
         diffStyle
         isFlatText
+        expandedRanges = []
         void recomputeDiff(firstCards, secondCards)
     })
 
+    $effect(() => {
+        showOnlyChanges
+        contextRadius
+        expandedRanges = []
+    })
+
+ 
     // --- style helper --- //
     const pillBase = 'px-2 py-1 text-xs cursor-pointer select-none'
     const pillActive = 'text-black bg-white'
@@ -621,7 +633,7 @@
     }
 
     function buildSegments(parts: DiffPart[], opts: SegmentOptions): DiffSegment[] {
-        const { showOnlyChanges, contextRadius } = opts
+        const { showOnlyChanges, contextRadius, scope, expandedRanges } = opts
         const len = parts.length
         if (len === 0) return []
 
@@ -645,11 +657,30 @@
             if (!keep.some(Boolean)) return []
         }
 
+        if (showOnlyChanges) {
+            for (const r of expandedRanges) {
+                if (r.scope !== scope) continue
+                const from = Math.max(0, r.from)
+                const to   = Math.min(len - 1, r.to)
+                for (let j = from; j <= to; j++) keep[j] = true
+            }
+        }
+
         const flushCurrent = () => {
             if (current) {
                 segs.push(current)
                 current = null
             }
+        }
+
+        const pushDivider = (pos: 'start' | 'between' | 'end', from: number, to: number) => {
+            if (from > to) {
+                if (pos === 'start' || pos === 'end') {
+                    segs.push({ kind: 'divider', pos, id: `${scope}-${pos}`, from, to, omitted: 0 })
+                }
+                return
+            }
+            segs.push({ kind: 'divider', pos, id: `${scope}:${from}-${to}`, from, to, omitted: to - from + 1 })
         }
 
         let inKeptRun = false
@@ -672,8 +703,8 @@
             const ctx = isContext(part)
             if (!inKeptRun) {
                 if (showOnlyChanges) {
-                    const omitted = lastRunEnd >= 0 ? i - lastRunEnd - 1 : i
-                    segs.push({ kind: 'divider', pos: lastRunEnd >= 0 ? 'between' : 'start', omitted})
+                    if (lastRunEnd >= 0) pushDivider('between', lastRunEnd + 1, i - 1)
+                    else pushDivider('start', 0, i - 1)
                 }
                 inKeptRun = true
             }
@@ -700,8 +731,7 @@
         flushCurrent()
 
         if (showOnlyChanges) {
-            const omittedTail = (len - 1) - lastKeptIndex
-            segs.push({ kind: 'divider', pos: 'end', omitted: omittedTail })
+            pushDivider('end', lastKeptIndex + 1, len - 1)
         }
 
         return segs
@@ -735,6 +765,12 @@
         flushBuffer()
 
         return lines
+    }
+
+    function expandRange(scope: string, from: number, to: number) {
+        if (from > to) return
+        if (expandedRanges.some(r => r.scope === scope && r.from === from && r.to === to)) return
+        expandedRanges = [...expandedRanges, { scope, from, to }]
     }
 
 </script>
@@ -955,36 +991,40 @@
   </div>
 {/snippet}
 
-{#snippet renderDivider(d: Extract<DiffSegment, { kind: 'divider' }>)}
+{#snippet renderDivider(d: Extract<DiffSegment, { kind: 'divider' }>, scope: string)}
   <div class="my-3 flex items-center gap-3 text-xs text-textcolor2/70">
     <div class="h-px flex-1 bg-white/10"></div>
-    {#if d.pos === 'start'}
-      <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10">
+    <button
+      type="button"
+      class={`px-2 py-0.5 rounded border border-white/10 bg-white/5
+        ${d.omitted > 0 ? 'hover:bg-white/10 hover:border-white/20 cursor-pointer' : 'opacity-60 cursor-default'}`}
+      disabled={d.omitted === 0}
+      onclick={() => expandRange(scope, d.from, d.to)}
+      title={d.omitted > 0 ? 'Click to expand hidden lines' : ''}
+    >
+      {#if d.pos === 'start'}
         {#if d.omitted > 0}
-          … {d.omitted} lines above not shown …
+          … {d.omitted} lines above not shown (click to expand) …
         {:else}
           BOF
         {/if}
-      </span>
 
-    {:else if d.pos === 'between'}
-      <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10">
-        … {d.omitted} lines skipped …
-      </span>
+      {:else if d.pos === 'between'}
+        … {d.omitted} lines skipped (click to expand) …
 
-    {:else} <!-- end -->
-      <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10">
+      {:else} <!-- end -->
         {#if d.omitted > 0}
-          … {d.omitted} lines below not shown …
+          … {d.omitted} lines below not shown (click to expand) …
         {:else}
           EOF
         {/if}
-      </span>
-    {/if}
+      {/if}
+    </button>
 
     <div class="h-px flex-1 bg-white/10"></div>
   </div>
 {/snippet}
+
 
 
 <div class="absolute inset-0 z-50 bg-black bg-opacity-60 flex justify-center items-center p-4">
@@ -1083,10 +1123,10 @@
                   {#if bodyParts.length === 0}
                     <div class="text-textcolor2 italic">No body content</div>
                   {:else}
-                    {@const segments = buildSegments(bodyParts, { showOnlyChanges, contextRadius })}
+                    {@const segments = buildSegments(bodyParts, { showOnlyChanges, contextRadius, scope: `card-${idx}`, expandedRanges })}
                     {#each segments as seg, sIdx (sIdx)}
                       {#if seg.kind === 'divider'}
-                        {@render renderDivider(seg)}
+                        {@render renderDivider(seg, `card-${idx}`)}
                       {:else if seg.kind === 'context'}
                         {#each seg.parts as part, idx (idx)}
                           {#if part.k !== 'modify'}
@@ -1119,7 +1159,7 @@
         {/if}
       {:else}<!-- raw view -->
         {#if currentFlatResult}
-          {@const segments = buildSegments(currentFlatResult.parts, { showOnlyChanges, contextRadius })}
+          {@const segments = buildSegments(currentFlatResult.parts, { showOnlyChanges, contextRadius, scope: 'raw', expandedRanges })}
           {@render renderCounts(currentFlatResult.counts)}
 
           {#if showOnlyChanges && segments.length === 0}
@@ -1133,7 +1173,7 @@
           <div class="font-mono text-sm leading-5">
             {#each segments as seg, sIdx (sIdx)}
               {#if seg.kind === 'divider'}
-                {@render renderDivider(seg)}
+                {@render renderDivider(seg, 'raw')}
               {:else if seg.kind === 'context'}
                 {#each seg.parts as part, idx (idx)}
                   {#if part.k !== 'modify'}
