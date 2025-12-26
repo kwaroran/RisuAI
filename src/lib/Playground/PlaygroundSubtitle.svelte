@@ -226,8 +226,10 @@
                     {
                         device: device,
                         progress_callback: (progress) => {
-                            stats[progress.name + progress.file] = progress
-                            outputText = Object.values(stats).map(v => `${v.name}-${v.file}: ${progress.status} ${v.progress ? `[${v.progress.toFixed(2)}%]` : ''}`).join('\n')
+                            if ('name' in progress && 'file' in progress) {
+                                stats[progress.name + progress.file] = progress
+                                outputText = Object.values(stats).map(v => `${v.name}-${v.file}: ${v.status} ${v.progress ? `[${v.progress.toFixed(2)}%]` : ''}`).join('\n')
+                            }
                         },
                         dtype: 'q8'
                     },
