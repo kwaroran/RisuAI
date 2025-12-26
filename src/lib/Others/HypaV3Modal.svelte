@@ -23,7 +23,7 @@
     ExpandedMessageState,
     SearchState,
     SearchResult,
-    bulkResummaryState,
+    BulkResummaryState,
     CategoryManagerState,
     TagManagerState,
     BulkEditState,
@@ -61,7 +61,7 @@
   let expandedMessageState = $state<ExpandedMessageState>(null);
   let searchState = $state<SearchState>(null);
   let filterSelected = $state(false);
-  let bulkResummaryState = $state<bulkResummaryState | null>(null);
+  let bulkResummaryState = $state<BulkResummaryState | null>(null);
 
   let categoryManagerState = $state<CategoryManagerState>({
     isOpen: false,
