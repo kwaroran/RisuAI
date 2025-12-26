@@ -1,3 +1,5 @@
+import { asBuffer } from "../util";
+
 export class OpfsStorage{
 
     opfs:FileSystemDirectoryHandle
@@ -8,7 +10,7 @@ export class OpfsStorage{
             create: true
         })
         const stream = await handle.createWritable()
-        await stream.write(value)
+        await stream.write(asBuffer(value))
         stream.close()
     }
     async getItem(key:string):Promise<Buffer> {

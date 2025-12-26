@@ -9,14 +9,12 @@
     }
 
     let { value, markdown = false }: Props = $props();
-    const parsedValue = parseMultilangString(value)
-    let valueObject: {[code:string]:string} = $state(parsedValue)
+    let valueObject: {[code:string]:string} = $derived(parseMultilangString(value))
     let selectedLang = $state("en")
-    if(parsedValue["en"] === undefined){
-        selectedLang = "xx"
-    }
     $effect.pre(() => {
-        valueObject = parseMultilangString(value)
+        if(valueObject["en"] === undefined){
+            selectedLang = "xx"
+        }
     });
 </script>
 

@@ -138,6 +138,8 @@
         onchange = () => {}
     }: Props = $props();
     let selectingAutoComplete = $state(0)
+    // TODO: Review if highlight prop can change dynamically - if so, this needs to be reactive
+    // svelte-ignore state_referenced_locally
     let highlightId = highlight ? getNewHighlightId() : 0
     let inpa = $state(0)
     let highlightDom: HTMLDivElement = $state()

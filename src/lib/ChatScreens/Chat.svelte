@@ -133,10 +133,7 @@
     }
 
 
-    let blankMessage = $state((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1)
-    $effect.pre(() => {
-        blankMessage = (message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1
-    });
+    let blankMessage = $derived((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1)
 
     $effect.pre(() => {
         displaya(message)
