@@ -1,6 +1,6 @@
 import type { SummarizationOutput, TextToAudioPipeline, FeatureExtractionPipeline, TextGenerationConfig, TextGenerationOutput, ImageToTextOutput } from '@huggingface/transformers';
 import { unzip } from 'fflate';
-import { globalFetch, loadAsset, saveAsset } from 'src/ts/globalApi.svelte';
+import { loadAsset, saveAsset } from 'src/ts/globalApi.svelte';
 import { selectSingleFile } from 'src/ts/util';
 import { v4 } from 'uuid';
 let tfCache: Cache = null

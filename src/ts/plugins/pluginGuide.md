@@ -498,16 +498,17 @@ risuai.registerSetting(
 #### Floating Action Button
 
 ```javascript
-risuai.registerActionButton(
-  'Quick Action',
-  async () => {
-    // Called when user clicks the button
-    const char = await risuai.getCharacter();
-    await risuai.log(`Current character: ${char.name}`);
-  },
-  'https://example.com/icon.png', // Optional icon URL
-  'img' // Icon type: 'html', 'img', or 'none'
-);
+risuai.registerActionButton({
+    name: 'Quick Action',
+    icon: 'https://example.com/icon.png', // Optional icon URL
+    iconType: 'img', // Icon type: 'html', 'img', or 'none'
+    location: 'topright',
+    callback: async () => {
+        // Called when user clicks the button
+        const char = await risuai.getCharacter();
+        await risuai.log(`Current character: ${char.name}`);
+    }
+});
 ```
 
 **Icon Types:**
@@ -935,9 +936,12 @@ Add clear comments and metadata:
 
 (async () => {
   try {
-    risuai.registerActionButton(
-      'Show Character Info',
-      async () => {
+    risuai.registerActionButton({
+      name: 'Show Character Info',
+      icon: '🛈',
+      iconType: 'html',
+      location: 'topright',
+      callback: async () => {
         const char = await risuai.getCharacter();
 
         const rootDoc = risuai.getRootDocument();
@@ -967,11 +971,8 @@ Add clear comments and metadata:
             await infoBox.remove();
           });
         }
-      },
-      '🛈',
-      'html'
-    );
-
+      }
+    });
     risuai.log('Character info button registered');
   } catch (error) {
     risuai.log(`Error: ${error.message}`);

@@ -1,4 +1,3 @@
-import { translate } from "src/ts/translator/translator";
 
 export const languageEnglish = {
     formating:{
