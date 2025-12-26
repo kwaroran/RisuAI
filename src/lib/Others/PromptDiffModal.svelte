@@ -79,10 +79,10 @@
     type TokenClassPack = {add: string; remove: string; same: string}
 
     type DiffStyle = 'line' | 'intraline'
-    type ViewStyle = 'raw' | 'card'
+    type FormatStyle = 'raw' | 'card'
     
     let diffStyle = $state<DiffStyle>('intraline')
-    let viewStyle = $state<ViewStyle>('raw')
+    let formatStyle = $state<FormatStyle>('raw')
     let isFlatText = $state(false)
     let isGrouped = $state(false)
     let showOnlyChanges = $state(false)
@@ -107,7 +107,7 @@
     })
 
     const currentFlatResult = $derived.by<DiffResult | null>(() => {
-        if (!isFlatText && viewStyle === 'raw') return cardlineFlatResult
+        if (!isFlatText && formatStyle === 'raw') return cardlineFlatResult
         if (isFlatText) return diffResult
         return null
     })
@@ -127,7 +127,7 @@
         { value: 'intraline', label: 'Intraline' },
     ] as const
 
-    const viewOptions = [
+    const formatOptions = [
         { value: 'raw', label: 'Raw' },
         { value: 'card', label: 'Card' },
     ] as const
@@ -1033,7 +1033,7 @@
     <div class="flex items-center justify-between px-4 py-3 border-b border-darkborderc">
       <div class="flex items-center gap-4 flex-wrap">
         {@render pillRadioGroup('Diff', 'diffStyle', diffOptions, diffStyle, (v) => (diffStyle = v as DiffStyle))}
-        {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle))}
+        {@render pillRadioGroup('Format', 'formatStyle', formatOptions, formatStyle, (v) => (formatStyle = v as FormatStyle))}
         {@render checkboxToggle('Flat Text', isFlatText, (v) => (isFlatText = v))}
         {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), diffStyle !== 'line', true)}
         {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v))}
@@ -1047,7 +1047,7 @@
 
     <div class="p-4 overflow-y-auto">
       <!-- card view -->
-      {#if !isFlatText && viewStyle === 'card'}
+      {#if !isFlatText && formatStyle === 'card'}
         {#if cardDiffResult}
           {@const cardChangedTotal = cardDiffResult.cardCounts.modifiedCount + cardDiffResult.cardCounts.addedCount + cardDiffResult.cardCounts.removedCount}
 
