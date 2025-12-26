@@ -35,6 +35,9 @@ test.ts
 .wrangler/
 .qoder/*
 
+# Visual Studio (Windows)
+.vs/
+
 
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*

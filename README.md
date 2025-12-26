@@ -59,3 +59,10 @@ You can also run RisuAI using Docker. This method is particularly useful for web
    ```
 
 2. Access RisuAI at `http://localhost:6001` in your web browser.
+
+## Development (Web)
+
+RisuAI can also run as a **web app** using Vite.
+
+- See: `RUN_WEB_EN.md` (English)
+- See also: `RUN_WEB.md` (Chinese)
