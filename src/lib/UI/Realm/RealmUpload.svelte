@@ -107,7 +107,7 @@
 
 
 <script lang="ts">
-    import { XIcon } from "lucide-svelte";
+    import { XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertError } from "src/ts/alert";
     import { shareRisuHub2 } from "src/ts/characterCards";

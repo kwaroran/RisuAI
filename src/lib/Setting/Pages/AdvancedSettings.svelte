@@ -13,7 +13,7 @@
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
-  import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "lucide-svelte";
+  import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "@lucide/svelte";
   import { v4 } from "uuid";
   import { getDatabase } from "src/ts/storage/database.svelte";
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-    
-interface Props {
+
+    interface Props {
         check?: boolean;
         onChange?: (check:boolean) => any,
         margin?: boolean;

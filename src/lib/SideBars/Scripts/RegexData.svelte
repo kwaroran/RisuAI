@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { XIcon } from "lucide-svelte";
+    import { XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { ReloadGUIPointer } from "src/ts/stores.svelte";
     import { alertConfirm } from "src/ts/alert";

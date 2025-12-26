@@ -1,5 +1,5 @@
 <script>
-    import { ChevronDown, ChevronUp } from "lucide-svelte";
+    import { ChevronDown, ChevronUp } from "@lucide/svelte";
     import { language } from "../../lang";
 
     /** @type {{list?: any}} */

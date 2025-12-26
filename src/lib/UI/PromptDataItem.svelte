@@ -6,7 +6,7 @@
     import { language } from "src/lang";
     import NumberInput from "./GUI/NumberInput.svelte";
     import CheckInput from "./GUI/CheckInput.svelte";
-    import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
+    import { ArrowDown, ArrowUp, XIcon } from "@lucide/svelte";
     import TextInput from "./GUI/TextInput.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     

@@ -27,7 +27,7 @@
     HomeIcon,
     WrenchIcon,
     User2Icon,
-  } from "lucide-svelte";
+  } from "@lucide/svelte";
     import {
   addCharacter,
     changeChar,

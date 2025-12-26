@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { StarIcon } from "lucide-svelte";
+  import { StarIcon } from "@lucide/svelte";
   import { DBState, selectedCharID } from "src/ts/stores.svelte";
   import type { BulkEditState, Category } from "./types";
   import { language } from "src/lang";

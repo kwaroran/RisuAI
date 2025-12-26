@@ -6,7 +6,7 @@
     import { DBState } from 'src/ts/stores.svelte';
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
     import OpenrouterProviderList from "src/lib/UI/OpenrouterProviderList.svelte";
-    import { PlusIcon, TrashIcon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon } from "@lucide/svelte";
 
     const openrouterProviders = [
         // An alphabetically separate set of very-dead providers is kept at the top of the list in the docs.

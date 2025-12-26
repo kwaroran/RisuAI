@@ -10,7 +10,7 @@
     XIcon,
     SquarePenIcon,
     TagIcon,
-  } from "lucide-svelte";
+  } from "@lucide/svelte";
   import { language } from "src/lang";
   import {
     hypaV3ModalOpen,

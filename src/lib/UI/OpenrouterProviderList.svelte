@@ -2,7 +2,7 @@
 
     import { language } from "src/lang";
     import TextInput from "./GUI/TextInput.svelte";
-    import { ArrowLeft } from "lucide-svelte";
+    import { ArrowLeft } from "@lucide/svelte";
 
     interface Props {
         value?: string;

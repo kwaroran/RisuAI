@@ -11,7 +11,7 @@
     TagIcon,
     ChevronUpIcon,
     ChevronDownIcon,
-  } from "lucide-svelte";
+  } from "@lucide/svelte";
   import { language } from "src/lang";
   import {
     type SerializableHypaV3Data,

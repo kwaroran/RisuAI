@@ -1,6 +1,6 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { ChevronUpIcon, ChevronDownIcon } from "lucide-svelte";
+  import { ChevronUpIcon, ChevronDownIcon } from "@lucide/svelte";
   import { 
     type SerializableSummary, 
     summarize,

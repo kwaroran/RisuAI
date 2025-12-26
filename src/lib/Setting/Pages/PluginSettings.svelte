@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { PlusIcon, TrashIcon, LinkIcon, Code2Icon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon, LinkIcon, Code2Icon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertMd } from "src/ts/alert";
-    import { AlertTriangle } from 'lucide-svelte';
+    import { AlertTriangle } from '@lucide/svelte';
 
     import { DBState } from "src/ts/stores.svelte";
     import { createBlankPlugin, importPlugin } from "src/ts/plugins/plugins";

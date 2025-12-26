@@ -4,7 +4,7 @@
     RefreshCw,
     CheckIcon,
     XIcon,
-  } from "lucide-svelte";
+  } from "@lucide/svelte";
   import { language } from "src/lang";
   import type { BulkResummaryState } from "./types";
   import { handleDualAction } from "./utils";

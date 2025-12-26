@@ -6,7 +6,7 @@
     import { DBState } from 'src/ts/stores.svelte';
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
-    import { PlusIcon, TrashIcon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon } from "@lucide/svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";

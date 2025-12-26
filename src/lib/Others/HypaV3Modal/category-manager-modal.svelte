@@ -5,7 +5,7 @@
     SquarePenIcon,
     Trash2Icon,
     CheckIcon,
-  } from "lucide-svelte";
+  } from "@lucide/svelte";
   import { language } from "src/lang";
   import { DBState, selectedCharID } from "src/ts/stores.svelte";
   import type { Category, CategoryManagerState, SearchState, FilterState } from "./types";
