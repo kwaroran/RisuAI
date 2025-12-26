@@ -586,6 +586,9 @@ type V3PluginInstance = {
 const v3PluginInstances: V3PluginInstance[] = [];
 
 export async function loadV3Plugins(plugins:RisuPlugin[]){
+    await Promise.all(v3PluginInstances.map(async (instance) => {
+        await unloadV3Plugin(instance.name);
+    }));
     const loadPromises = plugins.map(plugin => executePluginV3(plugin));
     await Promise.all(loadPromises);
 }
