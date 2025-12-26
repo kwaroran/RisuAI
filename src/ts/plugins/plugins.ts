@@ -297,7 +297,7 @@ export async function importPlugin(code:string|null = null, argu:{
             return
         }
 
-        if(compareVersions(versionOfPlugin, '0.0.1') === -1){
+        if(versionOfPlugin && compareVersions(versionOfPlugin, '0.0.1') === -1){
             alertError('plugin version must be at least 0.0.1')
             return
         }
