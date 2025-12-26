@@ -2,7 +2,7 @@
   import {
     PlusIcon,
     XIcon,
-    EditIcon,
+    SquarePenIcon,
     Trash2Icon,
     CheckIcon,
   } from "lucide-svelte";
@@ -200,7 +200,7 @@
                   class="p-1.5 text-zinc-400 hover:text-zinc-200 transition-colors"
                   onclick={() => startEditCategory(category)}
                 >
-                  <EditIcon class="w-4 h-4" />
+                  <SquarePenIcon class="w-4 h-4" />
                 </button>
                 <button
                   class="p-1.5 text-red-400 hover:text-red-300 transition-colors"

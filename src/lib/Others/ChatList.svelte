@@ -3,8 +3,8 @@
     import { language } from "../../lang";
     
     import { DBState } from 'src/ts/stores.svelte';
-    import { selectedCharID } from "../../ts/stores.svelte";
-    import { DownloadIcon, EditIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
+    import { ReloadGUIPointer, selectedCharID } from "../../ts/stores.svelte";
+    import { DownloadIcon, SquarePenIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
     import TextInput from "../UI/GUI/TextInput.svelte";
@@ -98,7 +98,7 @@
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
             }}>
-                <EditIcon size={18}/>
+                <SquarePenIcon size={18}/>
             </button>
         </div>
     </div>

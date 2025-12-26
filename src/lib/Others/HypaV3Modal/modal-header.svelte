@@ -8,7 +8,7 @@
     BarChartIcon,
     Trash2Icon,
     XIcon,
-    EditIcon,
+    SquarePenIcon,
     TagIcon,
   } from "lucide-svelte";
   import { language } from "src/lang";
@@ -151,7 +151,7 @@
         tabindex="-1"
         onclick={toggleBulkEditMode}
       >
-        <EditIcon class="w-6 h-6" />
+        <SquarePenIcon class="w-6 h-6" />
       </button>
     {/if}
 
