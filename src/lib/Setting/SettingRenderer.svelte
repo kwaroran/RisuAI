@@ -39,43 +39,43 @@
             {/if}
         {:else if item.type === 'check'}
             <div class="flex items-center mt-2">
-                <Check bind:check={DBState.db[item.bindKey]} name={getLabel(item)}>
-                    {#if item.helpKey}<Help key={item.helpKey}/>{/if}
+                <Check bind:check={(DBState.db as any)[item.bindKey]} name={getLabel(item)}>
+                    {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
                 </Check>
             </div>
         {:else if item.type === 'text'}
             <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
-            <TextInput 
-                marginBottom={true} 
-                size="sm" 
-                bind:value={DBState.db[item.bindKey]}
+            <TextInput
+                marginBottom={true}
+                size="sm"
+                bind:value={(DBState.db as any)[item.bindKey]}
                 placeholder={item.options?.placeholder}
                 hideText={item.options?.hideText}
             />
         {:else if item.type === 'number'}
             <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
-            <NumberInput 
-                marginBottom={true} 
-                size="sm" 
-                min={item.options?.min} 
-                max={item.options?.max} 
-                bind:value={DBState.db[item.bindKey]}
+            <NumberInput
+                marginBottom={true}
+                size="sm"
+                min={item.options?.min}
+                max={item.options?.max}
+                bind:value={(DBState.db as any)[item.bindKey]}
             />
         {:else if item.type === 'textarea'}
             <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
-            <TextAreaInput 
-                bind:value={DBState.db[item.bindKey]}
+            <TextAreaInput
+                bind:value={(DBState.db as any)[item.bindKey]}
                 placeholder={item.options?.placeholder}
             />
         {:else if item.type === 'slider'}
             <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
             <SliderInput 
                 marginBottom={true}
@@ -86,20 +86,20 @@
                 multiple={item.options?.multiple}
                 disableable={item.options?.disableable}
                 customText={item.options?.customText}
-                bind:value={DBState.db[item.bindKey]}
+                bind:value={(DBState.db as any)[item.bindKey]}
             />
         {:else if item.type === 'select'}
             <span class="text-textcolor mt-4">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
-            <SelectInput bind:value={DBState.db[item.bindKey]}>
+            <SelectInput bind:value={(DBState.db as any)[item.bindKey]}>
                 {#each item.options?.selectOptions ?? [] as opt}
                     <OptionInput value={opt.value}>{opt.label}</OptionInput>
                 {/each}
             </SelectInput>
         {:else if item.type === 'color'}
             <div class="flex items-center mt-2">
-                <ColorInput bind:value={DBState.db[item.bindKey]} />
+                <ColorInput bind:value={(DBState.db as any)[item.bindKey]} />
                 <span class="ml-2">{getLabel(item)}</span>
             </div>
         {:else if item.type === 'button'}
