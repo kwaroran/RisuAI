@@ -1,5 +1,6 @@
 import { LatencyOptimisedTranslator, TranslatorBacking } from "@browsermt/bergamot-translator";
 import { gunzipSync } from 'fflate';
+import { asBuffer } from "../util";
 
 // Cache Translations Models
 class CacheDB {
@@ -105,7 +106,7 @@ class FirefoxBacking extends TranslatorBacking {
         // Decompress GZip
         const buffer = await res.arrayBuffer();
         const decomp = await decompressGZip(buffer);
-        await this.cache.save(url, checksum, decomp);
+        await this.cache.save(url, checksum, asBuffer(decomp));
         return decomp;
     }
 }

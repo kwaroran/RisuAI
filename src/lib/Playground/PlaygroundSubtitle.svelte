@@ -7,7 +7,7 @@
     import { DBState } from "src/ts/stores.svelte";
     import { getModelInfo, LLMFlags } from "src/ts/model/modellist";
     import { requestChatData } from "src/ts/process/request/request";
-    import { selectFileByDom, selectSingleFile, sleep } from "src/ts/util";
+    import { asBuffer, selectFileByDom, selectSingleFile, sleep } from "src/ts/util";
     import { alertError, alertSelect } from "src/ts/alert";
     import { risuChatParser } from "src/ts/parser.svelte";
     import { AppendableBuffer, downloadFile, getLanguageCodes } from "src/ts/globalApi.svelte";
@@ -194,7 +194,7 @@
             }
             enc.append(mp3encoder.flush())
 
-            const file2 = new File([enc.buffer], 'audio.mp3', {
+            const file2 = new File([asBuffer(enc.buffer)], 'audio.mp3', {
                 type: 'audio/mp3'
             })
 

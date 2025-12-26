@@ -1,7 +1,7 @@
 import type { SummarizationOutput, TextToAudioPipeline, FeatureExtractionPipeline, TextGenerationConfig, TextGenerationOutput, ImageToTextOutput } from '@huggingface/transformers';
 import { unzip } from 'fflate';
 import { loadAsset, saveAsset } from 'src/ts/globalApi.svelte';
-import { selectSingleFile } from 'src/ts/util';
+import { selectSingleFile, asBuffer  } from 'src/ts/util';
 import { v4 } from 'uuid';
 let tfCache: Cache = null
 let tfLoaded = false
@@ -25,7 +25,7 @@ async function initTransformers() {
             if (typeof url === 'string') {
                 if (Object.keys(tfMap).includes(url)) {
                     const assetId = tfMap[url]
-                    return new Response(await loadAsset(assetId))
+                    return new Response(asBuffer(await loadAsset(assetId)))
                 }
             }
             return await tfCache.match(url)
@@ -139,7 +139,7 @@ export const runVITS = async (text: string, modelData: string | OnnxModelFiles =
     const wav = new WaveFile();
     wav.fromScratch(1, out.sampling_rate, '32f', out.audio);
     const audioContext = new AudioContext();
-    audioContext.decodeAudioData(wav.toBuffer().buffer, (decodedData) => {
+    audioContext.decodeAudioData(asBuffer(wav.toBuffer().buffer), (decodedData) => {
         const sourceNode = audioContext.createBufferSource();
         sourceNode.buffer = decodedData;
         sourceNode.connect(audioContext.destination);

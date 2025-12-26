@@ -396,7 +396,7 @@ export async function encryptBuffer(data:Uint8Array, keys:string){
             iv: new Uint8Array(12),
         },
         key,
-        data
+        asBuffer(data)
     )
 
     return result
@@ -421,7 +421,7 @@ export async function decryptBuffer(data:Uint8Array, keys:string){
             iv: new Uint8Array(12),
         },
         key,
-        data
+        asBuffer(data)
     )
 
     return result
@@ -1208,4 +1208,16 @@ export const jsonOutputTrimmer = (data:string) => {
         data = data.slice(7, -3).trim()
     }
     return data.trim()
+}
+
+export function asBuffer(arr: Uint8Array<ArrayBufferLike>): Uint8Array<ArrayBuffer>;
+export function asBuffer(arr: ArrayBufferLike): ArrayBuffer;
+
+export function asBuffer(arr: Uint8Array<ArrayBufferLike> | ArrayBufferLike): Uint8Array<ArrayBuffer> | ArrayBuffer {
+    if (arr instanceof Uint8Array) {
+        return arr as unknown as Uint8Array<ArrayBuffer>;
+    }
+    else {
+        return arr as unknown as ArrayBuffer
+    }
 }
