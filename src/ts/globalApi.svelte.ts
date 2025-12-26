@@ -2083,8 +2083,8 @@ export async function fetchNative(url: string, arg: {
                         error = parsedRes.body
                         resolved = true
                     }
-                } catch (error) {
-                    error = JSON.stringify(error)
+                } catch (e) {
+                    error = JSON.stringify(e)
                     resolved = true
                 }
             })
