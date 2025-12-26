@@ -68,7 +68,7 @@ export const runEmbedding = async (texts: string[], model: EmbeddingModel = 'Xen
         if (extractor) {
             await extractor.dispose()
         }
-        extractor = await pipeline('feature-extraction', model, {
+        extractor = await pipeline<"feature-extraction">('feature-extraction', model, {
             // Default dtype for webgpu is fp32, so we can use q8, which is the default dtype in wasm.
             dtype: "q8",
             device: device,
@@ -119,7 +119,7 @@ export const runVITS = async (text: string, modelData: string | OnnxModelFiles =
     if (typeof modelData === 'string') {
         if ((!synthesizer) || (lastSynth !== modelData)) {
             lastSynth = modelData
-            synthesizer = await pipeline('text-to-speech', modelData);
+            synthesizer = await pipeline<"text-to-speech">('text-to-speech', modelData);
         }
     }
     else {
