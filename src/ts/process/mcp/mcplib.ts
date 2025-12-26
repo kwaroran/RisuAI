@@ -255,8 +255,7 @@ export class MCPClient{
         }
 
         if(this.customTransport){
-            return new Promise<RPCRequestResult>(async (resolve) => {
-                await this.customTransport.send(body as JsonRPC)
+            return new Promise<RPCRequestResult>((resolve) => {
                 const func = (message:JsonRPC) => {
                     if(message.id === body.id){
                         resolve({
@@ -267,10 +266,12 @@ export class MCPClient{
                             }
                         })
                         this.customTransport.removeListener(func)
-                        return
                     }
                 }
-                this.customTransport.addListener(func)
+                Promise.resolve(this.customTransport.addListener(func))
+                    .then(() => this.customTransport.send(body as JsonRPC))
+                    // TODO: handle send errors properly (e.g. timeout, reject with RPC error)
+                    .catch(() => {})
             })
         }
 
