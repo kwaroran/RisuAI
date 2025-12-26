@@ -1116,7 +1116,7 @@ export interface RisuaiPluginAPI {
     loadPlugins(): Promise<void>;
 
     /**
-     * @deprecated Cleanup only happens on shutdown
+     * Registers an unload function called when plugin is unloaded
      */
     onUnload(func: () => void | Promise<void>): Promise<void>;
 
