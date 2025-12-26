@@ -1421,6 +1421,4 @@ export const languageSpanish = {
     },
     generatedByAIDisclaimer: "Este contenido fue generado por IA y puede contener inexactitudes o sesgos.",
     aiGenerationWarning: "El contenido será generado por IA y puede contener inexactitudes o sesgos.",
-    apply: "Aplicar",
-    add: "Añadir",
 }
