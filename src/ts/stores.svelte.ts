@@ -1,8 +1,8 @@
-import { get, writable, type Writable } from "svelte/store";
+import { writable } from "svelte/store";
 import type { character, Database, groupChat } from "./storage/database.svelte";
 import type { simpleCharacterArgument } from "./parser.svelte";
 import type { alertData } from "./alert";
-import { getModules, moduleUpdate } from "./process/modules";
+import { moduleUpdate } from "./process/modules";
 import { resetScriptCache } from "./process/scripts";
 import type { hubType } from "./characterCards";
 import type { PluginSafetyErrors } from "./plugins/pluginSafety";

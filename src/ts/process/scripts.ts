@@ -1,12 +1,12 @@
 import { get } from "svelte/store";
 import { CharEmotion, selectedCharID } from "../stores.svelte";
-import { type character, type customscript, type groupChat, type Database, getDatabase, getCurrentCharacter, getCurrentChat } from "../storage/database.svelte";
+import { type character, type customscript, type groupChat, getDatabase, getCurrentCharacter, getCurrentChat } from "../storage/database.svelte";
 import { downloadFile } from "../globalApi.svelte";
 import { alertError, alertNormal } from "../alert";
 import { language } from "src/lang";
 import { selectSingleFile } from "../util";
 import { assetRegex, type CbsConditions, risuChatParser as risuChatParserOrg, type simpleCharacterArgument } from "../parser.svelte";
-import { getModuleAssets, getModuleRegexScripts, getModuleTriggers } from "./modules";
+import { getModuleAssets, getModuleRegexScripts } from "./modules";
 import { HypaProcesser } from "./memory/hypamemory";
 import { runLuaEditTrigger } from "./scriptings";
 import { pluginV2 } from "../plugins/plugins";

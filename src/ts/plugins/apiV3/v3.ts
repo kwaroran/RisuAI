@@ -1,4 +1,3 @@
-import { fetchNative, globalFetch } from "src/ts/globalApi.svelte";
 import { getV2PluginAPIs, type RisuPlugin } from "../plugins";
 import { SandboxHost } from "./factory";
 import { getDatabase } from "src/ts/storage/database.svelte";
