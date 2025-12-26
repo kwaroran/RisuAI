@@ -121,7 +121,6 @@ export async function updatePlugin(plugin: RisuPlugin) {
     } catch (error) {
         console.error('Failed to update plugin:', error)
     }
-    loadPlugins()
     return false
 }
 
@@ -415,7 +414,8 @@ export async function importPlugin(code:string|null = null, argu:{
 
         setDatabaseLite(db)
 
-        //Previously we loaded plugin here
+        loadPlugins()
+        
     } catch (error) {
         console.error(error)
         alertError(language.errors.noData)
@@ -425,6 +425,7 @@ export async function importPlugin(code:string|null = null, argu:{
 let pluginTranslator = false
 
 export async function loadPlugins() {
+    console.log('Loading plugins...')
     let db = getDatabase()
 
 

@@ -219,7 +219,7 @@
 <div class="text-textcolor2 mt-2 flex gap-2">
     <button
         onclick={() => {
-            importPlugin();
+            importPlugin()
         }}
         class="hover:text-textcolor cursor-pointer"
     >
