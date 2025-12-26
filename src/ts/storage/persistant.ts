@@ -1,4 +1,3 @@
-import { get } from "svelte/store";
 import { getDatabase } from "./database.svelte";
 import { alertNormal } from "../alert";
 import { language } from "src/lang";

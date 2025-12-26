@@ -1,6 +1,5 @@
 import { Packr, Unpackr, decode } from "msgpackr";
 import * as fflate from "fflate";
-import { AppendableBuffer, isTauri } from "../globalApi.svelte";
 import { presetTemplate, type Database } from "./database.svelte";
 import localforage from "localforage";
 

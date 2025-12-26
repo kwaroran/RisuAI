@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getCustomBackground, getEmotion } from "../../ts/util";
+    import { getCustomBackground } from "../../ts/util";
     
     import { DBState } from 'src/ts/stores.svelte';
     import BackgroundDom from "../ChatScreens/BackgroundDom.svelte";

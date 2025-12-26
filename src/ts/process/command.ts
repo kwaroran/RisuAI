@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setCurrentChat, setDatabase } from "../storage/database.svelte";
 import { selectedCharID } from "../stores.svelte";
-import { alertInput, alertMd, alertNormal, alertSelect, alertToast } from "../alert";
+import { alertInput, alertMd, alertNormal, alertSelect } from "../alert";
 import { sayTTS } from "./tts";
 import { risuChatParser } from "../parser.svelte";
 import { sendChat } from "./index.svelte";

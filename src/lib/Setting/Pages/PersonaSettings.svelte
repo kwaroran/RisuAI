@@ -11,9 +11,7 @@
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { sleep, sortableOptions } from "src/ts/util";
-    import { setDatabase } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { get } from "svelte/store";
     import { v4 } from "uuid"
 
     let stb: Sortable = null

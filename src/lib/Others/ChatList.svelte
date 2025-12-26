@@ -3,7 +3,7 @@
     import { language } from "../../lang";
     
     import { DBState } from 'src/ts/stores.svelte';
-    import { ReloadGUIPointer, selectedCharID } from "../../ts/stores.svelte";
+    import { selectedCharID } from "../../ts/stores.svelte";
     import { DownloadIcon, EditIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon } from "lucide-svelte";
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
