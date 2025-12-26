@@ -44,7 +44,6 @@ export class CharXWriter{
     }
 
     async writeJpeg(img: Uint8Array){
-        console.log('writeJpeg')
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
         if(!ctx){
@@ -63,12 +62,10 @@ export class CharXWriter{
         }))
         const buf = await blob.arrayBuffer()
         this.apb.append(new Uint8Array(buf))
-        console.log('writeJpeg done')
     }
 
     async write(key:string,data:Uint8Array|string, level?:0|1|2|3|4|5|6|7|8|9){
         key = this.#sanitizeZipFilename(key)
-        console.log('write',key)
         let dat:Uint8Array
         if(typeof data === 'string'){
             dat = new TextEncoder().encode(data)
@@ -228,7 +225,6 @@ export class CharXReader{
             if(this.allPushed && this.doneAssets >= this.assetQueueLength){
                 if(this.hashSignal){
                     const signalId = await saveAsset(new TextEncoder().encode(this.hashSignal ?? ""))
-                    console.log('signal saved', signalId)
                 }
                 this.fullPromiseResolver?.()
             }
@@ -328,8 +324,6 @@ export async function CharXSkippableChecker(data:Uint8Array){
     const hashed = await hasher(data)
     const reHashed = await hasher(new TextEncoder().encode(hashed))
     const x = await fetch(hubURL + '/rs/assets/' + reHashed + '.png')
-
-    console.log('CharXSkippableChecker', x.status, reHashed)
     return {
         success: x.status >= 200 && x.status < 300,
         hash: hashed

@@ -36,7 +36,6 @@ export async function importCharacter() {
         }
 
         for(const f of files){
-            console.log(f)
             await importCharacterProcess({
                 name: f.name,
                 data: f
@@ -189,7 +188,6 @@ export async function importCharacterProcess(f:{
     let queueFetchKey:string[] = []
     let queueFetchData:Buffer[] = []
     for await (const chunk of readGenerator){
-        console.log(chunk)
         if(!chunk){
             continue
         }
@@ -283,7 +281,6 @@ export async function importCharacterProcess(f:{
     }
 
     if(!img){
-        console.error("No Image Found")
         alertError(language.errors.noData)
         return
     }
@@ -349,7 +346,6 @@ export async function importCharacterProcess(f:{
 
     if(parsed.spec !== 'chara_card_v2' && parsed.spec !== 'chara_card_v3'){
         const charaData:OldTavernChar = JSON.parse(Buffer.from(readedChara, 'base64').toString('utf-8'))
-        console.log(charaData)
         const imgp = await saveAsset(img)
         db.characters.push(convertOffSpecCards(charaData, imgp))
         setDatabaseLite(db)
@@ -608,7 +604,6 @@ export async function characterURLImport() {
 
 function convertOffSpecCards(charaData:OldTavernChar|CharacterCardV2Risu, imgp:string|undefined = undefined):character{
     const data = charaData.spec_version === '2.0' ? charaData.data : charaData
-    console.log("Off spec detected, converting")
     const charbook = charaData.spec_version === '2.0' ? charaData.data.character_book : null
     let lorebook:loreBook[] = []
     let loresettings:undefined|loreSettings = undefined
@@ -706,7 +701,6 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
     console.log(`Importing ${card.spec}, mode is ${mode}`)
 
     const data = card.data
-    console.log(card)
     let im = img ? await saveAsset(img) : undefined
     let db = getDatabase()
 
@@ -881,7 +875,6 @@ async function importCharacterCardSpec(card:CharacterCardV2Risu|CharacterCardV3,
                         name: fileName,
                         ext: data.assets[i].ext ?? 'unknown'
                     })
-                    console.log(ccAssets)
                 }
             }
         }
@@ -1241,7 +1234,6 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                 'charxJpeg': ['CharX Embeded Jpeg', 'jpeg']
             }
             const ext = nameExt[type]
-            console.log(ext)
             await (localWriter as LocalWriter).init(ext[0], [ext[1]])
         }
         const writer = (type === 'charx' || type === 'charxJpeg') ? (new CharXWriter(localWriter)) : type === 'json' ? (new BlankWriter()) : (new PngChunk.streamWriter(img, localWriter))
@@ -1429,7 +1421,6 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
                                 }
                                 metadatas[chunk.key] = chunk.value
                             }
-                            console.log(metadatas)
                             if(Object.keys(metadatas).length > 0){
                                 await writer.write(metaPath, Buffer.from(JSON.stringify(metadatas, null, 4)), 6)
                             }
@@ -1491,7 +1482,6 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
 
     }
     catch(e){
-        console.error(e, e.stack)
         alertError(e)
     }
 }
@@ -1797,7 +1787,6 @@ export async function downloadRisuHub(id:string, arg:{
         if(res.headers.get('content-type') === 'image/png' || res.headers.get('content-type') === 'application/zip' || res.headers.get('content-type') === 'application/charx'){
             let db = getDatabase()
             if(res.headers.get('content-type') === 'application/zip' || res.headers.get('content-type') === 'application/charx'){
-                console.log('zip')
                 await importCharacterProcess({
                     name: 'realm.charx',
                     data: new Uint8Array(await res.arrayBuffer()),
