@@ -1889,14 +1889,19 @@ if (Capacitor.isNativePlatform()) {
  * A class to manage a buffer that can be appended to and deappended from.
  */
 export class AppendableBuffer {
-    buffer: Uint8Array
     deapended: number = 0
+    #buffer: Uint8Array
+    #byteLength: number = 0
 
     /**
      * Creates an instance of AppendableBuffer.
      */
     constructor() {
-        this.buffer = new Uint8Array(0)
+        this.#buffer = new Uint8Array(128)
+    }
+
+    get buffer(): Uint8Array {
+        return this.#buffer.slice(0, this.#byteLength)
     }
 
     /**
@@ -1904,10 +1909,19 @@ export class AppendableBuffer {
      * @param {Uint8Array} data - The data to append.
      */
     append(data: Uint8Array) {
-        const newBuffer = new Uint8Array(this.buffer.length + data.length)
-        newBuffer.set(this.buffer, 0)
-        newBuffer.set(data, this.buffer.length)
-        this.buffer = newBuffer
+        // New way (faster)
+        const requiredLength = this.#byteLength + data.length
+        if (this.#buffer.byteLength < requiredLength) {
+            let newLength = this.#buffer.byteLength * 2
+            while (newLength < requiredLength) {
+                newLength *= 2
+            }
+            const newBuffer = new Uint8Array(newLength)
+            newBuffer.set(this.#buffer)
+            this.#buffer = newBuffer
+        }
+        this.#buffer.set(data, this.#byteLength)
+        this.#byteLength += data.length
     }
 
     /**
@@ -1915,8 +1929,9 @@ export class AppendableBuffer {
      * @param {number} length - The length to deappend.
      */
     deappend(length: number) {
-        this.buffer = this.buffer.slice(length)
+        this.#buffer = this.#buffer.slice(length)
         this.deapended += length
+        this.#byteLength -= length
     }
 
     /**
@@ -1934,7 +1949,16 @@ export class AppendableBuffer {
      * @returns {number} - The total length.
      */
     length() {
-        return this.buffer.length + this.deapended
+        return this.#byteLength + this.deapended
+    }
+
+    /**
+     * Clears the buffer.
+     */
+    clear() {
+        this.#buffer = new Uint8Array(128)
+        this.#byteLength = 0
+        this.deapended = 0
     }
 }
 

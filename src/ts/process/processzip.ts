@@ -79,7 +79,7 @@ export class CharXWriter{
         await this.zip.add(file)
         await file.push(dat, true)
         await this.writer.write(this.apb.buffer)
-        this.apb.buffer = new Uint8Array(0)
+        this.apb.clear()
         if(this.writeEnd){
             await this.writer.close()
         }
@@ -89,7 +89,7 @@ export class CharXWriter{
     async end(){
         await this.zip.end()
         await this.writer.write(this.apb.buffer)
-        this.apb.buffer = new Uint8Array(0)
+        this.apb.clear()
         if(this.writeEnd){
             await this.writer.close()
         }
