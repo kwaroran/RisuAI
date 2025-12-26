@@ -229,6 +229,7 @@ export async function sayTTS(character:character,text:string) {
             }
             case 'vits':{
                 await runVITS(text, character.vits)
+                break;
             }
             case 'gptsovits':{
                 const audioContext = new AudioContext();
