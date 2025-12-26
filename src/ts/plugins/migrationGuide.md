@@ -429,14 +429,15 @@ risuai.registerSetting(
 )
 
 // Register a floating action button
-risuai.registerActionButton(
-  'My Action',
-  () => {
-    // Callback when clicked
-  },
-  'https://example.com/icon.png', // Optional icon
-  'img' // Icon type: 'html', 'img', or 'none'
-)
+risuai.registerActionButton({
+    name: 'My Action',
+    callback: () => {
+      // Callback when clicked
+    },
+    icon: 'https://example.com/icon.png', // Optional icon
+    iconType: 'img', // Icon type: 'html', 'img', or 'none'
+    location: 'topright'
+})
 ```
 
 **Parameters:**
@@ -506,16 +507,57 @@ API v3.0 implements multiple security layers:
 
 2. **Access APIs through `risuai` object:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    const db = getDatabase()
 
    // New (v3.0)
    const db = await risuai.getDatabase()
    ```
 
-3. **Use getRootDocument for main DOM access:**
+
+3. **Migrate DOM Modal to Iframe:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
+   // Build your Modal at main document
+   const container = document.createElement('div')
+   container.style.innerHTML = '<h1>Hello World Modal</h1>'
+   document.body.appendChild(container)
+
+   // New (v3.0)
+   // Build your UI inside the iframe context
+
+   //looks same in this example, but its inside the iframe now!
+   const container = document.createElement('div')
+   container.style.innerHTML = '<h1>Hello World Modal</h1>'
+
+   //don't forget to show the iframe container when needed
+   risuai.showContainer('fullscreen')
+   ```
+
+3-1. **Migrate UI Registration:**
+   ```javascript
+   // Old (v2.0 / v2.1)
+   // This was one of the hacky way to build settings button
+
+
+   // New (v3.0)
+   // Now its officially supported to register settings button
+   risuai.registerSetting(
+     'My Plugin Settings',
+     () => {
+       risuai.showContainer('fullscreen')
+       // Build your UI inside the iframe...
+     },
+     '⚙️',
+     'html'
+   )
+   ```
+
+3-2. **Or use getRootDocument for main DOM access:**
+
+   Note: We recommend building your UI inside the iframe using standard Document APIs if possible. however, if you really need to access the main document, use `getRootDocument()`.
+   ```javascript
+   // Old (v2.0 / v2.1)
    const element = document.querySelector('.my-class')
 
    // New (v3.0)
@@ -525,7 +567,7 @@ API v3.0 implements multiple security layers:
 
 4. **Handle SafeElement instead of HTMLElement:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    element.style.color = 'red'
 
    // New (v3.0)
@@ -534,7 +576,7 @@ API v3.0 implements multiple security layers:
 
 5. **Use async/await for all API calls:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    const char = getChar()
 
    // New (v3.0)
@@ -543,7 +585,7 @@ API v3.0 implements multiple security layers:
 
 6. **Update event listeners:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    element.addEventListener('click', handler)
 
    // New (v3.0)

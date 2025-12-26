@@ -457,20 +457,35 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             })
         },
         registerActionButton: (
-            name:string,
-            callback: any,
-            icon:string = '',
-            iconType:'html'|'img'|'none' = 'none'
+            arg: {
+                name: string,
+                icon: string,
+                iconType: 'html'|'img'|'none',
+                callback: () => void
+                location?: 'topright'
+            }
         ) => {
+            let { name, icon, iconType, callback, location } = arg;
+            location = location || 'topright';
             //Reserved for future use
             if(iconType !== 'html' && iconType !== 'img' && iconType !== 'none'){
                 throw new Error("iconType must be 'html', 'img' or 'none'");
+            }
+            if(typeof name !== 'string' || name.trim() === ''){
+                throw new Error("name must be a non-empty string");
+            }
+            if(location !== 'topright'){
+                throw new Error("Currently only 'topright' location is supported");
+            }
+            if(typeof icon !== 'string'){
+                throw new Error("icon must be a string");
             }
             additionalFloatingActionButtons.push({
                 name,
                 icon,
                 iconType,
-                callback
+                callback,
+                location
             })
         },
         log: (message:string) => {

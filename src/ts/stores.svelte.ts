@@ -127,7 +127,8 @@ export type MenuDef = {
     name: string,
     icon: string,
     iconType:'html'|'img'|'none',
-    callback: any
+    callback: any,
+    location?: 'topright'
 }
 
 export const additionalSettingsMenu = $state([] as MenuDef[])

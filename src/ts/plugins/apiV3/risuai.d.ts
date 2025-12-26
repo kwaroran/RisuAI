@@ -946,6 +946,7 @@ export interface RisuaiPluginAPI {
         iconType?: IconType
     ): Promise<void>;
 
+
     /**
      * Registers a floating action button
      * @param name - Display name
@@ -955,23 +956,23 @@ export interface RisuaiPluginAPI {
      *
      * @example
      * ```typescript
-     * await risuai.registerActionButton(
-     *   'Quick Action',
-     *   async () => {
-     *     const char = await risuai.getCharacter();
-     *     risuai.log(`Character: ${char.name}`);
+     * await risuai.registerActionButton({
+     *   name: 'My Action',
+     *   icon: '🔥',
+     *   iconType: 'html',
+     *   callback: async () => {
+     *     risuai.log('Action button clicked!');
      *   },
-     *   '🚀',
-     *   'html'
-     * );
+     * });
      * ```
      */
-    registerActionButton(
+    registerActionButton(arg:  {
         name: string,
-        callback: () => void | Promise<void>,
-        icon?: string,
-        iconType?: IconType
-    ): Promise<void>;
+        icon: string,
+        iconType: 'html'|'img'|'none',
+        callback: () => void,
+        location?: 'topright'
+    }): Promise<void>;
 
     // ========== Provider APIs ==========
 
