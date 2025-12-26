@@ -462,19 +462,19 @@ export const getV2PluginAPIs = () => {
                 )
             }
             safeGlobal.setInterval = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into setInterval params causes type mismatch with TimerHandler signature
                 return globalThis.setInterval(...args);
             }
             safeGlobal.setTimeout = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into setTimeout params causes type mismatch with TimerHandler signature
                 return globalThis.setTimeout(...args);
             }
             safeGlobal.clearInterval = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into clearInterval - first arg should be number | undefined
                 return globalThis.clearInterval(...args);
             }
             safeGlobal.clearTimeout = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into clearTimeout - first arg should be number | undefined
                 return globalThis.clearTimeout(...args);
             }
             safeGlobal.alert = globalThis.alert;
@@ -499,11 +499,11 @@ export const getV2PluginAPIs = () => {
             safeGlobal.Function = globalThis.__pluginApis__.SafeFunction;
             safeGlobal.document = globalThis.__pluginApis__.safeDocument;
             safeGlobal.addEventListener = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into addEventListener - expects (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions)
                 window.addEventListener(...args);
             }
             safeGlobal.removeEventListener = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into removeEventListener - expects (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions)
                 window.removeEventListener(...args);
             }
             return safeGlobal;

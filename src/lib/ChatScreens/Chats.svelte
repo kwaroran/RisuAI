@@ -94,7 +94,7 @@
             
         }
 
-        //@ts-ignore since API is available in Corejs
+        //@ts-expect-error Set<T> requires type arg, and Set.difference needs 'esnext' lib (polyfilled by Core-js)
         const toRemove:Set = hashes.difference(currentHashes);
         toRemove.forEach((hash) => {
             const inst = mountInstances.get(hash);

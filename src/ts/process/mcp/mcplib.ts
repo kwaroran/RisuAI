@@ -195,7 +195,7 @@ export class MCPClient{
                                 continue
                             }
 
-                            //@ts-ignore
+                            //@ts-expect-error JsonRPC type doesn't have method property, but JsonPing does
                             if(jsonData.method === 'ping'){
                                 await this.request('response', {}, {
                                     notifications: true,

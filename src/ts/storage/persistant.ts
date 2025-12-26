@@ -12,7 +12,7 @@ async function requestPersistantStorageMain() {
         }
 
         //if is chromium
-        //@ts-ignore
+        //@ts-expect-error window.chrome is Chromium-specific property, not defined in Window interface
         const isChromium = window.chrome;
         if (isChromium) {
             //chromium requires notification to persist

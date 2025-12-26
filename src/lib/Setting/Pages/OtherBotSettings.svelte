@@ -686,7 +686,7 @@
             DBState.db.supaModelType !== 'none' ? 'supaMemory' :
             DBState.db.hanuraiEnable ? 'hanuraiMemory' : 'none'
         } onchange={(v) => {
-            //@ts-ignore
+            //@ts-expect-error 'value' doesn't exist on EventTarget, but target is HTMLSelectElement here
             const value = v.target.value
             if (value === 'supaMemory'){
                 DBState.db.supaModelType = 'distilbart'
