@@ -3,7 +3,7 @@ import { SandboxHost } from "./factory";
 import { getDatabase } from "src/ts/storage/database.svelte";
 import { tagWhitelist } from "../pluginSafeClass";
 import DOMPurify from 'dompurify';
-import { additionalFloatingActionButtons, additionalSettingsMenu } from "src/ts/stores.svelte";
+import { additionalChatMenu, additionalFloatingActionButtons, additionalHamburgerMenu, additionalSettingsMenu, type MenuDef } from "src/ts/stores.svelte";
 import { v4 } from "uuid";
 
 
@@ -343,6 +343,34 @@ class SafeMutationObserver {
 
 }
 
+const pluginUnloadCallbacks: Map<string, Function[]> = new Map();
+
+const addPluginUnloadCallback = (pluginName: string, callback: Function) => {
+    if(!pluginUnloadCallbacks.has(pluginName)){
+        pluginUnloadCallbacks.set(pluginName, []);
+    }
+    pluginUnloadCallbacks.get(pluginName)?.push(callback);
+}
+
+const makeMenuUnloadCallback = (menuId:string, menuStore: MenuDef[]) =>{
+    return () => {
+        const index = menuStore.findIndex(item => item.id === menuId);
+        if(index !== -1){
+            menuStore.splice(index, 1);
+        }
+    }
+}
+
+const unloadV3Plugin = (pluginName: string) => {
+    const callbacks = pluginUnloadCallbacks.get(pluginName);
+    if(callbacks){
+        callbacks.forEach(callback => {
+            callback();
+        });
+        pluginUnloadCallbacks.delete(pluginName);
+    }
+}
+
 const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
     
     const oldApis = getV2PluginAPIs();
@@ -369,12 +397,8 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         readImage: oldApis.readImage,
         saveAsset: oldApis.saveAsset,
         
-
-
         //Deprecated APIs from v2.1
 
-        //Unload never fires. plugin cleanup is handled only on program shutdown now.
-        onUnload: oldApis.onUnload,
 
         //Use getArgument / setArgument instead if possible
         getArg: oldApis.getArg,
@@ -448,24 +472,30 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             if(typeof name !== 'string' || name.trim() === ''){
                 throw new Error("name must be a non-empty string");
             }
+            const id = v4()
             additionalSettingsMenu.push({
+                id,
                 name,
                 icon,
                 iconType,
                 callback
             })
+            addPluginUnloadCallback(
+                plugin.name,
+                makeMenuUnloadCallback(id, additionalSettingsMenu)
+            )
         },
-        registerActionButton: (
+        registerButton: (
             arg: {
                 name: string,
                 icon: string,
                 iconType: 'html'|'img'|'none',
-                location?: 'topright'
+                location?: 'action'|'chat'|'hamburger'
             },
             callback: () => void
         ) => {
             let { name, icon, iconType, location } = arg;
-            location = location || 'topright';
+            location = location || 'action';
             //Reserved for future use
             if(iconType !== 'html' && iconType !== 'img' && iconType !== 'none'){
                 throw new Error("iconType must be 'html', 'img' or 'none'");
@@ -473,19 +503,47 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             if(typeof name !== 'string' || name.trim() === ''){
                 throw new Error("name must be a non-empty string");
             }
-            if(location !== 'topright'){
-                throw new Error("Currently only 'topright' location is supported");
-            }
             if(typeof icon !== 'string'){
                 throw new Error("icon must be a string");
             }
-            additionalFloatingActionButtons.push({
+            const id = v4()
+            const menuDef:MenuDef = {
                 name,
                 icon,
                 iconType,
                 callback,
-                location
-            })
+                id
+            }
+
+            switch(location){
+                case 'action':{
+                    additionalFloatingActionButtons.push(menuDef)
+                    addPluginUnloadCallback(
+                        plugin.name,
+                        makeMenuUnloadCallback(menuDef.id, additionalFloatingActionButtons)
+                    )
+                    break
+                }
+                case 'hamburger':{
+                    additionalHamburgerMenu.push(menuDef)
+                    addPluginUnloadCallback(
+                        plugin.name,
+                        makeMenuUnloadCallback(menuDef.id, additionalHamburgerMenu)
+                    )
+                    break
+                }
+                case 'chat':{
+                    additionalChatMenu.push(menuDef)
+                    addPluginUnloadCallback(
+                        plugin.name,
+                        makeMenuUnloadCallback(menuDef.id, additionalChatMenu)
+                    )
+                    break
+                }
+                default:{
+                    throw new Error("Invalid location for button")
+                }
+            }
         },
         log: (message:string) => {
             console.log(`[RisuAI Plugin: ${plugin.name}] ${message}`);
@@ -493,10 +551,18 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         createMutationObserver(callback: SafeMutationCallback): SafeMutationObserver {
             return new SafeMutationObserver(callback)
         },
+        onUnload: (callback: () => void) => {
+            addPluginUnloadCallback(plugin.name, callback);
+        },
         _getOldKeys: () => {
             return Object.keys(oldApis)
         }
     }
+}
+
+type PluginPackage = {
+    name: string;
+    host: SandboxHost;
 }
 
 export async function loadV3Plugins(plugins:RisuPlugin[]){
@@ -510,5 +576,8 @@ export async function executePluginV3(plugin:RisuPlugin){
     document.body.appendChild(iframe);
     const host = new SandboxHost(makeRisuaiAPIV3(iframe, plugin));
     host.run(iframe, plugin.script);
+    addPluginUnloadCallback(plugin.name, () => {
+        host.terminate();
+    });
     console.log(`[RisuAI Plugin: ${plugin.name}] Loaded API V3 plugin.`);
 }

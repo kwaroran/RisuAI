@@ -128,11 +128,13 @@ export type MenuDef = {
     icon: string,
     iconType:'html'|'img'|'none',
     callback: any,
-    location?: 'topright'
+    id: string,
 }
 
 export const additionalSettingsMenu = $state([] as MenuDef[])
 export const additionalFloatingActionButtons = $state([] as MenuDef[])
+export const additionalHamburgerMenu = $state([] as MenuDef[])
+export const additionalChatMenu = $state([] as MenuDef[])
 
 ReloadGUIPointer.subscribe(() => {
     ReloadChatPointer.set({})

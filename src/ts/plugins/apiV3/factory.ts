@@ -289,4 +289,12 @@ export class SandboxHost {
             this.pendingCallbacks.clear();
         };
     }
+
+    public terminate() {
+        if (this.iframe) {
+            this.iframe.remove();
+        }
+        this.instanceRegistry.clear();
+        this.pendingCallbacks.clear();
+    }
 }

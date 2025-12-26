@@ -55,12 +55,12 @@ Every plugin starts with metadata comments and a main script:
 // Your plugin code here
 (async () => {
   try {
-    risuai.log('Plugin initialized');
+    console.log('Plugin initialized');
 
     // Your initialization code
 
   } catch (error) {
-    risuai.log(`Error: ${error.message}`);
+    console.log(`Error: ${error.message}`);
   }
 })();
 ```
@@ -160,9 +160,6 @@ This applies to ALL `risuai` API methods, including:
 All API v3.0 functionality is available through the global `risuai` object:
 
 ```javascript
-// Log a message
-risuai.log('Hello from my plugin!');
-
 // Get character data
 const character = await risuai.getCharacter();
 
@@ -180,7 +177,7 @@ console.log(risuai.apiVersion); // "3.0"
 console.log(risuai.apiVersionCompatibleWith); // ["3.0"]
 
 // Logging
-risuai.log('This appears as: [RisuAI Plugin: PluginName] This...');
+console.log('This appears as: [RisuAI Plugin: PluginName] This...');
 
 // Container management
 await risuai.showContainer('fullscreen'); // Show your iframe UI
@@ -358,7 +355,7 @@ Event listeners have security restrictions and return unique IDs:
 ```javascript
 // Add event listener - returns ID for later removal
 const listenerId = await element.addEventListener('click', async (event) => {
-  risuai.log('Element clicked!');
+  console.log('Element clicked!');
 
   // Do something with the event
   const target = event.target;
@@ -413,14 +410,14 @@ Use `SafeMutationObserver` to watch for changes:
 // Create observer
 const observer = await risuai.createMutationObserver(async (mutations) => {
   for (const mutation of mutations) {
-    risuai.log(`Type: ${mutation.type}`);
+    console.log(`Type: ${mutation.type}`);
 
     // mutation.target is a SafeElement
     const target = mutation.target;
 
     // mutation.addedNodes is SafeElement[]
     for (const node of mutation.addedNodes) {
-      risuai.log(`Node added: ${await node.nodeName()}`);
+      console.log(`Node added: ${await node.nodeName()}`);
     }
   }
 });
@@ -498,15 +495,15 @@ risuai.registerSetting(
 #### Floating Action Button
 
 ```javascript
-risuai.registerActionButton({
+risuai.registerButton({
     name: 'Quick Action',
     icon: 'https://example.com/icon.png', // Optional icon URL
     iconType: 'img', // Icon type: 'html', 'img', or 'none'
-    location: 'topright'
+    location: 'action' //you can also use 'chat' or 'hamburger' for chat or hamburger menu
 }, async () => {
   // Called when user clicks the button
   const char = await risuai.getCharacter();
-  await risuai.log(`Current character: ${char.name}`);
+  await console.log(`Current character: ${char.name}`);
 });
 ```
 
@@ -643,7 +640,7 @@ const response = await risuai.nativeFetch('https://api.example.com/data', {
 });
 
 const data = await response.json();
-risuai.log(`Received: ${JSON.stringify(data)}`);
+console.log(`Received: ${JSON.stringify(data)}`);
 ```
 
 #### Native Fetch
@@ -685,7 +682,7 @@ risuai.addProvider(
         content: data.response // String or ReadableStream<string>
       };
     } catch (error) {
-      risuai.log(`Provider error: ${error.message}`);
+      console.log(`Provider error: ${error.message}`);
       return {
         success: false,
         content: `Error: ${error.message}`
@@ -805,7 +802,7 @@ Always handle errors gracefully:
     const data = await risuai.getDatabase();
     // Process data
   } catch (error) {
-    risuai.log(`Error: ${error.message}`);
+    console.log(`Error: ${error.message}`);
   }
 })();
 ```
@@ -901,12 +898,12 @@ Add clear comments and metadata:
 
         document.getElementById('light-btn').addEventListener('click', async () => {
           await risuai.setArgument('theme', 'light');
-          risuai.log('Theme set to light');
+          console.log('Theme set to light');
         });
 
         document.getElementById('dark-btn').addEventListener('click', async () => {
           await risuai.setArgument('theme', 'dark');
-          risuai.log('Theme set to dark');
+          console.log('Theme set to dark');
         });
 
         document.getElementById('close-btn').addEventListener('click', () => {
@@ -919,9 +916,9 @@ Add clear comments and metadata:
       'img'
     );
 
-    risuai.log('Settings panel registered');
+    console.log('Settings panel registered');
   } catch (error) {
-    risuai.log(`Error: ${error.message}`);
+    console.log(`Error: ${error.message}`);
   }
 })();
 ```
@@ -935,11 +932,11 @@ Add clear comments and metadata:
 
 (async () => {
   try {
-    risuai.registerActionButton({
+    risuai.registerButton({
       name: 'Show Character Info',
       icon: '🛈',
       iconType: 'html',
-      location: 'topright',
+      location: 'action',
     }, async () => {
         const char = await risuai.getCharacter();
 
@@ -972,9 +969,9 @@ Add clear comments and metadata:
         }
       }
     );
-    risuai.log('Character info button registered');
+    console.log('Character info button registered');
   } catch (error) {
-    risuai.log(`Error: ${error.message}`);
+    console.log(`Error: ${error.message}`);
   }
 })();
 ```
@@ -1023,7 +1020,7 @@ Add clear comments and metadata:
             content: data.choices[0].message.content
           };
         } catch (error) {
-          risuai.log(`Provider error: ${error.message}`);
+          console.log(`Provider error: ${error.message}`);
           return {
             success: false,
             content: `Error: ${error.message}`
@@ -1032,9 +1029,9 @@ Add clear comments and metadata:
       }
     );
 
-    risuai.log('CustomLLM provider registered');
+    console.log('CustomLLM provider registered');
   } catch (error) {
-    risuai.log(`Error: ${error.message}`);
+    console.log(`Error: ${error.message}`);
   }
 })();
 ```
@@ -1081,9 +1078,9 @@ Add clear comments and metadata:
       });
     }
 
-    risuai.log('DOM monitoring started');
+    console.log('DOM monitoring started');
   } catch (error) {
-    risuai.log(`Error: ${error.message}`);
+    console.log(`Error: ${error.message}`);
   }
 })();
 ```
@@ -1116,9 +1113,9 @@ Add clear comments and metadata:
       return content;
     });
 
-    risuai.log('Markdown processor registered');
+    console.log('Markdown processor registered');
   } catch (error) {
-    risuai.log(`Error: ${error.message}`);
+    console.log(`Error: ${error.message}`);
   }
 })();
 ```
@@ -1200,7 +1197,7 @@ await element.setInnerHTML('<script>alert("XSS")</script>');
 const button = rootDoc.createElement('button');
 await button.setTextContent('Click Me');
 await button.addEventListener('click', async () => {
-  risuai.log('Button clicked!');
+  console.log('Button clicked!');
 });
 ```
 

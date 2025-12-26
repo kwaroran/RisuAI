@@ -951,24 +951,28 @@ export interface RisuaiPluginAPI {
      * Registers a floating action button
      * @param name - Display name
      * @param arg - Button configuration
+     * @param arg.icon - Icon content (HTML or image URL)
+     * @param arg.iconType - Icon type ('html', 'img', or 'none')
+     * @param arg.location - Button location ('action', 'chat', or 'hamburger')
      * @param callback - Callback function when clicked
      *
      * @example
      * ```typescript
-     * await risuai.registerActionButton({
+     * await risuai.registerButton({
      *   name: 'My Action',
      *   icon: '🔥',
-     *   iconType: 'html'
+     *   iconType: 'html',
+     *   location: 'action'
      * }, async () => {
      *     risuai.log('Action button clicked!');
      * });
      * ```
      */
-    registerActionButton(arg:  {
+    registerButton(arg:  {
         name: string,
         icon: string,
         iconType: 'html'|'img'|'none',
-        location?: 'topright'
+        location?: 'action'|'chat'|'hamburger'
     }, callback: () => void): Promise<void>;
 
     // ========== Provider APIs ==========

@@ -429,11 +429,11 @@ risuai.registerSetting(
 )
 
 // Register a floating action button
-risuai.registerActionButton({
+risuai.registerButton({
     name: 'My Action',
     icon: 'https://example.com/icon.png', // Optional icon
     iconType: 'img', // Icon type: 'html', 'img', or 'none'
-    location: 'topright'
+    location: 'action'
 }, () => {
       // Callback when clicked
 })
@@ -450,7 +450,7 @@ risuai.registerActionButton({
 Centralized logging with plugin identification:
 
 ```javascript
-risuai.log('This is a log message')
+console.log('This is a log message')
 // Output: [RisuAI Plugin: YourPluginName] This is a log message
 ```
 
@@ -587,11 +587,11 @@ API v3.0 implements multiple security layers:
 
    // New (v3.0)
    // Now its officially supported to register action buttons
-   risuai.registerActionButton({
+   risuai.registerButton({
        name: 'My Action',
        icon: 'https://example.com/icon.png',
        iconType: 'img',
-       location: 'topright'
+       location: 'action'
    }, () => {
       // Your action here...
    })
@@ -599,7 +599,7 @@ API v3.0 implements multiple security layers:
 
 3-3. **Or use getRootDocument for main DOM access:**
 
-   Note: We recommend building your UI inside the iframe using standard Document APIs, and using `registerSetting`/`registerActionButton` for UI integration. however, if you really need to access the main document, use `getRootDocument()`. we don't recommend using this method for building UIs, since it adds more restrictions and complexity.
+   Note: We recommend building your UI inside the iframe using standard Document APIs, and using `registerSetting`/`registerButton` for UI integration. however, if you really need to access the main document, use `getRootDocument()`. we don't recommend using this method for building UIs, since it adds more restrictions and complexity.
 
    ```javascript
    // Old (v2.0 / v2.1)
@@ -647,7 +647,6 @@ API v3.0 implements multiple security layers:
 5. **Sanitize all user input**: Even though HTML is auto-sanitized, validate data before processing
 6. **Handle async errors**: Wrap async calls in try-catch blocks
 7. **Clean up resources**: Remove event listeners when no longer needed
-8. **Use logging**: Use `risuai.log()` for debugging instead of console.log
 
 ### Example: Complete v3.0 Plugin
 
@@ -657,7 +656,7 @@ API v3.0 implements multiple security layers:
 (async () => {
   try {
     // Log plugin start
-    risuai.log('Plugin initialized')
+    console.log('Plugin initialized')
 
     // Register a settings button
     risuai.registerSetting(
@@ -675,7 +674,7 @@ API v3.0 implements multiple security layers:
 
     // Monitor changes
     const observer = risuai.createMutationObserver((mutations) => {
-      risuai.log(`Detected ${mutations.length} mutations`)
+      console.log(`Detected ${mutations.length} mutations`)
     })
 
     const body = doc.querySelector('body')
@@ -692,9 +691,9 @@ API v3.0 implements multiple security layers:
     // Use plugin storage
     risuai.pluginStorage.setItem('lastRun', Date.now())
 
-    risuai.log('Plugin setup complete')
+    console.log('Plugin setup complete')
   } catch (error) {
-    risuai.log(`Error: ${error.message}`)
+    console.log(`Error: ${error.message}`)
   }
 })()
 ```
