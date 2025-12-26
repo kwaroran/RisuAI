@@ -10,9 +10,9 @@ import { extractJSON, getOpenAIJSONSchema } from "../templates/jsonSchema"
 import { applyChatTemplate } from "../templates/chatTemplate"
 import { supportsInlayImage } from "../files/inlays"
 import { Capacitor } from "@capacitor/core"
-import { replaceAsync, simplifySchema } from "src/ts/util"
+import { simplifySchema } from "src/ts/util"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
-import { alertError, alertNormal, alertWait, showHypaV2Alert } from "src/ts/alert";
+import { alertError } from "src/ts/alert";
 
 
 interface OAIResponseInputItem {
@@ -409,8 +409,8 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         delete body.logit_bias
     }
 
-    if(aiModel.startsWith('gpt4o1') || arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
-        body.max_output_tokens = body.max_tokens
+    if(arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
+        body.max_completion_tokens = body.max_tokens
         delete body.max_tokens
     }
 
@@ -487,7 +487,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         const keys = Object.keys(OobaBodyTemplate)
         for(const key of keys){
             if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
-                // @ts-ignore
                 body[key] = OobaBodyTemplate[key]
             }
         }
@@ -503,7 +502,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                 db.proxyRequestModel?.startsWith('gpt') ||
                 (db.proxyRequestModel === 'custom' && db.customProxyRequestModel.startsWith('gpt'))
             )))){
-            // @ts-ignore
             delete body.logit_bias
         }
     }
@@ -565,7 +563,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                 result: 'MultiGen mode cannot be used with tool calls. Please disable one of them.'
             }
         }
-        // @ts-ignore
         body.n = db.genTime
     }
     let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())

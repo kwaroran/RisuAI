@@ -36,7 +36,7 @@
         }
         const img = new Image();
         inputImage = img;
-        //@ts-ignore
+        //@ts-expect-error Uint8Array buffer type (ArrayBufferLike) is incompatible with BlobPart's ArrayBuffer
         img.src = URL.createObjectURL(new Blob([file.data]));
         await img.decode();
         aspectRatio = img.width / img.height;

@@ -19,8 +19,8 @@
     "sourceMap": true,
     "strict": false,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
-
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "public/sw.js"],
   "exclude": ["src/**/web/*.ts", "risu-electron/**/*"],

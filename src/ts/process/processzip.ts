@@ -40,7 +40,7 @@ export class CharXWriter{
         //do nothing, just to make compatible with other writer
     }
 
-    async writeJpeg(img:Uint8Array<ArrayBufferLike>){
+    async writeJpeg(img: Uint8Array){
         console.log('writeJpeg')
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
