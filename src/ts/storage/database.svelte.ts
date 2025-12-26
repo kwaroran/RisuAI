@@ -584,7 +584,7 @@ export function setDatabase(data:Database){
     }
     data.doNotChangeSeperateModels ??= false
     data.modelTools ??= []
-    data.hotkeys ??= structuredClone(defaultHotkeys)
+    data.hotkeys ??= safeStructuredClone(defaultHotkeys)
     data.fallbackModels ??= {
         memory: [],
         emotion: [],

@@ -142,7 +142,7 @@
       const da = db.characterOrder[mainIndex.index]
       if(typeof(da) !== 'string'){
         mainId = da.id
-        movingFolder = safeStructuredClone($state.snapshot(da))
+        movingFolder = $state.snapshot(da)
         if(targetIndex.folder){
           return
         }
