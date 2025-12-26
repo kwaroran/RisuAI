@@ -132,7 +132,7 @@ export const runVITS = async (text: string, modelData: string | OnnxModelFiles =
                 tfMap[location.origin + fileURL] = files[key]
             }
             lastSynth = modelData.id
-            synthesizer = await pipeline('text-to-speech', modelData.id);
+            synthesizer = await pipeline<"text-to-speech">('text-to-speech', modelData.id);
         }
     }
     let out = await synthesizer(text, {});
