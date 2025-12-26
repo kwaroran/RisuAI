@@ -6,9 +6,14 @@
     import { MobileSearch } from "src/ts/stores.svelte";
     import { MessageSquareIcon, PlusIcon } from "@lucide/svelte";
 
+    interface Props {
+        gridMode?: boolean;
+        endGrid?: () => void;
+    }
+
     const agoFormatter = new Intl.RelativeTimeFormat(navigator.languages, { style: 'short' });
-    
-    let {gridMode = false, endGrid = () => {}} = $props();
+
+    let {gridMode = false, endGrid = () => {}}: Props = $props();
 
     function makeAgoText(time:number){
         if(time === 0){

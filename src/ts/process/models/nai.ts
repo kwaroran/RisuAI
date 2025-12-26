@@ -115,8 +115,8 @@ export const novelLogin = async () => {
                 setDatabase(db)
                 return
             }
-            catch (error) {
-                error = (`Failed to authenticate with NovelAI: ${error}`)
+            catch (e) {
+                error = `Failed to authenticate with NovelAI: ${e}`
                 tries++
             }
         }

@@ -37,7 +37,7 @@ export interface ChatMemoSearchResult {
   memoIndex: number;
 }
 
-export interface bulkResummaryState {
+export interface BulkResummaryState {
     isProcessing: boolean;
     result: string | null;
     selectedIndices: number[];

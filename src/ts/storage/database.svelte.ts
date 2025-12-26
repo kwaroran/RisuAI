@@ -22,7 +22,7 @@ export function setDatabase(data:Database){
         data.characters = []
     }
     if(checkNullish(data.apiType)){
-        data.apiType = 'gpt35_0301'
+        data.apiType = 'gemini-3-flash-preview'
     }
     if(checkNullish(data.openAIKey)){
         data.openAIKey = ''
@@ -52,7 +52,7 @@ export function setDatabase(data:Database){
         data.PresensePenalty = 70
     }
     if(checkNullish(data.aiModel)){
-        data.aiModel = 'gpt35_0301'
+        data.aiModel = 'gemini-3-flash-preview'
     }
     if(checkNullish(data.jailbreakToggle)){
         data.jailbreakToggle = false
@@ -136,7 +136,7 @@ export function setDatabase(data:Database){
         data.theme = ''
     }
     if(checkNullish(data.subModel)){
-        data.subModel = 'gpt35_0301'
+        data.subModel = 'gemini-3-flash-preview'
     }
     if(checkNullish(data.timeOut)){
         data.timeOut = 120
@@ -421,7 +421,7 @@ export function setDatabase(data:Database){
         //idk why type changes, but it does so this is a fix
         data.top_p = 1
     }
-    //@ts-ignore
+    //@ts-expect-error data.google has required fields (accessToken, projectId), but we use empty object as default and populate below
     data.google ??= {}
     data.google.accessToken ??= ''
     data.google.projectId ??= ''
@@ -609,7 +609,7 @@ export function setDatabase(data:Database){
     data.ImagenImageSize ??= '1K'
     data.ImagenAspectRatio ??= '1:1'
     data.ImagenPersonGeneration ??= 'allow_all'
-    //@ts-ignore
+    //@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
         //this is intended to forcely reduce the size of the database in web
         data.promptInfoInsideChat = false
@@ -1489,7 +1489,7 @@ export interface botPreset{
         model: string[]
     }
     fallbackWhenBlankResponse?: boolean
-    verbosity:number
+    verbosity?:number
     dynamicOutput?:DynamicOutput
 }
 
@@ -1783,7 +1783,7 @@ export const defaultOoba:OobaSettings = {
 
 export const presetTemplate:botPreset = {
     name: "New Preset",
-    apiType: "gpt35_0301",
+    apiType: "gemini-3-flash-preview",
     openAIKey: "",
     mainPrompt: defaultMainPrompt,
     jailbreak: defaultJailbreak,
@@ -1794,8 +1794,8 @@ export const presetTemplate:botPreset = {
     frequencyPenalty: 70,
     PresensePenalty: 70,
     formatingOrder: ['main', 'description', 'personaPrompt','chats','lastChat', 'jailbreak', 'lorebook', 'globalNote', 'authorNote'],
-    aiModel: "gpt35_0301",
-    subModel: "gpt35_0301",
+    aiModel: "gemini-3-flash-preview",
+    subModel: "gemini-3-flash-preview",
     currentPluginProvider: "",
     textgenWebUIStreamURL: '',
     textgenWebUIBlockingURL: '',
@@ -1986,7 +1986,6 @@ export function setPreset(db:Database, newPres: botPreset){
         mode: 'instruct'
     }
     db.top_p = newPres.top_p ?? 1
-    //@ts-ignore //for legacy mistpings
     db.promptSettings = safeStructuredClone(newPres.promptSettings) ?? {
         assistantPrefill: '',
         postEndInnerFormat: '',

@@ -3,7 +3,7 @@
     import { language } from "../../lang";
     
     import { DBState } from 'src/ts/stores.svelte';
-    import { EditIcon, PlusIcon, TrashIcon, XIcon } from "@lucide/svelte";
+    import { SquarePenIcon, PlusIcon, TrashIcon, XIcon } from "@lucide/svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     let editMode = $state(false)
     /** @type {{close?: any}} */
@@ -70,7 +70,7 @@
             <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
                 editMode = !editMode
             }}>
-                <EditIcon size={18}/>
+                <SquarePenIcon size={18}/>
             </button>
         </div>
     </div>
