@@ -5,6 +5,7 @@ import { tagWhitelist } from "../pluginSafeClass";
 import DOMPurify from 'dompurify';
 import { additionalChatMenu, additionalFloatingActionButtons, additionalHamburgerMenu, additionalSettingsMenu, type MenuDef } from "src/ts/stores.svelte";
 import { v4 } from "uuid";
+import { sleep } from "src/ts/util";
 
 
 class SafeElement {
@@ -361,14 +362,31 @@ const makeMenuUnloadCallback = (menuId:string, menuStore: MenuDef[]) =>{
     }
 }
 
-const unloadV3Plugin = (pluginName: string) => {
+const unloadV3Plugin = async (pluginName: string) => {
     const callbacks = pluginUnloadCallbacks.get(pluginName);
-    if(callbacks){
-        callbacks.forEach(callback => {
-            callback();
-        });
-        pluginUnloadCallbacks.delete(pluginName);
+    const instance = v3PluginInstances.find(p => p.name === pluginName);
+    if(instance){
+        const index = v3PluginInstances.findIndex(p => p.name === pluginName);
+        if(index !== -1){
+            v3PluginInstances.splice(index, 1);
+        }
     }
+    if(callbacks){
+        pluginUnloadCallbacks.delete(pluginName); 
+        let promises: Promise<void>[] = [];
+        for(const callback of callbacks){
+            const result = callback();
+            if(result instanceof Promise){
+                promises.push(result);
+            }
+        }
+
+        await Promise.any([
+            Promise.all(promises),
+            sleep(1000) //timeout after 1 second
+        ])
+    }
+    instance.host.terminate();
 }
 
 const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
@@ -560,10 +578,12 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
     }
 }
 
-type PluginPackage = {
+type V3PluginInstance = {
     name: string;
     host: SandboxHost;
 }
+
+const v3PluginInstances: V3PluginInstance[] = [];
 
 export async function loadV3Plugins(plugins:RisuPlugin[]){
     const loadPromises = plugins.map(plugin => executePluginV3(plugin));
@@ -575,9 +595,10 @@ export async function executePluginV3(plugin:RisuPlugin){
     iframe.style.display = "none";
     document.body.appendChild(iframe);
     const host = new SandboxHost(makeRisuaiAPIV3(iframe, plugin));
-    host.run(iframe, plugin.script);
-    addPluginUnloadCallback(plugin.name, () => {
-        host.terminate();
+    v3PluginInstances.push({
+        name: plugin.name,
+        host
     });
+    host.run(iframe, plugin.script);
     console.log(`[RisuAI Plugin: ${plugin.name}] Loaded API V3 plugin.`);
 }
