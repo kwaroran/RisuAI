@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { tick, untrack } from "svelte";
+  import { tick } from "svelte";
   import {
     SearchIcon,
     StarIcon,

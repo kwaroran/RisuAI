@@ -24,7 +24,6 @@
     SearchState,
     SearchResult,
     BulkResummaryState,
-    Category,
     CategoryManagerState,
     TagManagerState,
     BulkEditState,
@@ -35,8 +34,6 @@
   import {
     shouldShowSummary,
     isGuidLike,
-    getCategoryName,
-    handleDualAction,
     parseSelectionInput,
   } from "./HypaV3Modal/utils";
     import type { OpenAIChat } from "src/ts/process/index.svelte";

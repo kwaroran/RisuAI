@@ -9,7 +9,7 @@ import { parseKeyValue, sleep } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
 import type { OpenAIChat } from "./index.svelte";
 import { HypaProcesser } from "./memory/hypamemory";
-import { requestChatData, type OpenAIChatExtra } from "./request/request";
+import { requestChatData } from "./request/request";
 import { generateAIImage } from "./stableDiff";
 import { writeInlayImage } from "./files/inlays";
 import { runScripted } from "./scriptings";
