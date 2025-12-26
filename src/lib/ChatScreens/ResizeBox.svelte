@@ -1,7 +1,6 @@
 <script>
     import { CharEmotion, ViewBoxsize } from '../../ts/stores.svelte';
     import { onMount } from 'svelte';
-    import EmotionBox from './EmotionBox.svelte';
     import TransitionImage from './TransitionImage.svelte';
     import { getEmotion } from '../../ts/util';
     

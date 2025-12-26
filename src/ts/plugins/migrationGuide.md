@@ -429,14 +429,15 @@ risuai.registerSetting(
 )
 
 // Register a floating action button
-risuai.registerActionButton(
-  'My Action',
-  () => {
-    // Callback when clicked
-  },
-  'https://example.com/icon.png', // Optional icon
-  'img' // Icon type: 'html', 'img', or 'none'
-)
+risuai.registerActionButton({
+    name: 'My Action',
+    callback: () => {
+      // Callback when clicked
+    },
+    icon: 'https://example.com/icon.png', // Optional icon
+    iconType: 'img', // Icon type: 'html', 'img', or 'none'
+    location: 'topright'
+})
 ```
 
 **Parameters:**
@@ -506,16 +507,104 @@ API v3.0 implements multiple security layers:
 
 2. **Access APIs through `risuai` object:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    const db = getDatabase()
 
    // New (v3.0)
    const db = await risuai.getDatabase()
    ```
 
-3. **Use getRootDocument for main DOM access:**
+
+3. **Migrate DOM Modal to Iframe:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
+   // Build your Modal at main document
+   const container = document.createElement('div')
+   container.style.innerHTML = '<h1>Hello World Modal</h1>'
+   document.body.appendChild(container)
+
+   // New (v3.0)
+   // Build your UI inside the iframe context
+
+   //looks same in this example, but its inside the iframe now!
+   const container = document.createElement('div')
+   container.style.innerHTML = '<h1>Hello World Modal</h1>'
+
+   //don't forget to show the iframe container when needed
+   risuai.showContainer('fullscreen')
+   ```
+
+3-1. **Migrate Settings UI Registration:**
+   ```javascript
+   // Old (v2.0 / v2.1)
+   // This was one of the hacky way to build settings button
+    const observer = new MutationObserver(() => {
+      const menu = document.querySelector('.rs-setting-cont-3')
+      if (menu && !document.querySelector('.my-plugin-settings')) {
+        const button = document.createElement('div')
+        button.className = 'my-plugin-settings'
+        button.innerHTML = '⚙️ My Plugin Settings'
+        button.onclick = () => {
+          // Build your Modal at main document...
+        }
+        menu.appendChild(button)
+      }
+    })
+  observer.observe(document.body, { childList: true, subtree: true })
+
+
+   // New (v3.0)
+   // Now its officially supported to register settings button
+   risuai.registerSetting(
+     'My Plugin Settings',
+     () => {
+       risuai.showContainer('fullscreen')
+       // Build your UI inside the iframe...
+     },
+     '⚙️',
+     'html'
+   )
+   ```
+
+3-2. **Migrate Action Button Registration:**
+   ```javascript
+   // Old (v2.0 / v2.1)
+   // This was one of the hacky way to build floating action button
+   setInterval(() => {
+     if (!document.querySelector('.my-plugin-action-button')) {
+       const button = document.createElement('div')
+       button.style.position = 'fixed'
+       button.style.top = '10px'
+       button.style.right = '10px'
+       button.style.zIndex = '1000'
+       button.innerHTML = '<img src="https://example.com/icon.png" />'
+        button.className = 'my-plugin-action-button'
+       button.onclick = () => {
+         // Your action here...
+       }
+       document.body.appendChild(button)
+     }
+   },100)
+
+   // New (v3.0)
+   // Now its officially supported to register action buttons
+   risuai.registerActionButton({
+       name: 'My Action',
+       callback: () => {
+         // Your action here...
+       },
+       icon: 'https://example.com/icon.png',
+       iconType: 'img',
+       location: 'topright'
+   })
+   ```
+
+3-3. **Or use getRootDocument for main DOM access:**
+
+   Note: We recommend building your UI inside the iframe using standard Document APIs, and using `registerSetting`/`registerActionButton` for UI integration. however, if you really need to access the main document, use `getRootDocument()`. we don't recommend using this method for building UIs, since it adds more restrictions and complexity.
+
+   ```javascript
+   // Old (v2.0 / v2.1)
    const element = document.querySelector('.my-class')
 
    // New (v3.0)
@@ -525,7 +614,7 @@ API v3.0 implements multiple security layers:
 
 4. **Handle SafeElement instead of HTMLElement:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    element.style.color = 'red'
 
    // New (v3.0)
@@ -534,7 +623,7 @@ API v3.0 implements multiple security layers:
 
 5. **Use async/await for all API calls:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    const char = getChar()
 
    // New (v3.0)
@@ -543,7 +632,7 @@ API v3.0 implements multiple security layers:
 
 6. **Update event listeners:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    element.addEventListener('click', handler)
 
    // New (v3.0)

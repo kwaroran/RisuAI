@@ -118,7 +118,7 @@
     import SelectInput from "../GUI/SelectInput.svelte";
     import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../GUI/OptionInput.svelte";
-    import { TagList, parseMultilangString, searchTagList, sleep } from "src/ts/util";
+    import { parseMultilangString, searchTagList, sleep } from "src/ts/util";
     import MultiLangInput from "../GUI/MultiLangInput.svelte";
     interface Props {
         close?: any;

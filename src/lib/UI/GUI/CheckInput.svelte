@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { CheckIcon } from "@lucide/svelte";
 
     interface Props {
         check?: boolean;

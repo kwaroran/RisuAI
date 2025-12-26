@@ -2,22 +2,20 @@
     import { onDestroy, onMount } from "svelte";
     import { v4 } from "uuid";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
-    import { DownloadIcon, PencilIcon, HardDriveUploadIcon, MenuIcon, TrashIcon, GitBranchIcon, SplitIcon, FolderPlusIcon, BookmarkCheckIcon } from "@lucide/svelte";
+    import { DownloadIcon, PencilIcon, HardDriveUploadIcon, MenuIcon, TrashIcon, SplitIcon, FolderPlusIcon, BookmarkCheckIcon } from "@lucide/svelte";
 
     import type { Chat, ChatFolder, character, groupChat } from "src/ts/storage/database.svelte";
-    import { DBState } from 'src/ts/stores.svelte';
-    import { MobileGUI, ReloadGUIPointer, selectedCharID } from "src/ts/stores.svelte";
+    import { DBState, ReloadGUIPointer } from 'src/ts/stores.svelte';
+    import { selectedCharID } from "src/ts/stores.svelte";
 
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
 
     import { exportChat, importChat, exportAllChats } from "src/ts/characters";
-    import { alertChatOptions, alertConfirm, alertError, alertInput, alertNormal, alertSelect, alertStore } from "src/ts/alert";
-    import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
+    import { alertChatOptions, alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "src/ts/alert";
+    import { findCharacterbyId, sleep, sortableOptions } from "src/ts/util";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
-    import { getChatBranches } from "src/ts/gui/branches";
-    import { getModuleToggles } from "src/ts/process/modules";
     import { bookmarkListOpen } from "src/ts/stores.svelte";
     import { language } from "src/lang";
   import Toggles from "./Toggles.svelte";
@@ -265,7 +263,7 @@
                                 const option = await alertChatOptions()
                                 switch(option){
                                     case 0:{
-                                        const newChat = safeStructuredClone($state.snapshot(chara.chats[chara.chats.indexOf(chat)]))
+                                        const newChat = $state.snapshot(chara.chats[chara.chats.indexOf(chat)])
                                         newChat.name = `Copy of ${newChat.name}`
                                         newChat.id = v4()
                                         chara.chats.unshift(newChat)
@@ -376,7 +374,7 @@
                         const option = await alertChatOptions()
                         switch(option){
                             case 0:{
-                                const newChat = safeStructuredClone($state.snapshot(chara.chats[i]))
+                                const newChat = $state.snapshot(chara.chats[i])
                                 newChat.name = `Copy of ${newChat.name}`
                                 newChat.id = v4()
                                 chara.chats.unshift(newChat)

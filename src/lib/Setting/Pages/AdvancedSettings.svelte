@@ -10,14 +10,12 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
-    import { installPython } from "src/ts/process/models/local";
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "@lucide/svelte";
   import { v4 } from "uuid";
-  import { MCPClient } from "src/ts/process/mcp/mcplib";
-    import { getDatabase } from "src/ts/storage/database.svelte";
+  import { getDatabase } from "src/ts/storage/database.svelte";
 
     let estaStorage:{
         key:string,

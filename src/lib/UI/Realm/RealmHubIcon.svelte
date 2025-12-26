@@ -2,7 +2,6 @@
     import { BookIcon, ImageIcon, SmileIcon } from "@lucide/svelte";
     import { alertNormal } from "src/ts/alert";
     import { hubURL, type hubType } from "src/ts/characterCards";
-    import { trimNonLatin } from "src/ts/globalApi.svelte";
     import { parseMultilangString } from "src/ts/util";
 
     interface Props {
