@@ -1,7 +1,7 @@
 import { get, writable } from "svelte/store";
 import { language } from "../../lang";
 import { getCurrentCharacter, getDatabase, setDatabase, setDatabaseLite } from "../storage/database.svelte";
-import { alertError, alertPluginConfirm } from "../alert";
+import { alertConfirm, alertError, alertPluginConfirm } from "../alert";
 import { selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
 import { fetchNative, globalFetch, readImage, saveAsset, toGetter } from "../globalApi.svelte";
@@ -271,19 +271,19 @@ export async function importPlugin(code:string|null = null, argu:{
 
         db.plugins ??= []
 
-        if(isUpdate){
-            //find old plugin
-            const pluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === originalPluginName);
-            if(pluginIndex !== -1){
-                db.plugins[pluginIndex] = pluginData;
-            }
-            else{
-                //set false to add as new plugin
-                isUpdate = false
+        const oldPluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === originalPluginName);
+
+        if(!isUpdate && oldPluginIndex !== -1){
+            const c = await alertConfirm(language.duplicatePluginFoundUpdateIt)
+            if(!c){
+                return
             }
         }
 
-        if(!isUpdate){
+        if(oldPluginIndex !== -1){
+            db.plugins[oldPluginIndex] = pluginData;
+        }
+        else if(!isUpdate){
             db.plugins.push(pluginData)
         }
 
