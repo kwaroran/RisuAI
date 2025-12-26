@@ -195,11 +195,17 @@ export class SandboxHost {
             this.iframe = container;
         } else {
             this.iframe = document.createElement('iframe');
-            this.iframe.style.width = "100%";
-            this.iframe.style.height = "100%";
-            this.iframe.style.border = "none";
             container.appendChild(this.iframe);
         }
+
+        this.iframe.style.width = "100%";
+        this.iframe.style.height = "100%";
+        this.iframe.style.border = "none";
+
+        //transperent background
+        this.iframe.style.backgroundColor = "transparent";
+        //although allowTransparency is not standard, it works in most browsers
+        this.iframe.setAttribute('allowTransparency', 'true');
 
         this.iframe.sandbox.add('allow-scripts');
         this.iframe.sandbox.add('allow-modals')
@@ -265,6 +271,11 @@ export class SandboxHost {
       <!DOCTYPE html>
       <html>
       <body>
+        <style>
+            body {
+                background-color: transparent;
+            }
+        </style>
         <script>
           ${GUEST_BRIDGE_SCRIPT}
           
