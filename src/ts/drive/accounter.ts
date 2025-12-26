@@ -9,6 +9,9 @@ import { fetchProtectedResource } from "../sionyw"
 export async function risuLogin() {
     const win = window.open(hubURL + '/hub/login')
     window.addEventListener("message", (ev) => {
+        if(ev.source !== win.window){
+            return
+        }
         console.log(ev)
         const data = JSON.parse(ev.data)
         console.log(data)
