@@ -721,9 +721,8 @@ export async function runScripted(code:string, arg:{
                     secondKey = '',
                 } = options
 
-                const currentChat = char.chats[char.chatPage]
-
-                const newLocalLoreBooks = currentChat.localLore.filter((book) => book.comment !== name)
+                const targetChat = ScriptingEngineState.chat
+                const newLocalLoreBooks = targetChat.localLore.filter((book) => book.comment !== name)
                 newLocalLoreBooks.push({
                     alwaysActive,
                     comment: name,
@@ -735,7 +734,7 @@ export async function runScripted(code:string, arg:{
                     selective: !!secondKey,
                     useRegex: regex,
                 })
-                currentChat.localLore = newLocalLoreBooks
+                targetChat.localLore = newLocalLoreBooks
             })
 
             declareAPI('loadLoreBooksMain', async (id:string, reserve:number) => {
