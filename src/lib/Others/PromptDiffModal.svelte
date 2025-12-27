@@ -378,17 +378,24 @@
         while (lines.length && lines[lines.length - 1] === '') lines.pop()
         return lines.join('\n') + '\n'
     }
+    
+    let diffRunId = 0
 
     async function recomputeDiff(firstCards: PromptCard[], secondCards: PromptCard[]) {
         if (!firstCards || !secondCards) return
+        const runId = ++diffRunId
 
         if (isFlatText) {
-            diffResult = await computeDiffFlat(renderRaw(firstCards), renderRaw(secondCards), diffStyle)
+            const r = await computeDiffFlat(renderRaw(firstCards), renderRaw(secondCards), diffStyle)
+            if (runId !== diffRunId) return
+            diffResult = r
             cardDiffResult = null
             return
         }
 
-        cardDiffResult = await computeCardViewDiff(firstCards, secondCards, diffStyle)
+        const cr = await computeCardViewDiff(firstCards, secondCards, diffStyle)
+        if (runId !== diffRunId) return
+        cardDiffResult = cr
         diffResult = null
     }
 
