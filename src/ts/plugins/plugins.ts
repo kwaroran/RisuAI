@@ -493,7 +493,7 @@ const allowedDbKeys = [
     'seperateModels',
     'customCSS',
     'guiHTML',
-    'colorSchemeName'
+    'colorSchemeName',
 
 ]
 

@@ -81,6 +81,143 @@ export type ScriptMode = 'display' | 'output' | 'input' | 'process';
  */
 export type ReplacerType = 'beforeRequest' | 'afterRequest';
 
+/**
+ * RisuAI Plugin definition
+ */
+export interface RisuPlugin {
+    /** Plugin name (identifier) */
+    name: string;
+    /** Display name shown in UI */
+    displayName?: string;
+    /** Plugin script code */
+    script: string;
+    /** Argument type definitions */
+    arguments: { [key: string]: 'int' | 'string' | string[] };
+    /** Actual argument values */
+    realArg: { [key: string]: number | string };
+    /** API version */
+    version?: 1 | 2 | '2.1' | '3.0';
+    /** Custom links for plugin UI */
+    customLink: {
+        link: string;
+        hoverText?: string;
+    }[];
+    /** Argument metadata */
+    argMeta: { [key: string]: {[key: string]: string} };
+    /** Plugin version string */
+    versionOfPlugin?: string;
+    /** Update check URL */
+    updateURL?: string;
+}
+
+/**
+ * RisuAI Module definition
+ */
+export interface RisuModule {
+    /** Module name */
+    name: string;
+    /** Module description */
+    description: string;
+    /** Lorebook entries */
+    lorebook?: any[];
+    /** Regex scripts */
+    regex?: any[];
+    /** CommonJS code */
+    cjs?: string;
+    /** Trigger scripts */
+    trigger?: any[];
+    /** Module ID */
+    id: string;
+    /** Low level system access */
+    lowLevelAccess?: boolean;
+    /** Hide icon in UI */
+    hideIcon?: boolean;
+    /** Background embedding */
+    backgroundEmbedding?: string;
+    /** Module assets */
+    assets?: [string, string, string][];
+    /** Module namespace */
+    namespace?: string;
+    /** Custom module toggle */
+    customModuleToggle?: string;
+    /** MCP module configuration */
+    mcp?: any;
+}
+
+/**
+ * User persona definition
+ */
+export interface Persona {
+    /** Persona prompt/description */
+    personaPrompt: string;
+    /** Persona name */
+    name: string;
+    /** Persona icon */
+    icon: string;
+    /** Use large portrait */
+    largePortrait?: boolean;
+    /** Persona ID */
+    id?: string;
+    /** Persona note */
+    note?: string;
+}
+
+/**
+ * Database subset with limited access to allowed keys only.
+ * Plugins can only access these specific database properties for security.
+ */
+export interface DatabaseSubset {
+    /** Array of characters and group chats */
+    characters?: any[];
+    /** RisuAI modules */
+    modules?: RisuModule[];
+    /** Enabled module IDs */
+    enabledModules?: string[];
+    /** Module integration settings */
+    moduleIntergration?: string;
+    /** Plugin V2 instances */
+    pluginV2?: RisuPlugin[];
+    /** User personas */
+    personas?: Persona[];
+    /** Plugin instances */
+    plugins?: RisuPlugin[];
+    /** Plugin custom storage object */
+    pluginCustomStorage?: {[key: string]: any};
+    /** AI temperature setting (0-100) */
+    temperature?: number;
+    /** Ask before removing messages */
+    askRemoval?: boolean;
+    /** Maximum context tokens */
+    maxContext?: number;
+    /** Maximum response tokens */
+    maxResponse?: number;
+    /** Frequency penalty (0-100) */
+    frequencyPenalty?: number;
+    /** Presence penalty (0-100) */
+    PresensePenalty?: number;
+    /** UI theme name */
+    theme?: string;
+    /** Text theme name */
+    textTheme?: string;
+    /** Line height setting */
+    lineHeight?: number;
+    /** Use separate models for auxiliary models */
+    seperateModelsForAxModels?: boolean;
+    /** Separate model configurations */
+    seperateModels?: {
+        memory: string;
+        emotion: string;
+        translate: string;
+        otherAx: string;
+    };
+    /** Custom CSS styles */
+    customCSS?: string;
+    /** Custom GUI HTML */
+    guiHTML?: string;
+    /** Color scheme name */
+    colorSchemeName?: string;
+}
+
 // ============================================================================
 // SafeElement API
 // ============================================================================
@@ -882,7 +1019,7 @@ export interface RisuaiPluginAPI {
 
     /**
      * Gets the database with limited access
-     * @returns Database object (limited to allowed keys)
+     * @returns DatabaseSubset object (limited to allowed keys)
      *
      * Allowed keys: characters, modules, enabledModules, moduleIntergration,
      * pluginV2, personas, plugins, pluginCustomStorage, temperature, askRemoval,
@@ -896,19 +1033,19 @@ export interface RisuaiPluginAPI {
      * console.log(db.characters);
      * ```
      */
-    getDatabase(): Promise<any>;
+    getDatabase(): Promise<DatabaseSubset>;
 
     /**
      * Sets the database (lightweight save)
-     * @param db - Database object to save
+     * @param db - DatabaseSubset object to save
      */
-    setDatabaseLite(db: any): Promise<void>;
+    setDatabaseLite(db: DatabaseSubset): Promise<void>;
 
     /**
      * Sets the database (full save with sync)
-     * @param db - Database object to save
+     * @param db - DatabaseSubset object to save
      */
-    setDatabase(db: any): Promise<void>;
+    setDatabase(db: DatabaseSubset): Promise<void>;
 
     // ========== Network APIs ==========
 
