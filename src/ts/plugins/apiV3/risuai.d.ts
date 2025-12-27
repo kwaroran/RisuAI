@@ -13,10 +13,64 @@
  *
  * **ALWAYS use `await` or `.then()` when calling any risuai method or SafeElement method.**
  *
+ * ## Plugin Metadata Headers
+ *
+ * All plugins must include metadata comments at the very top of the script file:
+ *
+ * ### Required Metadata
+ *
+ * - **`//@name`** - Internal plugin name (must be unique, avoid changing after publishing)
+ *   ```javascript
+ *   //@name my_plugin
+ *   ```
+ *
+ * - **`//@api`** - API version (use `3.0` for new plugins)
+ *   ```javascript
+ *   //@api 3.0
+ *   ```
+ *
+ * ### Optional Metadata
+ *
+ * - **`//@display-name`** - User-friendly display name (can be changed freely)
+ *   ```javascript
+ *   //@display-name My Awesome Plugin
+ *   ```
+ *
+ * - **`//@arg`** - Define plugin arguments for user configuration
+ *   ```javascript
+ *   //@arg setting_name string Description of the setting
+ *   //@arg max_items int Maximum number of items
+ *   ```
+ *   Supported types: `string`, `int`
+ *   Syntax: `//@arg <name> <type> <description and optional metadata>`
+ *
+ * - **`//@link`** - Add custom links that appear in plugin settings UI
+ *   ```javascript
+ *   //@link https://example.com/docs Documentation
+ *   //@link https://example.com/support Get Support
+ *   ```
+ *
+ * - **`//@update-url`** - URL to check for updates (must support CORS and Range requests)
+ *   ```javascript
+ *   //@update-url https://raw.githubusercontent.com/username/repo/branch/plugin.js
+ *   ```
+ *   Recommended: Use GitHub raw file URLs for automatic update checks
+ *
+ * - **`//@version`** - Plugin version (required for update checks, use Semantic Versioning)
+ *   ```javascript
+ *   //@version 1.0.0
+ *   ```
+ *   Should be placed near the top, ideally below `//@name` and `//@api`
+ *
  * @example
  * ```typescript
  * //@name MyPlugin
+ * //@display-name My Awesome Plugin
  * //@api 3.0
+ * //@version 1.0.0
+ * //@arg api_key string Your API key
+ * //@link https://github.com/user/plugin Documentation
+ * //@update-url https://raw.githubusercontent.com/user/repo/main/plugin.js
  *
  * (async () => {
  *   // ALL methods require await
@@ -32,14 +86,6 @@
  *     // Build UI...
  *   }, '⚙️', 'html');
  *
- *   // Even DOM operations require await
- *   const doc = await risuai.getRootDocument();
- *   const element = await doc.querySelector('.chat');
- *   await element.setTextContent('Hello!');
- *
- *   // Storage operations require await
- *   await risuai.pluginStorage.setItem('key', 'value');
- *   const value = await risuai.pluginStorage.getItem('key');
  * })();
  * ```
  */
