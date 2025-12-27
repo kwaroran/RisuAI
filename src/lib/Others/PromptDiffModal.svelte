@@ -1087,8 +1087,8 @@
     <div class="h-px flex-1 bg-white/10"></div>
     <button
       type="button"
-      class={`px-2 py-0.5 rounded border border-white/10 bg-white/5
-        ${d.omitted > 0 ? 'hover:bg-white/10 hover:border-white/20 cursor-pointer' : 'opacity-60 cursor-default'}`}
+      class={`px-2 py-0.5 rounded border border-darkborderc bg-darkbg shadow-md
+        ${d.omitted > 0 ? 'hover:border-white/40 hover:text-textcolor hover:shadow-lg cursor-pointer' : 'text-textcolor2/50 cursor-default'}`}
       disabled={d.omitted === 0}
       onclick={() => expandRange(scope, d.from, d.to)}
       title={d.omitted > 0 ? 'Click to expand hidden lines' : ''}
