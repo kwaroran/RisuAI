@@ -101,7 +101,7 @@ It must be placed at the very top of your plugin script.
 
 - **`//@update-url`** - URL to check for updates
   ```javascript
-  //@update-url https://example.com/my_plugin.js
+  //@update-url https://raw.githubusercontent.com/username/repo/branch/plugin.js
   ```
 
   Put your plugin's latest raw js file URL here for automatic update checks. the server must support CORS and Range requests. We recommend hosting on GitHub repo and referencing the raw file URL. (e.g. `https://raw.githubusercontent.com/username/repo/branch/plugin.js`).
