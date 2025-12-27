@@ -60,20 +60,23 @@
         // Forces the loading of past messages not rendered on the screen
         isScrollingToMessage = true
         try {
+            let isAlreadyLoaded = false
             const totalMessages = currentChat.length
-            const neededLoadPages = totalMessages - index + 5
+            const neededLoadPages = totalMessages - index + 10
+
             if(loadPages < neededLoadPages){
                 loadPages = neededLoadPages
                 await tick()
+                await sleep(100)
+            } else {
+                isAlreadyLoaded = true
             }
-            
-            await sleep(100)
 
             const element = document.querySelector(`[data-chat-index="${index}"]`)
             if(element){
                 // Since the chat contains many images, Force-load images from surrounding chats to prevent scrolling from lagging after moving.
-                const start = Math.max(0, index - 15);
-                const end = Math.min(totalMessages - 1, index + 15);
+                const start = Math.max(0, index - 20);
+                const end = Math.min(totalMessages - 1, index + 20);
                 const imageLoadPromises: Promise<void>[] = [];
 
                 for (let i = start; i <= end; i++) {
@@ -81,8 +84,10 @@
                     if (el) {
                         const images = el.querySelectorAll('img');
                         images.forEach(img => {
-                            img.setAttribute('loading', 'eager');
-                            imageLoadPromises.push(img.decode().catch(() => {}));
+                            if(!isAlreadyLoaded || !img.complete){
+                                img.setAttribute('loading', 'eager');
+                                imageLoadPromises.push(img.decode().catch(() => {}));
+                            }
                         });
                     }
                 }
@@ -93,12 +98,15 @@
                     ]);
                 }
 
-                
-                element.scrollIntoView({behavior: "smooth", block: "start"})
-                await sleep(600)
-                element.scrollIntoView({behavior: "instant", block: "start"})
-                await sleep(200)
-                element.scrollIntoView({behavior: "instant", block: "start"})
+                if(isAlreadyLoaded){
+                    element.scrollIntoView({behavior: "instant", block: "start"})
+                } else {
+                    element.scrollIntoView({behavior: "smooth", block: "start"})
+                    await sleep(1000)
+                    element.scrollIntoView({behavior: "instant", block: "start"})
+                    await sleep(2000)
+                    element.scrollIntoView({behavior: "instant", block: "start"})
+                }
 
                 element.classList.add('ring-2', 'ring-blue-500')
                 setTimeout(() => {
@@ -495,7 +503,7 @@
 }}>
     {#if isScrollingToMessage}
         <div class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 text-white text-xl font-bold backdrop-blur-sm">
-            Scrolling...
+            Loading...
         </div>
     {/if}
     {#if $selectedCharID < 0}
