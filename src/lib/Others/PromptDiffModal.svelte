@@ -59,6 +59,19 @@
     type DiffResult = { parts: DiffPart[]; counts: DiffCounts }
 
     type ModifyPart = Extract<DiffPart, { k: 'modify' }>
+
+    type SplitLineRole = 'name' | 'header' | 'body' | null
+
+    type SplitCell =
+        | { kind: 'empty'; role: SplitLineRole }
+        | { kind: 'part'; side: Side; part: DiffPart; role: SplitLineRole }
+
+    type SplitRow =
+        | { kind: 'divider'; seg: Extract<DiffSegment, { kind: 'divider' }>; scope: string, key: string }
+        | { kind: 'row'; left: SplitCell; right: SplitCell; key: string }
+
+    type Side = 'left' | 'right'
+
     type RenderLine =
         | { kind: 'simple'; part: DiffPart }
         | { kind: 'modifyGroup'; parts: ModifyPart[] }
@@ -80,9 +93,11 @@
 
     type DiffStyle = 'line' | 'intraline'
     type FormatStyle = 'raw' | 'card'
+    type ViewStyle = 'unified' | 'split'
     
     let diffStyle = $state<DiffStyle>('intraline')
     let formatStyle = $state<FormatStyle>('raw')
+    let viewStyle = $state<ViewStyle>('unified')
     let isFlatText = $state(false)
     let isGrouped = $state(false)
     let showOnlyChanges = $state(false)
@@ -122,7 +137,7 @@
         })
     })
 
-    const diffOptions = [
+     const diffOptions = [
         { value: 'line', label: 'Line' },
         { value: 'intraline', label: 'Intraline' },
     ] as const
@@ -130,6 +145,11 @@
     const formatOptions = [
         { value: 'raw', label: 'Raw' },
         { value: 'card', label: 'Card' },
+    ] as const
+
+    const viewOptions = [
+        { value: 'unified', label: 'Unified' },
+        { value: 'split', label: 'Split' },
     ] as const
 
     const firstCards = getPromptCards(firstPresetId)
@@ -170,6 +190,11 @@
     const lineModifyClass = 'pl-2 border-l-4 border-blue-500 bg-blue-500/10 rounded'
 
     const nameHeaderTagClass = 'shrink-0 text-[10px] px-1.5 py-0.5 rounded border border-white/15 text-textcolor2 bg-black/20'
+
+    const splitEmptyLineClass = `${diffLineBase} ${diffLineCommon} ` +
+        'border-white/10 text-transparent select-none ' +
+        'bg-[linear-gradient(135deg,rgba(255,255,255,0.06)_0,rgba(255,255,255,0.06)_10px,rgba(255,255,255,0.02)_10px,rgba(255,255,255,0.02)_20px)] ' +
+        'bg-[length:20px_20px]'
 
     const tokenPackLineAdd: TokenClassPack = {
       add: 'bg-green-500/20 rounded px-0.5',
@@ -767,6 +792,57 @@
         return lines
     }
 
+    function toSplitRows(segments: DiffSegment[], scope: string): SplitRow[] {
+        const roleOfPart = (part: DiffPart, side: Side): SplitLineRole => {
+            if (part.src !== 'linebyline') return null
+            if (part.k === 'modify') return side === 'left' ? part.left.lineRole : part.right.lineRole
+            return part.line.lineRole
+        }
+        const rows: SplitRow[] = []
+        let idx = 0
+
+        for (const seg of segments) {
+            if (seg.kind === 'divider') {
+                rows.push({ kind: 'divider', seg, scope, key: seg.id })
+                continue
+            }
+
+            for (const part of seg.parts) {
+                if (part.k === 'same') {
+                    rows.push({
+                        kind: 'row',
+                        key: `${scope}:r${idx++}`,
+                        left: { kind: 'part', side: 'left', part, role: roleOfPart(part, 'left') },
+                        right: { kind: 'part', side: 'right', part, role: roleOfPart(part, 'right') },
+                    })
+                } else if (part.k === 'remove') {
+                    rows.push({
+                        kind: 'row',
+                        key: `${scope}:r${idx++}`,
+                        left: { kind: 'part', side: 'left', part, role: roleOfPart(part, 'left') },
+                        right: { kind: 'empty', role: roleOfPart(part, 'right') },
+                    })
+                } else if (part.k === 'add') {
+                    rows.push({
+                        kind: 'row',
+                        key: `${scope}:r${idx++}`,
+                        left: { kind: 'empty', role: roleOfPart(part, 'left') },
+                        right: { kind: 'part', side: 'right', part, role: roleOfPart(part, 'right') },
+                    })
+                } else {
+                    rows.push({
+                        kind: 'row',
+                        key: `${scope}:r${idx++}`,
+                        left: { kind: 'part', side: 'left', part, role: roleOfPart(part, 'left') },
+                        right: { kind: 'part', side: 'right', part, role: roleOfPart(part, 'right') },
+                    })
+                }
+            }
+        }
+
+        return rows
+    }
+
     function expandRange(scope: string, from: number, to: number) {
         if (from > to) return
         if (expandedRanges.some(r => r.scope === scope && r.from === from && r.to === to)) return
@@ -951,7 +1027,7 @@
   {/if}
 {/snippet}
 
-{#snippet renderCardMeta(part: DiffPart, type: string)}
+{#snippet renderCardMeta(part: DiffPart, type: string, side: Side)}
   <div class="flex flex-col gap-1">
     <span class="text-[10px] uppercase tracking-wide text-textcolor2">{type}</span>
 
@@ -959,18 +1035,43 @@
       {#if part.k === 'modify'}
         {#if diffStyle === 'line'}
           <!-- line diff -->
-          <div class="whitespace-pre-wrap text-red-400">
-            {@render renderTokens(part.tokens, 'add', tokenPackLineRemove)}
-          </div>
-          <div class="whitespace-pre-wrap text-green-400">
-            {@render renderTokens(part.tokens, 'remove', tokenPackLineAdd)}
-          </div>
+          {#if side === null}
+            <!-- unified -->
+            <div class="whitespace-pre-wrap text-red-400">
+              {@render renderTokens(part.tokens, 'add', tokenPackLineRemove)}
+            </div>
+            <div class="whitespace-pre-wrap text-green-400">
+              {@render renderTokens(part.tokens, 'remove', tokenPackLineAdd)}
+            </div>
+          {:else} <!-- split -->
+            <div class={`whitespace-pre-wrap ${side === 'left' ? 'text-red-400' : 'text-green-400'}`}>
+              {@render renderTokens(
+                part.tokens,
+                side === 'left' ? 'add' : 'remove',
+                side === 'left' ? tokenPackLineRemove : tokenPackLineAdd
+              )}
+            </div>
+          {/if}
+
         {:else}
           <!-- intraline diff -->
-          <div class="whitespace-pre-wrap">
-            {@render renderTokens(part.tokens, null, tokenPackIntraline)}
-          </div>
+          {#if side === null}
+            <!-- unified intraline -->
+            <div class="whitespace-pre-wrap">
+              {@render renderTokens(part.tokens, null, tokenPackIntraline)}
+            </div>
+          {:else}
+            <!-- split intraline: -->
+            <div class={`whitespace-pre-wrap ${side === 'left' ? 'text-red-300' : 'text-green-300'}`}>
+              {@render renderTokens(
+                part.tokens,
+                side === 'left' ? 'add' : 'remove',
+                tokenPackIntraline
+              )}
+            </div>
+          {/if}
         {/if}
+
       {:else}
         <!-- same/add/remove -->
         <div
@@ -1025,6 +1126,77 @@
   </div>
 {/snippet}
 
+{#snippet renderSplitCell(cell: SplitCell, idx: number)}
+  {@const role = cell.role}
+    {#if cell.kind === 'empty'}
+      <div
+        class={splitEmptyLineClass}
+        class:mt-5={role === 'name' && idx > 0}
+        class:mb-5={role === 'header'}
+      >
+        &nbsp;
+      </div>
+
+  {:else}
+    {@const part = cell.part}
+    {@const side = cell.side}
+    {@const isLeft = side === 'left'}
+
+    {#if part.k !== 'modify'}
+      {@render renderSimpleLine(part)}
+
+    {:else}
+      {@const tag = tagText(part)}
+      {@const sideText =
+        isLineby(part) ? (isLeft ? part.left.text : part.right.text) : null}
+
+      <div
+        class={`whitespace-pre-wrap ${isLeft ? lineRemoveClass : lineAddClass}`}
+        class:mt-5={role === 'name' && idx > 0}
+        class:mb-5={role === 'header'}
+      >
+        {#if isLineby(part) && sideText === ''}
+          <span class="text-textcolor2/60 italic">[empty line]</span>
+        {:else}
+          {@render renderTokens(part.tokens, isLeft ? 'add' : 'remove', diffStyle === 'line' ? (isLeft ? tokenPackLineRemove : tokenPackLineAdd) : tokenPackIntraline)}
+        {/if}
+
+        {#if tag}
+          <span class={nameHeaderTagClass}>{tag}</span>
+        {/if}
+      </div>
+    {/if}
+  {/if}
+{/snippet}
+
+{#snippet renderCardStatus(cardPart: CardBodyDiff)}
+  {@const c = cardPart.bodyLines?.counts ?? ({ modifiedCount: 0, addedCount: 0, removedCount: 0 })}
+  {@const cardChangeCount = (c.modifiedCount ?? 0) + (c.addedCount ?? 0) + (c.removedCount ?? 0)}
+
+  {@const statusLabel =
+    cardPart.k === 'modify' ? 'Modified'
+    : cardPart.k === 'add'  ? 'Added'
+    : cardPart.k === 'remove' ? 'Removed'
+    : 'Unchanged'}
+
+  {@const statusClass =
+    cardPart.k === 'modify' ? 'bg-blue-500/15 text-blue-300 border-blue-500/40'
+    : cardPart.k === 'add'  ? 'bg-green-500/15 text-green-300 border-green-500/40'
+    : cardPart.k === 'remove' ? 'bg-red-500/15 text-red-300 border-red-500/40'
+    : 'bg-zinc-700/40 text-textcolor2 border-zinc-600/60'}
+
+  <div class="flex flex-col items-end gap-1 shrink-0">
+    <span class={`text-[11px] px-2 py-0.5 rounded-full border ${statusClass}`}>
+      {statusLabel}
+    </span>
+    <span class="text-[11px] text-textcolor2">
+      {cardChangeCount} change{cardChangeCount === 1 ? '' : 's'}
+    </span>
+    <span class="text-[11px] text-textcolor2">
+      ~{c.modifiedCount ?? 0} / +{c.addedCount ?? 0} / -{c.removedCount ?? 0}
+    </span>
+  </div>
+{/snippet}
 
 
 <div class="absolute inset-0 z-50 bg-black bg-opacity-60 flex justify-center items-center p-4">
@@ -1034,6 +1206,7 @@
       <div class="flex items-center gap-4 flex-wrap">
         {@render pillRadioGroup('Diff', 'diffStyle', diffOptions, diffStyle, (v) => (diffStyle = v as DiffStyle))}
         {@render pillRadioGroup('Format', 'formatStyle', formatOptions, formatStyle, (v) => (formatStyle = v as FormatStyle))}
+        {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle))}        
         {@render checkboxToggle('Flat Text', isFlatText, (v) => (isFlatText = v))}
         {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), diffStyle !== 'line', true)}
         {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v))}
@@ -1077,45 +1250,22 @@
 
           <div class="grid gap-3">
             {#each visibleCardParts as cardPart, idx (idx)}
+              {#if viewStyle === 'unified'}
               {@const lines = cardPart.bodyLines.parts}
               {@const namePart = lines[0]}
               {@const headerPart = lines[1]}
               {@const bodyParts = lines.slice(2)}
-              {@const c = cardPart.bodyLines.counts}
-              {@const cardChangeCount = c.modifiedCount + c.addedCount + c.removedCount}
-
-              {@const statusLabel =
-                cardPart.k === 'modify' ? 'Modified'
-                : cardPart.k === 'add'  ? 'Added'
-                : cardPart.k === 'remove' ? 'Removed'
-                : 'Unchanged'}
-
-              {@const statusClass =
-                cardPart.k === 'modify' ? 'bg-blue-500/15 text-blue-300 border-blue-500/40'
-                : cardPart.k === 'add'  ? 'bg-green-500/15 text-green-300 border-green-500/40'
-                : cardPart.k === 'remove' ? 'bg-red-500/15 text-red-300 border-red-500/40'
-                : 'bg-zinc-700/40 text-textcolor2 border-zinc-600/60'}
 
               <div class="prompt-diff-hover bg-black/40 border border-darkborderc rounded-xl p-3 flex flex-col gap-2">
                 <!-- name / header / card diff -->
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex flex-col gap-2 min-w-0">
-                    {@render renderCardMeta(namePart, 'name')}
-                    {@render renderCardMeta(headerPart, 'type')}
+                    {@render renderCardMeta(namePart, 'name', null)}
+                    {@render renderCardMeta(headerPart, 'type', null)}
                   </div>
 
                   <!-- card diff -->
-                  <div class="flex flex-col items-end gap-1 shrink-0">
-                    <span class={`text-[11px] px-2 py-0.5 rounded-full border ${statusClass}`}>
-                      {statusLabel}
-                    </span>
-                    <span class="text-[11px] text-textcolor2">
-                      {cardChangeCount} change{cardChangeCount === 1 ? '' : 's'}
-                    </span>
-                    <span class="text-[11px] text-textcolor2">
-                      ~{c.modifiedCount} / +{c.addedCount} / -{c.removedCount}
-                    </span>
-                  </div>
+                  {@render renderCardStatus(cardPart)}
                 </div>
 
                 <!-- body -->
@@ -1152,6 +1302,81 @@
                   {/if}
                 </div>
               </div>
+              {:else} <!-- split view -->
+                {@const scope = `card-${idx}`}
+                {@const lines = cardPart.bodyLines?.parts ?? []}
+                {@const namePart = lines[0] ?? null}
+                {@const headerPart = lines[1] ?? null}
+                {@const bodyParts = lines.slice(2)}
+
+                {@const leftExists = cardPart.k !== 'add'}
+                {@const rightExists = cardPart.k !== 'remove'}
+
+                {@const segments = buildSegments(bodyParts, { showOnlyChanges, contextRadius, scope, expandedRanges })}
+                {@const rows = toSplitRows(segments, scope)}
+
+                <div class="relative">
+                  <div class="absolute inset-0 grid grid-cols-2 gap-x-3 pointer-events-none">
+                    <div class="bg-black/40 border border-darkborderc rounded-xl"></div>
+                    <div class="bg-black/40 border border-darkborderc rounded-xl"></div>
+                  </div>
+
+                  <div class="relative z-10 grid grid-cols-2 gap-x-3 p-px">
+                    <!-- left header -->
+                    <div class="p-3">
+                      {#if leftExists && namePart && headerPart}
+                        <div class="flex items-start justify-between gap-2">
+                          <div class="flex flex-col gap-2 min-w-0">
+                            {@render renderCardMeta(namePart, 'name', 'left')}
+                            {@render renderCardMeta(headerPart, 'type', 'left')}
+                          </div>
+                          {@render renderCardStatus(cardPart)}
+                        </div>
+                      {:else}
+                        <div class="h-[70px] rounded-lg border border-dashed border-white/10 bg-black/10 flex items-center justify-center">
+                          <span class="text-textcolor2/60 italic text-xs select-none">-</span>
+                        </div>
+                      {/if}
+                    </div>
+
+                    <!-- right header -->
+                    <div class="p-3">
+                      {#if rightExists && namePart && headerPart}
+                        <div class="flex items-start justify-between gap-2">
+                          <div class="flex flex-col gap-2 min-w-0">
+                            {@render renderCardMeta(namePart, 'name', 'right')}
+                            {@render renderCardMeta(headerPart, 'type', 'right')}
+                          </div>
+                          {@render renderCardStatus(cardPart)}
+                        </div>
+                      {:else}
+                        <div class="h-[70px] rounded-lg border border-dashed border-white/10 bg-black/10 flex items-center justify-center">
+                          <span class="text-textcolor2/60 italic text-xs select-none">-</span>
+                        </div>
+                      {/if}
+                    </div>
+
+                    <div class="h-px bg-white/10 mx-3"></div>
+                    <div class="h-px bg-white/10 mx-3"></div>
+
+                    <!-- body rows -->
+                    {#each rows as r, rIdx (r.key)}
+                      {#if r.kind === 'divider'}
+                        <div class="col-span-2 px-2">
+                          {@render renderDivider(r.seg, r.scope)}
+                        </div>
+                      {:else}
+                        <div class="px-3 py-1">
+                          {@render renderSplitCell(leftExists ? r.left : { kind: 'empty', role: r.left.role }, rIdx)}
+                        </div>
+                        <div class="px-3 py-1">
+                          {@render renderSplitCell(rightExists ? r.right : { kind: 'empty', role: r.right.role }, rIdx)}
+                        </div>
+                      {/if}
+                    {/each}
+                  </div>
+                </div>
+              {/if}
             {/each}
           </div>
         {:else}
@@ -1169,7 +1394,7 @@
                 <span class="text-sm">No changes</span>
               </div>
             </div>
-          {:else}
+          {:else if viewStyle === 'unified'}
           <div class="font-mono text-sm leading-5">
             {#each segments as seg, sIdx (sIdx)}
               {#if seg.kind === 'divider'}
@@ -1197,6 +1422,27 @@
               {/if}
             {/each}
           </div>
+          {:else} <!-- split view -->
+            {@const rows = toSplitRows(segments, 'raw')}
+            <div class="rounded-xl border border-darkborderc bg-black/30 overflow-hidden">
+              <div class="grid grid-cols-[1fr_auto_1fr] gap-0 font-mono text-sm leading-5">
+                {#each rows as r, idx (r.key)}
+                  {#if r.kind === 'divider'}
+                    <div class="col-span-3 px-2">
+                      {@render renderDivider(r.seg, r.scope)}
+                    </div>
+                  {:else}
+                    <div class="px-3 py-1 bg-black/10">
+                      {@render renderSplitCell(r.left, idx)}
+                    </div>
+                    <div class="w-px bg-white/10"></div>
+                    <div class="px-3 py-1 bg-black/10">
+                      {@render renderSplitCell(r.right, idx)}
+                    </div>
+                  {/if}
+                {/each}
+              </div>
+            </div>
           {/if}
         {:else}
           <div class="text-textcolor2 text-sm">No diff computed yet.</div>
