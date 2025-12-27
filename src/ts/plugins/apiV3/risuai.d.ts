@@ -662,6 +662,8 @@ export interface SafeElement {
  * Note that this SHOULD NOT be used unless absolutely necessary.
  * use other risuai APIs whenever possible, especially using iframe UI
  * 
+ * Additional restrictions might be added in the future for user safety, including breaking changes.
+ * 
  * @example
  * ```typescript
  * const doc = risuai.getRootDocument();

@@ -208,11 +208,13 @@ Your plugin has access to **two separate DOM contexts**:
    - Full access using standard DOM APIs
    - Hidden by default
    - Use for your plugin's custom UI
+   - Sandboxed from the main application, no additional security restrictions and breaking changes expected
 
 2. **Main application DOM** (via `getRootDocument()`)
    - Restricted access through `SafeDocument`/`SafeElement` wrappers
    - Use to interact with RisuAI's interface
    - Security restrictions prevent malicious behavior
+   - Additional restrictions might be added in the future for user safety, including breaking changes.
 
 We recommend using your iframe's DOM for custom UI whenever possible, and only access the main document when absolutely necessary.
 
