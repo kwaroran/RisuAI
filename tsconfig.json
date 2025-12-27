@@ -10,7 +10,6 @@
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "types": ["vite/client"],
 
     /* Module Resolution */
     "baseUrl": ".",
@@ -23,7 +22,6 @@
 
     /* Type Checking */
     "strict": false,
-    "strictNullChecks": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
