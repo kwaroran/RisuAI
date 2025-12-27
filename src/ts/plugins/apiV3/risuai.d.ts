@@ -885,7 +885,10 @@ export interface RisuaiPluginAPI {
      * @returns Database object (limited to allowed keys)
      *
      * Allowed keys: characters, modules, enabledModules, moduleIntergration,
-     * pluginV2, personas, plugins, pluginCustomStorage
+     * pluginV2, personas, plugins, pluginCustomStorage, temperature, askRemoval,
+     * maxContext, maxResponse, frequencyPenalty, PresensePenalty, theme,
+     * textTheme, lineHeight, seperateModelsForAxModels, seperateModels,
+     * customCSS, guiHTML, colorSchemeName
      *
      * @example
      * ```typescript
