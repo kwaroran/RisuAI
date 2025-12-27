@@ -11,6 +11,8 @@
     let { firstPresetId, secondPresetId, onClose = () => {} }: Props = $props();
 
 
+// Types
+// -----------------------------------------------------------------------------
     type DiffCounts = { modifiedCount: number; addedCount: number; removedCount: number }
     type PromptKind = 'plain' | 'chatml' | 'typed' | 'authorNote' | 'chat'
     type SimpleDiff = 'same' | 'add' | 'remove'
@@ -95,6 +97,8 @@
     type FormatStyle = 'raw' | 'card'
     type ViewStyle = 'unified' | 'split'
     
+// Reactive state
+// -----------------------------------------------------------------------------
     let diffStyle = $state<DiffStyle>('intraline')
     let formatStyle = $state<FormatStyle>('raw')
     let viewStyle = $state<ViewStyle>('unified')
@@ -106,6 +110,9 @@
     let diffResult = $state<DiffResult | null>(null)
     let cardDiffResult = $state<CardDiffResult | null>(null)
     let expandedRanges = $state<ExpandedRange[]>([])
+
+// Derived values
+// -----------------------------------------------------------------------------
     const cardlineFlatResult = $derived.by<DiffResult | null>(() => {
         if (!cardDiffResult) return null
 
@@ -137,6 +144,8 @@
         })
     })
 
+// UI option lists
+// -----------------------------------------------------------------------------
      const diffOptions = [
         { value: 'line', label: 'Line' },
         { value: 'intraline', label: 'Intraline' },
@@ -152,9 +161,14 @@
         { value: 'split', label: 'Split' },
     ] as const
 
+// Inputs
+// Cards are computed once per modal open; preset ids don't change while this modal is shown.
+// -----------------------------------------------------------------------------
     const firstCards = getPromptCards(firstPresetId)
     const secondCards = getPromptCards(secondPresetId)
 
+// Effects (state invariants + diff recompute)
+// -----------------------------------------------------------------------------
     $effect(() => {
         if (diffStyle !== 'line' && isGrouped) {
             isGrouped = false
@@ -182,9 +196,9 @@
         contextRadius
         expandedRanges = []
     })
-
  
-    // --- style helper --- //
+// Style helpers (classnames)
+// -----------------------------------------------------------------------------
     const pillBase = 'px-2 py-1 text-xs cursor-pointer select-none'
     const pillActive = 'text-black bg-white'
     const pillInactive = 'text-textcolor2 bg-transparent'
@@ -257,8 +271,10 @@
         return null
     }
 
-    // ------------------ //
-   
+  
+
+// Data shaping (prompt → cards/lines/raw)
+// -----------------------------------------------------------------------------
     function getPromptCards(id: number): PromptCard[] {
         const isPromptItemPlain = (item: PromptItem): item is PromptItemPlain =>
             item.type === 'plain' || item.type === 'jailbreak' || item.type === 'cot'
@@ -378,7 +394,9 @@
         while (lines.length && lines[lines.length - 1] === '') lines.pop()
         return lines.join('\n') + '\n'
     }
-    
+
+// Diff core
+// -----------------------------------------------------------------------------
     let diffRunId = 0
 
     async function recomputeDiff(firstCards: PromptCard[], secondCards: PromptCard[]) {
@@ -668,6 +686,8 @@
         })
     }
 
+// View helpers
+// -----------------------------------------------------------------------------
     function buildSegments(parts: DiffPart[], opts: SegmentOptions): DiffSegment[] {
         const { showOnlyChanges, contextRadius, scope, expandedRanges } = opts
         const len = parts.length
