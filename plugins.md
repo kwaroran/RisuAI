@@ -214,6 +214,26 @@ Your plugin has access to **two separate DOM contexts**:
    - Use to interact with RisuAI's interface
    - Security restrictions prevent malicious behavior
 
+We recommend using your iframe's DOM for custom UI whenever possible, and only access the main document when absolutely necessary.
+
+### Accessing your Iframe's DOM
+
+Your plugin's iframe has full access to the standard DOM API:
+
+```javascript
+
+// Create elements
+const container = document.createElement('div');
+const button = document.createElement('button');
+
+// Set content
+button.textContent = 'Click Me!';
+container.appendChild(button);
+
+// Add to iframe body
+document.body.appendChild(container);
+```
+
 ### Accessing the Main Document
 
 **Remember: Use `await` because all API methods are async!**
