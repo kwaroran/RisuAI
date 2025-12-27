@@ -43,6 +43,7 @@
     let doingChatInputTranslate = false
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
+    let isScrollingToMessage = $state(false)
 
     let currentCharacter = $derived(DBState.db.characters[$selectedCharID])
     let currentChat = $derived(currentCharacter?.chats[currentCharacter.chatPage]?.message ?? [])
@@ -57,55 +58,60 @@
 
     async function scrollToMessage(index: number){
         // Forces the loading of past messages not rendered on the screen
-        const totalMessages = currentChat.length
-        const neededLoadPages = totalMessages - index + 5
-        if(loadPages < neededLoadPages){
-            loadPages = neededLoadPages
-            await tick()
-        }
-        
-        await sleep(100)
-
-        const element = document.querySelector(`[data-chat-index="${index}"]`)
-        if(element){
-            // Since the chat contains many images, Force-load images from surrounding chats to prevent scrolling from lagging after moving.
-            const start = Math.max(0, index - 15);
-            const end = Math.min(totalMessages - 1, index + 15);
-            const imageLoadPromises: Promise<void>[] = [];
-
-            for (let i = start; i <= end; i++) {
-                const el = document.querySelector(`[data-chat-index="${i}"]`);
-                if (el) {
-                    const images = el.querySelectorAll('img');
-                    images.forEach(img => {
-                        img.setAttribute('loading', 'eager');
-                        if (!img.complete) {
-                            imageLoadPromises.push(new Promise(resolve => {
-                                img.onload = () => resolve();
-                                img.onerror = () => resolve();
-                            }));
-                        }
-                    });
-                }
+        isScrollingToMessage = true
+        try {
+            const totalMessages = currentChat.length
+            const neededLoadPages = totalMessages - index + 5
+            if(loadPages < neededLoadPages){
+                loadPages = neededLoadPages
+                await tick()
             }
-            if (imageLoadPromises.length > 0) {
-                await Promise.race([
-                    Promise.all(imageLoadPromises),
-                    sleep(1000)
-                ]);
-            }
-
             
-            element.scrollIntoView({behavior: "smooth", block: "start"})
-            await sleep(600)
-            element.scrollIntoView({behavior: "instant", block: "start"})
-            await sleep(200)
-            element.scrollIntoView({behavior: "instant", block: "start"})
+            await sleep(100)
 
-            element.classList.add('ring-2', 'ring-blue-500')
-            setTimeout(() => {
-                element.classList.remove('ring-2', 'ring-blue-500')
-            }, 2000)
+            const element = document.querySelector(`[data-chat-index="${index}"]`)
+            if(element){
+                // Since the chat contains many images, Force-load images from surrounding chats to prevent scrolling from lagging after moving.
+                const start = Math.max(0, index - 15);
+                const end = Math.min(totalMessages - 1, index + 15);
+                const imageLoadPromises: Promise<void>[] = [];
+
+                for (let i = start; i <= end; i++) {
+                    const el = document.querySelector(`[data-chat-index="${i}"]`);
+                    if (el) {
+                        const images = el.querySelectorAll('img');
+                        images.forEach(img => {
+                            img.setAttribute('loading', 'eager');
+                            if (!img.complete) {
+                                imageLoadPromises.push(new Promise(resolve => {
+                                    img.onload = () => resolve();
+                                    img.onerror = () => resolve();
+                                }));
+                            }
+                        });
+                    }
+                }
+                if (imageLoadPromises.length > 0) {
+                    await Promise.race([
+                        Promise.all(imageLoadPromises),
+                        sleep(1000)
+                    ]);
+                }
+
+                
+                element.scrollIntoView({behavior: "smooth", block: "start"})
+                await sleep(600)
+                element.scrollIntoView({behavior: "instant", block: "start"})
+                await sleep(200)
+                element.scrollIntoView({behavior: "instant", block: "start"})
+
+                element.classList.add('ring-2', 'ring-blue-500')
+                setTimeout(() => {
+                    element.classList.remove('ring-2', 'ring-blue-500')
+                }, 2000)
+            }
+        } finally {
+            isScrollingToMessage = false
         }
     }
 
@@ -492,6 +498,11 @@
 <div class="w-full h-full" style={customStyle} onclick={() => {
     openMenu = false
 }}>
+    {#if isScrollingToMessage}
+        <div class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 text-white text-xl font-bold backdrop-blur-sm">
+            Scrolling...
+        </div>
+    {/if}
     {#if $selectedCharID < 0}
         {#if $PlaygroundStore === 0}
             <MainMenu />
