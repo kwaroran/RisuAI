@@ -3,7 +3,8 @@
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "@lucide/svelte";
-    import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
+    import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen, ScrollToMessageStore } from "../../ts/stores.svelte";
+    import { tick } from 'svelte';
     import Chat from "./Chat.svelte";
     import { type Message } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
@@ -45,6 +46,53 @@
 
     let currentCharacter = $derived(DBState.db.characters[$selectedCharID])
     let currentChat = $derived(currentCharacter?.chats[currentCharacter.chatPage]?.message ?? [])
+
+    $effect(() => {
+        if($ScrollToMessageStore !== -1){
+            const index = $ScrollToMessageStore
+            ScrollToMessageStore.set(-1)
+            scrollToMessage(index)
+        }
+    })
+
+    async function scrollToMessage(index: number){
+        // Forces the loading of past messages not rendered on the screen
+        const totalMessages = currentChat.length
+        const neededLoadPages = totalMessages - index + 5
+        if(loadPages < neededLoadPages){
+            loadPages = neededLoadPages
+            await tick()
+        }
+        
+        await sleep(100)
+
+        const element = document.querySelector(`[data-chat-index="${index}"]`)
+        if(element){
+            // Since the chat contains many images, Force-load images from surrounding chats to prevent scrolling from lagging after moving.
+            const start = Math.max(0, index - 10);
+            const end = Math.min(totalMessages - 1, index + 10);
+            for (let i = start; i <= end; i++) {
+                const el = document.querySelector(`[data-chat-index="${i}"]`);
+                if (el) {
+                    const images = el.querySelectorAll('img');
+                    images.forEach(img => {
+                        img.setAttribute('loading', 'eager');
+                    });
+                }
+            }
+            await sleep(1000)
+
+            
+            element.scrollIntoView({behavior: "smooth", block: "start"})
+            await sleep(600)
+            element.scrollIntoView({behavior: "instant", block: "start"})
+
+            element.classList.add('ring-2', 'ring-blue-500')
+            setTimeout(() => {
+                element.classList.remove('ring-2', 'ring-blue-500')
+            }, 2000)
+        }
+    }
 
     async function send(){
         return sendMain(false)
