@@ -101,6 +101,7 @@
                 if(isAlreadyLoaded){
                     element.scrollIntoView({behavior: "instant", block: "start"})
                 } else {
+                    // It may seem inefficient, but since loadPages is always increasing, this wait only occurs when reading chats outside the current loadPages range.
                     element.scrollIntoView({behavior: "smooth", block: "start"})
                     await sleep(1000)
                     element.scrollIntoView({behavior: "instant", block: "start"})
