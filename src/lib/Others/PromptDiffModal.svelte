@@ -156,6 +156,20 @@
     const secondCards = getPromptCards(secondPresetId)
 
     $effect(() => {
+        if (diffStyle !== 'line' && isGrouped) {
+            isGrouped = false
+        }
+    })
+
+    $effect(() => {
+        if (isFlatText) {
+            isGrouped = false
+            showOnlyChanges = false
+            formatStyle = 'raw'
+        }
+    })
+
+    $effect(() => {
         if (!firstCards || !secondCards) return
         diffStyle
         isFlatText
@@ -841,19 +855,27 @@
 
 </script>
 
-{#snippet pillRadioGroup(label: string, name: string, options: readonly { value: string; label: string }[], value: string, setValue: (v: string) => void)}
+{#snippet pillRadioGroup(label: string, name: string, options: readonly { value: string; label: string }[], value: string, setValue: (v: string) => void, disabled = false)}
   <div class="flex items-center gap-2">
     <span class="text-xs text-textcolor2">{label}</span>
     <div class="flex rounded-md border border-darkborderc overflow-hidden">
       {#each options as opt (opt.value)}
-        <label class={`${pillBase} ${value === opt.value ? pillActive : pillInactive}`}>
+        <label
+          class={`${pillBase} ${value === opt.value ? pillActive : pillInactive} ${
+                  disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+          }`}
+        >
           <input
             class="hidden"
             type="radio"
             {name}
             value={opt.value}
+            {disabled}
             checked={value === opt.value}
-            onchange={() => setValue(opt.value)}
+            onchange={() => {
+                if (disabled) return
+                setValue(opt.value)}
+            }
           />
           {opt.label}
         </label>
@@ -1017,7 +1039,7 @@
   {/if}
 {/snippet}
 
-{#snippet renderCardMeta(part: DiffPart, type: string, side: Side)}
+{#snippet renderCardMeta(part: DiffPart, type: string, side: Side | null)}
   <div class="flex flex-col gap-1">
     <span class="text-[10px] uppercase tracking-wide text-textcolor2">{type}</span>
 
@@ -1195,12 +1217,14 @@
     <div class="flex items-center justify-between px-4 py-3 border-b border-darkborderc">
       <div class="flex items-center gap-4 flex-wrap">
         {@render pillRadioGroup('Diff', 'diffStyle', diffOptions, diffStyle, (v) => (diffStyle = v as DiffStyle))}
-        {@render pillRadioGroup('Format', 'formatStyle', formatOptions, formatStyle, (v) => (formatStyle = v as FormatStyle))}
+        {@render pillRadioGroup('Format', 'formatStyle', formatOptions, formatStyle, (v) => (formatStyle = v as FormatStyle), isFlatText)}
         {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle))}        
-        {@render checkboxToggle('Flat Text', isFlatText, (v) => (isFlatText = v))}
-        {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), diffStyle !== 'line', true)}
-        {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v))}
-        {@render rangeControl('Context', contextRadius, (v) => (contextRadius = v), 0, 5, !showOnlyChanges)}
+        {@render checkboxToggle('Legacy', isFlatText, (v) => (isFlatText = v))}
+        {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), isFlatText || diffStyle !== 'line', true)}
+        {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v), isFlatText, true)}
+        {#if showOnlyChanges}
+          {@render rangeControl('Context', contextRadius, (v) => (contextRadius = v), 0, 5)}
+        {/if}
       </div>
 
       <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
