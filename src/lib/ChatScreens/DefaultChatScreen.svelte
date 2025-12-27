@@ -69,22 +69,37 @@
         const element = document.querySelector(`[data-chat-index="${index}"]`)
         if(element){
             // Since the chat contains many images, Force-load images from surrounding chats to prevent scrolling from lagging after moving.
-            const start = Math.max(0, index - 10);
-            const end = Math.min(totalMessages - 1, index + 10);
+            const start = Math.max(0, index - 15);
+            const end = Math.min(totalMessages - 1, index + 15);
+            const imageLoadPromises: Promise<void>[] = [];
+
             for (let i = start; i <= end; i++) {
                 const el = document.querySelector(`[data-chat-index="${i}"]`);
                 if (el) {
                     const images = el.querySelectorAll('img');
                     images.forEach(img => {
                         img.setAttribute('loading', 'eager');
+                        if (!img.complete) {
+                            imageLoadPromises.push(new Promise(resolve => {
+                                img.onload = () => resolve();
+                                img.onerror = () => resolve();
+                            }));
+                        }
                     });
                 }
             }
-            await sleep(1000)
+            if (imageLoadPromises.length > 0) {
+                await Promise.race([
+                    Promise.all(imageLoadPromises),
+                    sleep(1000)
+                ]);
+            }
 
             
             element.scrollIntoView({behavior: "smooth", block: "start"})
             await sleep(600)
+            element.scrollIntoView({behavior: "instant", block: "start"})
+            await sleep(200)
             element.scrollIntoView({behavior: "instant", block: "start"})
 
             element.classList.add('ring-2', 'ring-blue-500')
