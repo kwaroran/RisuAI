@@ -465,7 +465,7 @@
     async function computeDiffCardLine(prompt1: PromptCard[], prompt2: PromptCard[], style: DiffStyle): Promise<CardDiffSummary> {
         const { diffArrays } = await import('diff')
         const arrayDiffs = diffArrays(prompt1, prompt2, {
-            comparator: (x, y) => x.body === y.body && x.header === y.header && x.kind === y.kind
+            comparator: (x, y) => x.body === y.body && x.header === y.header && x.kind === y.kind && x.name === y.name
         })
 
         const parts: CardDiffSummaryPart[] = []
