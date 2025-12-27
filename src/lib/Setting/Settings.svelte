@@ -9,6 +9,7 @@
     import FilesSettings from "./Pages/FilesSettings.svelte";
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
     import { additionalSettingsMenu, MobileGUI, SettingsMenuIndex, settingsOpen } from "src/ts/stores.svelte";
+    import { DBState } from "src/ts/stores.svelte";
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
     import Lorepreset from "./lorepreset.svelte";
@@ -164,7 +165,7 @@
                 {#if window.innerWidth < 700 && !$MobileGUI}
                     <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
                         settingsOpen.set(false)
-                    }}> <XCircleIcon /> </button>
+                    }}> <XCircleIcon size={DBState.db.settingsCloseButtonSize} /> </button>
                 {/if}
             </div>
         {/if}
@@ -221,7 +222,7 @@
                         $SettingsMenuIndex = -1
                     }
                 }}>
-                    <XCircleIcon />
+                    <XCircleIcon size={DBState.db.settingsCloseButtonSize} />
                 </button>
             {/if}
         {/if}

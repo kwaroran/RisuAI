@@ -231,6 +231,9 @@
         <SliderInput min={1} max={500} step={1} bind:value={DBState.db.memoryLimitThickness} marginBottom />
     {/if}
 
+    <span class="text-textcolor">{language.settingsCloseButtonSize} <Help key="settingsCloseButtonSize"/></span>
+    <SliderInput min={16} max={48} step={1} bind:value={DBState.db.settingsCloseButtonSize} marginBottom />
+
 {/if}
 
 {#if submenu === 2 || submenu === -1}

@@ -186,6 +186,7 @@ export const LanguageVietnamese = {
         dynamicMemory: "Khi được bật, trợ lý sẽ ghi chú bộ nhớ vào thời gian phản hồi. Cần có thêm lời nhắc để sử dụng tính năng này.",
         dynamicResponseTiming: "Khi được bật, nó sẽ điều chỉnh thời gian phản hồi một cách linh hoạt.",
         dynamicRequest: "Khi được bật, nó sẽ yêu cầu mô hình vào thời điểm ngẫu nhiên mà không cần chờ người dùng nhập liệu.",
+        settingsCloseButtonSize: "Điều chỉnh kích thước nút đóng (X) ở góc trên bên phải cửa sổ cài đặt. Mặc định là 24.",
         showTypingEffect: "Khi được bật, nó sẽ hiển thị chỉ báo đang nhập trong khi trợ lý đang tạo phản hồi.",
         dynamicOutputPrompt: "Khi được bật, thông tin lược đồ sẽ được bao gồm trong yêu cầu.",
         sourcemapTranslate:
@@ -1384,6 +1385,7 @@ export const LanguageVietnamese = {
     dynamicRequest: "Yêu cầu động",
     dynamicOutputPrompt: "Lời nhắc đầu ra động",
     sourcemapTranslate: "Dịch dấu vết ngăn xếp bằng bản đồ nguồn",
+    settingsCloseButtonSize: "Kích thước nút đóng cài đặt",
     translating: "Đang dịch...",
     showOriginal: "Hiển thị địa chỉ mã gốc",
     translate: "Dịch địa chỉ mã",
