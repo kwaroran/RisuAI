@@ -3,10 +3,16 @@
     import { alertConfirm } from "src/ts/alert";
     import { checkDriver } from "src/ts/drive/drive";
     import { isNodeServer, isTauri } from "src/ts/globalApi.svelte";
+    import SettingRenderer from "../SettingRenderer.svelte";
+    import { filesSettingsItems } from "src/ts/setting/filesSettingsData";
 
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.files}</h2>
+
+<!-- Settings registered for search (all renderManually) -->
+<SettingRenderer items={filesSettingsItems} />
+
 <button
     onclick={async () => {
         if(await alertConfirm(language.backupConfirm)){

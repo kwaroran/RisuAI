@@ -13,11 +13,16 @@
     import migrationGuideContent from "src/ts/plugins/migrationGuide.md?raw";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import SettingRenderer from "../SettingRenderer.svelte";
+    import { pluginSettingsItems } from "src/ts/setting/pluginSettingsData";
 
     let showParams = $state([])
 </script>
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
+
+<!-- Settings registered for search (all renderManually) -->
+<SettingRenderer items={pluginSettingsItems} />
 
 <span class="text-draculared text-xs mb-4">{language.pluginWarn}</span>
 

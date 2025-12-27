@@ -1,6 +1,8 @@
 <script lang="ts">
     import { language } from "src/lang";
     import { DBState } from "src/ts/stores.svelte";
+    import SettingRenderer from "../SettingRenderer.svelte";
+    import { hotkeySettingsItems } from "src/ts/setting/hotkeySettingsData";
 
     
 </script>
@@ -11,6 +13,9 @@
     </span>
 
 {:else}
+
+    <!-- Settings registered for search (all renderManually) -->
+    <SettingRenderer items={hotkeySettingsItems} />
 
     <table>
         <thead>

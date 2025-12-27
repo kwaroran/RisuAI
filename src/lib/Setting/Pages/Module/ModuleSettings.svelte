@@ -12,6 +12,8 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import { onDestroy } from "svelte";
     import { importMCPModule } from "src/ts/process/mcp/mcp";
+    import SettingRenderer from "../../SettingRenderer.svelte";
+    import { moduleSettingsItems } from "src/ts/setting/moduleSettingsData";
     let tempModule:RisuModule = $state({
         name: '',
         description: '',
@@ -38,6 +40,9 @@
 </script>
 {#if mode === 0}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.modules}</h2>
+
+    <!-- Settings registered for search (all renderManually) -->
+    <SettingRenderer items={moduleSettingsItems} />
 
     <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} />
 

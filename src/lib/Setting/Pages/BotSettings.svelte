@@ -29,6 +29,8 @@
   import { getModelInfo, LLMFlags, LLMFormat, LLMProvider } from "src/ts/model/modellist";
   import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
   import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
+  import SettingRenderer from "../SettingRenderer.svelte";
+  import { botSettingsItems } from "src/ts/setting/botSettingsData";
     
 let tokens = $state({
         mainPrompt: 0,
@@ -73,6 +75,9 @@ let tokens = $state({
     let openrouterSearchQuery = $state("")
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
+
+<!-- Settings registered for search (all renderManually) -->
+<SettingRenderer items={botSettingsItems} />
 
 {#if submenu !== -1}
     <div class="flex w-full rounded-md border border-darkborderc mb-4">
