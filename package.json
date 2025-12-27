@@ -113,7 +113,6 @@
     "source-map": "^0.7.6",
     "svelte": "^5.46.1",
     "svelte-check": "^4.3.5",
-    "svelte-preprocess": "^6.0.3",
     "tailwindcss": "^3.4.19",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
