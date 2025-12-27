@@ -177,6 +177,8 @@ export const languageChinese = {
         openrouterProviderOnly:
             "仅使用此列表中的提供商，若所有提供商都不可用，请求将会失败。详见 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore: "忽略此列表中的提供商，若所有提供商都被忽略，请求将会失败。详见 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "启用提示词预处理时，这段文本会添加到主提示词的末尾。默认值是 'The assistant must act as {{char}}. user is {{user}}.'，用于设置基本的角色扮演背景。",
     },
     setup: {
         chooseProvider: "选择 AI 提供者",

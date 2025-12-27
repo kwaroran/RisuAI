@@ -178,6 +178,8 @@ export const languageChineseTraditional = {
             "僅使用此列表中的提供商，若所有提供商均不可用，請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore:
             "忽略此列表中的提供商,若所有提供商均被忽略,請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "啟用提示詞預處理時，這段文字會加在主要提示詞的末尾。預設值是 'The assistant must act as {{char}}. user is {{user}}.'，用於設定基本的角色扮演情境。",
     },
     setup: {
         chooseProvider: "選擇 AI 提供者",
