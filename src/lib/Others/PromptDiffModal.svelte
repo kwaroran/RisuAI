@@ -244,37 +244,27 @@
     }
 
     // ------------------ //
-
-
-    function isPromptItemPlain(item: PromptItem): item is PromptItemPlain {
-        return (
+   
+    function getPromptCards(id: number): PromptCard[] {
+        const isPromptItemPlain = (item: PromptItem): item is PromptItemPlain =>
             item.type === 'plain' || item.type === 'jailbreak' || item.type === 'cot'
-        );
-    }
-
-    function isPromptItemChatML(item: PromptItem): item is PromptItemChatML {
-        return item.type === 'chatML'
-    }
-
-    function isPromptItemTyped(item: PromptItem): item is PromptItemTyped {
-        return (
+       
+        const isPromptItemChatML = (item: PromptItem): item is PromptItemChatML =>
+            item.type === 'chatML'
+        
+        const isPromptItemTyped = (item: PromptItem): item is PromptItemTyped =>
             item.type === 'persona' ||
             item.type === 'description' ||
             item.type === 'lorebook' ||
             item.type === 'postEverything' ||
             item.type === 'memory'
-        )
-    }
-
-    function isPromptItemAuthorNote(item: PromptItem): item is PromptItemAuthorNote {
-        return item.type === 'authornote'
-    }
-
-    function isPromptItemChat(item: PromptItem): item is PromptItemChat {
-        return item.type === 'chat'
-    }
-    
-    function getPromptCards(id: number): PromptCard[] {
+        
+        const isPromptItemAuthorNote = (item: PromptItem): item is PromptItemAuthorNote =>
+            item.type === 'authornote'
+        
+        const isPromptItemChat = (item: PromptItem): item is PromptItemChat =>
+            item.type === 'chat'
+        
         const db = getDatabase()
         const formated = safeStructuredClone(db.botPresets[id].promptTemplate)
         const cards: PromptCard[] = []
