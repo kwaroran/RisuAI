@@ -215,14 +215,6 @@
     })
 
     $effect(() => {
-        if (isFlatText) {
-            isGrouped = false
-            showOnlyChanges = false
-            formatStyle = 'raw'
-        }
-    })
-
-    $effect(() => {
         if (!firstCards || !secondCards) return
         diffStyle
         isFlatText
@@ -1293,7 +1285,7 @@
         {@render pillRadioGroup('Format', 'formatStyle', formatOptions, formatStyle, (v) => (formatStyle = v as FormatStyle), isFlatText)}
         {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle))}        
         {@render checkboxToggle('Legacy', isFlatText, (v) => (isFlatText = v))}
-        {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), isFlatText || diffStyle !== 'line', true)}
+        {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), isFlatText || diffStyle !== 'line' || viewStyle === 'split', true)}
         {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v), isFlatText, true)}
         {#if showOnlyChanges}
           {@render rangeControl('Context', contextRadius, (v) => (contextRadius = v), 0, 5)}
