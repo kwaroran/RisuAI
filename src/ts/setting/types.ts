@@ -11,7 +11,8 @@ import type { Database } from '../storage/database.svelte';
  * Supported setting input types
  */
 export type SettingType = 
-    | 'check'      // Checkbox (CheckInput)
+    | 'check'      // Checkbox (CheckInput) - inline with label
+    | 'checkBlock' // Checkbox with label above (block layout)
     | 'text'       // Text input (TextInput)
     | 'number'     // Number input (NumberInput)
     | 'textarea'   // Multiline text (TextAreaInput)
@@ -48,9 +49,16 @@ export interface SettingOptions {
     // text, textarea
     placeholder?: string;
     hideText?: boolean;     // For password-like inputs
+    inputSize?: 'sm' | 'md'; // Input size, default is undefined (normal size)
     
     // button
     onClick?: () => void | Promise<void>;
+    
+    // onChange handler for settings that need side effects
+    onChange?: () => void | Promise<void>;
+    
+    // help
+    helpUnrecommended?: boolean;  // Show triangle warning icon instead of question mark
     
     // header
     level?: 'h2' | 'span' | 'warning';
@@ -80,6 +88,13 @@ export interface SettingItem {
      * Only for input types (check, text, number, textarea, slider, select, color)
      */
     bindKey?: keyof Database;
+    
+    /**
+     * Nested database key for binding (e.g., 'deeplOptions.key')
+     * Use this for nested object properties instead of bindKey
+     * Format: 'parentKey.childKey' (e.g., 'deeplOptions.key', 'deeplXOptions.url')
+     */
+    nestedBindKey?: string;
     
     /**
      * Condition function for visibility

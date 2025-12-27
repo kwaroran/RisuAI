@@ -15,9 +15,11 @@
 
     interface Props {
         items: SettingItem[];
+        /** Spacing between checkboxes. Default: 'mt-4' for AdvancedSettings, use 'mt-2' for AccessibilitySettings */
+        checkSpacing?: 'mt-2' | 'mt-4';
     }
 
-    let { items }: Props = $props();
+    let { items, checkSpacing = 'mt-4' }: Props = $props();
 
     function getLabel(item: SettingItem): string {
         if (item.labelKey && language[item.labelKey]) {
@@ -25,57 +27,151 @@
         }
         return item.fallbackLabel ?? '';
     }
+
+    /**
+     * Get value from nested path (e.g., 'deeplOptions.key')
+     */
+    function getNestedValue(path: string): any {
+        const keys = path.split('.');
+        let value: any = DBState.db;
+        for (const key of keys) {
+            if (value === undefined || value === null) return undefined;
+            value = value[key];
+        }
+        return value;
+    }
+
+    /**
+     * Set value at nested path (e.g., 'deeplOptions.key')
+     */
+    function setNestedValue(path: string, newValue: any): void {
+        const keys = path.split('.');
+        const lastKey = keys.pop()!;
+        let obj: any = DBState.db;
+        for (const key of keys) {
+            if (obj[key] === undefined) obj[key] = {};
+            obj = obj[key];
+        }
+        obj[lastKey] = newValue;
+    }
+
+    /**
+     * Get the effective value for an item (supports both bindKey and nestedBindKey)
+     */
+    function getValue(item: SettingItem): any {
+        if (item.nestedBindKey) {
+            return getNestedValue(item.nestedBindKey);
+        }
+        return item.bindKey ? DBState.db[item.bindKey] : undefined;
+    }
+
+    /**
+     * Set the effective value for an item (supports both bindKey and nestedBindKey)
+     */
+    function setValue(item: SettingItem, value: any): void {
+        if (item.nestedBindKey) {
+            setNestedValue(item.nestedBindKey, value);
+        } else if (item.bindKey) {
+            (DBState.db as any)[item.bindKey] = value;
+        }
+        item.options?.onChange?.();
+    }
 </script>
 
 {#each items as item (item.id)}
     {#if !item.condition || item.condition(DBState.db)}
         {#if item.type === 'header'}
             {#if item.options?.level === 'h2'}
-                <h2 class="mb-2 text-2xl font-bold mt-2">{getLabel(item)}</h2>
+                <h2 class="text-2xl font-bold mt-2 mb-2">{getLabel(item)}</h2>
             {:else if item.options?.level === 'warning'}
-                <span class="text-draculared text-xs mb-2">{getLabel(item)}</span>
+                <span class="text-draculared text-xs mb-6">{getLabel(item)}</span>
             {:else}
                 <span class="text-textcolor mt-4 mb-2">{getLabel(item)}</span>
             {/if}
         {:else if item.type === 'check'}
-            <div class="flex items-center mt-2">
-                <Check bind:check={(DBState.db as any)[item.bindKey]} name={getLabel(item)}>
-                    {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
-                </Check>
+            <div class="flex items-center {checkSpacing}">
+                {#if item.nestedBindKey}
+                    <Check check={getNestedValue(item.nestedBindKey)} onChange={(v) => setNestedValue(item.nestedBindKey!, v)} name={getLabel(item)}>
+                        {#if item.helpKey}<Help key={item.helpKey} unrecommended={item.options?.helpUnrecommended}/>{/if}
+                    </Check>
+                {:else}
+                    <Check bind:check={DBState.db[item.bindKey]} onChange={item.options?.onChange} name={getLabel(item)}>
+                        {#if item.helpKey}<Help key={item.helpKey} unrecommended={item.options?.helpUnrecommended}/>{/if}
+                    </Check>
+                {/if}
             </div>
-        {:else if item.type === 'text'}
-            <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
+        {:else if item.type === 'checkBlock'}
+            <span class="text-textcolor mt-2">{getLabel(item)}
+                {#if item.helpKey}<Help key={item.helpKey} unrecommended={item.options?.helpUnrecommended}/>{/if}
             </span>
-            <TextInput
-                marginBottom={true}
-                size="sm"
-                bind:value={(DBState.db as any)[item.bindKey]}
-                placeholder={item.options?.placeholder}
-                hideText={item.options?.hideText}
-            />
+            {#if item.nestedBindKey}
+                <Check check={getNestedValue(item.nestedBindKey)} onChange={(v) => setNestedValue(item.nestedBindKey!, v)} hiddenName />
+            {:else}
+                <Check bind:check={DBState.db[item.bindKey]} hiddenName />
+            {/if}
+        {:else if item.type === 'text'}
+            <span class="text-textcolor mt-2">{getLabel(item)}
+                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
+            </span>
+            {#if item.nestedBindKey}
+                <TextInput 
+                    marginBottom={true} 
+                    size={item.options?.inputSize}
+                    value={getNestedValue(item.nestedBindKey) ?? ''}
+                    oninput={(e) => setNestedValue(item.nestedBindKey!, e.currentTarget.value)}
+                    placeholder={item.options?.placeholder}
+                    hideText={item.options?.hideText}
+                />
+            {:else}
+                <TextInput 
+                    marginBottom={true} 
+                    size={item.options?.inputSize}
+                    bind:value={DBState.db[item.bindKey]}
+                    placeholder={item.options?.placeholder}
+                    hideText={item.options?.hideText}
+                />
+            {/if}
         {:else if item.type === 'number'}
             <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
             </span>
-            <NumberInput
-                marginBottom={true}
-                size="sm"
-                min={item.options?.min}
-                max={item.options?.max}
-                bind:value={(DBState.db as any)[item.bindKey]}
-            />
+            {#if item.nestedBindKey}
+                <NumberInput 
+                    marginBottom={true} 
+                    size="sm" 
+                    min={item.options?.min} 
+                    max={item.options?.max} 
+                    value={getNestedValue(item.nestedBindKey) ?? 0}
+                    onChange={(e) => setNestedValue(item.nestedBindKey!, parseInt(e.currentTarget.value) || 0)}
+                />
+            {:else}
+                <NumberInput 
+                    marginBottom={true} 
+                    size="sm" 
+                    min={item.options?.min} 
+                    max={item.options?.max} 
+                    bind:value={DBState.db[item.bindKey]}
+                />
+            {/if}
         {:else if item.type === 'textarea'}
             <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
             </span>
-            <TextAreaInput
-                bind:value={(DBState.db as any)[item.bindKey]}
-                placeholder={item.options?.placeholder}
-            />
+            {#if item.nestedBindKey}
+                <TextAreaInput 
+                    value={getNestedValue(item.nestedBindKey) ?? ''}
+                    onchange={() => setNestedValue(item.nestedBindKey!, getNestedValue(item.nestedBindKey!) ?? '')}
+                    placeholder={item.options?.placeholder}
+                />
+            {:else}
+                <TextAreaInput 
+                    bind:value={DBState.db[item.bindKey]}
+                    placeholder={item.options?.placeholder}
+                />
+            {/if}
         {:else if item.type === 'slider'}
             <span class="text-textcolor">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
             </span>
             <SliderInput 
                 marginBottom={true}
@@ -86,17 +182,29 @@
                 multiple={item.options?.multiple}
                 disableable={item.options?.disableable}
                 customText={item.options?.customText}
-                bind:value={(DBState.db as any)[item.bindKey]}
+                bind:value={DBState.db[item.bindKey]}
+                onchange={item.options?.onChange}
             />
         {:else if item.type === 'select'}
             <span class="text-textcolor mt-4">{getLabel(item)}
-                {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
+                {#if item.helpKey}<Help key={item.helpKey}/>{/if}
             </span>
-            <SelectInput bind:value={(DBState.db as any)[item.bindKey]}>
-                {#each item.options?.selectOptions ?? [] as opt}
-                    <OptionInput value={opt.value}>{opt.label}</OptionInput>
-                {/each}
-            </SelectInput>
+            {#if item.nestedBindKey}
+                <SelectInput 
+                    value={getNestedValue(item.nestedBindKey) ?? ''}
+                    onchange={(e) => setNestedValue(item.nestedBindKey!, e.currentTarget.value)}
+                >
+                    {#each item.options?.selectOptions ?? [] as opt}
+                        <OptionInput value={opt.value}>{opt.label}</OptionInput>
+                    {/each}
+                </SelectInput>
+            {:else}
+                <SelectInput bind:value={DBState.db[item.bindKey]}>
+                    {#each item.options?.selectOptions ?? [] as opt}
+                        <OptionInput value={opt.value}>{opt.label}</OptionInput>
+                    {/each}
+                </SelectInput>
+            {/if}
         {:else if item.type === 'color'}
             <div class="flex items-center mt-2">
                 <ColorInput bind:value={(DBState.db as any)[item.bindKey]} />

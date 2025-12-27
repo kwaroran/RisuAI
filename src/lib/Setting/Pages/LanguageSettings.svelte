@@ -13,11 +13,22 @@
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
+    import SettingRenderer from "../SettingRenderer.svelte";
+    import { 
+        deeplSettingsItems, 
+        deeplXSettingsItems, 
+        llmTranslatorSettingsItems,
+        bergamotSettingsItems,
+        commonTranslatorSettingsItems,
+        llmOnlySettingsItems
+    } from "src/ts/setting/languageSettingsData";
+
     let langChanged = $state(false)
 
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.language}</h2>
 
+<!-- UI Language Select (complex onChange handler) -->
 <span class="text-textcolor mt-4">{language.UiLanguage}</span>
 <SelectInput className="mt-2" bind:value={DBState.db.language} onchange={async () => {
     if(DBState.db.language === 'translang'){
@@ -64,6 +75,8 @@
 {#if langChanged}
     <span class="bg-red-500 text-sm">Close the settings to take effect</span>
 {/if}
+
+<!-- Translator Language Select (dynamic options based on translatorType) -->
 <span class="text-textcolor mt-4">{language.translatorLanguage}</span>
 <SelectInput className="mt-2 mb-4" bind:value={DBState.db.translator}>
     <OptionInput value="" >{language.disabled}</OptionInput>
@@ -85,6 +98,7 @@
 </SelectInput>
 
 {#if DBState.db.translator}
+    <!-- Translator Type Select -->
     <span class="text-textcolor mt-4">{language.translatorType}</span>
     <SelectInput className="mt-2 mb-4" bind:value={DBState.db.translatorType}>
         <OptionInput value="google" >Google</OptionInput>
@@ -94,34 +108,25 @@
         <OptionInput value="bergamot" >Firefox</OptionInput>
     </SelectInput>
 
+    <!-- DeepL Settings -->
     {#if DBState.db.translatorType === 'deepl'}
         {#if !isTauri}
-            <span class="text-draculared text-xs ml-2">{language.webdeeplwarn}</span>
+            <span class="text-draculared text-xs ml-2 mb-4">{language.webdeeplwarn}</span>
         {/if}
-        <span class="text-textcolor mt-4">{language.deeplKey}</span>
-        <TextInput bind:value={DBState.db.deeplOptions.key} />
-
-        <div class="flex items-center mt-2">
-            <Check bind:check={DBState.db.deeplOptions.freeApi} name={language.deeplFreeKey}/>
-        </div>
+        <SettingRenderer items={deeplSettingsItems} checkSpacing="mt-4" />
     {/if}
 
+    <!-- DeepL X Settings -->
     {#if DBState.db.translatorType === 'deeplX'}
-        <span class="text-textcolor mt-4" placeholder="http://localhost:1188">{language.deeplXUrl}</span>
-        <TextInput bind:value={DBState.db.deeplXOptions.url} />
-        
-        <span class="text-textcolor mt-4">{language.deeplXToken}</span>
-        <TextInput bind:value={DBState.db.deeplXOptions.token} />
+        <SettingRenderer items={deeplXSettingsItems} checkSpacing="mt-4" />
     {/if}
     
+    <!-- LLM Translator Settings -->
     {#if DBState.db.translatorType === 'llm'}
-        <span class="text-textcolor mt-4">{language.translationResponseSize}</span>
-        <NumberInput min={0} max={2048} marginBottom={true} bind:value={DBState.db.translatorMaxResponse}/>
-        <span class="text-textcolor mt-4">{language.translatorPrompt} <Help key="translatorPrompt" /></span>
-
-        <TextAreaInput bind:value={DBState.db.translatorPrompt} placeholder={"You are a translator. translate the following html or text into {{slot}}. do not output anything other than the translation."}/>
+        <SettingRenderer items={llmTranslatorSettingsItems} checkSpacing="mt-4" />
     {/if}
 
+    <!-- Google Translator Settings (Source Language) -->
     {#if DBState.db.translatorType === 'google'}
         <span class="text-textcolor mt-4">{language.sourceLanguage}</span>
         <SelectInput className="mt-2 mb-4" bind:value={DBState.db.translatorInputLanguage}>
@@ -137,39 +142,16 @@
         </SelectInput>
     {/if}
 
+    <!-- Bergamot Settings -->
     {#if DBState.db.translatorType === 'bergamot'}
-        <div class="flex items-center mt-4">
-            <Check bind:check={DBState.db.htmlTranslation} name={language.htmlTranslation}/>
-        </div>
+        <SettingRenderer items={bergamotSettingsItems} checkSpacing="mt-4" />
     {/if}
 
-    <div class="flex items-center mt-2">
-        <Check bind:check={DBState.db.autoTranslate} name={language.autoTranslation}/>
-    </div>
+    <!-- Common Translator Settings -->
+    <SettingRenderer items={commonTranslatorSettingsItems} checkSpacing="mt-4" />
 
-    <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.combineTranslation} name={language.combineTranslation}>
-            <Help key="combineTranslation"/>
-        </Check>
-    </div>
-
-    <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.legacyTranslation} name={language.legacyTranslation}>
-            <Help key="legacyTranslation"/>
-        </Check>
-    </div>
-
+    <!-- LLM-only Additional Settings -->
     {#if DBState.db.translatorType === 'llm'}
-        <div class="flex items-center mt-4">
-        <Check bind:check={DBState.db.translateBeforeHTMLFormatting} name={language.translateBeforeHTMLFormatting}>
-                <Help key="translateBeforeHTMLFormatting"/>
-            </Check>
-        </div>
-
-        <div class="flex items-center mt-4">
-            <Check bind:check={DBState.db.autoTranslateCachedOnly} name={language.autoTranslateCachedOnly}>
-                    <Help key="autoTranslateCachedOnly"/>
-                </Check>
-        </div>        
+        <SettingRenderer items={llmOnlySettingsItems} checkSpacing="mt-4" />
     {/if}
 {/if}

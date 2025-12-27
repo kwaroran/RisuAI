@@ -3,4 +3,4 @@
     import { accessibilitySettingsItems } from "src/ts/setting/accessibilitySettingsData";
 </script>
 
-<SettingRenderer items={accessibilitySettingsItems} />
+<SettingRenderer items={accessibilitySettingsItems} checkSpacing="mt-2" />

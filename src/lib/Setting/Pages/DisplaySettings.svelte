@@ -14,10 +14,12 @@
     import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import ColorInput from "src/lib/UI/GUI/ColorInput.svelte";
-  import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-  import Button from "src/lib/UI/GUI/Button.svelte";
-  import { CustomGUISettingMenuStore } from "src/ts/stores.svelte";
-  import { alertError } from "src/ts/alert";
+    import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import Button from "src/lib/UI/GUI/Button.svelte";
+    import { CustomGUISettingMenuStore } from "src/ts/stores.svelte";
+    import { alertError } from "src/ts/alert";
+    import SettingRenderer from "../SettingRenderer.svelte";
+    import { sizeSpeedSettingsItems, displayOthersCheckboxItems, displayUnrecommendedItems } from "src/ts/setting/displaySettingsData";
 
     const onSchemeInputChange = (e:Event) => {
         changeColorScheme((e.target as HTMLInputElement).value)
@@ -199,14 +201,9 @@
 
 {#if submenu === 1 || submenu === -1}
 
-    <span class="text-textcolor mt-4">{language.UISize}</span>
-    <SliderInput  min={50} max={200} bind:value={DBState.db.zoomsize} marginBottom/>
-
-    <span class="text-textcolor">{language.lineHeight}</span>
-    <SliderInput  min={0.5} max={3} step={0.05} fixed={2} bind:value={DBState.db.lineHeight} marginBottom/>
-
-    <span class="text-textcolor">{language.iconSize}</span>
-    <SliderInput min={50} max={200} bind:value={DBState.db.iconsize} marginBottom/>
+    <div class="mt-4">
+        <SettingRenderer items={sizeSpeedSettingsItems} checkSpacing="mt-4" />
+    </div>
 
     <span class="text-textcolor">{language.textAreaSize}</span>
     <SliderInput min={-5} max={5} bind:value={DBState.db.textAreaSize} onchange={updateGuisize} customText={guiSizeText(DBState.db.textAreaSize)} marginBottom/>
@@ -222,9 +219,6 @@
         (DBState.db.assetWidth === -1) ? "Unlimited" : 
         (DBState.db.assetWidth === 0) ? "Hidden" : (`${(DBState.db.assetWidth).toFixed(1)} rem`)
     } marginBottom />
-
-    <span class="text-textcolor">{language.animationSpeed}</span>
-    <SliderInput min={0} max={1} step={0.05} fixed={2} bind:value={DBState.db.animationSpeed} onchange={updateAnimationSpeed} marginBottom />
 
     {#if DBState.db.showMemoryLimit}
         <span class="text-textcolor">{language.memoryLimitThickness}</span>

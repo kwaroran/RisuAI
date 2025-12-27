@@ -20,6 +20,8 @@
     import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "@lucide/svelte";
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
+    import SettingRenderer from "../SettingRenderer.svelte";
+    import { ttsSettingsItems, emotionSettingsItems } from "src/ts/setting/otherBotSettingsData";
 
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0);
 
@@ -641,38 +643,13 @@
 
 {#if submenu === 1 || submenu === -1}
 <Arcodion name="TTS" styled disabled={submenu !== -1}>
-    <span class="text-textcolor mt-2">Auto Speech</span>
-    <CheckInput bind:check={DBState.db.ttsAutoSpeech}/>
-
-    <span class="text-textcolor mt-2">ElevenLabs API key</span>
-    <TextInput size="sm" marginBottom bind:value={DBState.db.elevenLabKey}/>
-
-    <span class="text-textcolor mt-2">VOICEVOX URL</span>
-    <TextInput size="sm" marginBottom bind:value={DBState.db.voicevoxUrl}/>
-
-    <span class="text-textcolor">OpenAI Key</span>
-    <TextInput size="sm" marginBottom bind:value={DBState.db.openAIKey}/>
-
-    <span class="text-textcolor mt-2">NovelAI API key</span>
-    <TextInput size="sm" marginBottom placeholder="pst-..." bind:value={DBState.db.NAIApiKey}/>
-
-    <span class="text-textcolor">Huggingface Key</span>
-    <TextInput size="sm" marginBottom bind:value={DBState.db.huggingfaceKey} placeholder="hf_..."/>
-
-    <span class="text-textcolor">fish-speech API Key</span>
-    <TextInput size="sm" marginBottom bind:value={DBState.db.fishSpeechKey}/>
-
+    <SettingRenderer items={ttsSettingsItems} checkSpacing="mt-4" />
 </Arcodion>
 {/if}
 
 {#if submenu === 2 || submenu === -1}
 <Arcodion name={language.emotionImage} styled disabled={submenu !== -1}>
-    <span class="text-textcolor mt-2">{language.emotionMethod}</span>
-
-    <SelectInput className="mt-2 mb-4" bind:value={DBState.db.emotionProcesser}>
-        <OptionInput value="submodel" >Ax. Model</OptionInput>
-        <OptionInput value="embedding" >MiniLM-L6-v2</OptionInput>
-    </SelectInput>
+    <SettingRenderer items={emotionSettingsItems} checkSpacing="mt-4" />
 </Arcodion>
 {/if}
 
