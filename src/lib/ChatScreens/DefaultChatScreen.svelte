@@ -3,7 +3,8 @@
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
     import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "@lucide/svelte";
-    import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
+    import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen, ScrollToMessageStore } from "../../ts/stores.svelte";
+    import { tick } from 'svelte';
     import Chat from "./Chat.svelte";
     import { type Message } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
@@ -42,9 +43,81 @@
     let doingChatInputTranslate = false
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
+    let isScrollingToMessage = $state(false)
 
     let currentCharacter = $derived(DBState.db.characters[$selectedCharID])
     let currentChat = $derived(currentCharacter?.chats[currentCharacter.chatPage]?.message ?? [])
+
+    $effect(() => {
+        if($ScrollToMessageStore !== -1){
+            const index = $ScrollToMessageStore
+            ScrollToMessageStore.set(-1)
+            scrollToMessage(index)
+        }
+    })
+
+    async function scrollToMessage(index: number){
+        // Forces the loading of past messages not rendered on the screen
+        isScrollingToMessage = true
+        try {
+            let isAlreadyLoaded = false
+            const totalMessages = currentChat.length
+            const neededLoadPages = totalMessages - index + 10
+
+            if(loadPages < neededLoadPages){
+                loadPages = neededLoadPages
+                await tick()
+                await sleep(100)
+            } else {
+                isAlreadyLoaded = true
+            }
+
+            const element = document.querySelector(`[data-chat-index="${index}"]`)
+            if(element){
+                // Since the chat contains many images, Force-load images from surrounding chats to prevent scrolling from lagging after moving.
+                const start = Math.max(0, index - 20);
+                const end = Math.min(totalMessages - 1, index + 20);
+                const imageLoadPromises: Promise<void>[] = [];
+
+                for (let i = start; i <= end; i++) {
+                    const el = document.querySelector(`[data-chat-index="${i}"]`);
+                    if (el) {
+                        const images = el.querySelectorAll('img');
+                        images.forEach(img => {
+                            if(!isAlreadyLoaded || !img.complete){
+                                img.setAttribute('loading', 'eager');
+                                imageLoadPromises.push(img.decode().catch(() => {}));
+                            }
+                        });
+                    }
+                }
+                if (imageLoadPromises.length > 0) {
+                    await Promise.race([
+                        Promise.all(imageLoadPromises),
+                        sleep(1000)
+                    ]);
+                }
+
+                if(isAlreadyLoaded){
+                    element.scrollIntoView({behavior: "instant", block: "start"})
+                } else {
+                    // It may seem inefficient, but since loadPages is always increasing, this wait only occurs when reading chats outside the current loadPages range.
+                    element.scrollIntoView({behavior: "smooth", block: "start"})
+                    await sleep(1000)
+                    element.scrollIntoView({behavior: "instant", block: "start"})
+                    await sleep(2000)
+                    element.scrollIntoView({behavior: "instant", block: "start"})
+                }
+
+                element.classList.add('ring-2', 'ring-blue-500')
+                setTimeout(() => {
+                    element.classList.remove('ring-2', 'ring-blue-500')
+                }, 2000)
+            }
+        } finally {
+            isScrollingToMessage = false
+        }
+    }
 
     async function send(){
         return sendMain(false)
@@ -429,6 +502,11 @@
 <div class="w-full h-full" style={customStyle} onclick={() => {
     openMenu = false
 }}>
+    {#if isScrollingToMessage}
+        <div class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 text-white text-xl font-bold backdrop-blur-sm">
+            Loading...
+        </div>
+    {/if}
     {#if $selectedCharID < 0}
         {#if $PlaygroundStore === 0}
             <MainMenu />
