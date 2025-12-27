@@ -1387,11 +1387,13 @@
                           {@render renderDivider(r.seg, r.scope)}
                         </div>
                       {:else}
-                        <div class="px-3 py-1">
+                        <div class="contents group">
+                        <div class="px-3 py-0.5 font-mono text-sm leading-5 group-hover:bg-white/10 group-hover:outline group-hover:outline-1 group-hover:outline-white/15">
                           {@render renderSplitCell(leftExists ? r.left : { kind: 'empty', role: r.left.role }, rIdx)}
                         </div>
-                        <div class="px-3 py-1">
+                        <div class="px-3 py-0.5 font-mono text-sm leading-5 group-hover:bg-white/10 group-hover:outline group-hover:outline-1 group-hover:outline-white/15">
                           {@render renderSplitCell(rightExists ? r.right : { kind: 'empty', role: r.right.role }, rIdx)}
+                        </div>
                         </div>
                       {/if}
                     {/each}
@@ -1453,12 +1455,14 @@
                       {@render renderDivider(r.seg, r.scope)}
                     </div>
                   {:else}
-                    <div class="px-3 py-1 bg-black/10">
+                    <div class="contents group">
+                    <div class="px-3 py-0.5 bg-black/10 group-hover:bg-white/10 group-hover:outline group-hover:outline-1 group-hover:outline-white/15">
                       {@render renderSplitCell(r.left, idx)}
                     </div>
                     <div class="w-px bg-white/10"></div>
-                    <div class="px-3 py-1 bg-black/10">
+                    <div class="px-3 py-0.5 bg-black/10 group-hover:bg-white/10 group-hover:outline group-hover:outline-1 group-hover:outline-white/15">
                       {@render renderSplitCell(r.right, idx)}
+                    </div>
                     </div>
                   {/if}
                 {/each}
