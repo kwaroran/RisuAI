@@ -10,6 +10,10 @@
  * postMessage communication, which makes them asynchronous. Even methods that
  * appear synchronous in the implementation (like log(), showContainer(), etc.)
  * return Promises when called from the plugin iframe.
+ * 
+ * for DOM, we recommend using iframe-based UI which uses standard document API
+ * instead of accessing the main document directly via getRootDocument(),
+ * unless absolutely necessary.
  *
  * **ALWAYS use `await` or `.then()` when calling any risuai method or SafeElement method.**
  *
@@ -655,6 +659,9 @@ export interface SafeElement {
  * SafeDocument extends SafeElement with document-specific methods.
  * Provides secure access to the main RisuAI document.
  *
+ * Note that this SHOULD NOT be used unless absolutely necessary.
+ * use other risuai APIs whenever possible, especially using iframe UI
+ * 
  * @example
  * ```typescript
  * const doc = risuai.getRootDocument();
