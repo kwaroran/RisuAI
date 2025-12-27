@@ -74,10 +74,10 @@
  *
  * (async () => {
  *   // ALL methods require await
- *   await risuai.log('Plugin initialized');
+ *   await console.log('Plugin initialized');
  *
  *   const character = await risuai.getCharacter();
- *   await risuai.log(`Current character: ${character.name}`);
+ *   await console.log(`Current character: ${character.name}`);
  *
  *   const apiKey = await risuai.getArgument('api_key');
  *
@@ -285,7 +285,7 @@ export interface DatabaseSubset {
  *
  * // Add event listener
  * const id = await element.addEventListener('click', async () => {
- *   risuai.log('Clicked!');
+ *   console.log('Clicked!');
  * });
  * ```
  */
@@ -621,7 +621,7 @@ export interface SafeElement {
      * @example
      * ```typescript
      * const id = await element.addEventListener('click', async (event) => {
-     *   risuai.log('Element clicked!');
+     *   console.log('Element clicked!');
      * });
      *
      * // Later, remove the listener
@@ -729,10 +729,10 @@ export type SafeMutationCallback = (mutations: SafeMutationRecord[]) => void;
  * ```typescript
  * const observer = risuai.createMutationObserver((mutations) => {
  *   mutations.forEach(mutation => {
- *     risuai.log(`Mutation type: ${mutation.type}`);
+ *     console.log(`Mutation type: ${mutation.type}`);
  *     mutation.addedNodes.forEach(async (node) => {
  *       const text = await node.textContent();
- *       risuai.log(`Node added: ${text}`);
+ *       console.log(`Node added: ${text}`);
  *     });
  *   });
  * });
@@ -931,12 +931,13 @@ export interface RisuaiPluginAPI {
 
     /**
      * Logs a message with plugin identification
+     * @deprecated Use console.log() instead
      * @param message - Message to log
      * @returns Promise that resolves when log is complete
      *
      * @example
      * ```typescript
-     * await risuai.log('Plugin initialized');
+     * await console.log('Plugin initialized');
      * // Output: [RisuAI Plugin: YourPlugin] Plugin initialized
      * ```
      */
@@ -995,7 +996,7 @@ export interface RisuaiPluginAPI {
      * @example
      * ```typescript
      * const char = await risuai.getCharacter();
-     * risuai.log(`Current character: ${char.name}`);
+     * console.log(`Current character: ${char.name}`);
      * ```
      */
     getCharacter(): Promise<any>;
@@ -1150,7 +1151,7 @@ export interface RisuaiPluginAPI {
      *   iconType: 'html',
      *   location: 'action'
      * }, async () => {
-     *     risuai.log('Action button clicked!');
+     *     console.log('Action button clicked!');
      * });
      * ```
      */
