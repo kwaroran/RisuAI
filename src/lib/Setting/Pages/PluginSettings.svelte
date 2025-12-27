@@ -21,7 +21,6 @@
 
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
 
-<!-- Settings registered for search (all renderManually) -->
 <SettingRenderer items={pluginSettingsItems} />
 
 <span class="text-draculared text-xs mb-4">{language.pluginWarn}</span>

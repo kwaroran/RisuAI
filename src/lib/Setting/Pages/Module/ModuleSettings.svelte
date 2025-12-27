@@ -41,7 +41,6 @@
 {#if mode === 0}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.modules}</h2>
 
-    <!-- Settings registered for search (all renderManually) -->
     <SettingRenderer items={moduleSettingsItems} />
 
     <TextInput className="mt-4" placeholder={language.search} bind:value={moduleSearch} />

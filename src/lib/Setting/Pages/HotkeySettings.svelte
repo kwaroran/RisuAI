@@ -14,7 +14,6 @@
 
 {:else}
 
-    <!-- Settings registered for search (all renderManually) -->
     <SettingRenderer items={hotkeySettingsItems} />
 
     <table>

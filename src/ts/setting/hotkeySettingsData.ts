@@ -1,21 +1,11 @@
-/**
- * Hotkey Settings Data
- * 
- * Data-driven definition of settings in HotkeySettings page.
- * All items are renderManually as it's a complex table-based UI.
- */
-
 import type { SettingItem } from './types';
 
-/**
- * Hotkey settings - all rendered manually due to complex table-based UI
- */
 export const hotkeySettingsItems: SettingItem[] = [
     {
         id: 'hotkey.table',
         type: 'button',
         labelKey: 'hotkey',
-        renderManually: true,  // Complex table with modifier keys and key input
+        renderManually: true,
         keywords: ['hotkey', 'keyboard', 'shortcut', 'key', 'binding']
     },
     {
@@ -54,3 +44,4 @@ export const hotkeySettingsItems: SettingItem[] = [
         keywords: ['hotkey', 'stop', 'abort', 'cancel']
     },
 ];
+

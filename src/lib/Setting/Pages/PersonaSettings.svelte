@@ -70,9 +70,7 @@
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.persona}</h2>
 
-<!-- Settings registered for search (all renderManually) -->
 <SettingRenderer items={personaSettingsItems} />
-
 
 {#key sorted}
 <div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2 w-full max-w-full min-w-0" bind:this={ele}>

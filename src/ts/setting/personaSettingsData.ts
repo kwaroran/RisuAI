@@ -1,21 +1,11 @@
-/**
- * Persona Settings Data
- * 
- * Data-driven definition of settings in PersonaSettings page.
- * All items are renderManually as the entire page is a complex dynamic UI.
- */
-
 import type { SettingItem } from './types';
 
-/**
- * Persona settings - all rendered manually due to complex sortable/dynamic UI
- */
 export const personaSettingsItems: SettingItem[] = [
     {
         id: 'persona.list',
         type: 'button',
         labelKey: 'persona',
-        renderManually: true,  // Complex sortable grid with persona icons
+        renderManually: true,
         keywords: ['persona', 'user', 'character', 'icon', 'profile']
     },
     {
@@ -36,7 +26,7 @@ export const personaSettingsItems: SettingItem[] = [
         id: 'persona.personaPrompt',
         type: 'textarea',
         labelKey: 'personaPrompt',
-        renderManually: true,  // Has Help tooltip
+        renderManually: true,
         keywords: ['persona', 'prompt', 'description']
     },
     {
@@ -50,7 +40,8 @@ export const personaSettingsItems: SettingItem[] = [
         id: 'persona.customBackground',
         type: 'check',
         fallbackLabel: 'Use Custom Background for Persona',
-        renderManually: true,  // Complex file selector
+        renderManually: true,
         keywords: ['persona', 'background', 'custom', 'image']
     },
 ];
+

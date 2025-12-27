@@ -76,7 +76,6 @@ let tokens = $state({
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
-<!-- Settings registered for search (all renderManually) -->
 <SettingRenderer items={botSettingsItems} />
 
 {#if submenu !== -1}

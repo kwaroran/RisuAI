@@ -1,25 +1,13 @@
-/**
- * Bot Settings Data (Chat Bot Settings)
- * 
- * Data-driven definition of settings in BotSettings page.
- * This is the most complex settings page with 4 tabs and many provider-specific conditional settings.
- * All items are renderManually due to the complex conditional rendering based on selected model.
- */
-
 import type { SettingItem } from './types';
 
-/**
- * Model Tab (submenu 0) - Model selection and API keys
- */
 export const botModelSettingsItems: SettingItem[] = [
-    // Model Selection
     {
         id: 'bot.aiModel',
         type: 'select',
         labelKey: 'model',
         helpKey: 'model',
         bindKey: 'aiModel',
-        renderManually: true,  // Uses ModelList component
+        renderManually: true,
         keywords: ['model', 'ai', 'llm', 'gpt', 'claude', 'gemini']
     },
     {
@@ -28,17 +16,15 @@ export const botModelSettingsItems: SettingItem[] = [
         labelKey: 'submodel',
         helpKey: 'submodel',
         bindKey: 'subModel',
-        renderManually: true,  // Uses ModelList component
+        renderManually: true,
         keywords: ['submodel', 'auxiliary', 'model']
     },
-    
-    // Provider-specific API Keys
     {
         id: 'bot.openAIKey',
         type: 'text',
         labelKey: 'apiKey',
         bindKey: 'openAIKey',
-        renderManually: true,  // Conditional on provider
+        renderManually: true,
         keywords: ['openai', 'api', 'key', 'gpt']
     },
     {
@@ -46,21 +32,21 @@ export const botModelSettingsItems: SettingItem[] = [
         type: 'text',
         labelKey: 'apiKey',
         bindKey: 'claudeAPIKey',
-        renderManually: true,  // Conditional on provider
+        renderManually: true,
         keywords: ['claude', 'anthropic', 'api', 'key']
     },
     {
         id: 'bot.google.accessToken',
         type: 'text',
         fallbackLabel: 'GoogleAI API Key',
-        renderManually: true,  // Conditional on provider, nested binding
+        renderManually: true,
         keywords: ['google', 'gemini', 'api', 'key']
     },
     {
         id: 'bot.vertexAI',
         type: 'text',
         fallbackLabel: 'Vertex AI Settings',
-        renderManually: true,  // Complex multi-field settings
+        renderManually: true,
         keywords: ['vertex', 'google', 'cloud', 'project', 'region']
     },
     {
@@ -102,26 +88,20 @@ export const botModelSettingsItems: SettingItem[] = [
         renderManually: true,
         keywords: ['novellist', 'api', 'key']
     },
-    
-    // Reverse Proxy Settings
     {
         id: 'bot.reverseProxy',
         type: 'button',
         fallbackLabel: 'Reverse Proxy Settings',
-        renderManually: true,  // URL, Key, Model, Format
+        renderManually: true,
         keywords: ['reverse', 'proxy', 'custom', 'api', 'url', 'format']
     },
-    
-    // OpenRouter Settings
     {
         id: 'bot.openrouter',
         type: 'button',
         fallbackLabel: 'OpenRouter Settings',
-        renderManually: true,  // Key, Model select with search
+        renderManually: true,
         keywords: ['openrouter', 'key', 'model']
     },
-    
-    // Ollama Settings
     {
         id: 'bot.ollama',
         type: 'button',
@@ -129,8 +109,6 @@ export const botModelSettingsItems: SettingItem[] = [
         renderManually: true,
         keywords: ['ollama', 'local', 'url', 'model']
     },
-    
-    // Kobold Settings
     {
         id: 'bot.kobold',
         type: 'button',
@@ -138,8 +116,6 @@ export const botModelSettingsItems: SettingItem[] = [
         renderManually: true,
         keywords: ['kobold', 'url']
     },
-    
-    // TextGen WebUI / Ooba Settings
     {
         id: 'bot.textgenWebUI',
         type: 'button',
@@ -147,8 +123,6 @@ export const botModelSettingsItems: SettingItem[] = [
         renderManually: true,
         keywords: ['textgen', 'webui', 'ooba', 'oobabooga', 'url', 'stream']
     },
-    
-    // Horde Settings  
     {
         id: 'bot.horde',
         type: 'button',
@@ -156,8 +130,6 @@ export const botModelSettingsItems: SettingItem[] = [
         renderManually: true,
         keywords: ['horde', 'api', 'key']
     },
-    
-    // Mancer Settings
     {
         id: 'bot.mancer',
         type: 'button',
@@ -165,14 +137,12 @@ export const botModelSettingsItems: SettingItem[] = [
         renderManually: true,
         keywords: ['mancer', 'api', 'key']
     },
-    
-    // Streaming options
     {
         id: 'bot.useStreaming',
         type: 'check',
         labelKey: 'streaming',
         bindKey: 'useStreaming',
-        renderManually: true,  // Conditional on model flags
+        renderManually: true,
         keywords: ['streaming', 'response', 'stream']
     },
     {
@@ -180,14 +150,11 @@ export const botModelSettingsItems: SettingItem[] = [
         type: 'select',
         labelKey: 'tokenizer',
         bindKey: 'customTokenizer',
-        renderManually: true,  // Conditional on model
+        renderManually: true,
         keywords: ['tokenizer', 'token', 'count']
     },
 ];
 
-/**
- * Parameters Tab (submenu 1) - Generation parameters
- */
 export const botParameterSettingsItems: SettingItem[] = [
     {
         id: 'bot.maxContext',
@@ -219,7 +186,7 @@ export const botParameterSettingsItems: SettingItem[] = [
         type: 'slider',
         fallbackLabel: 'Top P',
         bindKey: 'top_p',
-        renderManually: true,  // Conditional on model parameters
+        renderManually: true,
         keywords: ['top', 'p', 'nucleus', 'sampling']
     },
     {
@@ -275,7 +242,7 @@ export const botParameterSettingsItems: SettingItem[] = [
         type: 'slider',
         labelKey: 'thinkingTokens',
         bindKey: 'thinkingTokens',
-        renderManually: true,  // Conditional on model parameters
+        renderManually: true,
         keywords: ['thinking', 'tokens', 'reasoning']
     },
     {
@@ -299,23 +266,21 @@ export const botParameterSettingsItems: SettingItem[] = [
         type: 'number',
         labelKey: 'seed',
         bindKey: 'generationSeed',
-        renderManually: true,  // Conditional on model
+        renderManually: true,
         keywords: ['seed', 'random', 'deterministic']
     },
-    
-    // Provider-specific parameter sections
     {
         id: 'bot.oobaParameters',
         type: 'button',
         fallbackLabel: 'Ooba/TextGen Parameters',
-        renderManually: true,  // Complex parameter set
+        renderManually: true,
         keywords: ['ooba', 'textgen', 'parameters', 'sample', 'ngram']
     },
     {
         id: 'bot.NAIsettings',
         type: 'button',
         fallbackLabel: 'NovelAI Parameters',
-        renderManually: true,  // Complex parameter set
+        renderManually: true,
         keywords: ['novelai', 'parameters', 'mirostat', 'tailfree']
     },
     {
@@ -329,14 +294,11 @@ export const botParameterSettingsItems: SettingItem[] = [
         id: 'bot.seperateParameters',
         type: 'button',
         labelKey: 'seperateParameters',
-        renderManually: true,  // Accordion with per-feature parameters
+        renderManually: true,
         keywords: ['separate', 'parameters', 'memory', 'emotion', 'translate']
     },
 ];
 
-/**
- * Prompt Tab (submenu 2) - Prompts and formatting
- */
 export const botPromptSettingsItems: SettingItem[] = [
     {
         id: 'bot.mainPrompt',
@@ -344,7 +306,7 @@ export const botPromptSettingsItems: SettingItem[] = [
         labelKey: 'mainPrompt',
         helpKey: 'mainprompt',
         bindKey: 'mainPrompt',
-        renderManually: true,  // With token count display
+        renderManually: true,
         keywords: ['main', 'prompt', 'system']
     },
     {
@@ -353,7 +315,7 @@ export const botPromptSettingsItems: SettingItem[] = [
         labelKey: 'jailbreakPrompt',
         helpKey: 'jailbreak',
         bindKey: 'jailbreak',
-        renderManually: true,  // With token count display
+        renderManually: true,
         keywords: ['jailbreak', 'prompt', 'override']
     },
     {
@@ -362,7 +324,7 @@ export const botPromptSettingsItems: SettingItem[] = [
         labelKey: 'globalNote',
         helpKey: 'globalNote',
         bindKey: 'globalNote',
-        renderManually: true,  // With token count display
+        renderManually: true,
         keywords: ['global', 'note', 'context']
     },
     {
@@ -370,7 +332,7 @@ export const botPromptSettingsItems: SettingItem[] = [
         type: 'button',
         labelKey: 'formatingOrder',
         helpKey: 'formatOrder',
-        renderManually: true,  // Uses DropList component
+        renderManually: true,
         keywords: ['format', 'order', 'prompt', 'arrangement']
     },
     {
@@ -385,21 +347,18 @@ export const botPromptSettingsItems: SettingItem[] = [
         id: 'bot.promptTemplate',
         type: 'button',
         labelKey: 'promptTemplate',
-        renderManually: true,  // Uses PromptSettings component
+        renderManually: true,
         keywords: ['prompt', 'template', 'order', 'structure']
     },
 ];
 
-/**
- * Others Tab (submenu 3) - Misc settings and accordions
- */
 export const botOthersSettingsItems: SettingItem[] = [
     {
         id: 'bot.bias',
         type: 'button',
         fallbackLabel: 'Bias',
         helpKey: 'bias',
-        renderManually: true,  // Dynamic table with import/export
+        renderManually: true,
         keywords: ['bias', 'token', 'weight', 'logit']
     },
     {
@@ -407,14 +366,14 @@ export const botOthersSettingsItems: SettingItem[] = [
         type: 'button',
         labelKey: 'additionalParams',
         helpKey: 'additionalParams',
-        renderManually: true,  // Conditional dynamic table
+        renderManually: true,
         keywords: ['additional', 'params', 'parameters', 'custom']
     },
     {
         id: 'bot.customFlags',
         type: 'button',
         labelKey: 'customFlags',
-        renderManually: true,  // Toggle button group
+        renderManually: true,
         keywords: ['custom', 'flags', 'capabilities', 'image', 'audio', 'prefill', 'cache']
     },
     {
@@ -423,42 +382,39 @@ export const botOthersSettingsItems: SettingItem[] = [
         labelKey: 'moduleIntergration',
         helpKey: 'moduleIntergration',
         bindKey: 'moduleIntergration',
-        renderManually: true,  // Inside accordion
+        renderManually: true,
         keywords: ['module', 'integration', 'namespace']
     },
     {
         id: 'bot.tools',
         type: 'button',
         labelKey: 'tools',
-        renderManually: true,  // Toggle checkboxes for tools
+        renderManually: true,
         keywords: ['tools', 'search', 'function', 'calling']
     },
     {
         id: 'bot.presetRegex',
         type: 'button',
         labelKey: 'regexScript',
-        renderManually: true,  // Uses RegexList component
+        renderManually: true,
         keywords: ['regex', 'script', 'replace', 'pattern']
     },
     {
         id: 'bot.presetIcon',
         type: 'button',
         labelKey: 'icon',
-        renderManually: true,  // Image upload
+        renderManually: true,
         keywords: ['icon', 'preset', 'image']
     },
     {
         id: 'bot.presets',
         type: 'button',
         labelKey: 'presets',
-        renderManually: true,  // Opens preset list modal
+        renderManually: true,
         keywords: ['preset', 'save', 'load', 'configuration']
     },
 ];
 
-/**
- * Combined export for all Bot Settings
- */
 export const botSettingsItems: SettingItem[] = [
     ...botModelSettingsItems,
     ...botParameterSettingsItems,
