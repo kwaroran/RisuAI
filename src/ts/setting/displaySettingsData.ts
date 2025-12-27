@@ -308,5 +308,133 @@ export const displayCustomCSSItem: SettingItem = {
     labelKey: 'customCSS',
     helpKey: 'customCSS',
     bindKey: 'customCSS',
+    renderManually: true,  // Has custom onInput handler
     keywords: ['custom', 'css', 'style']
 };
+
+/**
+ * Complex settings rendered manually in Svelte (registered here for future search)
+ */
+export const displayComplexSettingsItems: SettingItem[] = [
+    // Theme tab (submenu 0)
+    {
+        id: 'display.theme',
+        type: 'select',
+        labelKey: 'theme',
+        bindKey: 'theme',
+        renderManually: true,  // Has conditional UI (customHTML, waifu settings)
+        keywords: ['theme', 'layout', 'ui', 'waifu', 'mobile', 'cardboard']
+    },
+    {
+        id: 'display.colorScheme',
+        type: 'select',
+        labelKey: 'colorScheme',
+        renderManually: true,  // Complex color picker UI
+        keywords: ['color', 'scheme', 'palette', 'custom']
+    },
+    {
+        id: 'display.textTheme',
+        type: 'select',
+        labelKey: 'textColor',
+        bindKey: 'textTheme',
+        renderManually: true,  // Custom color pickers for text
+        keywords: ['text', 'color', 'theme', 'italic', 'bold', 'quote']
+    },
+    {
+        id: 'display.font',
+        type: 'select',
+        labelKey: 'font',
+        bindKey: 'font',
+        renderManually: true,  // Custom font input
+        keywords: ['font', 'typography', 'text']
+    },
+    
+    // Size & Speed tab (submenu 1) - sliders with customText
+    {
+        id: 'display.textAreaSize',
+        type: 'slider',
+        labelKey: 'textAreaSize',
+        bindKey: 'textAreaSize',
+        renderManually: true,  // Has customText function
+        keywords: ['text', 'area', 'size']
+    },
+    {
+        id: 'display.textAreaTextSize',
+        type: 'slider',
+        labelKey: 'textAreaTextSize',
+        bindKey: 'textAreaTextSize',
+        renderManually: true,  // Has customText function
+        keywords: ['text', 'area', 'font', 'size']
+    },
+    {
+        id: 'display.sideBarSize',
+        type: 'slider',
+        labelKey: 'sideBarSize',
+        bindKey: 'sideBarSize',
+        renderManually: true,  // Has customText function
+        keywords: ['sidebar', 'size']
+    },
+    {
+        id: 'display.assetWidth',
+        type: 'slider',
+        labelKey: 'assetWidth',
+        bindKey: 'assetWidth',
+        renderManually: true,  // Has customText function
+        keywords: ['asset', 'width', 'image']
+    },
+    {
+        id: 'display.memoryLimitThickness',
+        type: 'slider',
+        labelKey: 'memoryLimitThickness',
+        bindKey: 'memoryLimitThickness',
+        renderManually: true,  // Conditional visibility
+        keywords: ['memory', 'limit', 'thickness']
+    },
+    
+    // Others tab (submenu 2) - complex handlers
+    {
+        id: 'display.fullScreen',
+        type: 'check',
+        labelKey: 'fullscreen',
+        bindKey: 'fullScreen',
+        renderManually: true,  // Has changeFullscreen handler
+        keywords: ['fullscreen', 'full', 'screen']
+    },
+    {
+        id: 'display.customBackground',
+        type: 'check',
+        labelKey: 'useCustomBackground',
+        renderManually: true,  // Complex file selector handler
+        keywords: ['custom', 'background', 'image', 'wallpaper']
+    },
+    {
+        id: 'display.textScreenColor',
+        type: 'color',
+        labelKey: 'textBackgrounds',
+        renderManually: true,  // Toggle + color picker combo
+        keywords: ['text', 'background', 'color']
+    },
+    {
+        id: 'display.textScreenBorder',
+        type: 'color',
+        labelKey: 'textScreenBorder',
+        renderManually: true,  // Toggle + color picker combo
+        keywords: ['text', 'border', 'color']
+    },
+    {
+        id: 'display.customQuotes',
+        type: 'check',
+        labelKey: 'customQuotes',
+        bindKey: 'customQuotes',
+        renderManually: true,  // Has conditional text inputs
+        keywords: ['custom', 'quotes', 'punctuation']
+    },
+    {
+        id: 'display.notification',
+        type: 'check',
+        labelKey: 'notification',
+        bindKey: 'notification',
+        renderManually: true,  // Has permission request handler
+        keywords: ['notification', 'alert', 'push']
+    },
+];

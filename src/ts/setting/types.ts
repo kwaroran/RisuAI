@@ -43,8 +43,12 @@ export interface SettingOptions {
     customText?: string;    // Custom display text for slider
     multiple?: number;      // Multiplier for display value
     
-    // select
+    // select - static options
     selectOptions?: SelectOption[];
+    // select - dynamic options based on current state
+    getSelectOptions?: () => SelectOption[];
+    // select, check - value change handler with the new value
+    onValueChange?: (value: any) => void | Promise<void>;
     
     // text, textarea
     placeholder?: string;
@@ -104,6 +108,13 @@ export interface SettingItem {
     
     /** Type-specific options */
     options?: SettingOptions;
+    
+    /**
+     * If true, this setting is rendered manually in Svelte but registered here for future search.
+     * SettingRenderer will skip this item.
+     * Use for complex settings with custom UI logic (e.g., UI Language with alert dialogs).
+     */
+    renderManually?: boolean;
     
     /** Search keywords for future search feature */
     keywords?: string[];

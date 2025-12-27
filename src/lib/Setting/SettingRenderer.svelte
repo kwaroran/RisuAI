@@ -79,7 +79,7 @@
 </script>
 
 {#each items as item (item.id)}
-    {#if !item.condition || item.condition(DBState.db)}
+    {#if !item.renderManually && (!item.condition || item.condition(DBState.db))}
         {#if item.type === 'header'}
             {#if item.options?.level === 'h2'}
                 <h2 class="text-2xl font-bold mt-2 mb-2">{getLabel(item)}</h2>
@@ -189,18 +189,25 @@
             <span class="text-textcolor mt-4">{getLabel(item)}
                 {#if item.helpKey}<Help key={item.helpKey}/>{/if}
             </span>
+            {@const options = item.options?.getSelectOptions?.() ?? item.options?.selectOptions ?? []}
             {#if item.nestedBindKey}
                 <SelectInput 
                     value={getNestedValue(item.nestedBindKey) ?? ''}
-                    onchange={(e) => setNestedValue(item.nestedBindKey!, e.currentTarget.value)}
+                    onchange={(e) => {
+                        setNestedValue(item.nestedBindKey!, e.currentTarget.value);
+                        item.options?.onValueChange?.(e.currentTarget.value);
+                    }}
                 >
-                    {#each item.options?.selectOptions ?? [] as opt}
+                    {#each options as opt}
                         <OptionInput value={opt.value}>{opt.label}</OptionInput>
                     {/each}
                 </SelectInput>
             {:else}
-                <SelectInput bind:value={DBState.db[item.bindKey]}>
-                    {#each item.options?.selectOptions ?? [] as opt}
+                <SelectInput 
+                    bind:value={DBState.db[item.bindKey]}
+                    onchange={(e) => item.options?.onValueChange?.(e.currentTarget.value)}
+                >
+                    {#each options as opt}
                         <OptionInput value={opt.value}>{opt.label}</OptionInput>
                     {/each}
                 </SelectInput>

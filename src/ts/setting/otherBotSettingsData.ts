@@ -87,3 +87,91 @@ export const emotionSettingsItems: SettingItem[] = [
         keywords: ['emotion', 'method', 'image']
     },
 ];
+
+/**
+ * Complex settings rendered manually in Svelte (registered here for future search)
+ */
+export const otherBotComplexSettingsItems: SettingItem[] = [
+    // Long Term Memory (submenu 0)
+    {
+        id: 'other.memoryType',
+        type: 'select',
+        labelKey: 'type',
+        renderManually: true,  // Complex onchange handler setting multiple DB fields
+        keywords: ['memory', 'type', 'hypa', 'supa', 'hanurai']
+    },
+    {
+        id: 'other.hypaV3Presets',
+        type: 'button',
+        fallbackLabel: 'HypaV3 Presets',
+        renderManually: true,  // Complex dynamic preset management UI
+        keywords: ['hypa', 'v3', 'preset', 'memory', 'summarization']
+    },
+    {
+        id: 'other.embedding',
+        type: 'select',
+        labelKey: 'embedding',
+        bindKey: 'hypaModel',
+        renderManually: true,  // Conditional settings based on model
+        keywords: ['embedding', 'model', 'minilm', 'nomic', 'bge', 'openai']
+    },
+    
+    // Image Generation (submenu 3)
+    {
+        id: 'other.sdProvider',
+        type: 'select',
+        labelKey: 'provider',
+        bindKey: 'sdProvider',
+        renderManually: true,  // Each provider has completely different settings
+        keywords: ['image', 'generation', 'sd', 'stable', 'diffusion', 'novelai', 'dalle', 'comfyui']
+    },
+    {
+        id: 'other.webui',
+        type: 'button',
+        fallbackLabel: 'Stable Diffusion WebUI Settings',
+        renderManually: true,  // Complex provider-specific settings
+        keywords: ['webui', 'stable', 'diffusion', 'steps', 'cfg', 'sampler']
+    },
+    {
+        id: 'other.novelaiImage',
+        type: 'button',
+        fallbackLabel: 'NovelAI Image Settings',
+        renderManually: true,  // Complex provider-specific settings
+        keywords: ['novelai', 'image', 'vibe', 'character', 'reference']
+    },
+    {
+        id: 'other.dalle',
+        type: 'button',
+        fallbackLabel: 'DALL-E Settings',
+        renderManually: true,  // Complex provider-specific settings
+        keywords: ['dalle', 'openai', 'image']
+    },
+    {
+        id: 'other.stability',
+        type: 'button',
+        fallbackLabel: 'Stability API Settings',
+        renderManually: true,  // Complex provider-specific settings
+        keywords: ['stability', 'api', 'image']
+    },
+    {
+        id: 'other.fal',
+        type: 'button',
+        fallbackLabel: 'Fal.ai Settings',
+        renderManually: true,  // Complex provider-specific settings
+        keywords: ['fal', 'ai', 'image', 'flux']
+    },
+    {
+        id: 'other.comfyui',
+        type: 'button',
+        fallbackLabel: 'ComfyUI Settings',
+        renderManually: true,  // Complex provider-specific settings
+        keywords: ['comfyui', 'workflow', 'image']
+    },
+    {
+        id: 'other.imagen',
+        type: 'button',
+        fallbackLabel: 'Imagen Settings',
+        renderManually: true,  // Complex provider-specific settings
+        keywords: ['imagen', 'google', 'image']
+    },
+];

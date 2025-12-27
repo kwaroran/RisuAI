@@ -2,12 +2,96 @@
  * Language Settings Data
  * 
  * Data-driven definition of settings in LanguageSettings page.
- * Note: Complex select inputs with dynamic options and onChange handlers
- * are kept in the Svelte file for maintainability.
+ * Note: UI Language select has a complex onChange handler with local state
+ * so it's kept in the Svelte file.
  */
 
-import type { SettingItem } from './types';
-import { isTauri } from '../globalApi.svelte';
+import type { SettingItem, SelectOption } from './types';
+import { DBState } from '../stores.svelte';
+
+/**
+ * Get translator language options based on current translator type
+ */
+function getTranslatorLanguageOptions(): SelectOption[] {
+    const baseOptions: SelectOption[] = [
+        { value: '', label: 'Disabled' },
+        { value: 'ko', label: 'Korean' },
+        { value: 'ru', label: 'Russian' },
+        { value: 'zh', label: 'Chinese' },
+    ];
+    
+    // Google-specific options
+    if (DBState.db.translatorType === 'google') {
+        baseOptions.push(
+            { value: 'zh-TW', label: 'Chinese (Traditional)' },
+            { value: 'fa', label: 'Persian (Farsi)' }
+        );
+    }
+    
+    baseOptions.push(
+        { value: 'ja', label: 'Japanese' },
+        { value: 'fr', label: 'French' },
+        { value: 'es', label: 'Spanish' },
+        { value: 'pt', label: 'Portuguese' },
+        { value: 'de', label: 'German' },
+        { value: 'id', label: 'Indonesian' },
+        { value: 'ms', label: 'Malaysian' },
+        { value: 'uk', label: 'Ukranian' }
+    );
+    
+    return baseOptions;
+}
+
+/**
+ * Translator Language Select (dynamic options based on translatorType)
+ */
+export const translatorLanguageSettingItem: SettingItem = {
+    id: 'lang.translator',
+    type: 'select',
+    labelKey: 'translatorLanguage',
+    bindKey: 'translator',
+    options: {
+        getSelectOptions: getTranslatorLanguageOptions
+    },
+    keywords: ['translator', 'language', 'translate']
+};
+
+/**
+ * UI Language setting (rendered manually due to complex onChange handler)
+ * Registered here for search functionality
+ */
+export const uiLanguageSettingItem: SettingItem = {
+    id: 'lang.language',
+    type: 'select',
+    labelKey: 'UiLanguage',
+    bindKey: 'language',
+    renderManually: true,  // Complex onChange with alert dialogs
+    options: {
+        selectOptions: [
+            { value: 'de', label: 'Deutsch' },
+            { value: 'en', label: 'English' },
+            { value: 'ko', label: '한국어' },
+            { value: 'cn', label: '中文' },
+            { value: 'zh-Hant', label: '中文(繁體)' },
+            { value: 'vi', label: 'Tiếng Việt' },
+            { value: 'translang', label: '[Translate in your own language]' }
+        ]
+    },
+    keywords: ['ui', 'language', 'locale', 'interface']
+};
+
+/**
+ * UI Language options (exported for use in Svelte)
+ */
+export const uiLanguageOptions: SelectOption[] = [
+    { value: 'de', label: 'Deutsch' },
+    { value: 'en', label: 'English' },
+    { value: 'ko', label: '한국어' },
+    { value: 'cn', label: '中文' },
+    { value: 'zh-Hant', label: '中文(繁體)' },
+    { value: 'vi', label: 'Tiếng Việt' },
+    { value: 'translang', label: '[Translate in your own language]' }
+];
 
 /**
  * DeepL-specific settings (shown when translatorType === 'deepl')
@@ -137,3 +221,48 @@ export const llmOnlySettingsItems: SettingItem[] = [
         keywords: ['auto', 'translate', 'cached', 'only']
     },
 ];
+
+/**
+ * Translator Type Select
+ */
+export const translatorTypeSettingItem: SettingItem = {
+    id: 'lang.translatorType',
+    type: 'select',
+    labelKey: 'translatorType',
+    bindKey: 'translatorType',
+    options: {
+        selectOptions: [
+            { value: 'google', label: 'Google' },
+            { value: 'deepl', label: 'DeepL' },
+            { value: 'llm', label: 'Ax. Model' },
+            { value: 'deeplX', label: 'DeepL X' },
+            { value: 'bergamot', label: 'Firefox' }
+        ]
+    },
+    keywords: ['translator', 'type', 'google', 'deepl', 'llm']
+};
+
+/**
+ * Google Source Language Select
+ */
+export const googleSourceLanguageSettingItem: SettingItem = {
+    id: 'lang.translatorInputLanguage',
+    type: 'select',
+    labelKey: 'sourceLanguage',
+    bindKey: 'translatorInputLanguage',
+    options: {
+        selectOptions: [
+            { value: 'auto', label: 'Auto' },
+            { value: 'en', label: 'English' },
+            { value: 'zh', label: 'Chinese' },
+            { value: 'ja', label: 'Japanese' },
+            { value: 'ko', label: 'Korean' },
+            { value: 'fr', label: 'French' },
+            { value: 'es', label: 'Spanish' },
+            { value: 'de', label: 'German' },
+            { value: 'ru', label: 'Russian' }
+        ]
+    },
+    keywords: ['source', 'language', 'input', 'google', 'translate']
+};
+

@@ -510,4 +510,41 @@ export const advancedSettingsItems: SettingItem[] = [
         options: { helpUnrecommended: true },
         keywords: ['deprecated', 'trigger', 'v1', 'unrecommended']
     },
+    
+    // Complex settings rendered manually in Svelte (registered here for future search)
+    {
+        id: 'adv.banCharacterset',
+        type: 'button',  // Actually a toggle button group
+        labelKey: 'banCharacterset',
+        renderManually: true,
+        keywords: ['ban', 'character', 'set', 'script', 'unicode']
+    },
+    {
+        id: 'adv.customModels',
+        type: 'button',  // Actually a complex accordion with dynamic forms
+        labelKey: 'customModels',
+        renderManually: true,
+        keywords: ['custom', 'model', 'llm', 'api', 'endpoint']
+    },
+    {
+        id: 'adv.showLog',
+        type: 'button',
+        labelKey: 'ShowLog',
+        renderManually: true,
+        keywords: ['log', 'request', 'debug']
+    },
+    {
+        id: 'adv.showStatistics',
+        type: 'button',
+        fallbackLabel: 'Show Statistics',
+        renderManually: true,
+        keywords: ['statistics', 'stats', 'usage']
+    },
+    {
+        id: 'adv.exportSettings',
+        type: 'button',
+        fallbackLabel: 'Export Settings for Bug Report',
+        renderManually: true,
+        keywords: ['export', 'settings', 'bug', 'report']
+    },
 ];
