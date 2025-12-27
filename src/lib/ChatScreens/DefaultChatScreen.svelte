@@ -82,12 +82,7 @@
                         const images = el.querySelectorAll('img');
                         images.forEach(img => {
                             img.setAttribute('loading', 'eager');
-                            if (!img.complete) {
-                                imageLoadPromises.push(new Promise(resolve => {
-                                    img.onload = () => resolve();
-                                    img.onerror = () => resolve();
-                                }));
-                            }
+                            imageLoadPromises.push(img.decode().catch(() => {}));
                         });
                     }
                 }
