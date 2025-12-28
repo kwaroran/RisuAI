@@ -24,7 +24,7 @@
         {:else if card.authorname}
             <span class="text-sm text-gray-500 line-clamp-1 text-wrap max-w-full break-all whitespace-pre-wrap">By {card.authorname}</span>
         {/if}
-        <p class="text-xs text-gray-500 line-clamp-2 text-wrap max-w-full break-words whitespace-pre-wrap mt-2">{card.desc}</p>
+        <p class="text-xs text-gray-500 line-clamp-2 text-wrap max-w-full wrap-break-word whitespace-pre-wrap mt-2">{card.desc}</p>
         <div class="mt-2 w-full flex flex-wrap">
             {#each card.tags as tag}
                 {#if tag}

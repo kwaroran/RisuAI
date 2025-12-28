@@ -1,7 +1,7 @@
 import type { SummarizationOutput, TextToAudioPipeline, FeatureExtractionPipeline, TextGenerationConfig, TextGenerationOutput, ImageToTextOutput } from '@huggingface/transformers';
 import { unzip } from 'fflate';
-import { globalFetch, loadAsset, saveAsset } from 'src/ts/globalApi.svelte';
-import { selectSingleFile } from 'src/ts/util';
+import { loadAsset, saveAsset } from 'src/ts/globalApi.svelte';
+import { selectSingleFile, asBuffer  } from 'src/ts/util';
 import { v4 } from 'uuid';
 let tfCache: Cache = null
 let tfLoaded = false
@@ -25,7 +25,7 @@ async function initTransformers() {
             if (typeof url === 'string') {
                 if (Object.keys(tfMap).includes(url)) {
                     const assetId = tfMap[url]
-                    return new Response(await loadAsset(assetId))
+                    return new Response(asBuffer(await loadAsset(assetId)))
                 }
             }
             return await tfCache.match(url)
@@ -68,7 +68,7 @@ export const runEmbedding = async (texts: string[], model: EmbeddingModel = 'Xen
         if (extractor) {
             await extractor.dispose()
         }
-        extractor = await pipeline('feature-extraction', model, {
+        extractor = await pipeline<"feature-extraction">('feature-extraction', model, {
             // Default dtype for webgpu is fp32, so we can use q8, which is the default dtype in wasm.
             dtype: "q8",
             device: device,
@@ -119,7 +119,7 @@ export const runVITS = async (text: string, modelData: string | OnnxModelFiles =
     if (typeof modelData === 'string') {
         if ((!synthesizer) || (lastSynth !== modelData)) {
             lastSynth = modelData
-            synthesizer = await pipeline('text-to-speech', modelData);
+            synthesizer = await pipeline<"text-to-speech">('text-to-speech', modelData);
         }
     }
     else {
@@ -132,14 +132,14 @@ export const runVITS = async (text: string, modelData: string | OnnxModelFiles =
                 tfMap[location.origin + fileURL] = files[key]
             }
             lastSynth = modelData.id
-            synthesizer = await pipeline('text-to-speech', modelData.id);
+            synthesizer = await pipeline<"text-to-speech">('text-to-speech', modelData.id);
         }
     }
     let out = await synthesizer(text, {});
     const wav = new WaveFile();
     wav.fromScratch(1, out.sampling_rate, '32f', out.audio);
     const audioContext = new AudioContext();
-    audioContext.decodeAudioData(wav.toBuffer().buffer, (decodedData) => {
+    audioContext.decodeAudioData(asBuffer(wav.toBuffer().buffer), (decodedData) => {
         const sourceNode = audioContext.createBufferSource();
         sourceNode.buffer = decodedData;
         sourceNode.connect(audioContext.destination);

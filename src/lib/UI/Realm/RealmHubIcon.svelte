@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { BookIcon, ImageIcon, SmileIcon } from "lucide-svelte";
+    import { BookIcon, ImageIcon, SmileIcon } from "@lucide/svelte";
     import { alertNormal } from "src/ts/alert";
     import { hubURL, type hubType } from "src/ts/characterCards";
-    import { trimNonLatin } from "src/ts/globalApi.svelte";
     import { parseMultilangString } from "src/ts/util";
 
     interface Props {
@@ -18,9 +17,9 @@
 <button class="bg-darkbg rounded-lg p-4 flex flex-col hover:bg-selected transition-colors relative lg:w-96 w-full items-start" onclick={onClick}>
     <div class="flex gap-2 w-full">
     <img class="w-20 min-w-20 h-20 sm:h-28 sm:w-28 rounded-md object-top object-cover" alt={chara.name} src={`${hubURL}/resource/` + chara.img}>
-    <div class="flex flex-col flex-grow min-w-0">
+    <div class="flex flex-col grow min-w-0">
         <span class="text-textcolor text-lg min-w-0 max-w-full text-ellipsis whitespace-nowrap overflow-hidden text-start">{chara.name}</span>
-        <span class="text-textcolor2 text-xs min-w-0 max-w-full text-ellipsis break-words max-h-8 whitespace-nowrap overflow-hidden text-start">{parseMultilangString(chara.desc).en ?? parseMultilangString(chara.desc).xx}</span>
+        <span class="text-textcolor2 text-xs min-w-0 max-w-full text-ellipsis wrap-break-word max-h-8 whitespace-nowrap overflow-hidden text-start">{parseMultilangString(chara.desc).en ?? parseMultilangString(chara.desc).xx}</span>
         <div class="flex flex-wrap">
             {#each chara.tags as tag, i}
                 {#if i < 4}
@@ -30,7 +29,7 @@
                 {/if}
             {/each}
         </div>
-        <div class="flex-grow"></div>
+        <div class="grow"></div>
         <div class="flex flex-wrap w-full flex-row-reverse gap-1">
             {#if chara.hasEmotion}
                 <div class="text-textcolor2 hover:text-green-500 transition-colors" role="button" tabindex="0" onclick={((e) => {

@@ -1,9 +1,3 @@
-/**
- * ==========================================
- * PART 1: SHARED TYPE DEFINITIONS
- * ==========================================
- */
-
 type MsgType =
     | 'CALL_ROOT'
     | 'CALL_INSTANCE'
@@ -34,54 +28,87 @@ interface CallbackRef {
 
 
 const GUEST_BRIDGE_SCRIPT = `
-(function() {
-    const pendingRequests = new Map(); 
-    const callbackRegistry = new Map(); 
-    
+await (async function() {
+    const pendingRequests = new Map();
+    const callbackRegistry = new Map();
+    const proxyRefRegistry = new Map();
+
     function serializeArg(arg) {
         if (typeof arg === 'function') {
-            const id = 'cb_' + Math.random().toString(36).substr(2);
+            const id = 'cb_' + Math.random().toString(36).substring(2);
             callbackRegistry.set(id, arg);
             return { __type: 'CALLBACK_REF', id: id };
         }
+        if (arg && typeof arg === 'object') {
+            const refId = proxyRefRegistry.get(arg);
+            if (refId) {
+                return { __type: 'REMOTE_REF', id: refId };
+            }
+        }
         return arg;
     }
-    
+
     function deserializeResult(val) {
         if (val && typeof val === 'object' && val.__type === 'REMOTE_REF') {
-            
-            return new Proxy({}, {
+            const proxy = new Proxy({}, {
                 get: (target, prop) => {
-                    if (prop === 'then') return undefined; 
+                    if (prop === 'then') return undefined;
                     if (prop === 'release') {
                         return () => send({ type: 'RELEASE_INSTANCE', id: val.id });
                     }
-                    return (...args) => sendRequest('CALL_INSTANCE', { 
-                        id: val.id, 
-                        method: prop, 
-                        args: args 
+                    return (...args) => sendRequest('CALL_INSTANCE', {
+                        id: val.id,
+                        method: prop,
+                        args: args
                     });
                 }
             });
+            // Store the mapping so we can serialize it back
+            proxyRefRegistry.set(proxy, val.id);
+            return proxy;
         }
         return val;
     }
 
-    function send(payload) {
-        window.parent.postMessage(payload, '*');
+    function collectTransferables(obj, transferables = []) {
+        if (!obj || typeof obj !== 'object') return transferables;
+
+        if (obj instanceof ArrayBuffer ||
+            obj instanceof MessagePort ||
+            obj instanceof ImageBitmap ||
+            (typeof OffscreenCanvas !== 'undefined' && obj instanceof OffscreenCanvas)) {
+            transferables.push(obj);
+        }
+        else if (ArrayBuffer.isView(obj) && obj.buffer instanceof ArrayBuffer) {
+            transferables.push(obj.buffer);
+        }
+        else if (Array.isArray(obj)) {
+            obj.forEach(item => collectTransferables(item, transferables));
+        }
+        else if (obj.constructor === Object) {
+            Object.values(obj).forEach(value => collectTransferables(value, transferables));
+        }
+
+        return transferables;
+    }
+
+    function send(payload, transferables = []) {
+        window.parent.postMessage(payload, '*', transferables);
     }
 
     function sendRequest(type, payload) {
         return new Promise((resolve, reject) => {
             const reqId = Math.random().toString(36).substring(7);
             pendingRequests.set(reqId, { resolve, reject });
-            
-            
+
+
             if (payload.args) {
                 payload.args = payload.args.map(serializeArg);
             }
 
-            send({ type: type, reqId: reqId, ...payload });
+            const message = { type: type, reqId: reqId, ...payload };
+            const transferables = collectTransferables(message);
+            send(message, transferables);
         });
     }
 
@@ -92,7 +119,7 @@ const GUEST_BRIDGE_SCRIPT = `
         const data = event.data;
         if (!data) return;
 
-        
+
         if (data.type === 'RESPONSE' && data.reqId) {
             const req = pendingRequests.get(data.reqId);
             if (req) {
@@ -102,11 +129,21 @@ const GUEST_BRIDGE_SCRIPT = `
             }
         }
 
-        
+        else if (data.type === 'EXECUTE_CODE' && data.reqId) {
+            const response = { type: 'EXEC_RESULT', reqId: data.reqId };
+            try {
+                const result = await eval('(async () => {' + data.code + '})()');
+                response.result = result;
+            } catch (e) {
+                response.error = e.message || String(e);
+            }
+            send(response);
+        }
+
         else if (data.type === 'INVOKE_CALLBACK' && data.id) {
             const fn = callbackRegistry.get(data.id);
             const response = { type: 'CALLBACK_RETURN', reqId: data.reqId };
-            
+
             try {
                 if (!fn) throw new Error("Callback not found or released");
                 const result = await fn(...(data.args || []));
@@ -114,19 +151,65 @@ const GUEST_BRIDGE_SCRIPT = `
             } catch (e) {
                 response.error = e.message || "Guest callback error";
             }
-            send(response);
+            const transferables = collectTransferables(response);
+            send(response, transferables);
         }
     });
 
-    
-    
-    
+
+
+
+
+    const propertyCache = new Map();
+
     window.risuai = new Proxy({}, {
         get: (target, prop) => {
+            if (propertyCache.has(prop)) {
+                return propertyCache.get(prop);
+            }
             return (...args) => sendRequest('CALL_ROOT', { method: prop, args: args });
         }
     });
     window.Risuai = window.risuai;
+
+    try {
+        // Initialize cached properties
+        const propsToInit = await window.risuai._getPropertiesForInitialization();
+        console.log('Initializing risuai properties:', JSON.stringify(propsToInit.list));
+        for (let i = 0; i < propsToInit.list.length; i++) {
+            const key = propsToInit.list[i];
+            const value = propsToInit[key];
+            propertyCache.set(key, value);
+        }
+
+        // Initialize aliases
+        const aliases = await window.risuai._getAliases();
+        const aliasKeys = Object.keys(aliases);
+        for (let i = 0; i < aliasKeys.length; i++) {
+            const aliasKey = aliasKeys[i];
+            const childrens = Object.keys(aliases[aliasKey]);
+            const aliasObj = {};
+            for (let j = 0; j < childrens.length; j++) {
+                const childKey = childrens[j];
+                aliasObj[childKey] = risuai[aliases[aliasKey][childKey]];
+            }
+            propertyCache.set(aliasKey, aliasObj);
+        }
+
+        // Initialize helper functions defined in the guest
+
+        propertyCache.set('unwarpSafeArray', async (safeArray) => {
+            const length = await safeArray.length();
+            const result = [];
+            for (let i = 0; i < length; i++) {
+                const item = await safeArray.at(i);
+                result.push(item);
+            }
+            return result;
+        });
+    } catch (e) {
+        console.error('Failed to initialize risuai properties:', e);
+    }
 
     window.initOldApiGlobal = () => {
         const keys = risuai._getOldKeys()
@@ -151,10 +234,63 @@ export class SandboxHost {
         this.apiFactory = apiFactory;
     }
 
+    public executeInIframe(code: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const reqId = 'exec_' + Math.random().toString(36).substring(2);
+
+            const handler = (event: MessageEvent) => {
+                if (event.source !== this.iframe.contentWindow) return;
+                const data = event.data;
+
+                if (data.type === 'EXEC_RESULT' && data.reqId === reqId) {
+                    window.removeEventListener('message', handler);
+                    if (data.error) {
+                        reject(new Error(data.error));
+                    } else {
+                        resolve(data.result);
+                    }
+                }
+            };
+
+            window.addEventListener('message', handler);
+
+            this.iframe.contentWindow?.postMessage({
+                type: 'EXECUTE_CODE',
+                reqId,
+                code
+            }, '*');
+        });
+    }
+
+    private collectTransferables(obj: any, transferables: Transferable[] = []): Transferable[] {
+        if (!obj || typeof obj !== 'object') return transferables;
+
+        if (obj instanceof ArrayBuffer ||
+            obj instanceof MessagePort ||
+            obj instanceof ImageBitmap ||
+            (typeof OffscreenCanvas !== 'undefined' && obj instanceof OffscreenCanvas)) {
+            transferables.push(obj);
+        }
+        else if (ArrayBuffer.isView(obj) && obj.buffer instanceof ArrayBuffer) {
+            transferables.push(obj.buffer);
+        }
+        else if (Array.isArray(obj)) {
+            obj.forEach(item => this.collectTransferables(item, transferables));
+        }
+        else if (obj.constructor === Object) {
+            Object.values(obj).forEach(value => this.collectTransferables(value, transferables));
+        }
+
+        return transferables;
+    }
+
 
     private serialize(val: any): any {
-        if (val && (typeof val === 'object' || typeof val === 'function')) {
-
+        if (
+            val &&
+            (typeof val === 'object' || typeof val === 'function') &&
+            val.__classType === 'REMOTE_REQUIRED'
+        ) {
             if (val === null) return null;
             if (Array.isArray(val)) return val;
 
@@ -174,17 +310,26 @@ export class SandboxHost {
 
                 return async (...innerArgs: any[]) => {
                     return new Promise((resolve, reject) => {
-                        const reqId = 'cb_req_' + Math.random().toString(36).substr(2);
+                        const reqId = 'cb_req_' + Math.random().toString(36).substring(2);
                         this.pendingCallbacks.set(reqId, { resolve, reject });
 
-                        this.iframe.contentWindow?.postMessage({
+                        const message = {
                             type: 'INVOKE_CALLBACK',
                             id: cbRef.id,
                             reqId,
                             args: innerArgs
-                        }, '*');
+                        };
+                        const transferables = this.collectTransferables(message);
+                        this.iframe.contentWindow?.postMessage(message, '*', transferables);
                     });
                 };
+            }
+            if (arg && arg.__type === 'REMOTE_REF') {
+                const remoteRef = arg as RemoteRef;
+                const instance = this.instanceRegistry.get(remoteRef.id);
+                if (instance) {
+                    return instance;
+                }
             }
             return arg;
         });
@@ -195,11 +340,15 @@ export class SandboxHost {
             this.iframe = container;
         } else {
             this.iframe = document.createElement('iframe');
-            this.iframe.style.width = "100%";
-            this.iframe.style.height = "100%";
-            this.iframe.style.border = "none";
             container.appendChild(this.iframe);
         }
+
+        this.iframe.style.width = "100%";
+        this.iframe.style.height = "100%";
+        this.iframe.style.border = "none";
+
+        this.iframe.style.backgroundColor = "transparent";
+        this.iframe.setAttribute('allowTransparency', 'true');
 
         this.iframe.sandbox.add('allow-scripts');
         this.iframe.sandbox.add('allow-modals')
@@ -254,7 +403,19 @@ export class SandboxHost {
                     response.error = err.message || "Host execution error";
                 }
 
-                this.iframe.contentWindow?.postMessage(response, '*');
+                const transferables = this.collectTransferables(response);
+                console.log("Original request:", data);
+                console.log('Original response:', response, transferables);
+                try {
+                    this.iframe.contentWindow?.postMessage(response, '*', transferables);                    
+                } catch (error) {
+                    this.iframe.contentWindow?.postMessage({
+                        type: 'RESPONSE',
+                        reqId: data.reqId,
+                        error: 'Failed to post message to iframe: ' + (error as Error).message
+                    }, '*');
+                    console.error('Failed to post message to iframe:', error);
+                }
             }
         };
 
@@ -265,16 +426,19 @@ export class SandboxHost {
       <!DOCTYPE html>
       <html>
       <body>
+        <style>
+            body {
+                background-color: transparent;
+            }
+        </style>
         <script>
-          ${GUEST_BRIDGE_SCRIPT}
-          
-          (async () => {
-             try {
-                ${userCode}
-             } catch(e) {
-                log("Runtime Error: " + e.message);
-             }
-          })();
+            (async () => {
+                ${GUEST_BRIDGE_SCRIPT}
+                    
+                (async () => {
+                    ${userCode}
+                })()
+            })();
         </script>
       </body>
       </html>
@@ -288,5 +452,13 @@ export class SandboxHost {
             this.instanceRegistry.clear();
             this.pendingCallbacks.clear();
         };
+    }
+
+    public terminate() {
+        if (this.iframe) {
+            this.iframe.remove();
+        }
+        this.instanceRegistry.clear();
+        this.pendingCallbacks.clear();
     }
 }

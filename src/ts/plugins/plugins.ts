@@ -1,8 +1,8 @@
 import { get, writable } from "svelte/store";
 import { language } from "../../lang";
 import { getCurrentCharacter, getDatabase, setDatabase, setDatabaseLite } from "../storage/database.svelte";
-import { alertError, alertMd, alertPluginConfirm } from "../alert";
-import { checkNullish, selectSingleFile, sleep } from "../util";
+import { alertConfirm, alertError, alertPluginConfirm } from "../alert";
+import { selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
 import { fetchNative, globalFetch, readImage, saveAsset, toGetter } from "../globalApi.svelte";
 import { DBState, pluginAlertModalStore, selectedCharID } from "../stores.svelte";
@@ -23,6 +23,8 @@ interface ProviderPlugin {
     version?: 1 | 2 | '2.1' | '3.0'
     customLink: ProviderPluginCustomLink[]
     argMeta: { [key: string]: {[key:string]:string} }
+    versionOfPlugin?: string
+    updateURL?: string
 }
 interface ProviderPluginCustomLink {
     link: string
@@ -42,6 +44,84 @@ export async function createBlankPlugin(){
 Risuai.log("Hello from New Plugin!");
 `.trim()
     )
+}
+
+const compareVersions = (v1: string, v2: string): 0|1|-1 => {
+    const v1parts = v1.split('.').map(Number);
+    const v2parts = v2.split('.').map(Number);
+    const len = Math.max(v1parts.length, v2parts.length);
+    for (let i = 0; i < len; i++) {
+        const part1 = v1parts[i] || 0;
+        const part2 = v2parts[i] || 0;
+        if (part1 > part2) return 1;
+        if (part1 < part2) return -1;
+    }
+    return 0;
+}
+
+const updateCache = new Map<string, { version: string, updateURL: string } | undefined>();
+
+export const checkPluginUpdate = async (plugin: RisuPlugin) => {
+    try {
+        if(!plugin.updateURL){
+            return
+        }
+
+        if(updateCache.has(plugin.name)){
+            const cached = updateCache.get(plugin.name)
+            if(compareVersions(cached.version, plugin.versionOfPlugin || '0.0.0') === 1){
+                return cached
+            }
+        }
+
+        const response = (await fetch(plugin.updateURL, {
+            method: 'GET',
+            headers: {
+                'Range': 'bytes=0-512'
+            }
+        }))
+
+        if(response.status >= 200 && response.status < 300){
+            const text = await response.text()
+            const versioRegex = /\/\/@version\s+([^\s]+)/;
+            const match = text.match(versioRegex);
+            if(match && match[1]){
+                const latestVersion = match[1].trim()
+                if(compareVersions(latestVersion, plugin.versionOfPlugin || '0.0.0') === 1){
+                    updateCache.set(plugin.name, {
+                        version: latestVersion,
+                        updateURL: plugin.updateURL
+                    })
+                    return {
+                        version: latestVersion,
+                        updateURL: plugin.updateURL
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to check plugin update:', error)
+    }
+}
+
+export async function updatePlugin(plugin: RisuPlugin) {
+    try {
+        if(!plugin.updateURL){
+            return false
+        }
+        const response = await fetch(plugin.updateURL)
+        if(response.status >= 200 && response.status < 300){
+            const jsFile = await response.text()
+            await importPlugin(jsFile, {
+                isUpdate: true,
+                originalPluginName: plugin.name
+            })
+            return true
+        }
+    } catch (error) {
+        console.error('Failed to update plugin:', error)
+    }
+    return false
 }
 
 export async function importPlugin(code:string|null = null, argu:{
@@ -80,6 +160,8 @@ export async function importPlugin(code:string|null = null, argu:{
         let realArg: { [key: string]: number | string } = {}
         let argMeta: { [key: string]: {[key:string]:string} } = {}
         let customLink: ProviderPluginCustomLink[] = []
+        let updateURL: string = ''
+        let versionOfPlugin: string = '' //This is the version of the plugin itself, not the API version
         let apiVersion = '2.0'
         for (const line of splitedJs) {
             if (line.startsWith('//@name')) {
@@ -177,10 +259,45 @@ export async function importPlugin(code:string|null = null, argu:{
                 }
             }
 
+            if(line.startsWith('//@update-url')){
+                updateURL = line.split(' ')[1]
+
+                try {
+                    const url = new URL(updateURL)
+                    if(url.protocol !== 'https:'){
+                        alertError('plugin update URL must start with https, did you put it correctly?')
+                        return
+                    }
+                } catch (error) {
+                    alertError('plugin update URL is not a valid URL, did you put it correctly?')
+                    return
+                }
+            }
+
+            if(line.startsWith('//@version')){
+                versionOfPlugin = line.split(' ').slice(1).join(' ').trim()
+
+                const versionLocation = jsFile.indexOf('//@version')
+                const numberOfBytesBefore = new TextEncoder().encode(jsFile.slice(0, versionLocation) + line).length
+                if(numberOfBytesBefore > 500){
+                    alertError('plugin version declaration must be within the first 512 Bytes of the file for proper parsing. move //@version line to the top of the file.')
+                    return
+                }
+            }
         }
 
         if (name.length === 0) {
             alertError('plugin name not found, did you put it correctly?')
+            return
+        }
+
+        if(updateURL && versionOfPlugin.length === 0){
+            alertError('plugin version not found, did you put it correctly? It is required when update URL is provided.')
+            return
+        }
+
+        if(versionOfPlugin && compareVersions(versionOfPlugin, '0.0.1') === -1){
+            alertError('plugin version must be at least 0.0.1')
             return
         }
 
@@ -266,30 +383,39 @@ export async function importPlugin(code:string|null = null, argu:{
             displayName: displayName,
             version: apiInternalVersion,
             customLink: customLink,
-            argMeta: argMeta
+            argMeta: argMeta,
+            versionOfPlugin: versionOfPlugin,
+            updateURL: updateURL
         }
 
         db.plugins ??= []
 
-        if(isUpdate){
-            //find old plugin
-            const pluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === originalPluginName);
-            if(pluginIndex !== -1){
-                db.plugins[pluginIndex] = pluginData;
-            }
-            else{
-                //set false to add as new plugin
-                isUpdate = false
+        const oldPluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === pluginData.name);
+
+        if(originalPluginName && originalPluginName !== pluginData.name){
+            alertError(`When updating plugin "${originalPluginName}", the plugin name cannot be changed to "${pluginData.name}". Please keep the original name to update.`)
+            return
+        }
+
+
+        if(!isUpdate && oldPluginIndex !== -1){
+            const c = await alertConfirm(language.duplicatePluginFoundUpdateIt)
+            if(!c){
+                return
             }
         }
 
-        if(!isUpdate){
+        if(oldPluginIndex !== -1){
+            db.plugins[oldPluginIndex] = pluginData;
+        }
+        else if(!isUpdate){
             db.plugins.push(pluginData)
         }
 
         setDatabaseLite(db)
 
-        //Previously we loaded plugin here
+        loadPlugins()
+        
     } catch (error) {
         console.error(error)
         alertError(language.errors.noData)
@@ -299,6 +425,7 @@ export async function importPlugin(code:string|null = null, argu:{
 let pluginTranslator = false
 
 export async function loadPlugins() {
+    console.log('Loading plugins...')
     let db = getDatabase()
 
 
@@ -352,7 +479,22 @@ const allowedDbKeys = [
     'pluginV2',
     'personas',
     'plugins',
-    'pluginCustomStorage'
+    'pluginCustomStorage',
+    'temperature',
+    'askRemoval',
+    'maxContext',
+    'maxResponse',
+    'frequencyPenalty',
+    'PresensePenalty',
+    'theme',
+    'textTheme',
+    'lineHeight',
+    'seperateModelsForAxModels',
+    'seperateModels',
+    'customCSS',
+    'guiHTML',
+    'colorSchemeName',
+
 ]
 
 export const getV2PluginAPIs = () => {
@@ -462,19 +604,19 @@ export const getV2PluginAPIs = () => {
                 )
             }
             safeGlobal.setInterval = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into setInterval params causes type mismatch with TimerHandler signature
                 return globalThis.setInterval(...args);
             }
             safeGlobal.setTimeout = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into setTimeout params causes type mismatch with TimerHandler signature
                 return globalThis.setTimeout(...args);
             }
             safeGlobal.clearInterval = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into clearInterval - first arg should be number | undefined
                 return globalThis.clearInterval(...args);
             }
             safeGlobal.clearTimeout = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into clearTimeout - first arg should be number | undefined
                 return globalThis.clearTimeout(...args);
             }
             safeGlobal.alert = globalThis.alert;
@@ -499,11 +641,11 @@ export const getV2PluginAPIs = () => {
             safeGlobal.Function = globalThis.__pluginApis__.SafeFunction;
             safeGlobal.document = globalThis.__pluginApis__.safeDocument;
             safeGlobal.addEventListener = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into addEventListener - expects (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions)
                 window.addEventListener(...args);
             }
             safeGlobal.removeEventListener = (...args: any[]) => {
-                //@ts-ignore
+                //@ts-expect-error spreading any[] into removeEventListener - expects (type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions)
                 window.removeEventListener(...args);
             }
             return safeGlobal;

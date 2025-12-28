@@ -2,7 +2,7 @@
 
 ## Overview
 
-Originally, RisuAI plugins got unlimited access to the global environment, which posed significant security risks. To mitigate these risks, we limited some of the accessible APIs in plugin scripts.
+Originally, Risuai plugins got unlimited access to the global environment, which posed significant security risks. To mitigate these risks, we limited some of the accessible APIs in plugin scripts.
 This is due to the fact that plugins can run arbitrary code, which may lead to security vulnerabilities if they access sensitive API keys or data, especially with planned account systems in the future.
 
 So plugin 2.1 and 3.0 introduced a new plugin API versioning system. 2.1 is mostly compatible with 2.0, but with some restricted APIs and added safe alternatives. however, 2.1 were just a transitional version, and still have some security issues due to API's structure. 3.0 will introduce API overhaul with many breaking changes, with focus on security and stability.
@@ -31,7 +31,7 @@ API 2.1 works like 2.0, mostly compatible and working in same document context, 
 
 ### Restricted APIs
 
-- Global Scope: Plugins can no longer access the global scope directly. Instead, they must use the safeGlobalThis object provided by RisuAI. `window`, `global`, `self` and similar references will be automatically redirected to `safeGlobalThis`.
+- Global Scope: Plugins can no longer access the global scope directly. Instead, they must use the safeGlobalThis object provided by Risuai. `window`, `global`, `self` and similar references will be automatically redirected to `safeGlobalThis`.
 
 - Document: Direct access to the Document object has been removed. instead, `safeDocument` is provided for secure DOM manipulations. `document` will be redirected to `safeDocument`.
 
@@ -149,7 +149,7 @@ All API v3 methods are accessed through the `risuai` global object. The API uses
 
 The following APIs from v2.1 are still available in v3.0:
 
-- `risuFetch`: Fetch wrapper with RisuAI-specific enhancements
+- `risuFetch`: Fetch wrapper with Risuai-specific enhancements
 - `nativeFetch`: Direct native fetch access
 - `getChar`: Get current character data (deprecated, use `getCharacter` instead)
 - `setChar`: Set character data (deprecated, use `setCharacter` instead)
@@ -429,14 +429,14 @@ risuai.registerSetting(
 )
 
 // Register a floating action button
-risuai.registerActionButton(
-  'My Action',
-  () => {
-    // Callback when clicked
-  },
-  'https://example.com/icon.png', // Optional icon
-  'img' // Icon type: 'html', 'img', or 'none'
-)
+risuai.registerButton({
+    name: 'My Action',
+    icon: 'https://example.com/icon.png', // Optional icon
+    iconType: 'img', // Icon type: 'html', 'img', or 'none'
+    location: 'action'
+}, () => {
+      // Callback when clicked
+})
 ```
 
 **Parameters:**
@@ -450,8 +450,8 @@ risuai.registerActionButton(
 Centralized logging with plugin identification:
 
 ```javascript
-risuai.log('This is a log message')
-// Output: [RisuAI Plugin: YourPluginName] This is a log message
+console.log('This is a log message')
+// Output: [Risuai Plugin: YourPluginName] This is a log message
 ```
 
 #### Metadata
@@ -506,16 +506,103 @@ API v3.0 implements multiple security layers:
 
 2. **Access APIs through `risuai` object:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    const db = getDatabase()
 
    // New (v3.0)
    const db = await risuai.getDatabase()
    ```
 
-3. **Use getRootDocument for main DOM access:**
+
+3. **Migrate DOM Modal to Iframe:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
+   // Build your Modal at main document
+   const container = document.createElement('div')
+   container.style.innerHTML = '<h1>Hello World Modal</h1>'
+   document.body.appendChild(container)
+
+   // New (v3.0)
+   // Build your UI inside the iframe context
+
+   //looks same in this example, but its inside the iframe now!
+   const container = document.createElement('div')
+   container.style.innerHTML = '<h1>Hello World Modal</h1>'
+
+   //don't forget to show the iframe container when needed
+   risuai.showContainer('fullscreen')
+   ```
+
+3-1. **Migrate Settings UI Registration:**
+   ```javascript
+   // Old (v2.0 / v2.1)
+   // This was one of the hacky way to build settings button
+    const observer = new MutationObserver(() => {
+      const menu = document.querySelector('.rs-setting-cont-3')
+      if (menu && !document.querySelector('.my-plugin-settings')) {
+        const button = document.createElement('div')
+        button.className = 'my-plugin-settings'
+        button.innerHTML = '⚙️ My Plugin Settings'
+        button.onclick = () => {
+          // Build your Modal at main document...
+        }
+        menu.appendChild(button)
+      }
+    })
+  observer.observe(document.body, { childList: true, subtree: true })
+
+
+   // New (v3.0)
+   // Now its officially supported to register settings button
+   risuai.registerSetting(
+     'My Plugin Settings',
+     () => {
+       risuai.showContainer('fullscreen')
+       // Build your UI inside the iframe...
+     },
+     '⚙️',
+     'html'
+   )
+   ```
+
+3-2. **Migrate Action Button Registration:**
+   ```javascript
+   // Old (v2.0 / v2.1)
+   // This was one of the hacky way to build floating action button
+   setInterval(() => {
+     if (!document.querySelector('.my-plugin-action-button')) {
+       const button = document.createElement('div')
+       button.style.position = 'fixed'
+       button.style.top = '10px'
+       button.style.right = '10px'
+       button.style.zIndex = '1000'
+       button.innerHTML = '<img src="https://example.com/icon.png" />'
+        button.className = 'my-plugin-action-button'
+       button.onclick = () => {
+         // Your action here...
+       }
+       document.body.appendChild(button)
+     }
+   },100)
+
+   // New (v3.0)
+   // Now its officially supported to register action buttons
+   risuai.registerButton({
+       name: 'My Action',
+       icon: 'https://example.com/icon.png',
+       iconType: 'img',
+       location: 'action'
+   }, () => {
+      // Your action here...
+   })
+   ```
+
+3-3. **Or use getRootDocument for main DOM access:**
+
+   Note: We recommend building your UI inside the iframe using standard Document APIs, and using `registerSetting`/`registerButton` for UI integration. however, if you really need to access the main document, use `getRootDocument()`. we don't recommend using this method for building UIs, since it adds more restrictions and complexity.
+
+   ```javascript
+   // Old (v2.0 / v2.1)
    const element = document.querySelector('.my-class')
 
    // New (v3.0)
@@ -525,7 +612,7 @@ API v3.0 implements multiple security layers:
 
 4. **Handle SafeElement instead of HTMLElement:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    element.style.color = 'red'
 
    // New (v3.0)
@@ -534,7 +621,7 @@ API v3.0 implements multiple security layers:
 
 5. **Use async/await for all API calls:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    const char = getChar()
 
    // New (v3.0)
@@ -543,7 +630,7 @@ API v3.0 implements multiple security layers:
 
 6. **Update event listeners:**
    ```javascript
-   // Old (v2.1)
+   // Old (v2.0 / v2.1)
    element.addEventListener('click', handler)
 
    // New (v3.0)
@@ -560,7 +647,6 @@ API v3.0 implements multiple security layers:
 5. **Sanitize all user input**: Even though HTML is auto-sanitized, validate data before processing
 6. **Handle async errors**: Wrap async calls in try-catch blocks
 7. **Clean up resources**: Remove event listeners when no longer needed
-8. **Use logging**: Use `risuai.log()` for debugging instead of console.log
 
 ### Example: Complete v3.0 Plugin
 
@@ -570,7 +656,7 @@ API v3.0 implements multiple security layers:
 (async () => {
   try {
     // Log plugin start
-    risuai.log('Plugin initialized')
+    console.log('Plugin initialized')
 
     // Register a settings button
     risuai.registerSetting(
@@ -588,7 +674,7 @@ API v3.0 implements multiple security layers:
 
     // Monitor changes
     const observer = risuai.createMutationObserver((mutations) => {
-      risuai.log(`Detected ${mutations.length} mutations`)
+      console.log(`Detected ${mutations.length} mutations`)
     })
 
     const body = doc.querySelector('body')
@@ -605,9 +691,9 @@ API v3.0 implements multiple security layers:
     // Use plugin storage
     risuai.pluginStorage.setItem('lastRun', Date.now())
 
-    risuai.log('Plugin setup complete')
+    console.log('Plugin setup complete')
   } catch (error) {
-    risuai.log(`Error: ${error.message}`)
+    console.log(`Error: ${error.message}`)
   }
 })()
 ```

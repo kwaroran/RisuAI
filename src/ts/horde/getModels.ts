@@ -4,7 +4,7 @@ interface HordeModel {
     "performance": number,
     "queued": number,
     "jobs": number,
-    "eta": Number,
+    "eta": number,
     "type": "text",
     "name": "aphrodite\/Undi95\/Toppy-M-7B",
     "count": number

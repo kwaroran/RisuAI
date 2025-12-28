@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { appVer, webAppSubVer } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import Hub from "./Realm/RealmMain.svelte";
-    import { OpenRealmStore } from "src/ts/stores.svelte";
-    import { ArrowLeft } from "lucide-svelte";
-    import { getVersionString, isNodeServer, isTauri, openURL } from "src/ts/globalApi.svelte";
+    import { OpenRealmStore, RealmInitialOpenChar } from "src/ts/stores.svelte";
+    import { ArrowLeft } from "@lucide/svelte";
+    import { getVersionString, openURL } from "src/ts/globalApi.svelte";
     import { language } from "src/lang";
     import { getRisuHub, hubAdditionalHTML } from "src/ts/characterCards";
     import RisuHubIcon from "./Realm/RealmHubIcon.svelte";
@@ -18,7 +17,7 @@
     <div class="w-full flex p-4 flex-col text-textcolor max-w-4xl">
       {#if !$OpenRealmStore}
       <div class="mt-4 mb-4 w-full border-t border-t-selected"></div>
-      <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring" onclick={() => {
+      <h1 class="text-2xl font-bold">Recently Uploaded<button class="text-base font-medium float-right p-1 bg-darkbg rounded-md hover:ring-3" onclick={() => {
         $OpenRealmStore = true
       }}>Get More</button></h1>
           {#if !DBState.db.hideRealm}
@@ -32,7 +31,12 @@
               {@html hubAdditionalHTML}
               <div class="w-full flex gap-4 p-2 flex-wrap justify-center">
                   {#each charas as chara}
-                      <RisuHubIcon onClick={() => {$OpenRealmStore = true}} chara={chara} />
+                      <RisuHubIcon onClick={() => {
+                        $OpenRealmStore = true
+                        if(DBState.db.realmDirectOpen){
+                            $RealmInitialOpenChar = chara
+                        }
+                      }} chara={chara} />
                   {/each}
               </div>
             {:else}

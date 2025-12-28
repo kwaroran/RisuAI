@@ -3,6 +3,7 @@ import { v4 } from "uuid";
 import { getDatabase } from "../../storage/database.svelte";
 import { checkImageType } from "../../parser.svelte";
 import { getModelInfo, LLMFlags } from "src/ts/model/modellist";
+import { asBuffer } from "../../util";
 
 const inlayImageExts = [
     'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'
@@ -30,7 +31,7 @@ export async function postInlayAsset(img:{
     const imgObj = new Image()
 
     if(inlayImageExts.includes(extention)){
-        imgObj.src = URL.createObjectURL(new Blob([img.data], {type: `image/${extention}`}))
+        imgObj.src = URL.createObjectURL(new Blob([asBuffer(img.data)], {type: `image/${extention}`}))
 
         return await writeInlayImage(imgObj, {
             name: img.name,
@@ -39,7 +40,7 @@ export async function postInlayAsset(img:{
     }
 
     if(inlayAudioExts.includes(extention)){
-        const audioBlob = new Blob([img.data], {type: `audio/${extention}`})
+        const audioBlob = new Blob([asBuffer(img.data)], {type: `audio/${extention}`})
         const imgid = v4()
 
         await inlayStorage.setItem(imgid, {
@@ -53,7 +54,7 @@ export async function postInlayAsset(img:{
     }
 
     if(inlayVideoExts.includes(extention)){
-        const videoBlob = new Blob([img.data], {type: `video/${extention}`})
+        const videoBlob = new Blob([asBuffer(img.data)], {type: `video/${extention}`})
         const imgid = v4()
 
         await inlayStorage.setItem(imgid, {
@@ -210,7 +211,7 @@ export async function reencodeImage(img:Uint8Array){
     }
     const canvas = document.createElement('canvas')
     const imgObj = new Image()
-    imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/png`}))
+    imgObj.src = URL.createObjectURL(new Blob([asBuffer(img)], {type: `image/png`}))
     await imgObj.decode()
     let drawHeight = imgObj.height
     let drawWidth = imgObj.width

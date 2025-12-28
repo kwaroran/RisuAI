@@ -2,7 +2,7 @@
     import { language } from "src/lang";
     import { saveImage } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { changeFullscreen, selectSingleFile, sleep } from "src/ts/util";
+    import { changeFullscreen, selectSingleFile } from "src/ts/util";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
@@ -10,12 +10,11 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { updateAnimationSpeed } from "src/ts/gui/animation";
     import { changeColorScheme, changeColorSchemeType, colorSchemeList, exportColorScheme, importColorScheme, updateColorScheme, updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
-    import { DownloadIcon, HardDriveUploadIcon } from "lucide-svelte";
+    import { DownloadIcon, HardDriveUploadIcon } from "@lucide/svelte";
     import { guiSizeText, updateGuisize } from "src/ts/gui/guisize";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import ColorInput from "src/lib/UI/GUI/ColorInput.svelte";
   import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
-  import Arcodion from "src/lib/UI/Arcodion.svelte";
   import Button from "src/lib/UI/GUI/Button.svelte";
   import { CustomGUISettingMenuStore } from "src/ts/stores.svelte";
   import { alertError } from "src/ts/alert";
@@ -136,7 +135,7 @@
             <ColorInput bind:value={DBState.db.colorScheme.textcolor2} oninput={updateColorScheme} />
             <span class="ml-2">Text Color 2</span>
         </div>
-        <div class="flex-grow flex justify-end">
+        <div class="grow flex justify-end">
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={async (e) => {
                 exportColorScheme()
             }}>
@@ -231,6 +230,9 @@
         <span class="text-textcolor">{language.memoryLimitThickness}</span>
         <SliderInput min={1} max={500} step={1} bind:value={DBState.db.memoryLimitThickness} marginBottom />
     {/if}
+
+    <span class="text-textcolor">{language.settingsCloseButtonSize} <Help key="settingsCloseButtonSize"/></span>
+    <SliderInput min={16} max={48} step={1} bind:value={DBState.db.settingsCloseButtonSize} marginBottom />
 
 {/if}
 

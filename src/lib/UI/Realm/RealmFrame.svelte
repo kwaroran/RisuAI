@@ -4,7 +4,7 @@
     import { downloadPreset } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { selectedCharID, ShowRealmFrameStore } from "src/ts/stores.svelte";
-    import { sleep } from "src/ts/util";
+    import { asBuffer, sleep } from "src/ts/util";
     import { onDestroy, onMount } from "svelte";
 
     const close =  () => {
@@ -63,19 +63,19 @@
             const encodedPredata = predata.buf
             const encodedPredataName = new TextEncoder().encode(predata.data.name + '.risup')
             data = {
-                data: encodedPredata.buffer,
-                name: encodedPredataName.buffer
+                data: asBuffer(encodedPredata.buffer),
+                name: asBuffer(encodedPredataName.buffer)
             }
         }
         else if($ShowRealmFrameStore.startsWith('module')){
             const predata = DBState.db.modules[Number($ShowRealmFrameStore.split(':')[1])]
-            //@ts-ignore
+            //@ts-expect-error adding type field for Realm export, not defined in module type
             predata.type = 'risuModule'
             const encodedPredata = new TextEncoder().encode(JSON.stringify(predata))
             const encodedPredataName = new TextEncoder().encode(predata.name + '.json')
             data = {
-                data: encodedPredata.buffer,
-                name: encodedPredataName.buffer
+                data: asBuffer(encodedPredata.buffer),
+                name: asBuffer(encodedPredataName.buffer)
             }
         }
         else{

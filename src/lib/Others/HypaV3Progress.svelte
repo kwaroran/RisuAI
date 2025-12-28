@@ -24,7 +24,7 @@
         class="w-full min-w-64 md:min-w-138 h-2 bg-darkbg border border-darkborderc rounded-md"
       >
         <div
-          class="h-full bg-gradient-to-r from-blue-500 to-purple-800 saving-animation transition-[width]"
+          class="h-full bg-linear-to-r from-blue-500 to-purple-800 saving-animation transition-[width]"
         ></div>
       </div>
       <span class="w-full mt-6 text-center text-gray-500 text-sm"

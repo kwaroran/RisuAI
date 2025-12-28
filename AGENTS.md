@@ -1,6 +1,6 @@
 ## Project Overview
 
-RisuAI is a cross-platform AI chatting software built with Svelte, TypeScript, and Tauri. It allows users to chat with various AI models through a single application. The application supports multiple APIs, including OpenAI, Claude, Gemini, and more. It also features a rich user interface with support for themes, plugins, and custom assets.
+Risuai is a cross-platform AI chatting software built with Svelte, TypeScript, and Tauri. It allows users to chat with various AI models through a single application. The application supports multiple APIs, including OpenAI, Claude, Gemini, and more. It also features a rich user interface with support for themes, plugins, and custom assets.
 
 The project is structured as a monorepo with the frontend application in the `src` directory and the Tauri-specific code in the `src-tauri` directory. The frontend is built using Vite, and the application is packaged as a desktop application using Tauri.
 

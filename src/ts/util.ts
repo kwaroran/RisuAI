@@ -8,6 +8,9 @@ import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isTauri } from "./globalApi.svelte"
+import type { Attachment } from "svelte/attachments"
+import { mount, unmount, type Snippet } from "svelte"
+import PopupList from "src/lib/UI/PopupList.svelte"
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
 export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
@@ -396,7 +399,7 @@ export async function encryptBuffer(data:Uint8Array, keys:string){
             iv: new Uint8Array(12),
         },
         key,
-        data
+        asBuffer(data)
     )
 
     return result
@@ -421,7 +424,7 @@ export async function decryptBuffer(data:Uint8Array, keys:string){
             iv: new Uint8Array(12),
         },
         key,
-        data
+        asBuffer(data)
     )
 
     return result
@@ -560,12 +563,12 @@ export function trimUntilPunctuation(s:string){
  * @returns {string} The modified URL with the last path appended.
  * 
  * @example
- * appendLastPath("https://github.com/kwaroran/RisuAI","/commits/main")
- * return 'https://github.com/kwaroran/RisuAI/commits/main'
+ * appendLastPath("https://github.com/kwaroran/Risuai","/commits/main")
+ * return 'https://github.com/kwaroran/Risuai/commits/main'
  * 
  * @example
- * appendLastPath("https://github.com/kwaroran/RisuAI/","/commits/main")
- * return 'https://github.com/kwaroran/RisuAI/commits/main
+ * appendLastPath("https://github.com/kwaroran/Risuai/","/commits/main")
+ * return 'https://github.com/kwaroran/Risuai/commits/main
  * 
  * @example
  * appendLastPath("http://127.0.0.1:7997","embeddings")
@@ -1208,4 +1211,16 @@ export const jsonOutputTrimmer = (data:string) => {
         data = data.slice(7, -3).trim()
     }
     return data.trim()
+}
+
+export function asBuffer(arr: Uint8Array<ArrayBufferLike>): Uint8Array<ArrayBuffer>;
+export function asBuffer(arr: ArrayBufferLike): ArrayBuffer;
+
+export function asBuffer(arr: Uint8Array<ArrayBufferLike> | ArrayBufferLike): Uint8Array<ArrayBuffer> | ArrayBuffer {
+    if (arr instanceof Uint8Array) {
+        return arr as unknown as Uint8Array<ArrayBuffer>;
+    }
+    else {
+        return arr as unknown as ArrayBuffer
+    }
 }

@@ -142,7 +142,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
   },
   "NAI":{
     "name": "NAI",
-    "apiType": "gpt35",
+    "apiType": "gemini-3-flash-preview",
     "openAIKey": "",
     "mainPrompt": "",
     "jailbreak": "",
@@ -308,7 +308,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
   },
   "oobaRp":{
     "name": "New Preset",
-    "apiType": "gpt35_0301",
+    "apiType": "gemini-3-flash-preview",
     "openAIKey": "",
     "mainPrompt": "",
     "jailbreak": "",
@@ -472,7 +472,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
   },
   "NAI2": {
     "name": "Carefree",
-    "apiType": "gpt35",
+    "apiType": "gemini-3-flash-preview",
     "openAIKey": "",
     "mainPrompt": "",
     "jailbreak": "",
@@ -622,7 +622,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
   },
   "OAI2": { //작가 프롬프트 by 하나안, modified by Kwaroran
     "name": "Default Prompt",
-    "apiType": "instructgpt35",
+    "apiType": "gemini-3-flash-preview",
     "openAIKey": "",
     "mainPrompt": "",
     "jailbreak": "",
@@ -644,7 +644,7 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
       "authorNote"
     ],
     "aiModel": "claude-3-5-sonnet-20240620",
-    "subModel": "instructgpt35",
+    "subModel": "gemini-3-flash-preview",
     "currentPluginProvider": "",
     "textgenWebUIStreamURL": "",
     "textgenWebUIBlockingURL": "",
@@ -802,7 +802,11 @@ export const prebuiltPresets:{OAI:botPreset,ooba:botPreset,NAI:botPreset,oobaRp:
     "repetition_penalty": 1,
     "min_p": 0,
     "top_a": 0,
-    "openrouterProvider": "",
+    "openrouterProvider": {
+        "order": [],
+        "only": [],
+        "ignore": []
+    },
     "useInstructPrompt": false,
     "customPromptTemplateToggle": "",
     "templateDefaultVariables": ""

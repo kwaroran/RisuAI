@@ -9,14 +9,12 @@
     }
 
     let { value, markdown = false }: Props = $props();
-    const parsedValue = parseMultilangString(value)
-    let valueObject: {[code:string]:string} = $state(parsedValue)
+    let valueObject: {[code:string]:string} = $derived(parseMultilangString(value))
     let selectedLang = $state("en")
-    if(parsedValue["en"] === undefined){
-        selectedLang = "xx"
-    }
     $effect.pre(() => {
-        valueObject = parseMultilangString(value)
+        if(valueObject["en"] === undefined){
+            selectedLang = "xx"
+        }
     });
 </script>
 
@@ -32,13 +30,13 @@
         {/each}
     </div>
     {#if markdown}
-        <div class="ml-2 max-w-full break-words text chat chattext prose" class:prose-invert={$ColorSchemeTypeStore}>
+        <div class="ml-2 max-w-full wrap-break-word text chat chattext prose" class:prose-invert={$ColorSchemeTypeStore}>
             {#await ParseMarkdown(valueObject[selectedLang]) then md} 
                 {@html md}
             {/await}
         </div>
     {:else}
-        <div class="ml-2 max-w-full break-words text chat chattext prose" class:prose-invert={$ColorSchemeTypeStore}>
+        <div class="ml-2 max-w-full wrap-break-word text chat chattext prose" class:prose-invert={$ColorSchemeTypeStore}>
             {valueObject[selectedLang]}
         </div>
     {/if}

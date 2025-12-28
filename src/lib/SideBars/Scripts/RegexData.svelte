@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { XIcon } from "lucide-svelte";
+    import { XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
+    import { ReloadGUIPointer } from "src/ts/stores.svelte";
     import { alertConfirm } from "src/ts/alert";
     import type { customscript } from "src/ts/storage/database.svelte";
     import Check from "../../UI/GUI/CheckInput.svelte";
@@ -10,9 +11,8 @@
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
-  import { ReloadGUIPointer } from "src/ts/stores.svelte";
-
-  interface Props {
+  
+interface Props {
     value: customscript;
     onRemove?: () => void;
     onClose?: () => void;

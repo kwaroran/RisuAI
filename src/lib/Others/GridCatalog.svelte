@@ -3,7 +3,7 @@
     import { type Database } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import BarIcon from "../SideBars/BarIcon.svelte";
-    import { ArrowLeft, User, Users, Inspect, TrashIcon, Undo2Icon } from "lucide-svelte";
+    import { ArrowLeft, User, Users, Inspect, TrashIcon, Undo2Icon } from "@lucide/svelte";
     import { selectedCharID } from "../../ts/stores.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
@@ -61,7 +61,7 @@
         <div class="mx-4 mb-6 flex flex-col">
             <div class="flex items-center gap-3 mb-2">
                 <button 
-                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors flex-shrink-0"
+                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors shrink-0"
                     onclick={() => endGrid()}
                     title="Back"
                 >
@@ -84,7 +84,7 @@
                 <Button styled={selected === 2  ? 'primary' : 'outlined'} size="sm" onclick={() => {selected = 2}}>
                     {language.trash}
                 </Button>
-                <div class="flex-grow"></div>
+                <div class="grow"></div>
                 <span class="text-textcolor2 text-sm">
                     {formatChars(search, DBState.db).length} {language.character}
                 </span>

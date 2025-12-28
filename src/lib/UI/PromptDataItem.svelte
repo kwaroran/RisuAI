@@ -6,24 +6,38 @@
     import { language } from "src/lang";
     import NumberInput from "./GUI/NumberInput.svelte";
     import CheckInput from "./GUI/CheckInput.svelte";
-    import { ArrowDown, ArrowUp, XIcon } from "lucide-svelte";
+    import { ArrowDown, ArrowUp, XIcon } from "@lucide/svelte";
     import TextInput from "./GUI/TextInput.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { onDestroy, onMount } from "svelte";
     
-    let opened = $state(false)
     interface Props {
         promptItem: PromptItem;
         onRemove?: () => void;
         moveUp?: () => void;
         moveDown?: () => void;
+        onDrop?: () => void;
+        isDragging?: boolean;
+        isOpened?: boolean;
+        draggedIndex?: number;
+        dragOverIndex?: number;
+        openedItemIndices?: Set<number>;
+        currentIndex?: number;
+        displayIndex?: number;
     }
 
     let {
         promptItem = $bindable(),
         onRemove = () => {},
         moveUp = () => {},
-        moveDown = () => {}
+        moveDown = () => {},
+        onDrop = () => {},
+        isDragging = false,
+        isOpened = false,
+        draggedIndex = $bindable(-1),
+        dragOverIndex = $bindable(-1),
+        openedItemIndices = $bindable(new Set<number>()),
+        currentIndex = -1,
+        displayIndex = -1
     }: Props = $props();
 
     const chatPromptChange = () => {
@@ -99,63 +113,91 @@
 
     }
 
-    const EL = (e:KeyboardEvent) => {
-        if(e.ctrlKey && e.altKey && e.key === 'o'){
-            opened = !opened
-        }
-    }
-
-    onMount(() => {
-        document.addEventListener('keydown', EL)
-    })
-
-    onDestroy(() => {
-        document.removeEventListener('keydown', EL)
-    })
-
 </script>
 
-<div class="first:mt-0 w-full h-2" role="doc-pagebreak" ondrop={(e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const data = e.dataTransfer.getData('text')
-    if(data === 'prompt'){
-        const prompt = JSON.parse(e.dataTransfer.getData('prompt'))
-        replacePrompt(prompt)
-    }
-}} ondragover={(e) => {
-    e.preventDefault()
-}} draggable="true" ondragstart={(e) => {
-    e.dataTransfer.setData('text', 'prompt')
-    e.dataTransfer.setData('prompt', JSON.stringify(promptItem))
-}}>
+<div class="first:mt-0 w-full h-2" role="doc-pagebreak"
+    ondrop={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const data = e.dataTransfer.getData('text')
+        if(data === 'prompt'){
+            onDrop()
+        }
+    }}
+    ondragover={(e) => {
+        e.preventDefault()
+    }}
+    draggable="true"
+    ondragstart={(e) => {
+        e.dataTransfer.setData('text', 'prompt')
+        e.dataTransfer.setData('prompt', JSON.stringify(promptItem))
+    }}>
 
 </div>
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-    class="flex flex-col border border-selected p-4 rounded-md bg-darkbg"
+    class="flex flex-col border border-selected p-4 rounded-md bg-darkbg transition-all duration-200"
+    class:opacity-50={isDragging}
+    class:scale-95={isDragging}
 
     ondragover={(e) => {
         e.preventDefault()
+        if(draggedIndex === -1 || draggedIndex === currentIndex) {
+            return
+        }
+
+        const rect = e.currentTarget.getBoundingClientRect()
+        const mouseY = e.clientY
+        const elementCenter = rect.top + rect.height / 2
+
+        if (mouseY < elementCenter) {
+            dragOverIndex = currentIndex
+        } else {
+            dragOverIndex = currentIndex + 1
+        }
     }}
     ondrop={(e) => {
         e.preventDefault()
         const data = e.dataTransfer.getData('text')
         if(data === 'prompt'){
-            const prompt = JSON.parse(e.dataTransfer.getData('prompt'))
-            replacePrompt(prompt)
+            onDrop()
         }
-    }}
-    draggable={opened ? false : true}
-    ondragstart={(e) => {
-        e.dataTransfer.setData('text', 'prompt')
-        e.dataTransfer.setData('prompt', JSON.stringify(promptItem))
     }}
 >
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="flex items-center w-full" onclick={() => {
-        opened = !opened
-    }}>
+    <div
+        class="flex items-center w-full"
+        draggable="true"
+        style:cursor="grab"
+        ondragstart={(e) => {
+            draggedIndex = currentIndex
+            e.dataTransfer.setData('text', 'prompt')
+            e.dataTransfer.setData('prompt', JSON.stringify(promptItem))
+
+            const dragElement = document.createElement('div')
+            dragElement.textContent = getName(promptItem)
+            dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded-sm text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+            document.body.appendChild(dragElement)
+            e.dataTransfer?.setDragImage(dragElement, 10, 10)
+
+            setTimeout(() => {
+                document.body.removeChild(dragElement)
+            }, 0)
+        }}
+        ondragend={(e) => {
+            draggedIndex = -1
+            dragOverIndex = -1
+        }}
+        onclick={() => {
+            const newIndices = new Set(openedItemIndices)
+            if (isOpened) {
+                newIndices.delete(currentIndex)
+            } else {
+                newIndices.add(currentIndex)
+            }
+            openedItemIndices = newIndices
+        }}
+    >
         <span>{getName(promptItem)}</span>
         <div class="flex flex-1 justify-end">
             <button onclick={(e) => {
@@ -172,7 +214,7 @@
             }}><ArrowUp /></button>
         </div>
     </div>
-    {#if opened}
+    {#if isOpened}
 
     
         <span class="mt-6">{language.name}</span>

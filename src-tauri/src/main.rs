@@ -161,10 +161,12 @@ async fn oauth_login(app: AppHandle) -> Result<String, String> {
 
     //wait for auth_code to be set
     loop {
-        let code: std::sync::MutexGuard<'_, String> = auth_code.lock().unwrap();
-        if !code.is_empty() {
-            break;
-        }
+        {
+            let code = auth_code.lock().unwrap();
+            if !code.is_empty() {
+                break;
+            }
+        } // MutexGuard is dropped here before await
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
 

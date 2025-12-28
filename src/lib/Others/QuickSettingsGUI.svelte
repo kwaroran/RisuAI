@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BotIcon, PackageIcon, Sailboat, UserIcon } from "lucide-svelte";
+    import { BotIcon, PackageIcon, Sailboat } from "@lucide/svelte";
     import { QuickSettings } from "src/ts/stores.svelte";
     import BotSettings from "../Setting/Pages/BotSettings.svelte";
     import OtherBotSettings from "../Setting/Pages/OtherBotSettings.svelte";

@@ -13,7 +13,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { exportAsDataset } from "src/ts/storage/exportAsDataset";
     import { Capacitor } from "@capacitor/core";
-    import { loginToSionyw } from "src/ts/sionyw";
+    import { loginToSionyw, testSionywLogin } from "src/ts/sionyw";
     let openIframe = $state(false)
     let openIframeURL = $state('')
     let popup:Window = null
@@ -128,6 +128,10 @@
                 <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-blue-500 transition-colors float-right" onclick={async () => {
                     loginToSionyw()
                 }}>{language.loginSionyw}</button>
+
+                <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-blue-500 transition-colors float-right" onclick={async () => {
+                    testSionywLogin()
+                }}>TestSionyw</button>
             {/if}
         {/if}</h1>
     </div>
@@ -164,7 +168,7 @@
 
 </div>
 {#if openIframe}
-    <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
+    <div class="fixed top-0 left-0 bg-black/50 w-full h-full flex justify-center items-center">
         <iframe src={openIframeURL} title="login" class="w-full h-full">
         </iframe>
     </div>

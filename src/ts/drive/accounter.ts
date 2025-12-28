@@ -4,10 +4,14 @@ import { alertConfirm, alertError, alertMd, alertNormal, alertSelect, alertWait 
 import { AppendableBuffer } from "../globalApi.svelte"
 import { decodeRisuSave } from "../storage/risuSave"
 import { language } from "src/lang"
+import { fetchProtectedResource } from "../sionyw"
 
 export async function risuLogin() {
     const win = window.open(hubURL + '/hub/login')
     window.addEventListener("message", (ev) => {
+        if(ev.source !== win.window){
+            return
+        }
         console.log(ev)
         const data = JSON.parse(ev.data)
         console.log(data)
@@ -40,11 +44,8 @@ export async function loadRisuAccountData() {
         alertError("Not logged in error")
         return
     }
-    const s = await fetch(hubURL + '/hub/account/load', {
+    const s = await fetchProtectedResource(hubURL + '/hub/account/load', {
         method: "POST",
-        body: JSON.stringify({
-            token: db.account.token
-        })
     })
     if(s.status !== 200){
         alertError(await s.text())
@@ -59,11 +60,8 @@ export async function loadRisuAccountBackup() {
         alertError("Not logged in error")
         return
     }
-    const s = await fetch(hubURL + '/hub/backup/list', {
+    const s = await fetchProtectedResource('/hub/backup/list', {
         method: "GET",
-        headers: {
-            "x-risu-auth": db.account.token
-        }
     })
     if(s.status !== 200){
         alertMd(await s.text())
@@ -107,10 +105,9 @@ export async function loadRisuAccountBackup() {
 
     const backupId = backups[backupIdNum]
 
-    const backup = await fetch(hubURL + '/hub/backup/get', {
+    const backup = await fetchProtectedResource('/hub/backup/get', {
         method: "GET",
         headers: {
-            "x-risu-auth": db.account.token,
             'x-risu-key': backupId
         }
     })

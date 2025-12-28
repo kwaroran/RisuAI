@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { PlusIcon, TrashIcon, LinkIcon, Code2Icon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon, LinkIcon, Code2Icon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertMd } from "src/ts/alert";
-    import { AlertTriangle } from 'lucide-svelte';
+    import { AlertTriangle } from '@lucide/svelte';
 
     import { DBState } from "src/ts/stores.svelte";
-    import { createBlankPlugin, importPlugin } from "src/ts/plugins/plugins";
+    import { checkPluginUpdate, createBlankPlugin, importPlugin, loadPlugins, updatePlugin } from "src/ts/plugins/plugins";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
@@ -40,7 +40,7 @@
                 showParams.push(i)
             }
         }}>
-            <span class="font-bold flex-grow">{plugin.displayName ?? plugin.name}</span>
+            <span class="font-bold grow">{plugin.displayName ?? plugin.name}</span>
             {#if plugin.version === 2}
                 <button class="text-yellow-400 hover:gray-200 cursor-pointer" onclick={() => {
                     alertMd(migrationGuideContent);
@@ -65,6 +65,26 @@
                 {/each}
             {/if}
 
+            {#if plugin.updateURL}
+                {#await checkPluginUpdate(plugin) then updateInfo}
+                    {#if updateInfo}
+                        <button
+                            class="text-green-400 hover:gray-200 cursor-pointer"
+                            onclick={async () => {
+                                const v = await alertConfirm(
+                                    language.pluginUpdateFoundInstallIt
+                                );
+                                if (v) {
+                                    updatePlugin(plugin)
+                                }
+                            }}
+                        >
+                            <PlusIcon />
+                        </button>
+                    {/if}
+                {/await}
+            {/if}
+
             <!--Also, remove button.-->
             <button
                 class="textcolor2 hover:gray-200 cursor-pointer"
@@ -80,6 +100,7 @@
                         let plugins = DBState.db.plugins ?? [];
                         plugins.splice(i, 1);
                         DBState.db.plugins = plugins;
+                        loadPlugins()
                     }
                 }}
             >
@@ -94,7 +115,7 @@
             </span>
             <!--List up args-->
         {:else if Object.keys(plugin.arguments).filter((i) => !i.startsWith("hidden_")).length > 0 && showParams.includes(i)}
-            <div class="flex flex-col mt-2 bg-dark-900 bg-opacity-50 p-3">
+            <div class="flex flex-col mt-2 bg-dark-900/50 p-3">
                 {#each Object.keys(plugin.arguments) as arg}
                     {#if !arg.startsWith("hidden_")}
                         {#if typeof(plugin?.argMeta?.[arg]?.divider) === 'string'}
@@ -198,7 +219,7 @@
 <div class="text-textcolor2 mt-2 flex gap-2">
     <button
         onclick={() => {
-            importPlugin();
+            importPlugin()
         }}
         class="hover:text-textcolor cursor-pointer"
     >

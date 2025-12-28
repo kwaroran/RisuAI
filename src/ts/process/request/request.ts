@@ -1304,7 +1304,6 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
     
     if(preamble){
         if(body.chat_history.length > 0){
-            // @ts-ignore
             body.preamble = preamble
         }
         else{

@@ -37,6 +37,56 @@ export interface ChatMemoSearchResult {
   memoIndex: number;
 }
 
+export interface BulkResummaryState {
+    isProcessing: boolean;
+    result: string | null;
+    selectedIndices: number[];
+    mergedChatMemos: string[];
+    isTranslating: boolean;
+    translation: string | null;
+}
+
+// Category Management Types
+export interface Category {
+    id: string;
+    name: string;
+}
+
+export interface CategoryManagerState {
+    isOpen: boolean;
+    editingCategory: Category | null;
+    selectedCategoryFilter: string;
+}
+
+// Tag Management Types
+export interface TagManagerState {
+    isOpen: boolean;
+    currentSummaryIndex: number;
+    editingTag: string;
+    editingTagIndex: number;
+}
+
+// Bulk Edit Types
+export interface BulkEditState {
+    isEnabled: boolean;
+    selectedSummaries: Set<number>;
+    selectedCategory: string;
+    bulkSelectInput: string;
+}
+
+// Filter States
+export interface FilterState {
+    showImportantOnly: boolean;
+    selectedCategoryFilter: string;
+    isManualImportantToggle: boolean;
+}
+
+// UI States
+export interface UIState {
+    collapsedSummaries: Set<number>;
+    dropdownOpen: boolean;
+}
+
 export const DISPLAY_MODE = {
   All: "All",
   Range: "Range",

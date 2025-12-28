@@ -8,7 +8,10 @@
     ScissorsLineDashed,
     XIcon,
     CheckIcon,
-  } from "lucide-svelte";
+    TagIcon,
+    ChevronUpIcon,
+    ChevronDownIcon,
+  } from "@lucide/svelte";
   import { language } from "src/lang";
   import {
     type SerializableHypaV3Data,
@@ -25,12 +28,16 @@
     SummaryItemState,
     ExpandedMessageState,
     SearchState,
+    Category,
+    BulkEditState,
+    UIState,
   } from "./types";
   import {
     alertConfirmTwice,
     handleDualAction,
     getFirstMessage,
     processRegexScript,
+    getCategoryName,
   } from "./utils";
 
   interface Props {
@@ -40,6 +47,12 @@
     expandedMessageState: ExpandedMessageState;
     searchState: SearchState;
     filterSelected: boolean;
+    categories: Category[];
+    bulkEditState?: BulkEditState;
+    uiState?: UIState;
+    onToggleSummarySelection?: (index: number) => void;
+    onOpenTagManager?: (index: number) => void;
+    onToggleCollapse?: (index: number) => void;
   }
 
   let {
@@ -49,6 +62,12 @@
     expandedMessageState = $bindable(),
     searchState = $bindable(),
     filterSelected,
+    categories,
+    bulkEditState,
+    uiState,
+    onToggleSummarySelection,
+    onOpenTagManager,
+    onToggleCollapse,
   }: Props = $props();
 
   const summary = $derived(hypaV3Data.summaries[summaryIndex]);
@@ -315,21 +334,72 @@
           translationRef: null,
         };
   }
+
+  function toggleSummaryCollapse(): void {
+    if (onToggleCollapse) {
+      onToggleCollapse(summaryIndex);
+    }
+  }
+
+  function isCollapsed(): boolean {
+    return uiState?.collapsedSummaries?.has(summaryIndex) ?? false;
+  }
+
+  function isSelected(): boolean {
+    return bulkEditState?.selectedSummaries?.has(summaryIndex) ?? false;
+  }
 </script>
 
 <div
-  class="flex flex-col p-2 border rounded-lg sm:p-4 border-zinc-700 bg-zinc-800/50"
+  class="flex flex-col p-2 border rounded-lg sm:p-4 border-zinc-700 bg-zinc-800/50 {isSelected() ? 'ring-2 ring-blue-500' : ''}"
 >
   <!-- Original Summary Header -->
   <div class="flex items-center justify-between">
     <!-- Summary Number / Metrics Container -->
     <div class="flex items-center gap-2">
+      <!-- Bulk Edit Checkbox -->
+      {#if bulkEditState?.isEnabled}
+        <input
+          type="checkbox"
+          class="w-4 h-4 text-blue-600 bg-zinc-900 border-zinc-600 rounded-sm focus:ring-blue-500"
+          checked={isSelected()}
+          onchange={() => onToggleSummarySelection?.(summaryIndex)}
+        />
+      {/if}
+
       <span class="text-sm text-zinc-400"
         >{language.hypaV3Modal.summaryNumberLabel.replace(
           "{0}",
           (summaryIndex + 1).toString()
         )}</span
       >
+
+      <!-- Category Tag -->
+      <span class="px-2 py-1 text-xs rounded-full bg-zinc-700 text-zinc-300">
+        <TagIcon class="w-3 h-3 inline mr-1" />
+        {getCategoryName(summary.categoryId, categories)}
+      </span>
+
+      <!-- Individual Tags -->
+      {#if summary.tags && summary.tags.length > 0}
+        {#each summary.tags as tag}
+          <button
+            class="px-2 py-1 text-xs rounded-full bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+            onclick={() => onOpenTagManager?.(summaryIndex)}
+          >
+            #{tag}
+          </button>
+        {/each}
+      {/if}
+
+      <!-- Add Tag Button -->
+      <button
+        class="px-2 py-1 text-xs rounded-full bg-zinc-600 hover:bg-zinc-500 text-zinc-300 transition-colors"
+        onclick={() => onOpenTagManager?.(summaryIndex)}
+        title={language.hypaV3Modal.tagManager}
+      >
+        + {language.hypaV3Modal.tag}
+      </button>
 
       {#if filterSelected && hypaV3Data.metrics}
         <div class="flex flex-wrap gap-1">
@@ -423,7 +493,7 @@
   <!-- Original Summary -->
   <div class="mt-2 sm:mt-4">
     <textarea
-      class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+      class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
       bind:this={summaryItemState.originalRef}
       bind:value={summary.text}
       onfocus={() => {
@@ -443,7 +513,7 @@
       </div>
 
       <textarea
-        class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
+        class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
         readonly
         tabindex="-1"
         bind:this={summaryItemState.translationRef}
@@ -496,7 +566,7 @@
     <!-- Rerolled Summary -->
     <div class="mt-2 sm:mt-4">
       <textarea
-        class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+        class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
         tabindex="-1"
         bind:value={rerolled}
       >
@@ -511,7 +581,7 @@
         </div>
 
         <textarea
-          class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
+          class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
           readonly
           tabindex="-1"
           bind:this={summaryItemState.rerolledTranslationRef}
@@ -524,12 +594,21 @@
   <!-- Connected Messages Header -->
   <div class="mt-2 sm:mt-4">
     <div class="flex items-center justify-between">
-      <span class="text-sm text-zinc-400"
-        >{language.hypaV3Modal.connectedMessageCountLabel.replace(
+      <button
+        class="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+        tabindex="-1"
+        onclick={toggleSummaryCollapse}
+      >
+        {#if isCollapsed()}
+          <ChevronDownIcon class="w-4 h-4" />
+        {:else}
+          <ChevronUpIcon class="w-4 h-4" />
+        {/if}
+        <span>{language.hypaV3Modal.connectedMessageCountLabel.replace(
           "{0}",
           summary.chatMemos.length.toString()
-        )}</span
-      >
+        )}</span>
+      </button>
 
       <div class="flex items-center gap-2">
         <!-- Translate Message Button -->
@@ -547,78 +626,81 @@
     </div>
   </div>
 
-  <!-- Connected Message IDs -->
-  <div class="flex flex-wrap gap-2 mt-2 sm:mt-4">
-    {#key summary.chatMemos.length}
-      {#each summary.chatMemos as chatMemo, memoIndex (chatMemo)}
-        <button
-          class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-700 transition-colors bg-zinc-900 {isMessageExpanded(
-            chatMemo
-          )
-            ? 'ring-2 ring-zinc-500'
-            : ''}"
-          tabindex="-1"
-          bind:this={summaryItemState.chatMemoRefs[memoIndex]}
-          onclick={() => toggleExpandMessage(chatMemo)}
-        >
-          {chatMemo == null
-            ? language.hypaV3Modal.connectedFirstMessageLabel
-            : chatMemo}
-        </button>
-      {/each}
-    {/key}
-  </div>
-
-  {#if expandedMessageState?.summaryIndex === summaryIndex}
-    <!-- Expanded Message -->
-    <div class="mt-2 sm:mt-4">
-      {#await getMessageFromChatMemo(expandedMessageState.selectedChatMemo) then expandedMessage}
-        {#if expandedMessage}
-          <!-- Role -->
-          <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-            {language.hypaV3Modal.connectedMessageRoleLabel.replace(
-              "{0}",
-              expandedMessage.role
-            )}
-          </div>
-
-          <!-- Content -->
-          <textarea
-            class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
-            readonly
+  {#if !isCollapsed()}
+    <!-- Connected Message IDs -->
+    <div class="flex flex-wrap gap-2 mt-2 sm:mt-4">
+      {#key summary.chatMemos.length}
+        {#each summary.chatMemos as chatMemo, memoIndex (chatMemo)}
+          <button
+            class="px-3 py-2 rounded-full text-xs text-zinc-200 hover:bg-zinc-700 transition-colors bg-zinc-900 {isMessageExpanded(
+              chatMemo
+            )
+              ? 'ring-2 ring-zinc-500'
+              : ''}"
             tabindex="-1"
-            value={expandedMessage.data}
-          ></textarea>
-        {:else}
-          <span class="text-sm text-red-400"
-            >{language.hypaV3Modal.connectedMessageNotFoundLabel}</span
+            bind:this={summaryItemState.chatMemoRefs[memoIndex]}
+            onclick={() => toggleExpandMessage(chatMemo)}
           >
-        {/if}
-      {:catch error}
-        <span class="text-sm text-red-400"
-          >{language.hypaV3Modal.connectedMessageLoadingError.replace(
-            "{0}",
-            error.message
-          )}</span
-        >
-      {/await}
+            {chatMemo == null
+              ? language.hypaV3Modal.connectedFirstMessageLabel
+              : chatMemo}
+          </button>
+        {/each}
+      {/key}
     </div>
 
-    <!-- Expanded Message Translation -->
-    {#if expandedMessageState.translation}
+    {#if expandedMessageState?.summaryIndex === summaryIndex}
+      <!-- Expanded Message -->
       <div class="mt-2 sm:mt-4">
-        <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
-          {language.hypaV3Modal.connectedMessageTranslationLabel}
-        </div>
+        {#await getMessageFromChatMemo(expandedMessageState.selectedChatMemo) then expandedMessage}
+          {#if expandedMessage}
+            <!-- Role -->
+            <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
+              {language.hypaV3Modal.connectedMessageRoleLabel.replace(
+                "{0}",
+                expandedMessage.role
+              )}
+            </div>
 
-        <textarea
-          class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
-          readonly
-          tabindex="-1"
-          bind:this={expandedMessageState.translationRef}
-          value={expandedMessageState.translation}
-        ></textarea>
+            <!-- Content -->
+            <textarea
+              class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
+              readonly
+              tabindex="-1"
+              value={expandedMessage.data}
+            ></textarea>
+          {:else}
+            <span class="text-sm text-red-400"
+              >{language.hypaV3Modal.connectedMessageNotFoundLabel}</span
+            >
+          {/if}
+        {:catch error}
+          <span class="text-sm text-red-400"
+            >{language.hypaV3Modal.connectedMessageLoadingError.replace(
+              "{0}",
+              error.message
+            )}</span
+          >
+        {/await}
       </div>
+
+      <!-- Expanded Message Translation -->
+      {#if expandedMessageState.translation}
+        <div class="mt-2 sm:mt-4">
+          <div class="mb-2 text-sm sm:mb-4 text-zinc-400">
+            {language.hypaV3Modal.connectedMessageTranslationLabel}
+          </div>
+
+          <textarea
+            class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
+            readonly
+            tabindex="-1"
+            bind:this={expandedMessageState.translationRef}
+            value={expandedMessageState.translation}
+          ></textarea>
+        </div>
+      {/if}
     {/if}
   {/if}
+
 </div>

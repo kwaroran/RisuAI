@@ -12,7 +12,7 @@
             return
         }
         try{
-            //@ts-ignore
+            //@ts-expect-error adsbygoogle is injected by Google AdSense script, not defined in Window interface
             (window.adsbygoogle = window.adsbygoogle || []).push({});
         }catch{}
     });

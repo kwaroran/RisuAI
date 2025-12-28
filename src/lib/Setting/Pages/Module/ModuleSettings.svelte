@@ -5,12 +5,11 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, importModule, refreshModules, type RisuModule } from "src/ts/process/modules";
-    import { DownloadIcon, Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints } from "lucide-svelte";
+    import { Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints } from "@lucide/svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
-    import { alertCardExport, alertConfirm, alertError } from "src/ts/alert";
+    import { alertConfirm } from "src/ts/alert";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { ShowRealmFrameStore } from "src/ts/stores.svelte";
     import { onDestroy } from "svelte";
     import { importMCPModule } from "src/ts/process/mcp/mcp";
     let tempModule:RisuModule = $state({
@@ -56,7 +55,7 @@
                         <Waypoints size={18} class="mr-2" />
                     {/if}
                     <span class="text-lg">{rmodule.name}</span>
-                    <div class="flex-grow flex justify-end">
+                    <div class="grow flex justify-end">
                         <button class={(DBState.db.enabledModules.includes(rmodule.id)) ?
                                 "mr-2 cursor-pointer text-blue-500" :
                                 rmodule.namespace && 

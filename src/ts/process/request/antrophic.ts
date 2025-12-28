@@ -387,8 +387,10 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
         const AMZ_HOST = "bedrock-runtime.%REGION%.amazonaws.com";
         const host = AMZ_HOST.replace("%REGION%", region);
         const stream = false;   // todo?
-        
-        const awsModel = !arg.modelInfo.internalID.includes("claude-v2") ? "us." + arg.modelInfo.internalID : arg.modelInfo.internalID;
+
+        // https://docs.claude.com/en/api/claude-on-amazon-bedrock#global-vs-regional-endpoints
+        const datePart = Number(arg.modelInfo.internalID.match(/(\d{8})/)?.[0]);
+        const awsModel = datePart && datePart >= 20250929 ? "global." + arg.modelInfo.internalID : "us." + arg.modelInfo.internalID;
         const url = `https://${host}/model/${awsModel}/invoke${stream ? "-with-response-stream" : ""}`
 
         let params = {...body}

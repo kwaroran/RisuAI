@@ -313,11 +313,19 @@ async function hubProxyFunc(req, res) {
                 res.setHeader(key, value);
             }
             res.status(redirectResponse.status);
-            await pipeline(redirectResponse.body, res);
+            if (redirectResponse.body) {
+                await pipeline(redirectResponse.body, res);
+            } else {
+                res.end();
+            }
             return;
         }
         
-        await pipeline(response.body, res);
+        if (response.body) {
+            await pipeline(response.body, res);
+        } else {
+            res.end();
+        }
         
     } catch (error) {
         console.error("[Hub Proxy] Error:", error);

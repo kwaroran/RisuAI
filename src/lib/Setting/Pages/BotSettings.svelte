@@ -6,11 +6,11 @@
     
     import { DBState } from 'src/ts/stores.svelte';
     import { customProviderStore } from "src/ts/plugins/plugins";
-    import { downloadFile, getModelMaxContext, isTauri } from "src/ts/globalApi.svelte";
+    import { downloadFile, isTauri } from "src/ts/globalApi.svelte";
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";
-    import { PlusIcon, TrashIcon, HardDriveUploadIcon, DownloadIcon, UploadIcon } from "lucide-svelte";
+    import { PlusIcon, TrashIcon, HardDriveUploadIcon, DownloadIcon, UploadIcon } from "@lucide/svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
@@ -19,7 +19,6 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import { openRouterModels } from "src/ts/model/openrouter";
-    import { alertConfirm } from "src/ts/alert";
     import OobaSettings from "./OobaSettings.svelte";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
@@ -30,9 +29,8 @@
   import { getModelInfo, LLMFlags, LLMFormat, LLMProvider } from "src/ts/model/modellist";
   import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
   import RegexList from "src/lib/SideBars/Scripts/RegexList.svelte";
-    import { includes } from "lodash";
-
-    let tokens = $state({
+    
+let tokens = $state({
         mainPrompt: 0,
         jailbreak: 0,
         globalNote: 0,
@@ -173,6 +171,9 @@
         }}>
             <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
                 OpenAI Compatible
+            </OptionInput>
+            <OptionInput value={LLMFormat.OpenAIResponseAPI.toString()}>
+                OpenAI Response API
             </OptionInput>
             <OptionInput value={LLMFormat.Anthropic.toString()}>
                 Anthropic Claude
@@ -412,7 +413,7 @@
             }} />
         </div>
         {#if DBState.db.localStopStrings}
-            <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
+            <div class="flex flex-col p-2 rounded-sm border border-selected mt-2 gap-1">
                 <div class="p-2">
                     <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                         let localStopStrings = DBState.db.localStopStrings
@@ -422,7 +423,7 @@
                 </div>
                 {#each DBState.db.localStopStrings as stopString, i}
                     <div class="flex w-full">
-                        <div class="flex-grow">
+                        <div class="grow">
                             <TextInput marginBottom bind:value={DBState.db.localStopStrings[i]} fullwidth fullh/>
                         </div>
                         <div>
@@ -742,7 +743,7 @@
             const canvas = document.createElement('canvas')
             const ctx = canvas.getContext('2d')
             const img = new Image()
-            //@ts-ignore, works fine, don't touch
+            //@ts-expect-error Uint8Array buffer type (ArrayBufferLike) is incompatible with BlobPart's ArrayBuffer
             const blob = new Blob([sel.data], {type: "image/png"})
             img.src = URL.createObjectURL(blob)
             await img.decode()

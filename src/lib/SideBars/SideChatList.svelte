@@ -2,24 +2,24 @@
     import { onDestroy, onMount } from "svelte";
     import { v4 } from "uuid";
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
-    import { DownloadIcon, PencilIcon, HardDriveUploadIcon, MenuIcon, TrashIcon, GitBranchIcon, SplitIcon, FolderPlusIcon } from "lucide-svelte";
+    import { DownloadIcon, PencilIcon, HardDriveUploadIcon, MenuIcon, TrashIcon, SplitIcon, FolderPlusIcon, BookmarkCheckIcon } from "@lucide/svelte";
 
     import type { Chat, ChatFolder, character, groupChat } from "src/ts/storage/database.svelte";
-    import { DBState } from 'src/ts/stores.svelte';
-    import { MobileGUI, ReloadGUIPointer, selectedCharID } from "src/ts/stores.svelte";
+    import { DBState, ReloadGUIPointer } from 'src/ts/stores.svelte';
+    import { selectedCharID } from "src/ts/stores.svelte";
 
     import CheckInput from "../UI/GUI/CheckInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
 
     import { exportChat, importChat, exportAllChats } from "src/ts/characters";
-    import { alertChatOptions, alertConfirm, alertError, alertInput, alertNormal, alertSelect, alertStore } from "src/ts/alert";
-    import { findCharacterbyId, parseKeyValue, sleep, sortableOptions } from "src/ts/util";
+    import { alertChatOptions, alertConfirm, alertError, alertNormal, alertSelect, alertStore } from "src/ts/alert";
+    import { findCharacterbyId, sleep, sortableOptions } from "src/ts/util";
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
-    import { getChatBranches } from "src/ts/gui/branches";
-    import { getModuleToggles } from "src/ts/process/modules";
+    import { bookmarkListOpen } from "src/ts/stores.svelte";
     import { language } from "src/lang";
-  import Toggles from "./Toggles.svelte";
+    import Toggles from "./Toggles.svelte";
+    import { changeChatTo } from "src/ts/globalApi.svelte";
 
     interface Props {
         chara: character|groupChat;
@@ -67,7 +67,7 @@
                         }
                     })
 
-                    chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
+                    changeChatTo(newChats.indexOf(chara.chats[currentChatPage]))
                     chara.chats = newChats
 
                     try {
@@ -107,7 +107,7 @@
                 })
                 
                 chara.chatFolders = newFolders
-                chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
+                changeChatTo(newChats.indexOf(chara.chats[currentChatPage]))
                 chara.chats = newChats
                 try {
                     folderStb.destroy()
@@ -153,12 +153,12 @@
             })
         }
         chara.chats = chats
-        chara.chatPage = 0
+        changeChatTo(0)
         $ReloadGUIPointer += 1
     }}>{language.newChat}</Button>
 
     {#key sorted}
-    <div class="flex flex-col mt-2 overflow-y-auto flex-grow" bind:this={listEle}>
+    <div class="flex flex-col mt-2 overflow-y-auto grow" bind:this={listEle}>
         <!-- folder div -->
         <div class="flex flex-col" bind:this={folderEles}>
             <!-- chat folder -->
@@ -183,11 +183,11 @@
                     class:bg-pink-900={folder.color === 'pink'}
                 >
                     {#if editMode}
-                        <TextInput bind:value={chara.chatFolders[i].name} className="flex-grow min-w-0" padding={false}/>
+                        <TextInput bind:value={chara.chatFolders[i].name} className="grow min-w-0" padding={false}/>
                     {:else}
                         <span>{folder.name}</span>
                     {/if}
-                    <div class="flex-grow flex justify-end">
+                    <div class="grow flex justify-end">
                         <div role="button" tabindex="0" onkeydown={(e) => {
                             if(e.key === 'Enter'){
                                 e.currentTarget.click()
@@ -246,16 +246,16 @@
                     {#each chara.chats.filter(chat => chat.folderId == chara.chatFolders[i].id) as chat}
                     <button data-risu-chat-idx={chara.chats.indexOf(chat)} onclick={() => {
                         if(!editMode){
-                            chara.chatPage = chara.chats.indexOf(chat)
+                            changeChatTo(chara.chats.indexOf(chat))
                             $ReloadGUIPointer += 1
                         }
                     }} class="risu-chats flex items-center text-textcolor border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"class:bg-selected={chara.chats.indexOf(chat) === chara.chatPage}>
                         {#if editMode}
-                            <TextInput bind:value={chat.name} className="flex-grow min-w-0" padding={false}/>
+                            <TextInput bind:value={chat.name} className="grow min-w-0" padding={false}/>
                         {:else}
                             <span>{chat.name}</span>
                         {/if}
-                        <div class="flex-grow flex justify-end">
+                        <div class="grow flex justify-end">
                             <div role="button" tabindex="0" onkeydown={(e) => {
                                 if(e.key === 'Enter'){
                                     e.currentTarget.click()
@@ -264,11 +264,11 @@
                                 const option = await alertChatOptions()
                                 switch(option){
                                     case 0:{
-                                        const newChat = safeStructuredClone($state.snapshot(chara.chats[chara.chats.indexOf(chat)]))
+                                        const newChat = $state.snapshot(chara.chats[chara.chats.indexOf(chat)])
                                         newChat.name = `Copy of ${newChat.name}`
                                         newChat.id = v4()
                                         chara.chats.unshift(newChat)
-                                        chara.chatPage = 0
+                                        changeChatTo(0)
                                         chara.chats = chara.chats
                                         break
                                     }
@@ -294,7 +294,7 @@
                                         break
                                     }
                                     case 2:{
-                                        chara.chatPage = chara.chats.indexOf(chat)
+                                        changeChatTo(chara.chats.indexOf(chat))
                                         createMultiuserRoom()
                                     }
                                 }
@@ -332,7 +332,7 @@
                                 }
                                 const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                                 if(d){
-                                    chara.chatPage = 0
+                                    changeChatTo(0)
                                     $ReloadGUIPointer += 1
                                     let chats = chara.chats
                                     chats.splice(chara.chats.indexOf(chat), 1)
@@ -355,18 +355,18 @@
             {#if chat.folderId == null}
             <button data-risu-chat-idx={i} onclick={() => {
                 if(!editMode){
-                    chara.chatPage = i
+                    changeChatTo(i)
                     $ReloadGUIPointer += 1
                 }
             }}
             class="flex items-center text-textcolor border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"
             class:bg-selected={i === chara.chatPage}>
                 {#if editMode}
-                    <TextInput bind:value={chara.chats[i].name} className="flex-grow min-w-0" padding={false}/>
+                    <TextInput bind:value={chara.chats[i].name} className="grow min-w-0" padding={false}/>
                 {:else}
                     <span>{chat.name}</span>
                 {/if}
-                <div class="flex-grow flex justify-end">
+                <div class="grow flex justify-end">
                     <div role="button" tabindex="0" onkeydown={(e) => {
                         if(e.key === 'Enter'){
                             e.currentTarget.click()
@@ -375,11 +375,11 @@
                         const option = await alertChatOptions()
                         switch(option){
                             case 0:{
-                                const newChat = safeStructuredClone($state.snapshot(chara.chats[i]))
+                                const newChat = $state.snapshot(chara.chats[i])
                                 newChat.name = `Copy of ${newChat.name}`
                                 newChat.id = v4()
                                 chara.chats.unshift(newChat)
-                                chara.chatPage = 0
+                                changeChatTo(0)
                                 chara.chats = chara.chats
                                 break
                             }
@@ -406,7 +406,7 @@
                                 break
                             }
                             case 2:{
-                                chara.chatPage = i
+                                changeChatTo(i)
                                 createMultiuserRoom()
                             }
                         }
@@ -444,7 +444,7 @@
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                         if(d){
-                            chara.chatPage = 0
+                            changeChatTo(0)
                             $ReloadGUIPointer += 1
                             let chats = chara.chats
                             chats.splice(i, 1)
@@ -478,13 +478,18 @@
             }}>
                 <PencilIcon size={18}/>
             </button>
-            <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={() => {
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 alertStore.set({
                   type: "branches",
                   msg: ""
                 })
             }}>
                 <SplitIcon size={18}/>
+            </button>
+            <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
+                $bookmarkListOpen = true;
+            }}>
+                <BookmarkCheckIcon size={18}/>
             </button>
             <button class="ml-auto text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={() => {
                 if (!chara.chatFolders) {

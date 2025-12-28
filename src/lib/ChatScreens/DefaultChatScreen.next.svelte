@@ -2,14 +2,14 @@
 
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "@lucide/svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from "../../ts/characters";
     import { chatProcessStage, doingChat, sendChat } from "../../ts/process/index.svelte";
-    import { findCharacterbyId, getUserIconProtrait, messageForm, sleep } from "../../ts/util";
+    import { findCharacterbyId, sleep } from "../../ts/util";
     import { language } from "../../lang";
     import { isExpTranslator, translate } from "../../ts/translator/translator";
     import { alertError, alertNormal, alertWait, showHypaV2Alert } from "../../ts/alert";
@@ -464,7 +464,7 @@
                 {/if}
 
                 {#if !DBState.db.useAdvancedEditor}
-                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
+                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-hidden text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
                           bind:value={messageInput}
                           bind:this={inputEle}
                           onkeydown={(e) => {
@@ -501,18 +501,20 @@
                                     reader.onload = async (e) => {
                                         const buf = e.target?.result as ArrayBuffer
                                         const uint8 = new Uint8Array(buf)
-                                        const res = await postChatFile({
+                                        const results = await postChatFile({
                                             name: file.name,
                                             data: uint8
                                         })
-                                        if(res?.type === 'asset'){
-                                            fileInput.push(res.data)
-                                            updateInputSizeAll()
+                                        if(!results) return
+                                        for(const res of results){
+                                            if(res?.type === 'asset'){
+                                                fileInput.push(res.data)
+                                            }
+                                            if(res?.type === 'text'){
+                                                messageInput += `{{file::${res.name}::${res.data}}}`
+                                            }
                                         }
-                                        if(res?.type === 'text'){
-                                            messageInput += `{{file::${res.name}::${res.data}}}`
-                                            updateInputSizeAll()
-                                        }
+                                        updateInputSizeAll()
                                     }
                                     reader.readAsArrayBuffer(file)
                                 }
@@ -578,7 +580,7 @@
                     <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />
                     </label>
-                    <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                    <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                               bind:value={messageInputTranslate}
                               bind:this={inputTranslateEle}
                               onkeydown={(e) => {
@@ -872,15 +874,17 @@
                     </div>
 
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={async () => {
-                        const res = await postChatFile(messageInput)
-                        if(res?.type === 'asset'){
-                            fileInput.push(res.data)
-                            updateInputSizeAll()
+                        const results = await postChatFile(messageInput)
+                        if(!results) return
+                        for(const res of results){
+                            if(res?.type === 'asset'){
+                                fileInput.push(res.data)
+                            }
+                            if(res?.type === 'text'){
+                                messageInput += `{{file::${res.name}::${res.data}}}`
+                            }
                         }
-                        if(res?.type === 'text'){
-                            messageInput += `{{file::${res.name}::${res.data}}}`
-                            updateInputSizeAll()
-                        }
+                        updateInputSizeAll()
                     }}>
 
                         <ImagePlusIcon />

@@ -1,7 +1,6 @@
 <script>
     import { CharEmotion, ViewBoxsize } from '../../ts/stores.svelte';
     import { onMount } from 'svelte';
-    import EmotionBox from './EmotionBox.svelte';
     import TransitionImage from './TransitionImage.svelte';
     import { getEmotion } from '../../ts/util';
     
@@ -84,7 +83,7 @@
     }
 </style>
 
-<div class="box bg-darkbg bg-opacity-70" bind:this="{box}" style="width: {$ViewBoxsize.width}px; height: {$ViewBoxsize.height}px;">
+<div class="box bg-darkbg/70" bind:this="{box}" style="width: {$ViewBoxsize.width}px; height: {$ViewBoxsize.height}px;">
     <!-- Your content here -->
     <TransitionImage classType='risu' src={getEmotion(DBState.db, $CharEmotion, 'plain')}/>
     <div role="button" tabindex="0"

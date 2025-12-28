@@ -1,8 +1,157 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-body{
+@plugin '@tailwindcss/typography';
+
+@theme {
+  --color-bgcolor: var(--risu-theme-bgcolor);
+  --color-darkbg: var(--risu-theme-darkbg);
+  --color-borderc: var(--risu-theme-borderc);
+  --color-selected: var(--risu-theme-selected);
+  --color-draculared: var(--risu-theme-draculared);
+  --color-textcolor: var(--risu-theme-textcolor);
+  --color-textcolor2: var(--risu-theme-textcolor2);
+  --color-darkborderc: var(--risu-theme-darkborderc);
+  --color-darkbutton: var(--risu-theme-darkbutton);
+
+  --color-primary-50: var(--risu-theme-primary-50);
+  --color-primary-100: var(--risu-theme-primary-100);
+  --color-primary-200: var(--risu-theme-primary-200);
+  --color-primary-300: var(--risu-theme-primary-300);
+  --color-primary-400: var(--risu-theme-primary-400);
+  --color-primary-500: var(--risu-theme-primary-500);
+  --color-primary-600: var(--risu-theme-primary-600);
+  --color-primary-700: var(--risu-theme-primary-700);
+  --color-primary-800: var(--risu-theme-primary-800);
+  --color-primary-900: var(--risu-theme-primary-900);
+
+  --color-secondary-50: var(--risu-theme-secondary-50);
+  --color-secondary-100: var(--risu-theme-secondary-100);
+  --color-secondary-200: var(--risu-theme-secondary-200);
+  --color-secondary-300: var(--risu-theme-secondary-300);
+  --color-secondary-400: var(--risu-theme-secondary-400);
+  --color-secondary-500: var(--risu-theme-secondary-500);
+  --color-secondary-600: var(--risu-theme-secondary-600);
+  --color-secondary-700: var(--risu-theme-secondary-700);
+  --color-secondary-800: var(--risu-theme-secondary-800);
+  --color-secondary-900: var(--risu-theme-secondary-900);
+
+  --color-danger-50: var(--risu-theme-danger-50);
+  --color-danger-100: var(--risu-theme-danger-100);
+  --color-danger-200: var(--risu-theme-danger-200);
+  --color-danger-300: var(--risu-theme-danger-300);
+  --color-danger-400: var(--risu-theme-danger-400);
+  --color-danger-500: var(--risu-theme-danger-500);
+  --color-danger-600: var(--risu-theme-danger-600);
+  --color-danger-700: var(--risu-theme-danger-700);
+  --color-danger-800: var(--risu-theme-danger-800);
+  --color-danger-900: var(--risu-theme-danger-900);
+
+  --color-neutral-50: var(--risu-theme-neutral-50);
+  --color-neutral-100: var(--risu-theme-neutral-100);
+  --color-neutral-200: var(--risu-theme-neutral-200);
+  --color-neutral-300: var(--risu-theme-neutral-300);
+  --color-neutral-400: var(--risu-theme-neutral-400);
+  --color-neutral-500: var(--risu-theme-neutral-500);
+  --color-neutral-600: var(--risu-theme-neutral-600);
+  --color-neutral-700: var(--risu-theme-neutral-700);
+  --color-neutral-800: var(--risu-theme-neutral-800);
+  --color-neutral-900: var(--risu-theme-neutral-900);
+
+  --color-success-50: var(--risu-theme-success-50);
+  --color-success-100: var(--risu-theme-success-100);
+  --color-success-200: var(--risu-theme-success-200);
+  --color-success-300: var(--risu-theme-success-300);
+  --color-success-400: var(--risu-theme-success-400);
+  --color-success-500: var(--risu-theme-success-500);
+  --color-success-600: var(--risu-theme-success-600);
+  --color-success-700: var(--risu-theme-success-700);
+  --color-success-800: var(--risu-theme-success-800);
+  --color-success-900: var(--risu-theme-success-900);
+
+  --min-width-2: 0.5rem;
+  --min-width-5: 1.25rem;
+  --min-width-6: 1.5rem;
+  --min-width-8: 2rem;
+  --min-width-12: 3rem;
+  --min-width-14: 3.5rem;
+  --min-width-20: 5rem;
+  --min-width-96: 24rem;
+  --min-width-110: 28rem;
+  --min-width-124: 32rem;
+  --min-width-138: 36rem;
+  --min-width-half: 50%;
+
+  --container-14: 3.5rem;
+  --container-24: 6rem;
+  --container-36: 9rem;
+  --container-half: 50%;
+  --container-80p: 80%;
+  --container-80vw: 80vw;
+  --container-100vw: 100vw;
+
+  --border-width-1: 1px;
+
+  --width-110: 28rem;
+  --width-124: 32rem;
+  --width-138: 36rem;
+  --width-2xl: 48rem;
+  --width-3xl: 72rem;
+  --width-4xl: var(--container-4xl);
+  --width-7xl: 1280px;
+
+  --min-height-2: 0.5rem;
+  --min-height-4: 0.75rem;
+  --min-height-5: 1.25rem;
+  --min-height-8: 2rem;
+  --min-height-14: 3.5rem;
+  --min-height-20: 5rem;
+  --min-height-32: 9rem;
+  --min-height-96: 24rem;
+  --min-height-110: 28rem;
+  --min-height-124: 32rem;
+  --min-height-138: 36rem;
+
+  --height-96: 24rem;
+  --height-110: 28rem;
+  --height-124: 32rem;
+  --height-138: 36rem;
+
+  --default-ring-color: rgb(59 130 246 / 0.5);
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  dialog {
+    margin: auto;
+  }
+}
+
+body {
   margin: 0;
   padding: 0;
   margin-top: 0px;
@@ -11,16 +160,16 @@ body{
   overflow-x: hidden;
 }
 
-:root{
+:root {
   --FontColorStandard: #fafafa;
-  --FontColorBold : ##e5e5e5;
-  --FontColorItalic : #8C8D93;
-  --FontColorItalicBold : #8C8D93;
-  --FontColorQuote1 : #8C8D93;
-  --FontColorQuote2 : #8C8D93;
+  --FontColorBold: #e5e5e5;
+  --FontColorItalic: #8c8d93;
+  --FontColorItalicBold: #8c8d93;
+  --FontColorQuote1: #8c8d93;
+  --FontColorQuote2: #8c8d93;
   --risu-animation-speed: 0.2s;
   --risu-theme-bgcolor: #282a36;
-  --risu-theme-darkbg:  #21222c;
+  --risu-theme-darkbg: #21222c;
   --risu-theme-borderc: #6272a4;
   --risu-theme-selected: #44475a;
   --risu-theme-draculared: #ff5555;
@@ -31,110 +180,110 @@ body{
   --risu-height-size: 100%;
   --risu-font-family: Arial, sans-serif, serif;
 
-    --risu-theme-neutral-50: #f9fafb;
-    --risu-theme-neutral-100: #f3f4f6;
-    --risu-theme-neutral-200: #e5e7eb;
-    --risu-theme-neutral-300: #d1d5db;
-    --risu-theme-neutral-400: #9ca3af;
-    --risu-theme-neutral-500: #6b7280;
-    --risu-theme-neutral-600: #4b5563;
-    --risu-theme-neutral-700: #374151; 
-    --risu-theme-neutral-800: #1f2937;
-    --risu-theme-neutral-900: #111827;
-  
-    --risu-theme-primary-50: #eff6ff;
-    --risu-theme-primary-100: #dbeafe;
-    --risu-theme-primary-200: #bfdbfe;
-    --risu-theme-primary-300: #93c5fd;
-    --risu-theme-primary-400: #60a5fa;
-    --risu-theme-primary-500: #3b82f6;
-    --risu-theme-primary-600: #2563eb;
-    --risu-theme-primary-700: #1d4ed8;
-    --risu-theme-primary-800: #1e40af;
-    --risu-theme-primary-900: #1e3a8a;
-  
-    --risu-theme-secondary-50: #f5f3ff;
-    --risu-theme-secondary-100: #ede9fe;
-    --risu-theme-secondary-200: #ddd6fe;
-    --risu-theme-secondary-300: #c4b5fd;
-    --risu-theme-secondary-400: #a78bfa;
-    --risu-theme-secondary-500: #8b5cf6;
-    --risu-theme-secondary-600: #7c3aed;
-    --risu-theme-secondary-700: #6d28d9;
-    --risu-theme-secondary-800: #5b21b6;
-    --risu-theme-secondary-900: #4c1d95;
+  --risu-theme-neutral-50: #f9fafb;
+  --risu-theme-neutral-100: #f3f4f6;
+  --risu-theme-neutral-200: #e5e7eb;
+  --risu-theme-neutral-300: #d1d5db;
+  --risu-theme-neutral-400: #9ca3af;
+  --risu-theme-neutral-500: #6b7280;
+  --risu-theme-neutral-600: #4b5563;
+  --risu-theme-neutral-700: #374151;
+  --risu-theme-neutral-800: #1f2937;
+  --risu-theme-neutral-900: #111827;
 
-    --risu-theme-danger-50: #fef2f2;
-    --risu-theme-danger-100: #fee2e2;
-    --risu-theme-danger-200: #fecaca;
-    --risu-theme-danger-300: #fca5a5;
-    --risu-theme-danger-400: #f87171;
-    --risu-theme-danger-500: #ef4444;
-    --risu-theme-danger-600: #dc2626;
-    --risu-theme-danger-700: #b91c1c;
-    --risu-theme-danger-800: #991b1b;
-    --risu-theme-danger-900: #7f1d1d;
-  
-    --risu-theme-success-50: #f0fdf4;
-    --risu-theme-success-100: #dcfce7;
-    --risu-theme-success-200: #bbf7d0;
-    --risu-theme-success-300: #86efac;
-    --risu-theme-success-400: #4ade80;
-    --risu-theme-success-500: #22c55e;
-    --risu-theme-success-600: #16a34a;
-    --risu-theme-success-700: #15803d;
-    --risu-theme-success-800: #166534;
-    --risu-theme-success-900: #14532d;
+  --risu-theme-primary-50: #eff6ff;
+  --risu-theme-primary-100: #dbeafe;
+  --risu-theme-primary-200: #bfdbfe;
+  --risu-theme-primary-300: #93c5fd;
+  --risu-theme-primary-400: #60a5fa;
+  --risu-theme-primary-500: #3b82f6;
+  --risu-theme-primary-600: #2563eb;
+  --risu-theme-primary-700: #1d4ed8;
+  --risu-theme-primary-800: #1e40af;
+  --risu-theme-primary-900: #1e3a8a;
+
+  --risu-theme-secondary-50: #f5f3ff;
+  --risu-theme-secondary-100: #ede9fe;
+  --risu-theme-secondary-200: #ddd6fe;
+  --risu-theme-secondary-300: #c4b5fd;
+  --risu-theme-secondary-400: #a78bfa;
+  --risu-theme-secondary-500: #8b5cf6;
+  --risu-theme-secondary-600: #7c3aed;
+  --risu-theme-secondary-700: #6d28d9;
+  --risu-theme-secondary-800: #5b21b6;
+  --risu-theme-secondary-900: #4c1d95;
+
+  --risu-theme-danger-50: #fef2f2;
+  --risu-theme-danger-100: #fee2e2;
+  --risu-theme-danger-200: #fecaca;
+  --risu-theme-danger-300: #fca5a5;
+  --risu-theme-danger-400: #f87171;
+  --risu-theme-danger-500: #ef4444;
+  --risu-theme-danger-600: #dc2626;
+  --risu-theme-danger-700: #b91c1c;
+  --risu-theme-danger-800: #991b1b;
+  --risu-theme-danger-900: #7f1d1d;
+
+  --risu-theme-success-50: #f0fdf4;
+  --risu-theme-success-100: #dcfce7;
+  --risu-theme-success-200: #bbf7d0;
+  --risu-theme-success-300: #86efac;
+  --risu-theme-success-400: #4ade80;
+  --risu-theme-success-500: #22c55e;
+  --risu-theme-success-600: #16a34a;
+  --risu-theme-success-700: #15803d;
+  --risu-theme-success-800: #166534;
+  --risu-theme-success-900: #14532d;
 }
 
-.x-risu-language-json{
+.x-risu-language-json {
   overflow-x: hidden;
   white-space: pre-wrap;
-
 }
 
-html, body{
+html,
+body {
   height: var(--risu-height-size);
 }
 
-.chattext p{
+.chattext p {
   color: var(--FontColorStandard);
 }
 
-.chattext2 pre{
+.chattext2 pre {
   background-color: var(--risu-theme-bgcolor);
   padding: 0.5rem;
   overflow-x: auto;
 }
 
-.chattext em{
+.chattext em {
   color: var(--FontColorItalic);
 }
 
-.chattext strong{
+.chattext strong {
   color: var(--FontColorBold);
 }
 
-.chattext strong em{
+.chattext strong em {
   color: var(--FontColorItalicBold);
 }
 
-.chattext em strong{
+.chattext em strong {
   color: var(--FontColorItalicBold);
 }
 
-.chattext x-em{
+.chattext x-em {
   color: var(--FontColorItalicBold);
   font-style: italic;
   font-weight: bold;
 }
 
-.chattext mark[risu-mark=quote1]{
+.chattext mark[risu-mark="quote1"] {
   background-color: transparent;
   color: var(--FontColorQuote1);
 }
 
-.chattext mark[risu-mark=quote2]{
+.chattext mark[risu-mark="quote2"] {
   background-color: transparent;
   color: var(--FontColorQuote2);
 }
@@ -151,17 +300,17 @@ html, body{
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
 }
- 
+
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: rgba(136, 136, 136, 0.5); 
+  background: rgba(136, 136, 136, 0.5);
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(85, 85, 85, 0.5); 
+  background: rgba(85, 85, 85, 0.5);
 }
 
 .n-scroll::-webkit-scrollbar-thumb {
@@ -180,48 +329,28 @@ html, body{
   opacity: 1;
 }
 
-*{
+* {
   font-family: var(--risu-font-family);
 }
 
-.chattext p:first-child{
+.chattext p:first-child {
   margin-top: 0.3rem;
 }
 
-.items-start {
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  -webkit-align-items: flex-start;
-  align-items: flex-start;
-}
-.items-start {
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  -webkit-align-items: flex-start;
-  align-items: flex-start;
-}
-
-.items-center {
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  -webkit-align-items: center;
-  align-items: center;
-}
-
-#app{
+#app {
   width: 100%;
   height: 100%;
 }
 
-.bgc{
+.bgc {
   border-top: 1px solid rgba(98, 114, 164, 0.7);
 }
 
-.text-bordered{
+.text-bordered {
   -webkit-text-stroke: 1px #000;
 }
 
-.x-risu-risu-file{
+.x-risu-risu-file {
   padding: 1rem;
   border: 1px solid var(--risu-theme-selected);
   border-radius: 0.5rem;
@@ -233,14 +362,14 @@ html, body{
   text-overflow: ellipsis;
 }
 
-.x-risu-button-default{
-  @apply border text-textcolor rounded-md shadow-sm focus:outline-none focus:ring-2 transition-colors duration-200 border-darkborderc px-4 py-2 bg-darkbutton hover:bg-borderc focus:ring-borderc
+.x-risu-button-default {
+  @apply border text-textcolor rounded-md shadow-xs focus:outline-hidden focus:ring-2 transition-colors duration-200 border-darkborderc px-4 py-2 bg-darkbutton hover:bg-borderc focus:ring-borderc;
 }
 
 .loadmove {
   animation: spin 1s linear infinite;
   border-radius: 50%;
-  border: 0.4rem solid rgba(0,0,0,0);
+  border: 0.4rem solid rgba(0, 0, 0, 0);
   width: 1rem;
   height: 1rem;
   border-top: 0.4rem solid var(--risu-theme-borderc);
@@ -249,10 +378,9 @@ html, body{
   transition: border-color 0.5s;
 }
 
-.x-risu-risu-comment{
-  @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0
+.x-risu-risu-comment {
+  @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-xs focus:outline-hidden transition-colors duration-200 px-4 py-2 min-w-0;
 }
-
 
 ::highlight(cbsnest3) {
   @apply text-amber-500;
@@ -308,31 +436,31 @@ html, body{
   padding: 0.125rem 0.25rem;
 }
 
-.x-risu-risu-inlay-image{
-  @apply w-full flex justify-center
+.x-risu-risu-inlay-image {
+  @apply w-full flex justify-center;
 }
 
-.x-risu-risu-inlay-image img{
-  @apply rounded-lg focus:outline-none max-w-80 w-full
+.x-risu-risu-inlay-image img {
+  @apply rounded-lg focus:outline-hidden max-w-80 w-full;
 }
 
-.x-risu-risu-inlay-image video{
-  @apply rounded-lg focus:outline-none max-w-80 w-full
+.x-risu-risu-inlay-image video {
+  @apply rounded-lg focus:outline-hidden max-w-80 w-full;
 }
 
-.x-risu-risu-inlay-image audio{
-  @apply rounded-lg focus:outline-none max-w-80 w-full
+.x-risu-risu-inlay-image audio {
+  @apply rounded-lg focus:outline-hidden max-w-80 w-full;
 }
 
 .x-risu-risu-error {
-  @apply border-2 border-red-700 bg-red-500 text-white rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0 break-words
+  @apply border-2 border-red-700 bg-red-500 text-white rounded-md shadow-xs focus:outline-hidden transition-colors duration-200 px-4 py-2 min-w-0 wrap-break-word;
 }
 
 .x-risu-risu-error h1 {
-  @apply text-xl mb-2
+  @apply text-xl mb-2;
 }
 
-.z-100{
+.z-100 {
   z-index: 100;
 }
 
@@ -353,30 +481,30 @@ html, body{
   }
 }
 
-.flexium{
+.flexium {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
 }
-.chat-width{
+.chat-width {
   max-width: calc(100% - 0.5rem);
   word-break: normal;
   overflow-wrap: anywhere;
 }
 
-.chat-message-container .dyna-icon{
+.chat-message-container .dyna-icon {
   display: none;
 }
 
-.chat-message-container:first-of-type .dyna-icon{
+.chat-message-container:first-of-type .dyna-icon {
   display: block;
 }
 
-.x-risu-tool-call{
-  @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-sm focus:outline-none transition-colors duration-200 px-4 py-2 min-w-0
+.x-risu-tool-call {
+  @apply border border-darkborderc bg-darkbg text-textcolor rounded-md shadow-xs focus:outline-hidden transition-colors duration-200 px-4 py-2 min-w-0;
 }
 
-.root-loaded-image{
+.root-loaded-image {
   /* This class is used to indicate that the image has been with root-loaded method */
   /* We need to style it to centered and pretty */
   display: block;
@@ -386,16 +514,20 @@ html, body{
   max-width: 20rem;
   height: auto;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(137, 137, 137, 0.1);  
+  box-shadow: 0 2px 4px rgba(137, 137, 137, 0.1);
 }
 
-.root-loaded-image-dynamic{
+.root-loaded-image-dynamic {
   max-height: 14rem;
   transition: max-height 0.5s ease;
   object-fit: cover;
   object-position: top;
 }
 
-.root-loaded-image-dynamic:hover{
+.root-loaded-image-dynamic:hover {
   max-height: 30rem;
+}
+
+annotation {
+  display: none;
 }

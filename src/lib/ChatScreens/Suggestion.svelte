@@ -5,13 +5,13 @@
 	import { DBState } from 'src/ts/stores.svelte';
     import { selectedCharID } from "../../ts/stores.svelte";
     import { translate } from "src/ts/translator/translator";
-    import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "lucide-svelte";
+    import { CopyIcon, LanguagesIcon, RefreshCcwIcon } from "@lucide/svelte";
     import { alertConfirm } from "src/ts/alert";
     import { language } from "src/lang";
     import { getUserName, replacePlaceholders } from "../../ts/util";
     import { onDestroy } from 'svelte';
-    import { get } from "svelte/store";
     import { ParseMarkdown } from "src/ts/parser.svelte";
+    import {defaultAutoSuggestPrompt} from "../../ts/storage/defaultPrompts.js";
 
     interface Props {
         send: () => any;
@@ -53,10 +53,11 @@
             let lastMessages:Message[] = messages.slice(Math.max(messages.length - 10, 0));
             if(lastMessages.length === 0)
                 return
+            const prompt = DBState.db.autoSuggestPrompt && DBState.db.autoSuggestPrompt.length > 0 ? DBState.db.autoSuggestPrompt : defaultAutoSuggestPrompt
             let promptbody:OpenAIChat[] = [
             {
                 role:'system',
-                content: replacePlaceholders(DBState.db.autoSuggestPrompt, currentChar.name)
+                content: replacePlaceholders(prompt, currentChar.name)
             }
             ,{
                 role: 'user', 
@@ -128,7 +129,7 @@
     {:else if !$doingChat}
         {#if DBState.db.translator !== ''}
             <div class="flex mr-2 mb-2">
-                <button class={"bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded " + (toggleTranslate ? 'text-green-500' : 'text-textcolor')}
+                <button class={"bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded-sm " + (toggleTranslate ? 'text-green-500' : 'text-textcolor')}
                     onclick={() => {
                         toggleTranslate = !toggleTranslate
                     }}
@@ -140,7 +141,7 @@
         
 
         <div class="flex mr-2 mb-2">
-            <button class="bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded text-textcolor"
+            <button class="bg-textcolor2 hover:bg-darkbutton font-bold py-2 px-4 rounded-sm text-textcolor"
                 onclick={() => {
                     alertConfirm(language.askReRollAutoSuggestions).then((result) => {
                         if(result) {
@@ -156,7 +157,7 @@
         </div>
         {#each suggestMessages??[] as suggest, i}
             <div class="flex mr-2 mb-2">
-                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded" onclick={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded-sm" onclick={() => {
                     suggestMessages = []
                     messageInput(suggest)
                     send()
@@ -165,7 +166,7 @@
                     {@html md}
                 {/await}
                 </button>
-                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded ml-1" onclick={() => {
+                <button class="bg-textcolor2 hover:bg-darkbutton text-textcolor font-bold py-2 px-4 rounded-sm ml-1" onclick={() => {
                     messageInput(suggest)
                 }}>
                     <CopyIcon/>

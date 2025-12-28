@@ -1,10 +1,10 @@
 <script lang="ts">
     import { downloadRisuHub, getRisuHub, hubAdditionalHTML, type hubType } from "src/ts/characterCards";
-    import { ArrowLeft, ArrowRight, MenuIcon, SearchIcon, XIcon } from "lucide-svelte";
+    import { ArrowLeft, ArrowRight, MenuIcon, SearchIcon, XIcon } from "@lucide/svelte";
     import { alertInput } from "src/ts/alert";
     import { language } from "src/lang";
     import RisuHubIcon from "./RealmHubIcon.svelte";
-    import { MobileGUI } from "src/ts/stores.svelte";
+    import { MobileGUI, RealmInitialOpenChar } from "src/ts/stores.svelte";
     import RealmPopUp from "./RealmPopUp.svelte";
 
     let openedData:null|hubType = $state(null)
@@ -40,10 +40,17 @@
     getHub()
 
 
+
+    $effect(() => {
+        if($RealmInitialOpenChar){
+            openedData = $RealmInitialOpenChar
+            $RealmInitialOpenChar = null
+        }
+    })
 </script>
 <div class="w-full flex justify-center mt-4 mb-2">
     <div class="flex items-stretch w-2xl max-w-full">
-        <input bind:value={search} class="peer focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full">
+        <input bind:value={search} class="peer focus:border-textcolor transition-colors outline-hidden text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full">
             <button
             onclick={() => {
                 if(sort === 'random' || sort === 'recommended'){
@@ -105,29 +112,29 @@
 </div>
 {:else}
     <div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={nsfw} onclick={() => {
             nsfw = !nsfw
             getHub()
         }}>
             NSFW
         </button>
         <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={sort === ''} onclick={() => {
             changeSort('')
         }}>
             {language.recent}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={sort === 'trending'} onclick={() => {
             changeSort('trending')
         }}>
             {language.trending}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={sort === 'downloads'} onclick={() => {
             changeSort('downloads')
         }}>
             {language.downloads}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring={sort === 'random'} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring-3={sort === 'random'} onclick={() => {
             changeSort('random')
         }}>
             {language.random}
@@ -145,7 +152,7 @@
 {#if sort !== 'random' && sort !== 'recommended'}
     <div class="w-full flex justify-center">
         <div class="flex">
-            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring transition-shadow" onclick={() => {
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring-3 transition-shadow" onclick={() => {
                 if(page > 0){
                     page -= 1
                     getHub()
@@ -156,7 +163,7 @@
             <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow">
                 <span>{page + 1}</span>
             </button>
-            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" onclick={() => {
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring-3 transition-shadow" onclick={() => {
                 page += 1
                 getHub()
             }}>
@@ -173,7 +180,7 @@
 
 {#if menuOpen}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center" role="button" tabindex="0" onclick={() => {
+    <div class="top-0 left-0 z-50 fixed w-full h-full bg-black/50 flex justify-center items-center" role="button" tabindex="0" onclick={() => {
         menuOpen = false
     }}>
         <div class="max-w-full bg-darkbg rounded-md flex flex-col gap-4 overflow-y-auto p-4">

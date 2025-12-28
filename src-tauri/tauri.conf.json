@@ -18,7 +18,7 @@
       "src-python/*"
     ],
     "targets": "all",
-    "createUpdaterArtifacts": "v1Compatible",
+    "createUpdaterArtifacts": true,
     "fileAssociations": [
       {
         "ext": [
@@ -53,7 +53,7 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "RisuAI",
+        "title": "Risuai",
         "width": 1024,
         "height": 768,
         "minWidth": 300,

@@ -6,7 +6,7 @@
     import { language } from "src/lang";
     import CheckInput from "./GUI/CheckInput.svelte";
     import { getModelInfo, getModelList } from 'src/ts/model/modellist';
-    import { ArrowLeft } from "lucide-svelte";
+    import { ArrowLeft } from "@lucide/svelte";
 
     interface Props {
         value?: string;
@@ -34,7 +34,7 @@
 
 {#if openOptions}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="fixed top-0 w-full h-full left-0 bg-black bg-opacity-50 z-50 flex justify-center items-center" role="button" tabindex="0" onclick={() => {
+    <div class="fixed top-0 w-full h-full left-0 bg-black/50 z-50 flex justify-center items-center" role="button" tabindex="0" onclick={() => {
         openOptions = false
     }}>
         <div class="w-96 max-w-full max-h-full overflow-y-auto overflow-x-hidden bg-bgcolor p-4 flex flex-col" role="button" tabindex="0" onclick={(e)=>{
@@ -43,7 +43,7 @@
         }}>
             <div class="flex items-center gap-3 mb-4">
                 <button 
-                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors flex-shrink-0"
+                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors shrink-0"
                     onclick={() => {
                         openOptions = false
                     }}

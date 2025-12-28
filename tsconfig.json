@@ -1,29 +1,35 @@
 {
   "compilerOptions": {
-    "target": "ES2023",
+    /* Language & Environment */
+    "target": "es2023",
+    "module": "es2022",
     "useDefineForClassFields": true,
-    "module": "ES2022",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "baseUrl": ".",
-    /**
-     * Typecheck JS in `.svelte` and `.js` files by default.
-     * Disable checkJs if you'd like to use dynamic types in JS.
-     * Note that setting allowJs false does not prevent the use
-     * of JS in `.svelte` files.
-     */
-    "allowJs": true,
-    "checkJs": false,
+
+    /* Bundler Mode - Vite handles the actual build */
+    "noEmit": false,
+    "moduleResolution": "bundler",
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "sourceMap": true,
-    "strict": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
 
+    /* Module Resolution */
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+
+    /* JavaScript Support */
+    "allowJs": true,
+    "checkJs": false,
+
+    /* Type Checking */
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Debugging */
+    "sourceMap": true
   },
-  "include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "public/sw.js"],
-  "exclude": ["src/**/web/*.ts", "risu-electron/**/*"],
-  "references": [{ "path": "./tsconfig.node.json" }],
-  "ignoreDeprecations": "5.0",
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "public/sw.js"],
+  "exclude": ["src/**/web/*.ts"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -7,11 +7,10 @@
     import { DBState } from "src/ts/stores.svelte";
     import { getModelInfo, LLMFlags } from "src/ts/model/modellist";
     import { requestChatData } from "src/ts/process/request/request";
-    import { selectFileByDom, selectSingleFile, sleep } from "src/ts/util";
+    import { asBuffer, selectFileByDom, selectSingleFile, sleep } from "src/ts/util";
     import { alertError, alertSelect } from "src/ts/alert";
     import { risuChatParser } from "src/ts/parser.svelte";
-    import { AppendableBuffer, downloadFile, getLanguageCodes, globalFetch } from "src/ts/globalApi.svelte";
-    import SliderInput from "../UI/GUI/SliderInput.svelte";
+    import { AppendableBuffer, downloadFile, getLanguageCodes } from "src/ts/globalApi.svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import sendSound from '../../etc/send.mp3'
@@ -195,7 +194,7 @@
             }
             enc.append(mp3encoder.flush())
 
-            const file2 = new File([enc.buffer], 'audio.mp3', {
+            const file2 = new File([asBuffer(enc.buffer)], 'audio.mp3', {
                 type: 'audio/mp3'
             })
 
@@ -227,8 +226,10 @@
                     {
                         device: device,
                         progress_callback: (progress) => {
-                            stats[progress.name + progress.file] = progress
-                            outputText = Object.values(stats).map(v => `${v.name}-${v.file}: ${progress.status} ${v.progress ? `[${v.progress.toFixed(2)}%]` : ''}`).join('\n')
+                            if ('name' in progress && 'file' in progress) {
+                                stats[progress.name + progress.file] = progress
+                                outputText = Object.values(stats).map(v => `${v.name}-${v.file}: ${v.status} ${v.progress ? `[${v.progress.toFixed(2)}%]` : ''}`).join('\n')
+                            }
                         },
                         dtype: 'q8'
                     },

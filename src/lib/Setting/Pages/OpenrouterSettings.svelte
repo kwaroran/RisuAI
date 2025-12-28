@@ -4,9 +4,9 @@
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     
     import { DBState } from 'src/ts/stores.svelte';
-    import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
-    import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
+    import OpenrouterProviderList from "src/lib/UI/OpenrouterProviderList.svelte";
+    import { PlusIcon, TrashIcon } from "@lucide/svelte";
 
     const openrouterProviders = [
         // An alphabetically separate set of very-dead providers is kept at the top of the list in the docs.
@@ -88,13 +88,69 @@
     <div class="flex items-center mb-4">
         <Check bind:check={DBState.db.useInstructPrompt} name={language.useInstructPrompt}/>
     </div>
-    <span class="mb-2 text-2xl font-bold mt-2">{language.provider}</span>
-    <SelectInput bind:value={DBState.db.openrouterProvider}>
-        <OptionInput value="">Auto (Default)</OptionInput>
-        {#each openrouterProviders as provider}
-            <OptionInput value={provider}>{provider}</OptionInput>
+
+    <Arcodion name={language.openrouterProviderOrder} help="openrouterProviderOrder" styled>
+        {#each DBState.db.openrouterProvider.order as model, i}
+            <span class="text-textcolor mt-4">
+                {language.provider} {i + 1}
+            </span>
+            <OpenrouterProviderList bind:value={DBState.db.openrouterProvider.order[i]} options={openrouterProviders} />
         {/each}
-    </SelectInput>
+        <div class="flex gap-2">
+            <button class="bg-selected text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.openrouterProvider.order ?? []
+                value.push('')
+                DBState.db.openrouterProvider.order = value
+        }}><PlusIcon /></button>
+            <button class="bg-red-500 text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.openrouterProvider.order ?? []
+                value.pop()
+                DBState.db.openrouterProvider.order = value
+        }}><TrashIcon /></button>
+        </div>
+    </Arcodion>
+
+    <Arcodion name={language.openrouterProviderOnly} help="openrouterProviderOnly" styled>
+        {#each DBState.db.openrouterProvider.only as model, i}
+            <span class="text-textcolor mt-4">
+                {language.provider} {i + 1}
+            </span>
+            <OpenrouterProviderList bind:value={DBState.db.openrouterProvider.only[i]} options={openrouterProviders} />
+        {/each}
+        <div class="flex gap-2">
+            <button class="bg-selected text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.openrouterProvider.only ?? []
+                value.push('')
+                DBState.db.openrouterProvider.only = value
+        }}><PlusIcon /></button>
+            <button class="bg-red-500 text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.openrouterProvider.only ?? []
+                value.pop()
+                DBState.db.openrouterProvider.only = value
+        }}><TrashIcon /></button>
+        </div>
+    </Arcodion>
+
+    <Arcodion name={language.openrouterProviderIgnore} help="openrouterProviderIgnore" styled>
+        {#each DBState.db.openrouterProvider.ignore as model, i}
+            <span class="text-textcolor mt-4">
+                {language.provider} {i + 1}
+            </span>
+            <OpenrouterProviderList bind:value={DBState.db.openrouterProvider.ignore[i]} options={openrouterProviders} />
+        {/each}
+        <div class="flex gap-2">
+            <button class="bg-selected text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.openrouterProvider.ignore ?? []
+                value.push('')
+                DBState.db.openrouterProvider.ignore = value
+        }}><PlusIcon /></button>
+            <button class="bg-red-500 text-white p-2 rounded-md" onclick={() => {
+                let value = DBState.db.openrouterProvider.ignore ?? []
+                value.pop()
+                DBState.db.openrouterProvider.ignore = value
+        }}><TrashIcon /></button>
+        </div>
+    </Arcodion>
 
     {#if DBState.db.useInstructPrompt}
         <ChatFormatSettings />

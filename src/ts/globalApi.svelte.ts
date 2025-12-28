@@ -7,24 +7,24 @@ import {
     readDir,
     remove
 } from "@tauri-apps/plugin-fs"
-import { changeFullscreen, checkNullish, findCharacterbyId, sleep } from "./util"
+import { changeFullscreen, checkNullish, sleep } from "./util"
 import { convertFileSrc, invoke } from "@tauri-apps/api/core"
 import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import { open } from '@tauri-apps/plugin-shell'
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase, type character, appVer } from "./storage/database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase, appVer, getCurrentCharacter } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
-import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState } from "./stores.svelte";
+import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState, selIdState, ReloadGUIPointer } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
-import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, alertWait, waitAlert } from "./alert";
+import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, waitAlert } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
 import { hasher } from "./parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSaveCompressionStream, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
@@ -45,9 +45,8 @@ import { moduleUpdate } from "./process/modules";
 import type { AccountStorage } from "./storage/accountStorage";
 import { makeColdData } from "./process/coldstorage.svelte";
 
-//@ts-ignore
+//@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
 export const isTauri = !!window.__TAURI_INTERNALS__
-//@ts-ignore
 export const isNodeServer = !!globalThis.__NODE__
 export const forageStorage = new AutoStorage()
 export const googleBuild = false
@@ -705,7 +704,7 @@ export async function loadData() {
                 } catch (error) { }
             }
             try {
-                //@ts-ignore
+                //@ts-expect-error navigator.standalone is iOS Safari non-standard property, not in Navigator interface
                 const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || document.referrer.includes('android-app://');
                 if (isInStandaloneMode) {
                     await navigator.storage.persist()
@@ -1890,14 +1889,19 @@ if (Capacitor.isNativePlatform()) {
  * A class to manage a buffer that can be appended to and deappended from.
  */
 export class AppendableBuffer {
-    buffer: Uint8Array
     deapended: number = 0
+    #buffer: Uint8Array
+    #byteLength: number = 0
 
     /**
      * Creates an instance of AppendableBuffer.
      */
     constructor() {
-        this.buffer = new Uint8Array(0)
+        this.#buffer = new Uint8Array(128)
+    }
+
+    get buffer(): Uint8Array {
+        return this.#buffer.slice(0, this.#byteLength)
     }
 
     /**
@@ -1905,10 +1909,19 @@ export class AppendableBuffer {
      * @param {Uint8Array} data - The data to append.
      */
     append(data: Uint8Array) {
-        const newBuffer = new Uint8Array(this.buffer.length + data.length)
-        newBuffer.set(this.buffer, 0)
-        newBuffer.set(data, this.buffer.length)
-        this.buffer = newBuffer
+        // New way (faster)
+        const requiredLength = this.#byteLength + data.length
+        if (this.#buffer.byteLength < requiredLength) {
+            let newLength = this.#buffer.byteLength * 2
+            while (newLength < requiredLength) {
+                newLength *= 2
+            }
+            const newBuffer = new Uint8Array(newLength)
+            newBuffer.set(this.#buffer)
+            this.#buffer = newBuffer
+        }
+        this.#buffer.set(data, this.#byteLength)
+        this.#byteLength += data.length
     }
 
     /**
@@ -1916,8 +1929,9 @@ export class AppendableBuffer {
      * @param {number} length - The length to deappend.
      */
     deappend(length: number) {
-        this.buffer = this.buffer.slice(length)
+        this.#buffer = this.#buffer.slice(length)
         this.deapended += length
+        this.#byteLength -= length
     }
 
     /**
@@ -1935,7 +1949,16 @@ export class AppendableBuffer {
      * @returns {number} - The total length.
      */
     length() {
-        return this.buffer.length + this.deapended
+        return this.#byteLength + this.deapended
+    }
+
+    /**
+     * Clears the buffer.
+     */
+    clear() {
+        this.#buffer = new Uint8Array(128)
+        this.#byteLength = 0
+        this.deapended = 0
     }
 }
 
@@ -2083,8 +2106,8 @@ export async function fetchNative(url: string, arg: {
                         error = parsedRes.body
                         resolved = true
                     }
-                } catch (error) {
-                    error = JSON.stringify(error)
+                } catch (e) {
+                    error = JSON.stringify(e)
                     resolved = true
                 }
             })
@@ -2585,4 +2608,94 @@ export function aiWatermarkingLawApplies(): boolean {
     //lets now assume it is false for now,
     //becuase very few countries have it for now
     return false
+}
+
+export const chatFoldedState = $state<{
+    data: null| {
+        targetCharacterId: string,
+        targetChatId: string,
+        targetMessageId: string,
+    }
+}>({
+    data: null
+})
+
+//Since its exported, we cannot use $derived here
+export let chatFoldedStateMessageIndex = $state({
+    index: -1
+})
+
+$effect.root(() => {
+    $effect(() => {
+        if(!chatFoldedState.data){
+            return
+        }
+        const char = DBState.db.characters[selIdState.selId]
+        const chat = char.chats[char.chatPage]
+        if(chatFoldedState.data.targetCharacterId !== char.chaId){
+            chatFoldedState.data = null
+        }
+        if(chatFoldedState.data.targetChatId !== chat.id){
+            chatFoldedState.data = null
+        }
+    })
+
+    $effect(() => {
+        if(chatFoldedState.data === null){
+            chatFoldedStateMessageIndex.index = -1
+            return
+        }
+        const char = DBState.db.characters[selIdState.selId]
+        const chat = char.chats[char.chatPage]
+        const messageIndex = chat.message.findIndex((v) => {
+            return chatFoldedState.data?.targetMessageId === v.chatId
+        })
+        if(messageIndex === -1){
+            console.warn('Target message for folding id' + chatFoldedState.data?.targetMessageId + ' not found')
+            chatFoldedStateMessageIndex.index = -1
+            return
+        }
+        chatFoldedStateMessageIndex.index = messageIndex
+    })
+})
+
+export function foldChatToMessage(targetMessageIdOrIndex: string | number) {
+    let targetMessageId = ''
+    if (typeof targetMessageIdOrIndex === 'number') {
+        const char = getCurrentCharacter()
+        const chat = char.chats[char.chatPage]
+        const message = chat.message[targetMessageIdOrIndex]
+        targetMessageId = message.chatId
+    }
+    else{
+        targetMessageId = targetMessageIdOrIndex
+    }
+    const char = getCurrentCharacter()
+    const chat = char.chats[char.chatPage]
+    chatFoldedState.data = {
+        targetCharacterId: char.chaId,
+        targetChatId: chat.id,
+        targetMessageId: targetMessageId,
+    }
+}
+
+export function changeChatTo(IdOrIndex: string | number) {
+    let index = -1
+    if (typeof IdOrIndex === 'number') {
+        index = IdOrIndex
+    }
+
+    if (typeof IdOrIndex === 'string') {
+        const currentCharacter = getCurrentCharacter()
+        index = currentCharacter.chats.findIndex((v) => {
+            return v.id === IdOrIndex
+        })
+    }
+
+    if(index === -1){
+        return
+    }
+
+    DBState.db.characters[selIdState.selId].chatPage = index
+    ReloadGUIPointer.set(Math.random())
 }
