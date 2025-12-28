@@ -1,24 +1,14 @@
 <script lang="ts">
-    import { MenuIcon } from "@lucide/svelte";
-    import { onMount, type Snippet } from "svelte";
+    import { popupStore } from "src/ts/stores.svelte";
+    import { sleep } from "src/ts/util";
+    import { onDestroy, onMount } from "svelte";
 
-    let {
-        children,
-        customIcon = null,
-    }:{
-        children: Snippet,
-        customIcon?: Snippet | null | undefined,
-    } = $props()
-
-
-    let styleString = $state('')
-    let showing = $state(false)
-
-    const showPopup = ((e:MouseEvent) => {
+    let styleString = $derived.by(() => {
+        let styleString = '';
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
-        const mouseX = e.clientX;
-        const mouseY = e.clientY;
+        const mouseX = popupStore.mouseX;
+        const mouseY = popupStore.mouseY;
 
         if(mouseX < windowWidth / 2) {
             styleString += `left: ${mouseX}px;`;
@@ -30,37 +20,26 @@
         } else {
             styleString += `bottom: ${windowHeight - mouseY}px;`;
         }
-        showing = true;
+        return styleString;
     });
 
     const close = (() => {
-        styleString = '';
-        showing = false;
+        popupStore.children = null;
     });
 
-    const onClick = ((e:MouseEvent) => {
-        e.stopPropagation();
-        if(showing) {
-            close();
-        } else {
-            showPopup(e);
-        }
-    });
+    onMount(async () => {
+        await sleep(0)
+        document.addEventListener('click', close);
+    })
+
+    onDestroy(() => {
+        document.removeEventListener('click', close);
+    })
+
 </script>
 
-<svelte:body onclick={close} />
-{#if showing}
+{#if popupStore.children}
     <div class="bg-darkbg border-darkborderc border rounded-md p-4 gap-2 flex flex-col fixed z-50 items-start" style={styleString}>
-        {@render children()}
+        {@render popupStore.children()}
     </div>
-{/if}
-{#if customIcon}
-    <button onclick={onClick}>
-        {@render customIcon()}
-    </button>
-{:else}
-    <button onclick={onClick} class="hover:text-blue-500 transition-colors button-icon-menu">
-        <MenuIcon size={20} />
-    </button>
-
 {/if}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, GitBranch, HamburgerIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, SplitIcon, TrashIcon, UserIcon, Volume2Icon } from "@lucide/svelte"
+    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, GitBranch, HamburgerIcon, LanguagesIcon, MenuIcon, PencilIcon, RefreshCcwIcon, SplitIcon, TrashIcon, UserIcon, Volume2Icon } from "@lucide/svelte"
     import { aiLawApplies, changeChatTo, foldChatToMessage, getFileSrc } from "src/ts/globalApi.svelte"
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
@@ -8,7 +8,7 @@
     import { risuChatParser } from "src/ts/process/scripts"
     import { runTrigger } from 'src/ts/process/triggers'
     import { sayTTS } from "src/ts/process/tts"
-    import { DBState, ReloadChatPointer, CurrentTriggerIdStore } from 'src/ts/stores.svelte'
+    import { DBState, ReloadChatPointer, CurrentTriggerIdStore, popupStore } from 'src/ts/stores.svelte'
     import { ConnectionOpenStore } from "src/ts/sync/multiuser"
     import { capitalize, getUserIcon, getUserName, sleep } from "src/ts/util"
     import { onDestroy, onMount } from "svelte"
@@ -22,7 +22,7 @@
     import { HideIconStore, ReloadGUIPointer, selIdState } from "../../ts/stores.svelte"
     import AutoresizeArea from "../UI/GUI/TextAreaResizable.svelte"
     import ChatBody from './ChatBody.svelte'
-    import PopupList from "../UI/PopupList.svelte";
+    import PopupButton from "../UI/PopupButton.svelte";
 
     let translating = $state(false)
     let editMode = $state(false)
@@ -389,14 +389,14 @@
             <div class="flex items-center ml-2 gap-2">
                 {#if window.innerWidth >= 640}
                     {@render majorIconButtonsBody(false)}
-                    <PopupList>
+                    <PopupButton>
                         {@render minorIconButtonsBody(true)}
-                    </PopupList>
+                    </PopupButton>
                 {:else}
-                    <PopupList>
+                    <PopupButton>
                         {@render majorIconButtonsBody(true)}
                         {@render minorIconButtonsBody(true)}
-                    </PopupList>
+                    </PopupButton>
                 {/if}
                 {@render rerolls()}
 
@@ -404,6 +404,7 @@
         {/if}
     </div>
 {/snippet}
+
 
 {#snippet majorIconButtonsBody(showNames:boolean)}
     {#if DBState.db.useChatCopy && !blankMessage}
