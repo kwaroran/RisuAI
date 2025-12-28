@@ -74,30 +74,6 @@
 
             const element = document.querySelector(`[data-chat-index="${index}"]`)
             if(element){
-                // Since the chat contains many images, Force-load images from surrounding chats to prevent scrolling from lagging after moving.
-                const start = Math.max(0, index - 20);
-                const end = Math.min(totalMessages - 1, index + 20);
-                const imageLoadPromises: Promise<void>[] = [];
-
-                for (let i = start; i <= end; i++) {
-                    const el = document.querySelector(`[data-chat-index="${i}"]`);
-                    if (el) {
-                        const images = el.querySelectorAll('img');
-                        images.forEach(img => {
-                            if(!isAlreadyLoaded || !img.complete){
-                                img.setAttribute('loading', 'eager');
-                                imageLoadPromises.push(img.decode().catch(() => {}));
-                            }
-                        });
-                    }
-                }
-                if (imageLoadPromises.length > 0) {
-                    await Promise.race([
-                        Promise.all(imageLoadPromises),
-                        sleep(1000)
-                    ]);
-                }
-
                 if(isAlreadyLoaded){
                     element.scrollIntoView({behavior: "instant", block: "start"})
                 } else {
