@@ -10,11 +10,11 @@
     let { close = () => {} } = $props();
 </script>
 
-<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
+<div class="absolute w-full h-full z-40 bg-black bg-opacity/50 flex justify-center items-center">
     <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-96 max-h-full overflow-y-auto">
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.loreBook}</h2>
-            <div class="flex-grow flex justify-end">
+            <div class="grow flex justify-end">
                 <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
                     <XIcon size={24}/>
                 </button>
@@ -31,7 +31,7 @@
                 {:else}
                     <span>{lore.name}</span>
                 {/if}
-                <div class="flex-grow flex justify-end">
+                <div class="grow flex justify-end">
                     <div class="text-textcolor2 hover:text-green-500 cursor-pointer" role="button" tabindex="0" onclick={async (e) => {
                         e.stopPropagation()
                         if(DBState.db.loreBook.length === 1){

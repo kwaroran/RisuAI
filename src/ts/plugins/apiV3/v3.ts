@@ -6,10 +6,32 @@ import DOMPurify from 'dompurify';
 import { additionalChatMenu, additionalFloatingActionButtons, additionalHamburgerMenu, additionalSettingsMenu, type MenuDef } from "src/ts/stores.svelte";
 import { v4 } from "uuid";
 import { sleep } from "src/ts/util";
+import { alertConfirm } from "src/ts/alert";
+import { language } from "src/lang";
+
+/*
+    V3 API for RisuAI Plugins
+
+    Before adding new APIs here, please check the limitations
+
+    - APIs must be a functions
+        - If you want nested objects, first add as a plain function, `_getPluginStorage` for example
+            And add it too _getAliases function ({'pluginStorage':{'getItem': '_getPluginStorage', ... }})
+            This will make pluginStorage.getItem() work in plugins
+        - If you need constants, use _getPropertiesForInitialization to set them up
+            For example apiVersion and apiVersionCompatibleWith are set this way,
+            Accessable in plugins as risuai.apiVersion
+    - APIs must return, or accept as parameters, only the following types:
+        - Serializable data (string, number, boolean, null, array, object)
+        - Class instances marked with __classType = 'REMOTE_REQUIRED'
+        - Callback functions (only as parameters)
+        - Note that Class or Callbacks inside arrays or objects are not supported
+*/
 
 
 class SafeElement {
     #element: HTMLElement;
+    __classType = 'REMOTE_REQUIRED' as const;
 
     constructor(element: HTMLElement) {
         if(element.getAttribute('freezed')){
@@ -265,6 +287,7 @@ class SafeElement {
 }
 
 class SafeDocument extends SafeElement {
+    __classType = 'REMOTE_REQUIRED' as const;
     constructor(document: Document) {
         super(document.documentElement);
     }
@@ -295,19 +318,58 @@ class SafeDocument extends SafeElement {
     }
 }
 
-type SafeMutationRecord = {
+type SafeMutationRecordObject = {
     type: string;
     target: SafeElement;
     addedNodes: SafeElement[];
 }
 
-type SafeMutationCallback = (mutations: SafeMutationRecord[]) => void;
+class SafeClassArray<T> {
+    #items: T[];
+    __classType = 'REMOTE_REQUIRED' as const;
+    constructor(items: T[] = []) {
+        this.#items = items;
+    }
+    at(index: number): T {
+        return this.#items.at(index);
+    }
+    length(): number {
+        return this.#items.length;
+    }
+    push(item: T) {
+        this.#items.push(item);
+    }
+}
+
+class SafeMutationRecord{
+    __classType = 'REMOTE_REQUIRED' as const;
+    #type: string;
+    #target: SafeElement;
+    #addedNodes: SafeClassArray<SafeElement>;
+    constructor(type: string, target: SafeElement, addedNodes: SafeElement[]) {
+        this.#type = type;
+        this.#target = target;
+        this.#addedNodes = new SafeClassArray<SafeElement>(addedNodes);
+    }
+    getType(): string {
+        return this.#type;
+    }
+    getTarget(): SafeElement {
+        return this.#target;
+    }
+    getAddedNodes(): SafeClassArray<SafeElement> {
+        return this.#addedNodes;
+    }
+}
+
+type SafeMutationCallback = (mutations: SafeClassArray<SafeMutationRecord>) => void;
 
 class SafeMutationObserver {
     #observer: MutationObserver;
+    __classType = 'REMOTE_REQUIRED' as const;
     constructor(callback: SafeMutationCallback) {
         this.#observer = new MutationObserver((mutations) => {
-            const safeMutations: SafeMutationRecord[] = mutations.map(mutation => {
+            const safeMutations: SafeMutationRecordObject[] = mutations.map(mutation => {
 
                 const elementMapHelper = (nodeList: NodeList): SafeElement[] => {
                     const elements: SafeElement[] = [];
@@ -328,7 +390,15 @@ class SafeMutationObserver {
                 }
             })
 
-            callback(safeMutations);
+            const safeClassed = new SafeClassArray<SafeMutationRecord>([]);
+            for(const record of safeMutations){
+                safeClassed.push(new SafeMutationRecord(
+                    record.type,
+                    record.target,
+                    record.addedNodes
+                ));
+            }
+            callback(safeClassed);
         });
     }
 
@@ -390,7 +460,7 @@ const unloadV3Plugin = async (pluginName: string) => {
 }
 
 const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
-    
+
     const oldApis = getV2PluginAPIs();
     return {
 
@@ -404,11 +474,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         removeRisuScriptHandler: oldApis.removeRisuScriptHandler,
         addRisuReplacer: oldApis.addRisuReplacer,
         removeRisuReplacer: oldApis.removeRisuReplacer,
-        safeLocalStorage: oldApis.safeLocalStorage,
-        apiVersion: "3.0",
-        apiVersionCompatibleWith: ["3.0"],
         getDatabase: oldApis.getDatabase,
-        pluginStorage: oldApis.pluginStorage,
         setDatabaseLite: oldApis.setDatabaseLite,
         setDatabase: oldApis.setDatabase,
         loadPlugins: oldApis.loadPlugins,
@@ -574,6 +640,50 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         _getOldKeys: () => {
             return Object.keys(oldApis)
+        },
+        _getPropertiesForInitialization: () => {
+            const v = {
+                apiVersion: "3.0",
+                apiVersionCompatibleWith: ["3.0"],
+            } as any;
+
+            v.list = Object.keys(v);
+            
+            return v;
+        },
+        _getPluginStorage: oldApis.pluginStorage.getItem,
+        _setPluginStorage: oldApis.pluginStorage.setItem,
+        _removePluginStorage: oldApis.pluginStorage.removeItem,
+        _clearPluginStorage: oldApis.pluginStorage.clear,
+        _keyPluginStorage: oldApis.pluginStorage.key,
+        _keysPluginStorage: oldApis.pluginStorage.keys,
+        _lengthPluginStorage: oldApis.pluginStorage.length,
+        _getSafeLocalStorage: oldApis.safeLocalStorage.getItem,
+        _setSafeLocalStorage: oldApis.safeLocalStorage.setItem,
+        _removeSafeLocalStorage: oldApis.safeLocalStorage.removeItem,
+        _clearSafeLocalStorage: oldApis.safeLocalStorage.clear,
+        _keySafeLocalStorage: oldApis.safeLocalStorage.key,
+        _keysSafeLocalStorage: oldApis.safeLocalStorage.keys,
+        _getAliases: () => {
+            return {
+                'pluginStorage':{
+                    'getItem': '_getPluginStorage',
+                    'setItem': '_setPluginStorage',
+                    'removeItem': '_removePluginStorage',
+                    'clear': '_clearPluginStorage',
+                    'key': '_keyPluginStorage',
+                    'keys': '_keysPluginStorage',
+                    'length': '_lengthPluginStorage',
+                },
+                'safeLocalStorage':{
+                    'getItem': '_getSafeLocalStorage',
+                    'setItem': '_setSafeLocalStorage',
+                    'removeItem': '_removeSafeLocalStorage',
+                    'clear': '_clearSafeLocalStorage',
+                    'key': '_keySafeLocalStorage',
+                    'keys': '_keysSafeLocalStorage',
+                }
+            }
         }
     }
 }
@@ -605,3 +715,14 @@ export async function executePluginV3(plugin:RisuPlugin){
     host.run(iframe, plugin.script);
     console.log(`[RisuAI Plugin: ${plugin.name}] Loaded API V3 plugin.`);
 }
+
+export function getV3PluginInstance(name: string) {
+    return v3PluginInstances.find(p => p.name === name);
+}
+
+globalThis.__debugV3Plugin = (code: string|Function) => {
+    if(code instanceof Function){
+        code = `(${code.toString()})()`;
+    }
+    return v3PluginInstances[0].host.executeInIframe(code);
+};

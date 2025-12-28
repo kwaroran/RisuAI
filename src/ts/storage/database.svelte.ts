@@ -13,7 +13,8 @@ import type { PromptItem, PromptSettings } from '../process/prompt';
 import type { OobaChatCompletionRequestParams } from '../model/ooba';
 import { type HypaV3Settings, type HypaV3Preset, createHypaV3Preset } from '../process/memory/hypav3'
 
-export let appVer = "166.3.3"
+//APP_VERSION_POINT is to locate the app version in the database file for version bumping
+export let appVer = "166.3.3" //<APP_VERSION_POINT>
 export let webAppSubVer = ''
 
 
@@ -605,6 +606,7 @@ export function setDatabase(data:Database){
     data.simplifiedToolUse ??= false
     data.streamGeminiThoughts ??= false
     data.sourcemapTranslate ??= false
+    data.settingsCloseButtonSize ??= 24
     data.ImagenModel ??= 'imagen-4.0-generate-001'
     data.ImagenImageSize ??= '1K'
     data.ImagenAspectRatio ??= '1:1'
@@ -1123,6 +1125,7 @@ export interface Database{
     ImagenAspectRatio:string
     ImagenPersonGeneration:string,
     sourcemapTranslate:boolean
+    settingsCloseButtonSize:number
 }
 
 interface SeparateParameters{
@@ -2054,7 +2057,7 @@ export function setPreset(db:Database, newPres: botPreset){
     return db
 }
 
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
+import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr/index-no-eval";
 import * as fflate from "fflate";
 import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';

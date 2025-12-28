@@ -67,7 +67,7 @@
       </div>
 
       <textarea
-        class="w-full p-2 overflow-y-auto transition-colors border rounded resize-none sm:p-4 min-h-40 sm:min-h-56 border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
+        class="w-full p-2 overflow-y-auto transition-colors border rounded-sm resize-none sm:p-4 min-h-40 sm:min-h-56 border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
         readonly
         value={nextMessage.data}
       ></textarea>

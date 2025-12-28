@@ -93,7 +93,7 @@
       <div class="flex items-center gap-2">
         <!-- Category Selection -->
         <select
-          class="px-3 py-2 rounded border border-zinc-600 bg-zinc-900 text-zinc-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="px-3 py-2 rounded-sm border border-zinc-600 bg-zinc-900 text-zinc-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           value={bulkEditState.selectedCategory}
           onchange={handleCategoryChange}
         >
@@ -115,7 +115,7 @@
 
         <!-- Bulk Toggle Important Button -->
         <button
-          class="px-3 py-2 rounded border border-yellow-600 hover:bg-yellow-700 text-yellow-300 text-sm transition-colors flex items-center gap-2 {bulkEditState.selectedSummaries.size === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+          class="px-3 py-2 rounded-sm border border-yellow-600 hover:bg-yellow-700 text-yellow-300 text-sm transition-colors flex items-center gap-2 {bulkEditState.selectedSummaries.size === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
           onclick={bulkToggleImportant}
           disabled={bulkEditState.selectedSummaries.size === 0}
         >
@@ -129,11 +129,11 @@
             value={bulkEditState.bulkSelectInput}
             oninput={handleBulkSelectInputChange}
             placeholder="1,3,5-8"
-            class="w-32 px-3 py-2 text-sm bg-zinc-800 border border-zinc-600 rounded text-zinc-300 placeholder-zinc-500 focus:border-blue-500 outline-none"
+            class="w-32 px-3 py-2 text-sm bg-zinc-800 border border-zinc-600 rounded-sm text-zinc-300 placeholder-zinc-500 focus:border-blue-500 outline-hidden"
             onkeydown={handleBulkSelectKeydown}
           />
           <button
-            class="px-3 py-2 rounded border border-blue-600 hover:bg-blue-700 text-blue-300 text-sm transition-colors"
+            class="px-3 py-2 rounded-sm border border-blue-600 hover:bg-blue-700 text-blue-300 text-sm transition-colors"
             onclick={parseAndSelectSummaries}
           >
             {language.select}
@@ -142,7 +142,7 @@
 
         <!-- Clear Selection Button -->
         <button
-          class="px-3 py-2 rounded border border-red-600 hover:bg-red-700 text-red-300 text-sm transition-colors"
+          class="px-3 py-2 rounded-sm border border-red-600 hover:bg-red-700 text-red-300 text-sm transition-colors"
           onclick={clearSelection}
         >
           {language.cancel}

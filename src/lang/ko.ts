@@ -178,6 +178,7 @@ export const languageKorean = {
         dynamicMemory: "활성화하면 어시스턴트가 응답 시 메모리 노트를 작성합니다. 이 기능을 활용하려면 추가 프롬프팅이 필요합니다.",
         dynamicResponseTiming: "활성화하면 응답 타이밍이 동적으로 조정됩니다.",
         dynamicRequest: "활성화하면 사용자 입력을 기다리지 않고 무작위 타이밍에 모델에 요청합니다.",
+        settingsCloseButtonSize: "설정 창 우측 상단의 닫기(X) 버튼 크기를 조절합니다. 기본값은 24입니다.",
         showTypingEffect: "활성화하면 어시스턴트가 응답을 생성하는 동안 타이핑 표시기가 표시됩니다.",
         dynamicOutputPrompt: "활성화하면 스키마 정보가 요청에 포함됩니다.",
         sourcemapTranslate: "활성화하면 오류의 스택 트레이스가 소스맵을 사용하여 원본 소스 코드 위치를 표시하도록 자동으로 변환됩니다. 이는 디버깅에 유용합니다.",
@@ -188,6 +189,8 @@ export const languageKorean = {
             "이 목록의 제공자만 사용합니다. 모든 제공자를 사용할 수 없는 경우 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers 를 참조하세요",
         openrouterProviderIgnore:
             "이 목록의 제공자를 무시합니다. 모든 제공자가 무시되면 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers 를 참조하세요",
+        additionalPrompt:
+            "프롬프트 선보정이 활성화되어 있을 때 메인 프롬프트 끝에 추가되는 텍스트입니다. 기본값은 'The assistant must act as {{char}}. user is {{user}}.'이며, 이를 통해 기본적인 롤플레이 맥락을 설정합니다.",
     },
     setup: {
         chooseProvider: "AI 제공자를 선택해 주세요",
@@ -1369,6 +1372,7 @@ export const languageKorean = {
     dynamicRequest: "동적 요청",
     dynamicOutputPrompt: "동적 출력 프롬프트",
     sourcemapTranslate: "소스맵을 사용하여 스택 트레이스 번역",
+    settingsCloseButtonSize: "설정 닫기 버튼 크기",
     translating: "번역 중...",
     showOriginal: "기존 코드 주소 보기",
     translate: "코드 주소 번역하기",

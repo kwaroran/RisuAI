@@ -76,7 +76,7 @@
 <span class="text-textcolor">{language.autoContinueMinTokens}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} bind:value={DBState.db.autoContinueMinTokens}/>
 
-<span class="text-textcolor">{language.additionalPrompt}</span>
+<span class="text-textcolor">{language.additionalPrompt} <Help key="additionalPrompt"/></span>
 <TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.additionalPrompt}/>
 
 <span class="text-textcolor">{language.descriptionPrefix}</span>

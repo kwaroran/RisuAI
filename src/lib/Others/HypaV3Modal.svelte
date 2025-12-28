@@ -750,7 +750,7 @@
                   }}
                 >
                   <input
-                    class="w-full px-2 py-2 border rounded sm:px-4 sm:py-3 border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+                    class="w-full px-2 py-2 border rounded-sm sm:px-4 sm:py-3 border-zinc-700 focus:outline-hidden focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
                     placeholder={language.hypaV3Modal.searchPlaceholder}
                     bind:this={searchState.ref}
                     bind:value={searchState.query}
@@ -766,7 +766,7 @@
 
                 {#if searchState.results.length > 0}
                   <span
-                    class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:px-3 py-1 sm:py-2 rounded text-sm font-semibold text-zinc-100 bg-zinc-700/65"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:px-3 py-1 sm:py-2 rounded-sm text-sm font-semibold text-zinc-100 bg-zinc-700/65"
                   >
                     {searchState.currentResultIndex + 1}/{searchState.results
                       .length}

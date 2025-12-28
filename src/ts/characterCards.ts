@@ -88,11 +88,42 @@ export async function importCharacterProcess(f:{
         let charXMode:'normal'|'skippable'|'signal' = 'normal'
         let signal = ''
         if(forageStorage.realStorage instanceof AccountStorage){
-            const rsp = new Response(f.data as any)
-            f.data = new Uint8Array(await rsp.arrayBuffer())
-            const v = await CharXSkippableChecker(f.data)
-            signal = v.hash
-            charXMode = v.success ? 'skippable' : 'signal'
+
+            if(f.data instanceof ReadableStream){
+                const tee = f.data.tee()
+                const reader =tee[0].getReader()
+                f.data = tee[1]
+                const chunks:Uint8Array[] = []
+                let done = false
+                let readedBytes = 0
+                while(!done){
+                    const r = await reader.read()
+                    readedBytes += r.value ? r.value.length : 0
+                    if(r.done){
+                        done = true
+                    }
+                    else{
+                        chunks.push(r.value)
+                    }
+                    alertWait(`Loading... (Reading) ${readedBytes} Bytes`)
+                }
+                let offset = 0
+                const uint8 = new Uint8Array(readedBytes)
+                for(const chunk of chunks){
+                    uint8.set(chunk, offset)
+                    offset += chunk.length
+                }
+                const v = await CharXSkippableChecker(uint8)
+                signal = v.hash
+                charXMode = v.success ? 'skippable' : 'signal'
+            }
+            else{
+                const rsp = new Response(f.data as any)
+                f.data = new Uint8Array(await rsp.arrayBuffer())
+                const v = await CharXSkippableChecker(f.data)
+                signal = v.hash
+                charXMode = v.success ? 'skippable' : 'signal'
+            }
         }
         
         const reader = new CharXReader()

@@ -74,7 +74,7 @@
           
           <!-- Cancel Button -->
           <button
-            class="p-2 rounded transition-colors text-zinc-400 hover:text-zinc-200"
+            class="p-2 rounded-sm transition-colors text-zinc-400 hover:text-zinc-200"
             onclick={onCancel}
             title={language.cancel}
           >
@@ -91,7 +91,7 @@
         </div>
       {:else if bulkResummaryState.result}
         <textarea
-          class="p-3 w-full min-h-32 resize-vertical rounded border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors text-zinc-200 bg-zinc-800"
+          class="p-3 w-full min-h-32 resize-vertical rounded-sm border border-zinc-700 focus:outline-hidden focus:ring-2 focus:ring-zinc-500 transition-colors text-zinc-200 bg-zinc-800"
           readonly
           value={bulkResummaryState.result}
         ></textarea>
@@ -103,7 +103,7 @@
               {language.hypaV3Modal.translationLabel}
             </div>
             <textarea
-              class="p-3 w-full min-h-32 resize-vertical rounded border border-zinc-700 focus:outline-none transition-colors text-zinc-200 bg-zinc-800"
+              class="p-3 w-full min-h-32 resize-vertical rounded-sm border border-zinc-700 focus:outline-hidden transition-colors text-zinc-200 bg-zinc-800"
               readonly
               value={bulkResummaryState.translation}
             ></textarea>

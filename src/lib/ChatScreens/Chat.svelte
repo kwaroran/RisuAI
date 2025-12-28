@@ -270,7 +270,7 @@
     <div class="flex flex-col items-end">
         {#if messageGenerationInfo && (DBState.db.requestInfoInsideChat || aiLawApplies())}
             <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
-                    hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                    hover:ring-darkbutton hover:ring-3 rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
                         const currentGenerationInfo = idx >= 0 ? 
                             DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].generationInfo :
@@ -290,7 +290,7 @@
         {/if}
         {#if DBState.db.translatorType === 'llm' && translated}
             <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
-                            hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                            hover:ring-darkbutton hover:ring-3 rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
                         retranslate = true
                     }}
@@ -350,7 +350,7 @@
 {/snippet}
 
 {#snippet icons(options:{applyTextColors?:boolean} = {})}
-    <div class="flex-grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
+    <div class="grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
         <span class="text-xs">{statusMessage}</span>
         {#if DBState.db.useChatCopy && !blankMessage}
             <button class="ml-2 hover:text-blue-500 transition-colors button-icon-copy" onclick={async ()=>{
@@ -808,7 +808,7 @@
      data-chat-id={DBState.db.characters?.[selIdState.selId]?.chats?.[DBState.db.characters?.[selIdState.selId]?.chatPage]?.message?.[idx]?.chatId ?? ''}
      style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}
      onclickcapture={handleButtonTriggerWithin}>
-    <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent flex-grow border-t-gray-900 border-opacity-30 border-transparent flexium items-start max-w-full" >
+    <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent grow border-t-gray-900 border-opacity/30 border-transparent flexium items-start max-w-full" >
         {#if DBState.db.theme === 'mobilechat' && !blankMessage}
             <div class={role === 'user' ? "flex items-start w-full justify-end" : "flex items-start"}>
                 {#if role !== 'user'}
@@ -839,7 +839,7 @@
             </div>
         {:else if DBState.db.theme === 'cardboard' && !blankMessage}
             <div class="w-full flex flex-col px-0 sm:px-4 py-4 relative">
-                <div class="bg-gradient-to-b from-gray-100 to-gray-200 rounded-lg shadow-lg border-gray-400 border p-4 flex flex-col">
+                <div class="bg-linear-to-b from-gray-100 to-gray-200 rounded-lg shadow-lg border-gray-400 border p-4 flex flex-col">
                     <div class="flex gap-4 mt-2 flex-col sm:flex-row">
                         <div class="flex flex-col items-center">
                             <div class="sm:h-96 sm:w-72 sm:min-w-72 w-48 h-64">
@@ -849,15 +849,15 @@
 
                         </div>
                         {#if editMode}
-                            <textarea class="flex-grow h-138 sm:h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none message-edit-area" bind:value={message}></textarea>
+                            <textarea class="grow h-138 sm:h-96 overflow-y-auto bg-transparent text-black p-2 mb-2 resize-none message-edit-area" bind:value={message}></textarea>
                         {:else}
-                            <div class="flex-grow h-138 sm:h-96 overflow-y-auto p-2 mb-2 sm:mb-0">
+                            <div class="grow h-138 sm:h-96 overflow-y-auto p-2 mb-2 sm:mb-0">
                                 {@render textBox()}
                             </div>
                         {/if}
                     </div>
                 </div>
-                <div class="absolute bottom-0 right-0 bg-gradient-to-b from-gray-200 to-gray-300 p-2 rounded-md border border-gray-400 text-gray-400">
+                <div class="absolute bottom-0 right-0 bg-linear-to-b from-gray-200 to-gray-300 p-2 rounded-md border border-gray-400 text-gray-400">
                     {@render icons({applyTextColors: false})}
                 </div>
             </div>

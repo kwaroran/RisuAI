@@ -16,6 +16,6 @@
       rounded-full
       transition-all
       duration-300
-      {isActive ? 'bg-white !h-[20px]' : 'group-hover:h-[10px]'}
+      {isActive ? 'bg-white h-[20px]!' : 'group-hover:h-[10px]'}
     "
 ></div>

@@ -201,6 +201,7 @@ export const languageGerman = {
         dynamicMemory: "Wenn aktiviert, macht der Assistent Gedächtnisnotizen zur Antwortzeit. Um diese Funktion nutzen zu können, ist eine zusätzliche Anweisung erforderlich.",
         dynamicResponseTiming: "Wenn aktiviert, wird das Antwort-Timing dynamisch angepasst.",
         dynamicRequest: "Wenn aktiviert, wird das Modell zu einem zufälligen Zeitpunkt angefordert, ohne auf eine Benutzereingabe zu warten.",
+        settingsCloseButtonSize: "Passt die Größe der Schließen-Schaltfläche (X) in der oberen rechten Ecke des Einstellungsfensters an. Standard ist 24.",
         showTypingEffect: "Wenn aktiviert, wird während der Generierung einer Antwort durch den Assistenten eine Tippanzeige angezeigt.",
         dynamicOutputPrompt: "Wenn aktiviert, werden die Schema-Informationen in die Anfrage aufgenommen.",
         sourcemapTranslate:
@@ -212,6 +213,8 @@ export const languageGerman = {
             "Verwenden Sie nur die Anbieter in dieser Liste. Wenn alle Anbieter nicht verfügbar sind, schlägt die Anfrage fehl. Siehe Details unter https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore:
             "Ignorieren Sie die Anbieter in dieser Liste. Wenn alle Anbieter ignoriert werden, schlägt die Anfrage fehl. Siehe Details unter https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "Text, der am Ende der Haupt-Anweisung angehängt wird, wenn die Anweisungsvorverarbeitung aktiviert ist. Der Standardwert ist 'The assistant must act as {{char}}. user is {{user}}.' Dies hilft, den grundlegenden Rollenspielkontext einzurichten.",
     },
     setup: {
         chooseProvider: "Wählen Sie Ihren AI-Anbieter aus",
@@ -1404,6 +1407,7 @@ export const languageGerman = {
     dynamicRequest: "Dynamische Anfrage",
     dynamicOutputPrompt: "Dynamische Ausgabeanweisung",
     sourcemapTranslate: "Stack-Traces mit Sourcemaps übersetzen",
+    settingsCloseButtonSize: "Größe der Einstellungen-Schließen-Schaltfläche",
     translating: "Übersetze...",
     showOriginal: "Original-Code-Adresse anzeigen",
     translate: "Code-Adresse übersetzen",

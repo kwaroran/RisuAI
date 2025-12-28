@@ -134,7 +134,7 @@
             }} />
         </div>
         {#if DBState.db.localStopStrings}
-            <div class="flex flex-col p-2 rounded border border-selected mt-2 gap-1">
+            <div class="flex flex-col p-2 rounded-sm border border-selected mt-2 gap-1">
                 <div class="p-2">
                     <button class="font-medium flex justify-center items-center h-full cursor-pointer hover:text-green-500 w-full" onclick={() => {
                         let localStopStrings = DBState.db.localStopStrings
@@ -144,7 +144,7 @@
                 </div>
                 {#each DBState.db.localStopStrings as stopString, i}
                     <div class="flex w-full">
-                        <div class="flex-grow">
+                        <div class="grow">
                             <TextInput marginBottom bind:value={DBState.db.localStopStrings[i]} fullwidth fullh/>
                         </div>
                         <div>

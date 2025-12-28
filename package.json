@@ -11,7 +11,6 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "tauri": "tauri",
     "buildsite": "vite build --outDir dist",
-    "updatePlugin": "tsc public/pluginApi.ts",
     "runserver": "node server/node/server.cjs",
     "sync": "node electron/sync",
     "electron": "node electron/dist/electron",
@@ -36,6 +35,7 @@
     "@sebastianwessel/quickjs": "^3.0.0",
     "@smithy/protocol-http": "^3.3.0",
     "@smithy/signature-v4": "^2.3.0",
+    "@tailwindcss/vite": "^4.1.18",
     "@tauri-apps/api": "2.5.0",
     "@tauri-apps/cli-win32-arm64-msvc": "^2.9.6",
     "@tauri-apps/plugin-deep-link": "~2.2.1",
@@ -116,24 +116,14 @@
     "source-map": "^0.7.6",
     "svelte": "^5.46.1",
     "svelte-check": "^4.3.5",
-    "svelte-preprocess": "^6.0.3",
-    "tailwindcss": "^3.4.19",
+    "tailwindcss": "^4.1.18",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
     "vite-plugin-wasm": "3.5.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "core-js",
-      "esbuild",
-      "msgpackr-extract",
-      "onnxruntime-node",
-      "protobufjs",
-      "sharp",
-      "svelte-preprocess"
-    ],
-    "ignoredBuiltDependencies": [
+    "neverBuiltDependencies": [
       "sharp"
     ]
   }

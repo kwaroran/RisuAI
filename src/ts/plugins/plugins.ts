@@ -479,7 +479,22 @@ const allowedDbKeys = [
     'pluginV2',
     'personas',
     'plugins',
-    'pluginCustomStorage'
+    'pluginCustomStorage',
+    'temperature',
+    'askRemoval',
+    'maxContext',
+    'maxResponse',
+    'frequencyPenalty',
+    'PresensePenalty',
+    'theme',
+    'textTheme',
+    'lineHeight',
+    'seperateModelsForAxModels',
+    'seperateModels',
+    'customCSS',
+    'guiHTML',
+    'colorSchemeName',
+
 ]
 
 export const getV2PluginAPIs = () => {

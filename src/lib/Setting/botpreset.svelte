@@ -334,11 +334,11 @@
 
 </script>
 
-<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
+<div class="absolute w-full h-full z-40 bg-black bg-opacity/50 flex justify-center items-center">
     <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-124 max-h-full overflow-y-auto">
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.presets}</h2>
-            <div class="flex-grow flex justify-end">
+            <div class="grow flex justify-end">
                 <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
                     <XIcon size={24}/>
                 </button>
@@ -386,7 +386,7 @@
 
                 const dragElement = document.createElement('div')
                 dragElement.textContent = preset?.name || 'Unnamed Preset'
-                dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+                dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded-sm text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
                 document.body.appendChild(dragElement)
                 e.dataTransfer?.setDragImage(dragElement, 10, 10)
 
@@ -426,7 +426,7 @@
                     {/if}
                     <span>{preset.name}</span>
                 {/if}
-                <div class="flex-grow flex justify-end">
+                <div class="grow flex justify-end">
                     {#if DBState.db.showPromptComparison}
                         <div class="{selectedDiffPreset === i ? 'text-green-500' : 'text-textcolor2 hover:text-green-500'} cursor-pointer mr-2" role="button" tabindex="0" onclick={(e) => {
                             e.stopPropagation()

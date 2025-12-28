@@ -224,6 +224,7 @@ export const languageEnglish = {
         dynamicMemory: "When enabled, assistant will make memory notes on response time. additional prompting is required to utilize this feature.",
         dynamicResponseTiming: "When enabled, it will adjust the response timing dynamically.",
         dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
+        settingsCloseButtonSize: "Adjusts the size of the close (X) button in the top right corner of the settings window. Default is 24.",
         showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
         dynamicOutputPrompt: "When enabled, the schema information will be included in the request.",
         sourcemapTranslate:
@@ -235,6 +236,8 @@ export const languageEnglish = {
             "Only use the providers in this list, if all the provider is not available, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore:
             "Ignore the providers in this list, if all the provider is ingored, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "Text that gets appended to the Main Prompt when Prompt Preprocess is enabled. Default is 'The assistant must act as {{char}}. user is {{user}}.' This helps set up basic roleplay context.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -1419,6 +1422,7 @@ export const languageEnglish = {
     dynamicRequest: "Dynamic Request",
     dynamicOutputPrompt: "Dynamic Output Prompt",
     sourcemapTranslate: "Translate stack traces using sourcemaps",
+    settingsCloseButtonSize: "Settings Close Button Size",
     translating: "Translating...",
     showOriginal: "Show Original Code Address",
     translate: "Translate Code Address",

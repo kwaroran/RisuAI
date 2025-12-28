@@ -1,4 +1,4 @@
-import { Packr, Unpackr, decode } from "msgpackr";
+import { Packr, Unpackr, decode } from "msgpackr/index-no-eval";
 import * as fflate from "fflate";
 import { presetTemplate, type Database } from "./database.svelte";
 import localforage from "localforage";

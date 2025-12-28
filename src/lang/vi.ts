@@ -186,6 +186,7 @@ export const LanguageVietnamese = {
         dynamicMemory: "Khi được bật, trợ lý sẽ ghi chú bộ nhớ vào thời gian phản hồi. Cần có thêm lời nhắc để sử dụng tính năng này.",
         dynamicResponseTiming: "Khi được bật, nó sẽ điều chỉnh thời gian phản hồi một cách linh hoạt.",
         dynamicRequest: "Khi được bật, nó sẽ yêu cầu mô hình vào thời điểm ngẫu nhiên mà không cần chờ người dùng nhập liệu.",
+        settingsCloseButtonSize: "Điều chỉnh kích thước nút đóng (X) ở góc trên bên phải cửa sổ cài đặt. Mặc định là 24.",
         showTypingEffect: "Khi được bật, nó sẽ hiển thị chỉ báo đang nhập trong khi trợ lý đang tạo phản hồi.",
         dynamicOutputPrompt: "Khi được bật, thông tin lược đồ sẽ được bao gồm trong yêu cầu.",
         sourcemapTranslate:
@@ -197,6 +198,8 @@ export const LanguageVietnamese = {
             "Chỉ sử dụng các nhà cung cấp trong danh sách này, nếu tất cả các nhà cung cấp không có sẵn, yêu cầu sẽ thất bại. Xem chi tiết tại https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore:
             "Bỏ qua các nhà cung cấp trong danh sách này, nếu tất cả các nhà cung cấp bị bỏ qua, yêu cầu sẽ thất bại. Xem chi tiết tại https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "Văn bản được thêm vào cuối Lời nhắc chính khi Tiền xử lý lời nhắc được bật. Mặc định là 'The assistant must act as {{char}}. user is {{user}}.' Điều này giúp thiết lập ngữ cảnh nhập vai cơ bản.",
     },
     setup: {
         chooseProvider: "Chọn nhà cung cấp AI",
@@ -1384,6 +1387,7 @@ export const LanguageVietnamese = {
     dynamicRequest: "Yêu cầu động",
     dynamicOutputPrompt: "Lời nhắc đầu ra động",
     sourcemapTranslate: "Dịch dấu vết ngăn xếp bằng bản đồ nguồn",
+    settingsCloseButtonSize: "Kích thước nút đóng cài đặt",
     translating: "Đang dịch...",
     showOriginal: "Hiển thị địa chỉ mã gốc",
     translate: "Dịch địa chỉ mã",

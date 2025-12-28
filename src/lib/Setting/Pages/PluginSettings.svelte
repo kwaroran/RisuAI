@@ -40,7 +40,7 @@
                 showParams.push(i)
             }
         }}>
-            <span class="font-bold flex-grow">{plugin.displayName ?? plugin.name}</span>
+            <span class="font-bold grow">{plugin.displayName ?? plugin.name}</span>
             {#if plugin.version === 2}
                 <button class="text-yellow-400 hover:gray-200 cursor-pointer" onclick={() => {
                     alertMd(migrationGuideContent);
@@ -115,7 +115,7 @@
             </span>
             <!--List up args-->
         {:else if Object.keys(plugin.arguments).filter((i) => !i.startsWith("hidden_")).length > 0 && showParams.includes(i)}
-            <div class="flex flex-col mt-2 bg-dark-900 bg-opacity-50 p-3">
+            <div class="flex flex-col mt-2 bg-dark-900 bg-opacity/50 p-3">
                 {#each Object.keys(plugin.arguments) as arg}
                     {#if !arg.startsWith("hidden_")}
                         {#if typeof(plugin?.argMeta?.[arg]?.divider) === 'string'}

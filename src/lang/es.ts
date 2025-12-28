@@ -193,6 +193,7 @@ export const languageSpanish = {
         dynamicMemory: "Cuando está habilitado, el asistente tomará notas de memoria en el tiempo de respuesta. Se requiere prompting adicional para utilizar esta característica.",
         dynamicResponseTiming: "Cuando está habilitado, ajustará el tiempo de respuesta dinámicamente.",
         dynamicRequest: "Cuando está habilitado, solicitará al modelo en un momento aleatorio sin esperar la entrada del usuario.",
+        settingsCloseButtonSize: "Ajusta el tamaño del botón de cerrar (X) en la esquina superior derecha de la ventana de configuración. El valor predeterminado es 24.",
         showTypingEffect: "Cuando está habilitado, mostrará un indicador de escritura mientras el asistente está generando una respuesta.",
         dynamicOutputPrompt: "Cuando está habilitado, la información del esquema se incluirá en la solicitud.",
         sourcemapTranslate:
@@ -204,6 +205,8 @@ export const languageSpanish = {
             "Solo usar los proveedores en esta lista, si todos los proveedores no están disponibles, la solicitud fallará. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore:
             "Ignorar los proveedores en esta lista, si todos los proveedores son ignorados, la solicitud fallará. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "Texto que se agrega al final del Prompt Principal cuando el Preprocesamiento de Prompt está habilitado. El valor predeterminado es 'The assistant must act as {{char}}. user is {{user}}.' Esto ayuda a establecer el contexto básico del juego de roles.",
     },
     setup: {
         chooseProvider: "Elige Proveedor de IA",
@@ -1393,6 +1396,7 @@ export const languageSpanish = {
     dynamicRequest: "Solicitud Dinámica",
     dynamicOutputPrompt: "Prompt de Salida Dinámica",
     sourcemapTranslate: "Traducir seguimientos de pila usando sourcemaps",
+    settingsCloseButtonSize: "Tamaño del botón de cerrar configuración",
     translating: "Traduciendo...",
     showOriginal: "Mostrar dirección de código original",
     translate: "Traducir dirección de código",
