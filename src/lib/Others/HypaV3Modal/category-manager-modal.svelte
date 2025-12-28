@@ -172,7 +172,7 @@
             {#if categoryManagerState.editingCategory?.id === category.id}
               <input
                 type="text"
-                class="flex-1 px-3 py-1.5 text-sm rounded border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="flex-1 px-3 py-1.5 text-sm rounded-sm border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 bind:value={categoryManagerState.editingCategory.name}
                 placeholder={language.hypaV3Modal.categoryName}
               />

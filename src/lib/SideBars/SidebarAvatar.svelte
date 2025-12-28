@@ -44,7 +44,7 @@
     {#if src === "slot"}
       {#await backgroundimg}
       <div
-        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center bg-opacity-50"
+        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center bg-opacity/50"
         class:bg-darkbg={color === 'default' || color === ''}
         class:bg-red-700={color === 'red'}
         class:bg-yellow-700={color === 'yellow'}
@@ -62,7 +62,7 @@
       ></div>
       {:then resolvedBgImg}
       <div
-        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center bg-opacity-50"
+        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center bg-opacity/50"
         class:bg-darkbg={color === 'default' || color === ''}
         class:bg-red-700={color === 'red'}
         class:bg-yellow-700={color === 'yellow'}

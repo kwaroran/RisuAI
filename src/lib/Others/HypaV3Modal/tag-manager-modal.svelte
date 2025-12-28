@@ -113,13 +113,13 @@
         <div class="flex gap-2">
           <input
             type="text"
-            class="flex-1 px-3 py-2 text-sm rounded border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="flex-1 px-3 py-2 text-sm rounded-sm border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             placeholder={language.hypaV3Modal.newTagName}
             bind:value={tagManagerState.editingTag}
             onkeydown={handleAddTagKeydown}
           />
           <button
-            class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm transition-colors"
+            class="px-4 py-2 rounded-sm bg-blue-600 hover:bg-blue-700 text-white text-sm transition-colors"
             onclick={handleAddTagEnter}
           >
             {language.add}
@@ -131,11 +131,11 @@
       <div class="space-y-2 max-h-60 overflow-y-auto">
         {#if hypaV3Data.summaries[tagManagerState.currentSummaryIndex].tags && hypaV3Data.summaries[tagManagerState.currentSummaryIndex].tags.length > 0}
           {#each hypaV3Data.summaries[tagManagerState.currentSummaryIndex].tags as tag, tagIndex}
-            <div class="flex items-center gap-2 px-3 py-2 rounded bg-zinc-800">
+            <div class="flex items-center gap-2 px-3 py-2 rounded-sm bg-zinc-800">
               {#if tagManagerState.editingTagIndex === tagIndex}
                 <input
                   type="text"
-                  class="flex-1 px-2 py-1 text-sm rounded border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="flex-1 px-2 py-1 text-sm rounded-sm border border-zinc-600 bg-zinc-900 text-zinc-200 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                   bind:value={tagManagerState.editingTag}
                   onkeydown={handleEditTagKeydown}
                 />

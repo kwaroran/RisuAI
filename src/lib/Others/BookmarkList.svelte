@@ -110,7 +110,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-    class="fixed top-0 left-0 w-full h-full z-30 bg-black bg-opacity-50 flex justify-center items-center"
+    class="fixed top-0 left-0 w-full h-full z-30 bg-black bg-opacity/50 flex justify-center items-center"
     onclick={(event) => {
         if (event.target === event.currentTarget) {
             close();
@@ -156,8 +156,8 @@
                             role="button"
                             tabindex="0"
                         >
-                            <span class="flex-grow text-left truncate">{chara.chats[chara.chatPage].bookmarkNames?.[msg.chatId] || msg.data.substring(0, 30) + '...'}</span>
-                            <div class="flex-shrink-0 flex items-center gap-2 ml-2">
+                            <span class="grow text-left truncate">{chara.chats[chara.chatPage].bookmarkNames?.[msg.chatId] || msg.data.substring(0, 30) + '...'}</span>
+                            <div class="shrink-0 flex items-center gap-2 ml-2">
                                 <button class="text-textcolor2 hover:text-green-500" onclick={(e) => { e.stopPropagation(); editName(msg.chatId); }}>
                                     <PencilIcon size={16} />
                                 </button>

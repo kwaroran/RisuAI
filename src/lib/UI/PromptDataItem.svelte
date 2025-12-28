@@ -176,7 +176,7 @@
 
             const dragElement = document.createElement('div')
             dragElement.textContent = getName(promptItem)
-            dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+            dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded-sm text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
             document.body.appendChild(dragElement)
             e.dataTransfer?.setDragImage(dragElement, 10, 10)
 

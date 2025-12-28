@@ -1,5 +1,5 @@
 <div 
-    class={"border border-darkborderc relative n-scroll focus-within:border-borderc rounded-md shadow-sm text-textcolor bg-transparent focus-within:ring-borderc focus-within:ring-2 focus-within:outline-none transition-colors duration-200 z-20 focus-within:z-40" + ((className) ? (' ' + className) : '')} 
+    class={"border border-darkborderc relative n-scroll focus-within:border-borderc rounded-md shadow-xs text-textcolor bg-transparent focus-within:ring-borderc focus-within:ring-2 focus-within:outline-hidden transition-colors duration-200 z-20 focus-within:z-40" + ((className) ? (' ' + className) : '')} 
     class:text-sm={size === 'sm' || (size === 'default' && $textAreaTextSize === 1)}
     class:text-md={size === 'md' || (size === 'default' && $textAreaTextSize === 2)}
     class:text-lg={size === 'lg' || (size === 'default' && $textAreaTextSize === 3)}
@@ -40,7 +40,7 @@
 >
     {#if !highlight || $disableHighlight}
         <textarea
-            class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto"
+            class="w-full h-full bg-transparent focus-within:outline-hidden resize-none absolute top-0 left-0 z-50 overflow-y-auto"
             class:px-4={padding}
             class:py-2={padding}
             {autocomplete}
@@ -70,7 +70,7 @@
 ></textarea>
 {:else}
     <div
-        class="w-full h-full bg-transparent focus-within:outline-none resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 break-words whitespace-pre-wrap"
+        class="w-full h-full bg-transparent focus-within:outline-hidden resize-none absolute top-0 left-0 z-50 overflow-y-auto px-4 py-2 wrap-break-word whitespace-pre-wrap"
         contenteditable="true"
         bind:textContent={value}
         onkeydown={(e) => {

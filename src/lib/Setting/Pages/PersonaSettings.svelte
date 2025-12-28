@@ -74,12 +74,12 @@
             changeUserPersona(i)
         }}>
             {#if persona.icon === ''}
-                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === DBState.db.selectedPersona}></div>
+                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring-3={i === DBState.db.selectedPersona}></div>
             {:else}
                 {#await getCharImage(persona.icon, 'css')}
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === DBState.db.selectedPersona}></div>
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring-3={i === DBState.db.selectedPersona}></div>
                 {:then im} 
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring={i === DBState.db.selectedPersona}></div>                
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring-3={i === DBState.db.selectedPersona}></div>                
                 {/await}
             {/if}
         </button>
@@ -129,7 +129,7 @@
             {/if}
         </button>
     </div>
-    <div class="flex flex-grow flex-col p-2 max-w-full">
+    <div class="flex grow flex-col p-2 max-w-full">
         <span class="text-sm text-textcolor2">{language.name}</span>
         <TextInput marginBottom size="lg" placeholder="User" bind:value={DBState.db.username}/>
         <span class="text-sm text-textcolor2">{language.note}</span>

@@ -356,9 +356,9 @@
         {#if DBState.db.characters[$selectedCharID].type === 'group'}
             <button onclick={async () => {await selectCharImg($selectedCharID)}}>
                 {#await getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
-                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
+                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3"></div>
                 {:then im}
-                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im}></div>     
+                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3" style={im}></div>     
                 {/await}
             </button>
         {:else}
@@ -380,12 +380,12 @@
                     }}>
                         {#await getCharImage(DBState.db.characters[$selectedCharID].image, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                             <div
-                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3 transition-shadow"
                                 class:ring-red-500={iconRemoveMode}
     ></div>
                         {:then im}
                             <div
-                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3 transition-shadow"
                                 class:ring-red-500={iconRemoveMode}
                                 style={im}
     ></div>     
@@ -405,13 +405,13 @@
                         }}>
                             {#await getCharImage(assets.uri, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                                 <div
-                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
-                                    class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring-3 transition-shadow"
+                                    class:ring-red-500={iconRemoveMode} class:ring-3={iconRemoveMode}
     ></div>
                             {:then im}
                                 <div
-                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
-                                    style={im} class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring-3 transition-shadow"
+                                    style={im} class:ring-red-500={iconRemoveMode} class:ring-3={iconRemoveMode}
     ></div>     
                             {/await}
                         </button>

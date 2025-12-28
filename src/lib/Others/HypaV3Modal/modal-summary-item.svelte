@@ -361,7 +361,7 @@
       {#if bulkEditState?.isEnabled}
         <input
           type="checkbox"
-          class="w-4 h-4 text-blue-600 bg-zinc-900 border-zinc-600 rounded focus:ring-blue-500"
+          class="w-4 h-4 text-blue-600 bg-zinc-900 border-zinc-600 rounded-sm focus:ring-blue-500"
           checked={isSelected()}
           onchange={() => onToggleSummarySelection?.(summaryIndex)}
         />
@@ -493,7 +493,7 @@
   <!-- Original Summary -->
   <div class="mt-2 sm:mt-4">
     <textarea
-      class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+      class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
       bind:this={summaryItemState.originalRef}
       bind:value={summary.text}
       onfocus={() => {
@@ -513,7 +513,7 @@
       </div>
 
       <textarea
-        class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
+        class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
         readonly
         tabindex="-1"
         bind:this={summaryItemState.translationRef}
@@ -566,7 +566,7 @@
     <!-- Rerolled Summary -->
     <div class="mt-2 sm:mt-4">
       <textarea
-        class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+        class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
         tabindex="-1"
         bind:value={rerolled}
       >
@@ -581,7 +581,7 @@
         </div>
 
         <textarea
-          class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
+          class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
           readonly
           tabindex="-1"
           bind:this={summaryItemState.rerolledTranslationRef}
@@ -664,7 +664,7 @@
 
             <!-- Content -->
             <textarea
-              class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
+              class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
               readonly
               tabindex="-1"
               value={expandedMessage.data}
@@ -692,7 +692,7 @@
           </div>
 
           <textarea
-            class="w-full p-2 transition-colors border rounded sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-none text-zinc-200 bg-zinc-900"
+            class="w-full p-2 transition-colors border rounded-sm sm:p-4 min-h-40 sm:min-h-56 resize-vertical border-zinc-700 focus:outline-hidden text-zinc-200 bg-zinc-900"
             readonly
             tabindex="-1"
             bind:this={expandedMessageState.translationRef}
