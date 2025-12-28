@@ -761,7 +761,28 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         })
     }
 
-    if(nowChatroom.type !== 'group'){
+    
+    let msReseted = false
+    const makeMs = (currentChat:Chat) => {
+        let mss:Message[] = []
+        msReseted = false
+        for(let i=currentChat.message.length -1;i>=0;i--){
+            const d = currentChat.message[i]
+            if(d.disabled === true){
+                continue
+            }
+            if(d.disabled === 'allBefore'){
+                msReseted = true
+                break
+            }
+            mss.unshift(d)
+        }
+        return mss
+    }
+
+    let ms:Message[] = makeMs(currentChat)
+
+    if(nowChatroom.type !== 'group' && !msReseted){
         const firstMsg = currentChat.fmIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[currentChat.fmIndex]
 
         const chat:OpenAIChat = {
@@ -778,29 +799,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
-
-    let ms:Message[] = []
-
-    for(let i=0;i<currentChat.message.length;i++){
-        const d = currentChat.message[i]
-
-        if(d.disabled === true){
-            continue
-        }
-
-        if(d.disabled === 'allBefore'){
-            ms = []
-            //also exclude this message
-            continue
-        }
-        ms.push(d)
-    }
+    
+    console.log('Prepared messages for token calculation:', ms)
 
     const triggerResult = await runTrigger(currentChar, 'start', {chat: currentChat})
     if(triggerResult){
         currentChat = triggerResult.chat
         setCurrentChat(currentChat)
-        ms = currentChat.message
+        ms = makeMs(currentChat)
         currentTokens += triggerResult.tokens
         if(triggerResult.stopSending){
             doingChat.set(false)

@@ -63,7 +63,7 @@
             if(i < 0) break; // Prevent out of bounds
             const message = messages[i];
             const messageLargePortrait = message.role === 'user' ? (userIconPortrait ?? false) : ((currentCharacter as character).largePortrait ?? false);
-            let hashd = message.data + (message.chatId ?? '') + i.toString() + messageLargePortrait.toString()
+            let hashd = message.data + (message.chatId ?? '') + i.toString() + messageLargePortrait.toString() + message.disabled?.toString();
             const currentHash = hashCode(hashd);
             currentHashes.add(currentHash);
             if(!hashes.has(currentHash)){
@@ -87,6 +87,7 @@
                         role: message.role,
                         name: message.role === 'user' ? currentUsername : currentCharacter.name,
                         isComment: message.isComment ?? false,
+                        disabled: message.disabled ?? false,
                     },
 
                 })

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, GitBranch, HamburgerIcon, LanguagesIcon, MenuIcon, PencilIcon, RefreshCcwIcon, SplitIcon, TrashIcon, UserIcon, Volume2Icon } from "@lucide/svelte"
+    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, PowerOff, GitBranch, HamburgerIcon, LanguagesIcon, MenuIcon, PencilIcon, RefreshCcwIcon, SplitIcon, TrashIcon, UserIcon, Volume2Icon, Scissors } from "@lucide/svelte"
     import { aiLawApplies, changeChatTo, foldChatToMessage, getFileSrc } from "src/ts/globalApi.svelte"
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
@@ -48,6 +48,7 @@
         currentPage?: number;
         totalPages?: number;
         isComment?: boolean;
+        disabled?: boolean | 'allBefore';
     }
 
     let {
@@ -69,6 +70,7 @@
         currentPage = 1,
         totalPages = 1,
         isComment = false,
+        disabled = false,
     }: Props = $props();
 
     let msgDisplay = $state('')
@@ -709,7 +711,10 @@
 {#snippet minorIconButtonsBody(showNames:boolean)}
     
     {#if DBState.db.enableBookmark}
-        <button class="flex items-center hover:text-blue-500 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={toggleBookmark}>
+        <button class="flex items-center hover:text-blue-500 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={async () => {
+            await sleep(1)
+            toggleBookmark()
+        }}>
             <BookmarkIcon size={20}/>
             {#if showNames}
                 <span class="ml-1">{language.bookmark}</span>
@@ -742,14 +747,27 @@
         {/if}
     </button>
 
-    {#if import.meta.env.DEV}
-        <!-- Debug button -->
-        <button onclick={() => {
-            foldChatToMessage(idx)
-        }}>
-            Test Fold
-        </button>
-    {/if}
+    <button class="flex items-center hover:text-blue-500 transition-colors" onclick={async () => {
+        await sleep(1)
+        const currentMessage = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]
+        DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].disabled = !currentMessage.disabled
+    }}>
+        <PowerOff size={20}/>
+        {#if showNames}
+            <span class="ml-1">{language.disableMessage}</span>
+        {/if}
+    </button>
+
+    <button class="flex items-center hover:text-blue-500 transition-colors" onclick={async () => {
+        await sleep(1)
+        const currentMessage = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx]
+        DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].disabled = currentMessage.disabled === 'allBefore' ? false : 'allBefore'
+    }}>
+        <Scissors size={20}/>
+        {#if showNames}
+            <span class="ml-1">{language.disableAbove}</span>
+        {/if}
+    </button>
 {/snippet}
 
 {#snippet senderIcon(options:{rounded?:boolean,styleFix?:string} = {})}
@@ -920,6 +938,10 @@
     {/each}
 {/snippet}
 
+
+{#if disabled === true}
+<div class="w-full border-t-2 border-dashed border-blue-500"></div>
+{/if}
 <div class="flex max-w-full justify-center risu-chat"
      data-chat-index={idx}
      data-chat-id={DBState.db.characters?.[selIdState.selId]?.chats?.[DBState.db.characters?.[selIdState.selId]?.chatPage]?.message?.[idx]?.chatId ?? ''}
@@ -992,7 +1014,9 @@
                             }}><ArrowLeftRightIcon size="18" /></button>
                         </span>
                     {:else if !blankMessage && !$HideIconStore}
-                        <span class="chat-width text-xl unmargin text-textcolor">{name}</span>
+                        <div class="chat-width text-xl unmargin text-textcolor flex items-center">
+                            <span>{name}</span>
+                        </div>
                     {/if}
                     {@render iconButtons()}
                 </div>
@@ -1002,3 +1026,11 @@
         {/if}
     </div>
 </div>
+
+{#if disabled}
+<div class={{
+    "w-full border-t-2 border-dashed": true,
+    "border-blue-500": disabled === true,
+    "border-amber-500": disabled === 'allBefore',
+}}></div>
+{/if}

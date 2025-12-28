@@ -139,7 +139,7 @@ export const popupStore = $state({
     children: null as null | import("svelte").Snippet,
     mouseX: 0,
     mouseY: 0,
-    openId: 0,
+openId: 0,
 })
 
 ReloadGUIPointer.subscribe(() => {
