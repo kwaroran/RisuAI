@@ -709,6 +709,57 @@ export interface SafeDocument extends SafeElement {
 }
 
 // ============================================================================
+// SafeClassArray
+// ============================================================================
+
+/**
+ * SafeClassArray provides array-like access to collections with restricted operations.
+ * This class is used for safe transfer of arrays of SafeElements or other classes.
+ * All methods are asynchronous unlike standard arrays.
+ *
+ * @example
+ * ```typescript
+ * 
+ * const safeArray = mySafeArray //provided from some API
+ * 
+ * // We recommend using helper function unwarpSafeArray and handle it
+ * const array = await risuai.unwarpSafeArray(safeArray);
+ * for(const item of array){
+ *  console.log(item);
+ * }
+ * 
+ * // You can still use the SafeClassArray methods directly though
+ * const length = await safeArray.length();
+ * for(let i = 0; i < length; i++){
+ *   const item = await safeArray.at(i);
+ *   console.log(item);
+ * }
+ * 
+ * ```
+ */
+export interface SafeClassArray<T> {
+    /**
+     * Gets an item at a specific index
+     * @param index - Array index (supports negative indexing)
+     * @returns Item at index or undefined
+     */
+    at(index: number): Promise<T | undefined>;
+
+    /**
+     * Gets the length of the array
+     * @returns Number of items in array
+     */
+    length(): Promise<number>;
+
+    /**
+     * Adds an item to the end of the array
+     * @param item - Item to add
+     */
+    push(item: T): Promise<void>;
+}
+
+
+// ============================================================================
 // SafeMutationObserver
 // ============================================================================
 
@@ -717,43 +768,20 @@ export interface SafeDocument extends SafeElement {
  */
 export interface SafeMutationRecord {
     /** Type of mutation */
-    type: string;
-    /** Target element that was modified */
-    target: SafeElement;
-    /** Array of added SafeElements */
-    addedNodes: SafeElement[];
-    /** Array of removed SafeElements */
-    removedNodes?: SafeElement[];
+    getType(): Promise<string>;
+    /** Target element of mutation */
+    getTarget(): Promise<SafeElement>;
+    /** Added nodes in mutation */
+    getAddedNodes(): Promise<SafeClassArray<SafeElement>>;
 }
 
 /**
  * Callback for SafeMutationObserver
  */
-export type SafeMutationCallback = (mutations: SafeMutationRecord[]) => void;
+type SafeMutationCallback = (mutations: SafeClassArray<SafeMutationRecord>) => void;
 
 /**
  * SafeMutationObserver watches for DOM changes in the main document
- *
- * @example
- * ```typescript
- * const observer = risuai.createMutationObserver((mutations) => {
- *   mutations.forEach(mutation => {
- *     console.log(`Mutation type: ${mutation.type}`);
- *     mutation.addedNodes.forEach(async (node) => {
- *       const text = await node.textContent();
- *       console.log(`Node added: ${text}`);
- *     });
- *   });
- * });
- *
- * const doc = risuai.getRootDocument();
- * const body = doc.querySelector('body');
- * observer.observe(body, {
- *   childList: true,
- *   subtree: true,
- *   attributes: true
- * });
- * ```
  */
 export interface SafeMutationObserver {
     /**

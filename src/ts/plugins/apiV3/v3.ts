@@ -318,20 +318,58 @@ class SafeDocument extends SafeElement {
     }
 }
 
-type SafeMutationRecord = {
+type SafeMutationRecordObject = {
     type: string;
     target: SafeElement;
     addedNodes: SafeElement[];
 }
 
-type SafeMutationCallback = (mutations: SafeMutationRecord[]) => void;
+class SafeClassArray<T> {
+    #items: T[];
+    __classType = 'REMOTE_REQUIRED' as const;
+    constructor(items: T[] = []) {
+        this.#items = items;
+    }
+    at(index: number): T {
+        return this.#items.at(index);
+    }
+    length(): number {
+        return this.#items.length;
+    }
+    push(item: T) {
+        this.#items.push(item);
+    }
+}
+
+class SafeMutationRecord{
+    __classType = 'REMOTE_REQUIRED' as const;
+    #type: string;
+    #target: SafeElement;
+    #addedNodes: SafeClassArray<SafeElement>;
+    constructor(type: string, target: SafeElement, addedNodes: SafeElement[]) {
+        this.#type = type;
+        this.#target = target;
+        this.#addedNodes = new SafeClassArray<SafeElement>(addedNodes);
+    }
+    getType(): string {
+        return this.#type;
+    }
+    getTarget(): SafeElement {
+        return this.#target;
+    }
+    getAddedNodes(): SafeClassArray<SafeElement> {
+        return this.#addedNodes;
+    }
+}
+
+type SafeMutationCallback = (mutations: SafeClassArray<SafeMutationRecord>) => void;
 
 class SafeMutationObserver {
     #observer: MutationObserver;
     __classType = 'REMOTE_REQUIRED' as const;
     constructor(callback: SafeMutationCallback) {
         this.#observer = new MutationObserver((mutations) => {
-            const safeMutations: SafeMutationRecord[] = mutations.map(mutation => {
+            const safeMutations: SafeMutationRecordObject[] = mutations.map(mutation => {
 
                 const elementMapHelper = (nodeList: NodeList): SafeElement[] => {
                     const elements: SafeElement[] = [];
@@ -352,7 +390,15 @@ class SafeMutationObserver {
                 }
             })
 
-            callback(safeMutations);
+            const safeClassed = new SafeClassArray<SafeMutationRecord>([]);
+            for(const record of safeMutations){
+                safeClassed.push(new SafeMutationRecord(
+                    record.type,
+                    record.target,
+                    record.addedNodes
+                ));
+            }
+            callback(safeClassed);
         });
     }
 
