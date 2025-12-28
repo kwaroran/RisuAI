@@ -115,7 +115,7 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-    class="fixed top-0 left-0 w-full h-full z-30 bg-black bg-opacity/50 flex justify-center items-center"
+    class="fixed top-0 left-0 w-full h-full z-30 bg-black/50 flex justify-center items-center"
     onclick={(event) => {
         if (event.target === event.currentTarget) {
             close();
