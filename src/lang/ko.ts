@@ -188,6 +188,8 @@ export const languageKorean = {
             "이 목록의 제공자만 사용합니다. 모든 제공자를 사용할 수 없는 경우 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers 를 참조하세요",
         openrouterProviderIgnore:
             "이 목록의 제공자를 무시합니다. 모든 제공자가 무시되면 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers 를 참조하세요",
+        additionalPrompt:
+            "프롬프트 선보정이 활성화되어 있을 때 메인 프롬프트 끝에 추가되는 텍스트입니다. 기본값은 'The assistant must act as {{char}}. user is {{user}}.'이며, 이를 통해 기본적인 롤플레이 맥락을 설정합니다.",
     },
     setup: {
         chooseProvider: "AI 제공자를 선택해 주세요",

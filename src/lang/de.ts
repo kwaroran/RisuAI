@@ -212,6 +212,8 @@ export const languageGerman = {
             "Verwenden Sie nur die Anbieter in dieser Liste. Wenn alle Anbieter nicht verfügbar sind, schlägt die Anfrage fehl. Siehe Details unter https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore:
             "Ignorieren Sie die Anbieter in dieser Liste. Wenn alle Anbieter ignoriert werden, schlägt die Anfrage fehl. Siehe Details unter https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "Text, der am Ende der Haupt-Anweisung angehängt wird, wenn die Anweisungsvorverarbeitung aktiviert ist. Der Standardwert ist 'The assistant must act as {{char}}. user is {{user}}.' Dies hilft, den grundlegenden Rollenspielkontext einzurichten.",
     },
     setup: {
         chooseProvider: "Wählen Sie Ihren AI-Anbieter aus",
