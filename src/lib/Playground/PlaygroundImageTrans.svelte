@@ -408,7 +408,7 @@
     <div
         bind:this={selection}
         class="absolute top-0 left-0 w-0 h-0 pointer-events-none z-10 opacity-50 bg-blue-500"
-        class:backdrop-blur-sm={loading && mode === 'manual'}
+        class:backdrop-blur={loading && mode === 'manual'}
     ></div>
 </div>
 
