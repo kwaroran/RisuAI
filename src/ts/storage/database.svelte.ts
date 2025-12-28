@@ -2054,7 +2054,7 @@ export function setPreset(db:Database, newPres: botPreset){
     return db
 }
 
-import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr";
+import { encode as encodeMsgpack, decode as decodeMsgpack } from "msgpackr/index-no-eval";
 import * as fflate from "fflate";
 import type { OnnxModelFiles } from '../process/transformers';
 import type { RisuModule } from '../process/modules';
