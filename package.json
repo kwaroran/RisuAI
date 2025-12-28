@@ -12,6 +12,8 @@
     "tauri": "tauri",
     "buildsite": "vite build --outDir dist",
     "runserver": "node server/node/server.cjs",
+    "sync": "node electron/sync",
+    "electron": "node electron/dist/electron",
     "hono:build": "vite build --sourcemap && node server/hono/src/utils/postbuild.js"
   },
   "dependencies": {
