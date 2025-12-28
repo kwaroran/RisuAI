@@ -113,7 +113,7 @@
             `Hashes: ${hashes.size}`,
             `Current Hashes: ${currentHashes.size}`,
             `Removed: ${toRemove.size}`,
-            messages
+            $state.snapshot(messages)
         );
 
         hashes = currentHashes;
