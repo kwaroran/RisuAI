@@ -673,6 +673,9 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                     body[key] = JSON.parse(value)                            
                 } catch (error) {}
             }
+            else if((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))){
+                body = setObjectValue(body, key, value.slice(1, -1))
+            }
             else if(value === 'true' || value === 'false'){
                 body = setObjectValue(body, key, value === 'true')
             }
