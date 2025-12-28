@@ -1,6 +1,6 @@
 <script lang="ts">
     import { XIcon } from "@lucide/svelte"
-    import { getDatabase } from "../../ts/storage/database.svelte"
+    import { getDatabase, type PromptDiffPrefs } from "../../ts/storage/database.svelte"
     import type { PromptItem, PromptItemPlain, PromptItemChatML, PromptItemTyped, PromptItemAuthorNote, PromptItemChat } from "src/ts/process/prompt.ts";
 
     interface Props {
@@ -97,19 +97,54 @@
     type FormatStyle = 'raw' | 'card'
     type ViewStyle = 'unified' | 'split'
     
-// Reactive state
+// UI state
 // -----------------------------------------------------------------------------
-    let diffStyle = $state<DiffStyle>('intraline')
-    let formatStyle = $state<FormatStyle>('raw')
-    let viewStyle = $state<ViewStyle>('unified')
-    let isFlatText = $state(false)
-    let isGrouped = $state(false)
-    let showOnlyChanges = $state(false)
-    let contextRadius = $state(3)
+    const DEFAULT_PROMPT_DIFF_PREFS: PromptDiffPrefs = {
+        diffStyle: 'intraline',
+        formatStyle: 'raw',
+        viewStyle: 'unified',
+        isGrouped: false,
+        showOnlyChanges: false,
+        contextRadius: 3,
+    }
+
+    const db = getDatabase()
+    const prefs = db.promptDiffPrefs
+
+    let diffStyle = $state<DiffStyle>(prefs?.diffStyle ?? DEFAULT_PROMPT_DIFF_PREFS.diffStyle)
+    let formatStyle = $state<FormatStyle>(prefs?.formatStyle ?? DEFAULT_PROMPT_DIFF_PREFS.formatStyle)
+    let viewStyle = $state<ViewStyle>(prefs?.viewStyle ?? DEFAULT_PROMPT_DIFF_PREFS.viewStyle)
+    let isFlatText = $state(false) // legacy: not persisted on purpose
+    let isGrouped = $state(prefs?.isGrouped ?? DEFAULT_PROMPT_DIFF_PREFS.isGrouped)
+    let showOnlyChanges = $state(prefs?.showOnlyChanges ?? DEFAULT_PROMPT_DIFF_PREFS.showOnlyChanges)
+    let contextRadius = $state(prefs?.contextRadius ?? DEFAULT_PROMPT_DIFF_PREFS.contextRadius)
 
     let diffResult = $state<DiffResult | null>(null)
     let cardDiffResult = $state<CardDiffResult | null>(null)
     let expandedRanges = $state<ExpandedRange[]>([])
+
+    function savePrefsToDB() {
+        const db = getDatabase()
+        const normalizedGrouped = !isFlatText && diffStyle === 'line' ? isGrouped : DEFAULT_PROMPT_DIFF_PREFS.isGrouped
+        const normalizedFormat = isFlatText ? DEFAULT_PROMPT_DIFF_PREFS.formatStyle : formatStyle
+        const normalizedShowOnlyChanges = isFlatText ? DEFAULT_PROMPT_DIFF_PREFS.showOnlyChanges : showOnlyChanges
+
+        db.promptDiffPrefs = {
+            ...DEFAULT_PROMPT_DIFF_PREFS,
+            diffStyle,
+            formatStyle: normalizedFormat,
+            viewStyle,
+            isGrouped: normalizedGrouped,
+            showOnlyChanges: normalizedShowOnlyChanges,
+            contextRadius,
+        }
+    }
+
+    function handleClose() {
+        savePrefsToDB()
+        onClose()
+    }
+
 
 // Derived values
 // -----------------------------------------------------------------------------
@@ -1246,7 +1281,7 @@
         {/if}
       </div>
 
-      <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
+      <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {handleClose()}}>
         <XIcon size={20}/>
       </button>
     </div>
