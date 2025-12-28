@@ -703,8 +703,9 @@ export async function exportChar(charaID:number):Promise<string> {
     }
 
     if(!char.image){
-        alertError('Image Required')
-        return ''
+        const res = await fetch('/none.webp')
+        const data = new Uint8Array(await res.arrayBuffer())
+        char.image = await saveAsset(data)
     }
 
     const option = await alertCardExport()
