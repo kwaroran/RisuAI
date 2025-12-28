@@ -12,6 +12,7 @@ import { language } from "src/lang";
 
 class SafeElement {
     #element: HTMLElement;
+    __classType = 'REMOTE_REQUIRED' as const;
 
     constructor(element: HTMLElement) {
         if(element.getAttribute('freezed')){
@@ -267,6 +268,7 @@ class SafeElement {
 }
 
 class SafeDocument extends SafeElement {
+    __classType = 'REMOTE_REQUIRED' as const;
     constructor(document: Document) {
         super(document.documentElement);
     }
@@ -307,6 +309,7 @@ type SafeMutationCallback = (mutations: SafeMutationRecord[]) => void;
 
 class SafeMutationObserver {
     #observer: MutationObserver;
+    __classType = 'REMOTE_REQUIRED' as const;
     constructor(callback: SafeMutationCallback) {
         this.#observer = new MutationObserver((mutations) => {
             const safeMutations: SafeMutationRecord[] = mutations.map(mutation => {
@@ -392,7 +395,7 @@ const unloadV3Plugin = async (pluginName: string) => {
 }
 
 const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
-    
+
     const oldApis = getV2PluginAPIs();
     return {
 
@@ -406,11 +409,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         removeRisuScriptHandler: oldApis.removeRisuScriptHandler,
         addRisuReplacer: oldApis.addRisuReplacer,
         removeRisuReplacer: oldApis.removeRisuReplacer,
-        safeLocalStorage: oldApis.safeLocalStorage,
-        apiVersion: "3.0",
-        apiVersionCompatibleWith: ["3.0"],
         getDatabase: oldApis.getDatabase,
-        pluginStorage: oldApis.pluginStorage,
         setDatabaseLite: oldApis.setDatabaseLite,
         setDatabase: oldApis.setDatabase,
         loadPlugins: oldApis.loadPlugins,
@@ -576,6 +575,50 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         _getOldKeys: () => {
             return Object.keys(oldApis)
+        },
+        _getPropertiesForInitialization: () => {
+            const v = {
+                apiVersion: "3.0",
+                apiVersionCompatibleWith: ["3.0"],
+            } as any;
+
+            v.list = Object.keys(v);
+            
+            return v;
+        },
+        _getPluginStorage: oldApis.pluginStorage.getItem,
+        _setPluginStorage: oldApis.pluginStorage.setItem,
+        _removePluginStorage: oldApis.pluginStorage.removeItem,
+        _clearPluginStorage: oldApis.pluginStorage.clear,
+        _keyPluginStorage: oldApis.pluginStorage.key,
+        _keysPluginStorage: oldApis.pluginStorage.keys,
+        _lengthPluginStorage: oldApis.pluginStorage.length,
+        _getSafeLocalStorage: oldApis.safeLocalStorage.getItem,
+        _setSafeLocalStorage: oldApis.safeLocalStorage.setItem,
+        _removeSafeLocalStorage: oldApis.safeLocalStorage.removeItem,
+        _clearSafeLocalStorage: oldApis.safeLocalStorage.clear,
+        _keySafeLocalStorage: oldApis.safeLocalStorage.key,
+        _keysSafeLocalStorage: oldApis.safeLocalStorage.keys,
+        _getAliases: () => {
+            return {
+                'pluginStorage':{
+                    'getItem': '_getPluginStorage',
+                    'setItem': '_setPluginStorage',
+                    'removeItem': '_removePluginStorage',
+                    'clear': '_clearPluginStorage',
+                    'key': '_keyPluginStorage',
+                    'keys': '_keysPluginStorage',
+                    'length': '_lengthPluginStorage',
+                },
+                'safeLocalStorage':{
+                    'getItem': '_getSafeLocalStorage',
+                    'setItem': '_setSafeLocalStorage',
+                    'removeItem': '_removeSafeLocalStorage',
+                    'clear': '_clearSafeLocalStorage',
+                    'key': '_keySafeLocalStorage',
+                    'keys': '_keysSafeLocalStorage',
+                }
+            }
         }
     }
 }
@@ -607,3 +650,14 @@ export async function executePluginV3(plugin:RisuPlugin){
     host.run(iframe, plugin.script);
     console.log(`[RisuAI Plugin: ${plugin.name}] Loaded API V3 plugin.`);
 }
+
+export function getV3PluginInstance(name: string) {
+    return v3PluginInstances.find(p => p.name === name);
+}
+
+globalThis.__debugV3Plugin = (code: string|Function) => {
+    if(code instanceof Function){
+        code = `(${code.toString()})()`;
+    }
+    return v3PluginInstances[0].host.executeInIframe(code);
+};
