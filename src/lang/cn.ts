@@ -168,6 +168,7 @@ export const languageChinese = {
         dynamicMemory: "启用后，助手将对响应时间进行记忆记录。需要额外的提示才能利用此功能。",
         dynamicResponseTiming: "启用后，将动态调整响应时间。",
         dynamicRequest: "启用后，将在随机时间请求模型，而无需等待用户输入。",
+        settingsCloseButtonSize: "调整设置窗口右上角关闭(X)按钮的大小。默认值为24。",
         showTypingEffect: "启用后，将在助手生成响应时显示打字指示器。",
         dynamicOutputPrompt: "启用后，架构信息将包含在请求中。",
         sourcemapTranslate: "如果启用，错误的堆栈跟踪将使用源映射自动翻译，以显示原始源代码位置。这对于调试非常有用。",
@@ -177,6 +178,8 @@ export const languageChinese = {
         openrouterProviderOnly:
             "仅使用此列表中的提供商，若所有提供商都不可用，请求将会失败。详见 https://openrouter.ai/docs/guides/routing/provider-selection#allowing-only-specific-providers",
         openrouterProviderIgnore: "忽略此列表中的提供商，若所有提供商都被忽略，请求将会失败。详见 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
+        additionalPrompt:
+            "启用提示词预处理时，这段文本会添加到主提示词的末尾。默认值是 'The assistant must act as {{char}}. user is {{user}}.'，用于设置基本的角色扮演背景。",
     },
     setup: {
         chooseProvider: "选择 AI 提供者",
@@ -1356,6 +1359,7 @@ export const languageChinese = {
     dynamicRequest: "动态请求",
     dynamicOutputPrompt: "动态输出提示词",
     sourcemapTranslate: "使用源映射翻译堆栈跟踪",
+    settingsCloseButtonSize: "设置关闭按钮大小",
     translating: "翻译中...",
     showOriginal: "显示原始代码地址",
     translate: "翻译代码地址",
