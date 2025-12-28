@@ -569,7 +569,7 @@
       {#if char.type === 'folder' && openFolders.includes(char.id)}
         {#key char.color}
         <div class="p-1 flex flex-col items-center py-1 mt-1 rounded-lg relative">
-          <div class="absolute top-0 left-1  border border-selected w-full h-full rounded-lg z-0 bg-opacity-20"
+          <div class="absolute top-0 left-1  border border-selected w-full h-full rounded-lg z-0 bg-opacity/20"
           class:bg-darkbg={char.color === 'default' || char.color === ''}
           class:bg-red-700={char.color === 'red'}
           class:bg-yellow-700={char.color === 'yellow'}
