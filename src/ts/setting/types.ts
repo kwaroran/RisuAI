@@ -31,6 +31,7 @@ export type SettingType =
     | 'color'      // Color picker (ColorInput)
     | 'header'     // Section header (h2, span, warning)
     | 'button'     // Action button (Button)
+    | 'accordion'  // Collapsible section (Arcodion)
     | 'custom';    // Custom component from registry
 
 /**
@@ -66,6 +67,10 @@ export interface SettingOptions {
     
     // header
     level?: 'h2' | 'span' | 'warning';
+    
+    // accordion
+    styled?: boolean;        // Use styled accordion
+    children?: SettingItem[]; // Nested items inside accordion
 }
 
 /**
