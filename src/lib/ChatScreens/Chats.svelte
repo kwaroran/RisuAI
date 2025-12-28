@@ -92,7 +92,6 @@
                 })
                 mountInstances.set(currentHash, inst);
                 const nextElement = document.querySelector(`[x-hashed="${nextHash}"]`);
-                console.log('Update Log\nnew element', currentHash, 'at', nextElement);
                 if(nextElement){
                     chatBody.insertBefore(b, nextElement?.nextSibling);
                 }
@@ -117,14 +116,6 @@
                 chatBody.removeChild(element);
             }
         });
-
-        console.log('Update Log\n',
-            `Mounts: ${mountInstances.size}`,
-            `Hashes: ${hashes.size}`,
-            `Current Hashes: ${currentHashes.size}`,
-            `Removed: ${toRemove.size}`,
-            messages
-        );
 
         hashes = currentHashes;
         

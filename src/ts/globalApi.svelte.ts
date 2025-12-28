@@ -2650,6 +2650,11 @@ $effect.root(() => {
         const messageIndex = chat.message.findIndex((v) => {
             return chatFoldedState.data?.targetMessageId === v.chatId
         })
+        if(messageIndex === -1){
+            console.warn('Target message for folding id' + chatFoldedState.data?.targetMessageId + ' not found')
+            chatFoldedStateMessageIndex.index = -1
+            return
+        }
         chatFoldedStateMessageIndex.index = messageIndex
     })
 })
@@ -2661,6 +2666,9 @@ export function foldChatToMessage(targetMessageIdOrIndex: string | number) {
         const chat = char.chats[char.chatPage]
         const message = chat.message[targetMessageIdOrIndex]
         targetMessageId = message.chatId
+    }
+    else{
+        targetMessageId = targetMessageIdOrIndex
     }
     const char = getCurrentCharacter()
     const chat = char.chats[char.chatPage]

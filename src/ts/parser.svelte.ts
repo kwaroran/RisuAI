@@ -147,13 +147,11 @@ function renderMarkdown(md:markdownit, data:string){
                 .replace(/\uE9b9/gu, '}')
                 .replace(/\uE9ba/gu, '(')
                 .replace(/\uE9bb/gu, ')')
-            console.log(content)
             const rendered = katex.renderToString(content, {
                 displayMode: false,
                 throwOnError: true,
                 output: 'mathml'
             })
-            console.log('KaTeX rendered:', rendered)
             return rendered
         } catch (error) {
             console.error('KaTeX render error:', error)
