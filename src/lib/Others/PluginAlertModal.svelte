@@ -62,7 +62,7 @@
             </details>
             
             <button 
-                class="w-full bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded transition-colors"
+                class="w-full bg-gray-700 hover:bg-gray-600 text-gray-100 font-semibold py-2 px-4 rounded-sm transition-colors"
                 onclick={() => pluginAlertModalStore.open = false}
             >
                 {language.doNotInstall}

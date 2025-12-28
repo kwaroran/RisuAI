@@ -2459,7 +2459,7 @@
                                         } else {
                                             dragElement.textContent = trigger?.comment || 'Unnamed Trigger'
                                         }
-                                        dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+                                        dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded-sm text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
                                         document.body.appendChild(dragElement)
                                         e.dataTransfer?.setDragImage(dragElement, 10, 10)
                                         
@@ -2585,9 +2585,9 @@
                         selectMode = 1
                         selectedEffectIndex = -1
                     }}>
-                        <div class="p-2 flex flex-col h-full min-h-[4.5rem]">
+                        <div class="p-2 flex flex-col h-full min-h-18">
                             <span class="block text-textcolor2">{language.name}</span>
-                            <div class="flex-1 min-h-[2.5rem] flex">
+                            <div class="flex-1 min-h-10 flex">
                                 <TextInput className="flex-1" value={value && value[selectedIndex] ? (value[selectedIndex].comment || '') : ''} onchange={(e) => {
                                 if (!value || !value[selectedIndex] || selectedIndex < 0 || selectedIndex >= value.length) return;
                                 const comment = e.currentTarget.value
@@ -2605,10 +2605,10 @@
                             }} />
                             </div>
                         </div>
-                        <div class="p-2 flex flex-col h-full min-h-[4.5rem]">
+                        <div class="p-2 flex flex-col h-full min-h-18">
                             <span class="block text-textcolor2">{language.triggerOn}</span>
                             {#if value && value[selectedIndex] && selectedIndex >= 0 && selectedIndex < value.length}
-                                <div class="flex-1 min-h-[2.5rem] flex">
+                                <div class="flex-1 min-h-10 flex">
                                     <SelectInput className="flex-1" bind:value={value[selectedIndex].type}>
                                     <OptionInput value="start">{language.triggerStart}</OptionInput>
                                     <OptionInput value="output">{language.triggerOutput}</OptionInput>
@@ -2790,7 +2790,7 @@
                                              
                                              const dragElement = document.createElement('div')
                                              dragElement.textContent = formatEffectDisplay(effect).replace(/<[^>]*>/g, '') || 'Effect'
-                                             dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+                                             dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded-sm text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
                                              document.body.appendChild(dragElement)
                                              e.dataTransfer?.setDragImage(dragElement, 10, 10)
                                              

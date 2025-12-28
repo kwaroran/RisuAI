@@ -43,7 +43,7 @@
         }}>
             <div class="flex items-center gap-3 mb-4">
                 <button 
-                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors flex-shrink-0"
+                    class="flex items-center justify-center p-2 rounded-lg hover:bg-selected transition-colors shrink-0"
                     onclick={() => {
                         openOptions = false
                     }}

@@ -191,7 +191,7 @@
             {/if}
             {#if $alertStore.type === 'progress'}
                 <div class="w-full min-w-64 md:min-w-138 h-2 bg-darkbg border border-darkborderc rounded-md mt-6">
-                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-800 saving-animation transition-[width]" style:width={$alertStore.submsg + '%'}></div>
+                    <div class="h-full bg-linear-to-r from-blue-500 to-purple-800 saving-animation transition-[width]" style:width={$alertStore.submsg + '%'}></div>
                 </div>
                 <div class="w-full flex justify-center mt-6">
                     <span class="text-gray-500 text-sm">{$alertStore.submsg + '%'}</span>
@@ -200,13 +200,13 @@
 
             {#if $alertStore.type === 'ask' || $alertStore.type === 'pluginconfirm'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" onclick={() => {
+                    <Button className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'yes'
                         })
                     }}>YES</Button>
-                    <Button className="mt-4 flex-grow" onclick={() => {
+                    <Button className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
@@ -215,13 +215,13 @@
                 </div>
             {:else if $alertStore.type === 'tos'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" onclick={() => {
+                    <Button className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'yes'
                         })
                     }}>Accept</Button>
-                    <Button styled={'outlined'} className="mt-4 flex-grow" onclick={() => {
+                    <Button styled={'outlined'} className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
@@ -423,7 +423,7 @@
                             <span class="text-blue-500">Preset Name</span>
                             <span class="text-blue-500 justify-self-end">{DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptName}</span>
                             <span class="text-purple-500">Toggles</span>
-                            <div class="col-span-2 max-h-32 overflow-y-auto border border-stone-500 rounded p-2 bg-gray-900">
+                            <div class="col-span-2 max-h-32 overflow-y-auto border border-stone-500 rounded-sm p-2 bg-gray-900">
                                 {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptToggles.length === 0}
                                     <div class="text-gray-500 italic text-center py-4">{language.promptInfoEmptyToggle}</div>
                                 {:else}
@@ -436,14 +436,14 @@
                                 {/if}
                             </div>
                             <span class="text-red-500">Prompt Text</span>
-                            <div class="col-span-2 max-h-80 overflow-y-auto border border-stone-500 rounded p-4 bg-gray-900">
+                            <div class="col-span-2 max-h-80 overflow-y-auto border border-stone-500 rounded-sm p-4 bg-gray-900">
                                 {#if !DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptText}
                                     <div class="text-gray-500 italic text-center py-4">{language.promptInfoEmptyText}</div>
                                 {:else}
                                     {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptText as block}
                                         <div class="mb-2">
                                             <div class="font-bold text-gray-600">{block.role}</div>
-                                            <pre class="whitespace-pre-wrap text-sm bg-stone-900 p-2 rounded border border-stone-500">{block.content}</pre>
+                                            <pre class="whitespace-pre-wrap text-sm bg-stone-900 p-2 rounded-sm border border-stone-500">{block.content}</pre>
                                         </div>
                                     {/each}
                                 {/if}

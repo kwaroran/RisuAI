@@ -237,13 +237,13 @@
 {#if menuOpen}
 <div class="w-138 max-w-full h-full bg-white text-black border-l border-l-black p-4 flex flex-col gap-2 z-20">
     <div class="flex">
-        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 0} onclick={() => {
+        <button class="mr-2 p-2 border border-black rounded-sm" class:text-gray-500={subMenu !== 0} onclick={() => {
             subMenu = 0
         }}>Component</button>
-        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 1} onclick={() => {
+        <button class="mr-2 p-2 border border-black rounded-sm" class:text-gray-500={subMenu !== 1} onclick={() => {
             subMenu = 1
         }}>Container</button>
-        <button class="mr-2 p-2 border border-black rounded" class:text-gray-500={subMenu !== 2} onclick={() => {
+        <button class="mr-2 p-2 border border-black rounded-sm" class:text-gray-500={subMenu !== 2} onclick={() => {
             subMenu = 2
         }}>Help</button>
     </div>
@@ -252,14 +252,14 @@
     </div>
     {#if subMenu === 0}
         {#each builtComponentTrees as component, i}
-            <button class="p-2 border border-black rounded" onclick={() => {
+            <button class="p-2 border border-black rounded-sm" onclick={() => {
                 addContainerToTree(safeStructuredClone(component), selectedContatiner)
                 renderMainTree(tree)
             }}>{component.type}</button>
         {/each}
     {:else if subMenu === 1}
         {#each builtContainerTrees as container, i}
-            <button class="p-2 border border-black rounded" onclick={() => {
+            <button class="p-2 border border-black rounded-sm" onclick={() => {
                 addContainerToTree(safeStructuredClone(container), selectedContatiner)
                 renderMainTree(tree)
             }}>{container.type}</button>
@@ -270,7 +270,7 @@
     {/if}
 </div>
 {:else}
-    <button class="absolute top-0 right-0 z-20 p-2 border bg-white rounded" onclick={() => {
+    <button class="absolute top-0 right-0 z-20 p-2 border bg-white rounded-sm" onclick={() => {
         menuOpen = !menuOpen
     }}>Menu</button>
 {/if}

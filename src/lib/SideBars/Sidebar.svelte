@@ -427,7 +427,7 @@
     </div>
     {/if}
   </div>
-  <div class="flex flex-grow w-full flex-col items-center overflow-x-hidden overflow-y-auto pr-0">
+  <div class="flex grow w-full flex-col items-center overflow-x-hidden overflow-y-auto pr-0">
     <div class="h-4 min-h-4 w-14" role="listitem" ondragover={(e) => {
       e.preventDefault()
       e.dataTransfer.dropEffect = 'move'
@@ -740,11 +740,11 @@
         <button onclick={() => {
           devTool = false
           botMakerMode.set(false)
-        }} class="flex-grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool}>{language.Chat}</button>
+        }} class="grow border-r border-r-selected rounded-bl-md" class:text-textcolor2={$botMakerMode || devTool}>{language.Chat}</button>
         <button onclick={() => {
           devTool = false
           botMakerMode.set(true)
-        }} class="flex-grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool}>{language.character}</button>
+        }} class="grow rounded-br-md" class:text-textcolor2={!$botMakerMode || devTool}>{language.character}</button>
         {#if DBState.db.enableDevTools}
           <button onclick={() => {
             devTool = true
@@ -767,7 +767,7 @@
 </div>
 
 {#if $DynamicGUI}
-    <div role="button" tabindex="0" class="flex-grow h-full min-w-12" class:hidden={hidden} onclick={() => {
+    <div role="button" tabindex="0" class="grow h-full min-w-12" class:hidden={hidden} onclick={() => {
       if($sideBarClosing){
         return
       }

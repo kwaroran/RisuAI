@@ -40,7 +40,7 @@
                 showParams.push(i)
             }
         }}>
-            <span class="font-bold flex-grow">{plugin.displayName ?? plugin.name}</span>
+            <span class="font-bold grow">{plugin.displayName ?? plugin.name}</span>
             {#if plugin.version === 2}
                 <button class="text-yellow-400 hover:gray-200 cursor-pointer" onclick={() => {
                     alertMd(migrationGuideContent);

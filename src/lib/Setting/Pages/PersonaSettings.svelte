@@ -129,7 +129,7 @@
             {/if}
         </button>
     </div>
-    <div class="flex flex-grow flex-col p-2 max-w-full">
+    <div class="flex grow flex-col p-2 max-w-full">
         <span class="text-sm text-textcolor2">{language.name}</span>
         <TextInput marginBottom size="lg" placeholder="User" bind:value={DBState.db.username}/>
         <span class="text-sm text-textcolor2">{language.note}</span>

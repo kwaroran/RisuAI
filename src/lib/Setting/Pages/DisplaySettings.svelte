@@ -135,7 +135,7 @@
             <ColorInput bind:value={DBState.db.colorScheme.textcolor2} oninput={updateColorScheme} />
             <span class="ml-2">Text Color 2</span>
         </div>
-        <div class="flex-grow flex justify-end">
+        <div class="grow flex justify-end">
             <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" onclick={async (e) => {
                 exportColorScheme()
             }}>

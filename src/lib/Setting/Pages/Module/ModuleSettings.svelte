@@ -55,7 +55,7 @@
                         <Waypoints size={18} class="mr-2" />
                     {/if}
                     <span class="text-lg">{rmodule.name}</span>
-                    <div class="flex-grow flex justify-end">
+                    <div class="grow flex justify-end">
                         <button class={(DBState.db.enabledModules.includes(rmodule.id)) ?
                                 "mr-2 cursor-pointer text-blue-500" :
                                 rmodule.namespace && 
