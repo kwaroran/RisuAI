@@ -673,11 +673,20 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                     body[key] = JSON.parse(value)                            
                 } catch (error) {}
             }
-            else if(isNaN(parseFloat(value))){
-                body = setObjectValue(body, key, value)
+            else if(value === 'true' || value === 'false'){
+                body = setObjectValue(body, key, value === 'true')
+            }
+            else if(value === 'null'){
+                body = setObjectValue(body, key, null)
             }
             else{
-                body = setObjectValue(body, key, parseFloat(value))
+                const num = Number(value)
+                if(isNaN(num)){
+                    body = setObjectValue(body, key, value)
+                }
+                else{
+                    body = setObjectValue(body, key, num)
+                }
             }
         }
     }
