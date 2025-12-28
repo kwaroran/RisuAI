@@ -17,6 +17,10 @@
 
     let { chara = $bindable(), noContainer }: Props = $props();
 
+    let hasJailbreakPrompt = $derived(
+        DBState.db.promptTemplate?.some(item => item.type === 'jailbreak') ?? false
+    )
+
     let groupedToggles = $derived.by(() => {
         const ungrouped = parseToggleSyntax(DBState.db.customPromptTemplateToggle + getModuleToggles())
 
@@ -82,9 +86,11 @@
 
 {#if !noContainer && groupedToggles.length > 4}
     <div class="h-48 border-darkborderc p-2 border rounded-sm flex flex-col items-start mt-2 overflow-y-auto">
-        <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
-            <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse />
-        </div>
+        {#if hasJailbreakPrompt}
+            <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
+                <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse />
+            </div>
+        {/if}
         {@render toggles(groupedToggles, true)}
         {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypaV3}
             <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
@@ -93,9 +99,11 @@
         {/if}
     </div>
 {:else}
-    <div class="flex mt-2 items-center">
-        <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle}/>
-    </div>
+    {#if hasJailbreakPrompt}
+        <div class="flex mt-2 items-center">
+            <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle}/>
+        </div>
+    {/if}
     {@render toggles(groupedToggles)}
     {#if DBState.db.supaModelType !== 'none' || DBState.db.hanuraiEnable || DBState.db.hypaV3}
         <div class="flex mt-2 items-center">
