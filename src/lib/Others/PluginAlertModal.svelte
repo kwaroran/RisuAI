@@ -22,7 +22,7 @@
 </script>
 
 {#if pluginAlertModalStore.open}
-    <dialog open class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity/50">
+    <dialog open class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div class="bg-orange-800 rounded-lg shadow-xl max-w-md w-full p-6">
             <h2 class="text-xl font-bold mb-4 text-gray-100">
                 {language.pluginRiskDetectedAlert}
