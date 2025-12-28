@@ -108,7 +108,7 @@
     }
 
     function goToChat(index: number) {
-        ScrollToMessageStore.set(index);
+        ScrollToMessageStore.value = index;
         close();
     }
 </script>

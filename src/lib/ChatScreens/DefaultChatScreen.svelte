@@ -49,9 +49,9 @@
     let currentChat = $derived(currentCharacter?.chats[currentCharacter.chatPage]?.message ?? [])
 
     $effect(() => {
-        if($ScrollToMessageStore !== -1){
-            const index = $ScrollToMessageStore
-            ScrollToMessageStore.set(-1)
+        if(ScrollToMessageStore.value !== -1){
+            const index = ScrollToMessageStore.value
+            ScrollToMessageStore.value = -1
             scrollToMessage(index)
         }
     })
