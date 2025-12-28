@@ -1702,7 +1702,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         try {
             const permission = await Notification.requestPermission()
             if(permission === 'granted'){
-                const noti = new Notification('RisuAI', {
+                const noti = new Notification('Risuai', {
                     body: result
                 })
                 noti.onclick = () => {

@@ -394,7 +394,7 @@
                         
                         const imgs = doc.querySelectorAll('img')
                         for(const img of imgs){
-                            img.setAttribute('alt', 'from RisuAI')
+                            img.setAttribute('alt', 'from Risuai')
                             const url = img.getAttribute('src')
                             
                             img.setAttribute('style', `
@@ -551,7 +551,7 @@
             ${doc.body.innerHTML}
         </div>
         <div style="text-align: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid ${root.style.getPropertyValue('--risu-theme-darkborderc')};">
-            <span style="font-size: 0.75rem; color: ${root.style.getPropertyValue('--risu-theme-textcolor2')}; opacity: 0.7;">From RisuAI</span>
+            <span style="font-size: 0.75rem; color: ${root.style.getPropertyValue('--risu-theme-textcolor2')}; opacity: 0.7;">From Risuai</span>
         </div>
     </div>
 </div>`

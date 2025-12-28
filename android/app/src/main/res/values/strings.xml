@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">RisuAI</string>
-    <string name="title_activity_main">RisuAI</string>
+    <string name="app_name">Risuai</string>
+    <string name="title_activity_main">Risuai</string>
     <string name="package_name">co.aiclient.risu</string>
     <string name="custom_url_scheme">co.aiclient.risu</string>
 </resources>

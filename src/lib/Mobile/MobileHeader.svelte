@@ -34,13 +34,13 @@
         }}>
             <ArrowLeft />
         </button>
-        <span class="font-bold text-lg">RisuAI</span>
+        <span class="font-bold text-lg">Risuai</span>
     {:else if $MobileGUIStack === 1}
         <div class="flex items-stretch w-2xl max-w-full">
             <input placeholder={language.search + '...'} bind:value={$MobileSearch} class="peer focus:border-textcolor transition-colors outline-hidden text-textcolor p-2 min-w-0 border bg-transparent rounded-md input-text text-xl grow mx-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full">
         </div>
     {:else}
-        <span class="font-bold text-lg">RisuAI</span>
+        <span class="font-bold text-lg">Risuai</span>
 
     {/if}
 </div>

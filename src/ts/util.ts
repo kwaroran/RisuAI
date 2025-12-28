@@ -560,12 +560,12 @@ export function trimUntilPunctuation(s:string){
  * @returns {string} The modified URL with the last path appended.
  * 
  * @example
- * appendLastPath("https://github.com/kwaroran/RisuAI","/commits/main")
- * return 'https://github.com/kwaroran/RisuAI/commits/main'
+ * appendLastPath("https://github.com/kwaroran/Risuai","/commits/main")
+ * return 'https://github.com/kwaroran/Risuai/commits/main'
  * 
  * @example
- * appendLastPath("https://github.com/kwaroran/RisuAI/","/commits/main")
- * return 'https://github.com/kwaroran/RisuAI/commits/main
+ * appendLastPath("https://github.com/kwaroran/Risuai/","/commits/main")
+ * return 'https://github.com/kwaroran/Risuai/commits/main
  * 
  * @example
  * appendLastPath("http://127.0.0.1:7997","embeddings")

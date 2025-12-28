@@ -1517,7 +1517,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
     }
 }
 
-// Extended LorebookEntry with RisuAI specific fields
+// Extended LorebookEntry with Risuai specific fields
 type RisuLorebookEntry = LorebookEntry & {
     mode?: string;
     folder?: string;
@@ -1988,8 +1988,8 @@ interface charBookEntry{
     position?: 'before_char' | 'after_char' // whether the entry is placed before or after the character defs
     case_sensitive?:boolean
     use_regex?:boolean
-    mode?: string // RisuAI mode field
-    folder?: string // RisuAI folder field
+    mode?: string // Risuai mode field
+    folder?: string // Risuai folder field
 }
 
 interface RccCardMetaData{

@@ -1,7 +1,7 @@
 /**
- * RisuAI Plugin API v3.0 Type Definitions
+ * Risuai Plugin API v3.0 Type Definitions
  *
- * This file provides TypeScript type definitions for the RisuAI Plugin API v3.0.
+ * This file provides TypeScript type definitions for the Risuai Plugin API v3.0.
  * All API methods are accessed through the global `risuai` object.
  *
  * @important **ALL METHODS RETURN PROMISES**
@@ -132,7 +132,7 @@ export type ScriptMode = 'display' | 'output' | 'input' | 'process';
 export type ReplacerType = 'beforeRequest' | 'afterRequest';
 
 /**
- * RisuAI Plugin definition
+ * Risuai Plugin definition
  */
 export interface RisuPlugin {
     /** Plugin name (identifier) */
@@ -161,7 +161,7 @@ export interface RisuPlugin {
 }
 
 /**
- * RisuAI Module definition
+ * Risuai Module definition
  */
 export interface RisuModule {
     /** Module name */
@@ -219,7 +219,7 @@ export interface Persona {
 export interface DatabaseSubset {
     /** Array of characters and group chats */
     characters?: any[];
-    /** RisuAI modules */
+    /** Risuai modules */
     modules?: RisuModule[];
     /** Enabled module IDs */
     enabledModules?: string[];
@@ -664,7 +664,7 @@ export interface SafeElement {
 
 /**
  * SafeDocument extends SafeElement with document-specific methods.
- * Provides secure access to the main RisuAI document.
+ * Provides secure access to the main Risuai document.
  *
  * Note that this SHOULD NOT be used unless absolutely necessary.
  * use other risuai APIs whenever possible, especially using iframe UI
@@ -950,11 +950,11 @@ export interface ProviderOptions {
 }
 
 // ============================================================================
-// RisuAI Global API
+// Risuai Global API
 // ============================================================================
 
 /**
- * RisuAI Plugin API v3.0
+ * Risuai Plugin API v3.0
  *
  * All methods are accessed through the global `risuai` object.
  *
@@ -981,7 +981,7 @@ export interface RisuaiPluginAPI {
      * @example
      * ```typescript
      * await console.log('Plugin initialized');
-     * // Output: [RisuAI Plugin: YourPlugin] Plugin initialized
+     * // Output: [Risuai Plugin: YourPlugin] Plugin initialized
      * ```
      */
     log(message: string): Promise<void>;
@@ -1013,7 +1013,7 @@ export interface RisuaiPluginAPI {
 
     /**
      * Gets the root document for safe DOM access
-     * @returns Promise resolving to SafeDocument for the main RisuAI document
+     * @returns Promise resolving to SafeDocument for the main Risuai document
      *
      * @example
      * ```typescript
@@ -1140,7 +1140,7 @@ export interface RisuaiPluginAPI {
     // ========== Network APIs ==========
 
     /**
-     * Makes a native fetch request (bypasses RisuAI networking)
+     * Makes a native fetch request (bypasses Risuai networking)
      * @param url - Request URL
      * @param options - Fetch options
      * @returns Response promise
@@ -1363,7 +1363,7 @@ export interface RisuaiPluginAPI {
 // ============================================================================
 
 /**
- * Global RisuAI API object available in all plugins
+ * Global Risuai API object available in all plugins
  */
 declare global {
     const risuai: RisuaiPluginAPI;
