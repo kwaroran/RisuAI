@@ -743,6 +743,10 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
         if(dat?.choices[0]?.reasoning_content){
             result = `<Thoughts>\n${dat.choices[0].reasoning_content}\n</Thoughts>\n${result}`
         }
+        // For openrouter, https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request#response.body.choices.message.reasoning
+        if(dat?.choices?.[0]?.message?.reasoning){
+            result = `<Thoughts>\n${dat.choices[0].message.reasoning}\n</Thoughts>\n${result}`
+        }
 
         return result
     }
