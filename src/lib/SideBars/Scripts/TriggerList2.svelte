@@ -2245,7 +2245,7 @@
 <Portal>
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="text-textcolor absolute top-0 bottom-0 bg-black bg-opacity/50 max-w-full w-full h-full z-40 flex justify-center items-center" 
+    <div class="text-textcolor absolute top-0 bottom-0 bg-black/50 max-w-full w-full h-full z-40 flex justify-center items-center" 
          onclick={(e) => {
              if (e.target === e.currentTarget) {
                  contextMenu = false
