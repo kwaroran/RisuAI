@@ -1456,4 +1456,6 @@ export const languageEnglish = {
     pluginUpdateFoundInstallIt: "Plugin update found. do you want to install the update?",
     bookmark: "Bookmark",
     translate: "Translate",
+    branch: "Branch",
+    branchedText: "This chat has been branched from {}.",
 }

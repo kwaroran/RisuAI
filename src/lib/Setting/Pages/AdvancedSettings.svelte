@@ -256,9 +256,11 @@
         <Help key="experimental" />
     </Check>
 </div>
-
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.rememberToolUsage} name={language.rememberToolUsage}></Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.enableBookmark} name={language.bookmark}></Check>
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.simplifiedToolUse} name={language.simplifiedToolUse}></Check>

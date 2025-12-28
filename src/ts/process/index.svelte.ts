@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat, type Message } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
@@ -205,13 +205,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return v
     })
     
-// ─────────────────────────────────────────────────────────
-// Snapshot preset name & toggles before sending a message.
-// Ensures correct metadata is recorded, even if presets
-// change immediately after clicking "send".
-//
-// Used later in promptInfo assembly (e.g. promptInfo.promptText)
-// ─────────────────────────────────────────────────────────
     let promptInfo: MessagePresetInfo = {}
     let initialPresetNameForPromptInfo = null
     let initialPromptTogglesForPromptInfo: {
@@ -237,7 +230,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             promptToggles: initialPromptTogglesForPromptInfo,
         }
     }
-// ─────────────────────────────────────────────────────────────
 
     let currentChar:character
     let caculatedChatTokens = 0
@@ -787,7 +779,22 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
 
-    let ms = currentChat.message
+    let ms:Message[] = []
+
+    for(let i=0;i<currentChat.message.length;i++){
+        const d = currentChat.message[i]
+
+        if(d.disabled === true){
+            continue
+        }
+
+        if(d.disabled === 'allBefore'){
+            ms = []
+            //also exclude this message
+            continue
+        }
+        ms.push(d)
+    }
 
     const triggerResult = await runTrigger(currentChar, 'start', {chat: currentChat})
     if(triggerResult){

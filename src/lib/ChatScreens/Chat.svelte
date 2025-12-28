@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, HamburgerIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, TrashIcon, UserIcon, Volume2Icon } from "@lucide/svelte"
-    import { aiLawApplies, getFileSrc } from "src/ts/globalApi.svelte"
+    import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, GitBranch, HamburgerIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, SplitIcon, TrashIcon, UserIcon, Volume2Icon } from "@lucide/svelte"
+    import { aiLawApplies, changeChatTo, getFileSrc } from "src/ts/globalApi.svelte"
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
     import { getModelInfo } from "src/ts/model/modellist"
@@ -13,7 +13,7 @@
     import { capitalize, getUserIcon, getUserName } from "src/ts/util"
     import { onDestroy, onMount } from "svelte"
     import { type Unsubscriber } from "svelte/store"
-    import { v4 as uuidv4 } from 'uuid'
+    import { v4 as uuidv4, v4 } from 'uuid'
     import { language } from "../../lang"
     import { alertClear, alertConfirm, alertInput, alertNormal, alertRequestData, alertWait } from "../../ts/alert"
     import { ParseMarkdown, type CbsConditions, type simpleCharacterArgument } from "../../ts/parser.svelte"
@@ -47,6 +47,7 @@
         altGreeting?: boolean;
         currentPage?: number;
         totalPages?: number;
+        isComment?: boolean;
     }
 
     let {
@@ -66,7 +67,8 @@
         firstMessage = false,
         altGreeting = false,
         currentPage = 1,
-        totalPages = 1
+        totalPages = 1,
+        isComment = false,
     }: Props = $props();
 
     let msgDisplay = $state('')
@@ -134,7 +136,7 @@
     }
 
 
-    let blankMessage = $derived((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1)
+    let blankMessage = $derived((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1 || isComment)
 
     $effect.pre(() => {
         displaya(message)
@@ -310,6 +312,27 @@
         <AutoresizeArea bind:value={message} handleLongPress={() => {
             editMode = false
         }} />
+    {:else if isComment}
+        <div class="w-full flex justify-center text-textcolor2 italic mb-12">
+
+            {#if msgDisplay.startsWith('{{specialcomment')}
+                {@const parts = msgDisplay.split('::')}
+                {@const type = parts[1]}
+
+                {#if type === 'branchedfrom'}
+                    <button class="text-blue-500 hover:underline"
+                        onclick={() => {
+                            changeChatTo(parts[2] ?? '')
+                        }}
+                    >
+                        <GitBranch size={20} class="inline-block mr-1" />
+                        {language.branchedText.replace("{}", parts[3] ?? '')}
+                    </button>
+                {/if}
+            {:else}
+                {msgDisplay}
+            {/if}
+        </div>
     {:else if blankMessage}
         <div class="w-full flex justify-center text-textcolor2 italic mb-12">
             {language.noMessage}
@@ -352,22 +375,38 @@
 
 {#snippet iconButtons(options:{applyTextColors?:boolean} = {})}
     <div class="grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
-        <span class="text-xs">{statusMessage}</span>
-        <div class="flex items-center ml-2 gap-2">
-            {#if window.innerWidth >= 640}
-                {@render iconButtonsBody(false)}
+        {#if isComment}
+            <button
+                class="flex items-center hover:text-blue-500 transition-colors button-icon-remove"
+                onclick={async (e) => {
+                    await rm(e, true)
+                }}
+            >
+                <TrashIcon size={20} />
+
+            </button>
+        {:else}
+            <span class="text-xs">{statusMessage}</span>
+            <div class="flex items-center ml-2 gap-2">
+                {#if window.innerWidth >= 640}
+                    {@render majorIconButtonsBody(false)}
+                    <PopupList>
+                        {@render minorIconButtonsBody(true)}
+                    </PopupList>
+                {:else}
+                    <PopupList>
+                        {@render majorIconButtonsBody(true)}
+                        {@render minorIconButtonsBody(true)}
+                    </PopupList>
+                {/if}
                 {@render rerolls()}
-            {:else}
-                {@render rerolls()}
-                <PopupList>
-                    {@render iconButtonsBody(true)}
-                </PopupList>
-            {/if}
-        </div>
+
+            </div>
+        {/if}
     </div>
 {/snippet}
 
-{#snippet iconButtonsBody(showNames:boolean)}
+{#snippet majorIconButtonsBody(showNames:boolean)}
     {#if DBState.db.useChatCopy && !blankMessage}
     <button class="flex items-center hover:text-blue-500 transition-colors button-icon-copy" onclick={async ()=>{
         if(window.navigator.clipboard.write){
@@ -609,12 +648,6 @@
             {/if}
         </button>
     {/if}
-    <button class="flex items-center hover:text-yellow-500 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={toggleBookmark}>
-        <BookmarkIcon size={20}/>
-        {#if showNames}
-            <span class="ml-1">{language.bookmark}</span>
-        {/if}
-    </button>
     {#if !$ConnectionOpenStore}
         <button class={"flex items-center hover:text-blue-500 transition-colors button-icon-edit "+(editMode?'text-blue-400':'')} onclick={() => {
             if(!editMode){
@@ -671,6 +704,41 @@
             </button>
         {/if}
     {/if}
+{/snippet}
+
+{#snippet minorIconButtonsBody(showNames:boolean)}
+    
+    {#if DBState.db.enableBookmark}
+        <button class="flex items-center hover:text-blue-500 transition-colors button-icon-bookmark {isBookmarked ? 'text-yellow-400' : ''}" onclick={toggleBookmark}>
+            <BookmarkIcon size={20}/>
+            {#if showNames}
+                <span class="ml-1">{language.bookmark}</span>
+            {/if}
+        </button>
+    {/if}
+
+    <button class="flex items-center hover:text-blue-500 transition-colors" onclick={() => {
+        const currentChat = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage]
+        const currentMessage = currentChat.message[idx]
+        const newChat = $state.snapshot(currentChat)
+        newChat.name = `Copy of ${newChat.name}`
+        newChat.id = v4()
+        newChat.message.push({
+            role: 'char',
+            data: '{{specialcomment::branchedfrom::' + currentChat.id + '::' + currentChat.name + '::' + currentMessage.chatId + '::}}',
+            isComment: true,
+            disabled: true,
+            chatId: v4(),
+        })
+
+        DBState.db.characters[selIdState.selId].chats.unshift(newChat)
+        changeChatTo(0)
+    }}>
+        <SplitIcon size={20}/>
+        {#if showNames}
+            <span class="ml-1">{language.branch}</span>
+        {/if}
+    </button>
 {/snippet}
 
 {#snippet senderIcon(options:{rounded?:boolean,styleFix?:string} = {})}

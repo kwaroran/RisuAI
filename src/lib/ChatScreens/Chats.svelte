@@ -76,7 +76,8 @@
                         largePortrait: message.role === 'user' ? (userIconPortrait ?? false) : ((currentCharacter as character).largePortrait ?? false),
                         messageGenerationInfo: message.generationInfo,
                         role: message.role,
-                        name: message.role === 'user' ? currentUsername : currentCharacter.name
+                        name: message.role === 'user' ? currentUsername : currentCharacter.name,
+                        isComment: message.isComment ?? false,
                     },
 
                 })
