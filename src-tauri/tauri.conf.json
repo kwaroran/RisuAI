@@ -18,7 +18,7 @@
       "src-python/*"
     ],
     "targets": "all",
-    "createUpdaterArtifacts": "v1Compatible",
+    "createUpdaterArtifacts": true,
     "fileAssociations": [
       {
         "ext": [
