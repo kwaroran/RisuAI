@@ -10,7 +10,7 @@
     import { sayTTS } from "src/ts/process/tts"
     import { DBState, ReloadChatPointer, CurrentTriggerIdStore } from 'src/ts/stores.svelte'
     import { ConnectionOpenStore } from "src/ts/sync/multiuser"
-    import { capitalize, getUserIcon, getUserName } from "src/ts/util"
+    import { capitalize, getUserIcon, getUserName, sleep } from "src/ts/util"
     import { onDestroy, onMount } from "svelte"
     import { type Unsubscriber } from "svelte/store"
     import { v4 as uuidv4, v4 } from 'uuid'
@@ -319,7 +319,9 @@
                 {#if type === 'branchedfrom'}
                     <button class="text-blue-500 hover:underline"
                         onclick={() => {
+                            console.log(parts)
                             changeChatTo(parts[2] ?? '')
+                            foldChatToMessage(parts[4])
                         }}
                     >
                         <GitBranch size={20} class="inline-block mr-1" />
@@ -714,12 +716,14 @@
         </button>
     {/if}
 
-    <button class="flex items-center hover:text-blue-500 transition-colors" onclick={() => {
+    <button class="flex items-center hover:text-blue-500 transition-colors" onclick={async () => {
+        await sleep(1)
         const currentChat = DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage]
         const currentMessage = currentChat.message[idx]
         const newChat = $state.snapshot(currentChat)
         newChat.name = `Copy of ${newChat.name}`
         newChat.id = v4()
+        newChat.message = newChat.message.slice(0, idx + 1)
         newChat.message.push({
             role: 'char',
             data: '{{specialcomment::branchedfrom::' + currentChat.id + '::' + currentChat.name + '::' + currentMessage.chatId + '::}}',
