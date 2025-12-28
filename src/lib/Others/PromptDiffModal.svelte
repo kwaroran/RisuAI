@@ -10,45 +10,6 @@
     }
     let { firstPresetId, secondPresetId, onClose = () => {} }: Props = $props();
 
-// DIFF_PREF
-// -----------------------------------------------------------------------------
-    const DIFF_PREF_KEY = "promptDiffModalPrefs:v1"
-    type DiffPrefs = {
-        diffStyle: DiffStyle
-        formatStyle: FormatStyle
-        viewStyle: ViewStyle
-        isGrouped: boolean
-        showOnlyChanges: boolean
-        contextRadius: number
-    }
-
-    function loadDiffPrefs(): Partial<DiffPrefs> {
-        if (typeof localStorage === "undefined") return {}
-        try {
-            const raw = localStorage.getItem(DIFF_PREF_KEY)
-            return raw ? (JSON.parse(raw) as Partial<DiffPrefs>) : {}
-        } catch {
-            return {}
-        }
-    }
-
-    function saveDiffPrefsOnClose() {
-        if (typeof localStorage === 'undefined') return
-        try {
-            const prefs: DiffPrefs = {
-                diffStyle,
-                formatStyle,
-                viewStyle,
-                isGrouped,
-                showOnlyChanges,
-                contextRadius,
-            }
-
-            localStorage.setItem(DIFF_PREF_KEY, JSON.stringify(prefs))
-        } catch {
-        }
-    }
-    const saved = loadDiffPrefs()
 
 // Types
 // -----------------------------------------------------------------------------
@@ -138,13 +99,13 @@
     
 // Reactive state
 // -----------------------------------------------------------------------------
-    let diffStyle = $state<DiffStyle>(saved.diffStyle ?? 'intraline')
-    let formatStyle = $state<FormatStyle>(saved.formatStyle ?? 'raw')
-    let viewStyle = $state<ViewStyle>(saved.viewStyle ?? 'unified')
+    let diffStyle = $state<DiffStyle>('intraline')
+    let formatStyle = $state<FormatStyle>('raw')
+    let viewStyle = $state<ViewStyle>('unified')
     let isFlatText = $state(false)
-    let isGrouped = $state(saved.isGrouped ?? false)
-    let showOnlyChanges = $state(saved.showOnlyChanges ?? false)
-    let contextRadius = $state(saved.contextRadius ?? 3)
+    let isGrouped = $state(false)
+    let showOnlyChanges = $state(false)
+    let contextRadius = $state(3)
 
     let diffResult = $state<DiffResult | null>(null)
     let cardDiffResult = $state<CardDiffResult | null>(null)
@@ -911,13 +872,6 @@
         expandedRanges = [...expandedRanges, { scope, from, to }]
     }
 
-// Handlers
-// -----------------------------------------------------------------------------
-    function handleClose() {
-        saveDiffPrefsOnClose()
-        onClose()
-    }
-
 </script>
 
 {#snippet pillRadioGroup(label: string, name: string, options: readonly { value: string; label: string }[], value: string, setValue: (v: string) => void, disabled = false)}
@@ -1292,7 +1246,7 @@
         {/if}
       </div>
 
-      <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {handleClose()}}>
+      <button class="text-textcolor2 hover:text-green-500" onclick={(e) => {onClose()}}>
         <XIcon size={20}/>
       </button>
     </div>
