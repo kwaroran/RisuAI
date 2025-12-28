@@ -9,6 +9,25 @@ import { sleep } from "src/ts/util";
 import { alertConfirm } from "src/ts/alert";
 import { language } from "src/lang";
 
+/*
+    V3 API for RisuAI Plugins
+
+    Before adding new APIs here, please check the limitations
+
+    - APIs must be a functions
+        - If you want nested objects, first add as a plain function, `_getPluginStorage` for example
+            And add it too _getAliases function ({'pluginStorage':{'getItem': '_getPluginStorage', ... }})
+            This will make pluginStorage.getItem() work in plugins
+        - If you need constants, use _getPropertiesForInitialization to set them up
+            For example apiVersion and apiVersionCompatibleWith are set this way,
+            Accessable in plugins as risuai.apiVersion
+    - APIs must return, or accept as parameters, only the following types:
+        - Serializable data (string, number, boolean, null, array, object)
+        - Class instances marked with __classType = 'REMOTE_REQUIRED'
+        - Callback functions (only as parameters)
+        - Note that Class or Callbacks inside arrays or objects are not supported
+*/
+
 
 class SafeElement {
     #element: HTMLElement;
