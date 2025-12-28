@@ -1,8 +1,7 @@
 # Risuai
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/kwaroran/Risuai/assets/116663078/efbbfe78-65ad-43ef-89f8-36fa94826925">
-  <img alt="text" src="https://github.com/kwaroran/Risuai/assets/116663078/bc28e5a3-c6da-4a42-bfc1-f3ab3debdf65">
+  <img alt="text" src="https://raw.githubusercontent.com/kwaroran/Risuai/refs/heads/main/public/logo_typo_small.avif" width="400"/>
 </picture>
 
 [![Svelte](https://img.shields.io/badge/svelte-5-red?logo=svelte)](https://svelte.dev/) [![Typescript](https://img.shields.io/badge/typescript-5.6-blue?logo=typescript)](https://www.typescriptlang.org/) [![Tauri](https://img.shields.io/badge/tauri-2.5-%2324C8D8?logo=tauri)](https://tauri.app/)
