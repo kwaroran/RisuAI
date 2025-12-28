@@ -649,6 +649,13 @@ export interface SafeElement {
         id: string,
         options?: boolean | EventListenerOptions
     ): Promise<void>;
+
+    /**
+     * Unwraps a SafeClassArray into a standard array
+     * @param safeArray - The SafeClassArray to unwrap
+     * @returns Standard array of items
+     */
+    unwarpSafeArray<T>(safeArray: SafeClassArray<T>): Promise<T[]>;
 }
 
 // ============================================================================
@@ -757,7 +764,6 @@ export interface SafeClassArray<T> {
      */
     push(item: T): Promise<void>;
 }
-
 
 // ============================================================================
 // SafeMutationObserver

@@ -173,6 +173,7 @@ await (async function() {
     window.Risuai = window.risuai;
 
     try {
+        // Initialize cached properties
         const propsToInit = await window.risuai._getPropertiesForInitialization();
         console.log('Initializing risuai properties:', JSON.stringify(propsToInit.list));
         for (let i = 0; i < propsToInit.list.length; i++) {
@@ -181,6 +182,7 @@ await (async function() {
             propertyCache.set(key, value);
         }
 
+        // Initialize aliases
         const aliases = await window.risuai._getAliases();
         const aliasKeys = Object.keys(aliases);
         for (let i = 0; i < aliasKeys.length; i++) {
@@ -193,6 +195,18 @@ await (async function() {
             }
             propertyCache.set(aliasKey, aliasObj);
         }
+
+        // Initialize helper functions defined in the guest
+
+        propertyCache.set('unwarpSafeArray', async (safeArray) => {
+            const length = await safeArray.length();
+            const result = [];
+            for (let i = 0; i < length; i++) {
+                const item = await safeArray.at(i);
+                result.push(item);
+            }
+            return result;
+        });
     } catch (e) {
         console.error('Failed to initialize risuai properties:', e);
     }
