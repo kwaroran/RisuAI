@@ -78,10 +78,16 @@
                     element.scrollIntoView({behavior: "instant", block: "start"})
                 } else {
                     // It may seem inefficient, but since loadPages is always increasing, this wait only occurs when reading chats outside the current loadPages range.
-                    element.scrollIntoView({behavior: "smooth", block: "start"})
-                    await sleep(1000)
-                    element.scrollIntoView({behavior: "instant", block: "start"})
-                    await sleep(2000)
+                    const steps = 2
+                    const delay = 2500
+                    for(let i = steps; i > 0; i--){
+                        const tempIndex = Math.max(0, index - i)
+                        const tempElement = document.querySelector(`[data-chat-index="${tempIndex}"]`)
+                        if(tempElement){
+                            tempElement.scrollIntoView({behavior: "instant", block: "start"})
+                        }
+                        await sleep(delay)
+                    }
                     element.scrollIntoView({behavior: "instant", block: "start"})
                 }
 
