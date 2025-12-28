@@ -247,4 +247,15 @@ export const allBasicParameterItems: SettingItem[] = [
     penaltyParameterItems.find(i => i.id === 'params.topP')!,
     penaltyParameterItems.find(i => i.id === 'params.frequencyPenalty')!,
     penaltyParameterItems.find(i => i.id === 'params.presencePenalty')!,
+    // NOTE: separateParametersItem is now handled via custom component below
 ];
+
+/**
+ * Separate Parameters section (custom component)
+ */
+export const separateParametersItem: SettingItem = {
+    id: 'params.separateParameters',
+    type: 'custom',
+    componentId: 'SeparateParametersSection' as any,
+    keywords: ['separate', 'parameters', 'memory', 'emotion', 'translate'],
+};

@@ -15,16 +15,14 @@
 import type { Component } from 'svelte';
 
 // Import custom components here
-// Example:
-// import ModelSelector from '$lib/Setting/Custom/ModelSelector.svelte';
+import SeparateParametersSection from 'src/lib/Setting/Pages/SeparateParametersSection.svelte';
 
 /**
  * Registry of custom components.
  * Add new components here as needed.
  */
 export const customComponents: Record<string, Component<any>> = {
-    // 'ModelSelector': ModelSelector,
-    // 'PromptPresetManager': PromptPresetManager,
+    'SeparateParametersSection': SeparateParametersSection,
     // Add more as we migrate complex settings
 } as const;
 
