@@ -349,7 +349,7 @@
     {/if}
 {/snippet}
 
-{#snippet icons(options:{applyTextColors?:boolean} = {})}
+{#snippet iconButtons(options:{applyTextColors?:boolean} = {})}
     <div class="grow flex items-center justify-end" class:text-textcolor2={options?.applyTextColors !== false}>
         <span class="text-xs">{statusMessage}</span>
         {#if DBState.db.useChatCopy && !blankMessage}
@@ -635,7 +635,7 @@
     </div>
 {/snippet}
 
-{#snippet icon(options:{rounded?:boolean,styleFix?:string} = {})}
+{#snippet senderIcon(options:{rounded?:boolean,styleFix?:string} = {})}
     {#if !blankMessage && !$HideIconStore}
         {#if DBState.db.characters[selIdState.selId]?.chaId === "§playground"}
         <div class="shadow-lg border-textcolor2 border flex justify-center items-center text-textcolor2" style={options?.styleFix ?? `height:${DBState.db.iconsize * 3.5 / 100}rem;width:${DBState.db.iconsize * 3.5 / 100}rem;min-width:${DBState.db.iconsize * 3.5 / 100}rem`}
@@ -775,9 +775,9 @@
     {:else if dom.tagName === 'RISUTEXTBOX'}
         {@render textBox()}
     {:else if dom.tagName === 'RISUICON'}
-        {@render icon()}
+        {@render senderIcon()}
     {:else if dom.tagName === 'RISUBUTTONS'}
-        {@render icons()}
+        {@render iconButtons()}
     {:else if dom.tagName === 'RISUGENINFO'}
         {@render genInfo()}
     {:else if dom.tagName === 'STYLE'}
@@ -812,7 +812,7 @@
         {#if DBState.db.theme === 'mobilechat' && !blankMessage}
             <div class={role === 'user' ? "flex items-start w-full justify-end" : "flex items-start"}>
                 {#if role !== 'user'}
-                    {@render icon({rounded: true})}
+                    {@render senderIcon({rounded: true})}
                 {/if}
                 <div
                     class="bg-gray-100 rounded-lg p-3 max-w-[70%] mx-2"
@@ -834,7 +834,7 @@
                     {/if}
                 </div>
                 {#if role === 'user'}
-                    {@render icon({rounded: true})}
+                    {@render senderIcon({rounded: true})}
                 {/if}
             </div>
         {:else if DBState.db.theme === 'cardboard' && !blankMessage}
@@ -843,7 +843,7 @@
                     <div class="flex gap-4 mt-2 flex-col sm:flex-row">
                         <div class="flex flex-col items-center">
                             <div class="sm:h-96 sm:w-72 sm:min-w-72 w-48 h-64">
-                                {@render icon({rounded: false, styleFix:'height:100%;width:100%;'})}
+                                {@render senderIcon({rounded: false, styleFix:'height:100%;width:100%;'})}
                             </div>
                             <h2 class="text-base font-bold text-gray-500 text-center mt-2 max-w-full text-ellipsis">{name}</h2>
 
@@ -858,13 +858,13 @@
                     </div>
                 </div>
                 <div class="absolute bottom-0 right-0 bg-linear-to-b from-gray-200 to-gray-300 p-2 rounded-md border border-gray-400 text-gray-400">
-                    {@render icons({applyTextColors: false})}
+                    {@render iconButtons({applyTextColors: false})}
                 </div>
             </div>
         {:else if DBState.db.theme === 'customHTML' && !blankMessage}
             {@render renderGuiHtmlPart(RenderGUIHtml(DBState.db.guiHTML))}
         {:else}
-            {@render icon({rounded: DBState.db.roundIcons})}
+            {@render senderIcon({rounded: DBState.db.roundIcons})}
             <span class="flex flex-col ml-4 w-full max-w-full min-w-0 text-black">
                 <div class="flexium items-center chat-width">
                     {#if DBState.db.characters[selIdState.selId]?.chaId === "§playground" && !blankMessage}
@@ -877,7 +877,7 @@
                     {:else if !blankMessage && !$HideIconStore}
                         <span class="chat-width text-xl unmargin text-textcolor">{name}</span>
                     {/if}
-                    {@render icons()}
+                    {@render iconButtons()}
                 </div>
                 {@render genInfo()}
                 {@render textBox()}
