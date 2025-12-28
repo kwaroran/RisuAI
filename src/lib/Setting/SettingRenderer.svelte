@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { SettingItem } from 'src/ts/setting/types';
+    import { customComponents } from 'src/ts/setting/customComponents';
     import { language } from 'src/lang';
     import { DBState } from 'src/ts/stores.svelte';
     import Check from 'src/lib/UI/GUI/CheckInput.svelte';
@@ -109,6 +110,12 @@
             >
                 {getLabel(item)}
             </Button>
+        {:else if item.type === 'custom' && item.componentId}
+            {@const CustomComponent = customComponents[item.componentId]}
+            {#if CustomComponent}
+                <CustomComponent {...item.componentProps} />
+            {/if}
         {/if}
     {/if}
 {/each}
+

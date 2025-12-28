@@ -6,6 +6,7 @@
  */
 
 import type { Database } from '../storage/database.svelte';
+import type { CustomComponentId, CustomComponentProps } from './customComponents';
 
 /**
  * Supported setting input types
@@ -19,7 +20,8 @@ export type SettingType =
     | 'select'     // Dropdown (SelectInput)
     | 'color'      // Color picker (ColorInput)
     | 'header'     // Section header (h2, span, warning)
-    | 'button';    // Action button (Button)
+    | 'button'     // Action button (Button)
+    | 'custom';    // Custom component from registry
 
 /**
  * Select option for dropdown
@@ -92,6 +94,17 @@ export interface SettingItem {
     
     /** Search keywords for future search feature */
     keywords?: string[];
+    
+    /**
+     * Component ID for custom components (type: 'custom')
+     * Must be a key in customComponents registry
+     */
+    componentId?: CustomComponentId;
+    
+    /**
+     * Props to pass to custom component
+     */
+    componentProps?: CustomComponentProps;
 }
 
 /**
