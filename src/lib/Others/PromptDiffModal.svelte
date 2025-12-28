@@ -203,8 +203,8 @@
 // Inputs
 // Cards are computed once per modal open; preset ids don't change while this modal is shown.
 // -----------------------------------------------------------------------------
-    const firstCards = getPromptCards(firstPresetId)
-    const secondCards = getPromptCards(secondPresetId)
+    const firstCards  = $derived.by(() => getPromptCards(firstPresetId))
+    const secondCards = $derived.by(() => getPromptCards(secondPresetId))
 
 // Effects (state invariants + diff recompute)
 // -----------------------------------------------------------------------------
