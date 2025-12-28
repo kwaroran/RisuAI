@@ -112,29 +112,29 @@
 </div>
 {:else}
     <div class="w-full p-1 flex mb-3 overflow-x-auto sm:justify-center">
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={nsfw} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={nsfw} onclick={() => {
             nsfw = !nsfw
             getHub()
         }}>
             NSFW
         </button>
         <div class="ml-2 mr-2 h-full border-r border-r-selected"></div>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === ''} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={sort === ''} onclick={() => {
             changeSort('')
         }}>
             {language.recent}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'trending'} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={sort === 'trending'} onclick={() => {
             changeSort('trending')
         }}>
             {language.trending}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring={sort === 'downloads'} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow" class:ring-3={sort === 'downloads'} onclick={() => {
             changeSort('downloads')
         }}>
             {language.downloads}
         </button>
-        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring={sort === 'random'} onclick={() => {
+        <button class="bg-darkbg p-2 rounded-lg ml-2 flex justify-center items-center hover:bg-selected transition-shadow min-w-0 max-w-full" class:ring-3={sort === 'random'} onclick={() => {
             changeSort('random')
         }}>
             {language.random}
@@ -152,7 +152,7 @@
 {#if sort !== 'random' && sort !== 'recommended'}
     <div class="w-full flex justify-center">
         <div class="flex">
-            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring transition-shadow" onclick={() => {
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg flex justify-center items-center hover:ring-3 transition-shadow" onclick={() => {
                 if(page > 0){
                     page -= 1
                     getHub()
@@ -163,7 +163,7 @@
             <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center transition-shadow">
                 <span>{page + 1}</span>
             </button>
-            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring transition-shadow" onclick={() => {
+            <button class="bg-darkbg h-14 w-14 min-w-14 rounded-lg ml-2 flex justify-center items-center hover:ring-3 transition-shadow" onclick={() => {
                 page += 1
                 getHub()
             }}>

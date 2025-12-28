@@ -270,7 +270,7 @@
     <div class="flex flex-col items-end">
         {#if messageGenerationInfo && (DBState.db.requestInfoInsideChat || aiLawApplies())}
             <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
-                    hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                    hover:ring-darkbutton hover:ring-3 rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
                         const currentGenerationInfo = idx >= 0 ? 
                             DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[idx].generationInfo :
@@ -290,7 +290,7 @@
         {/if}
         {#if DBState.db.translatorType === 'llm' && translated}
             <button class="text-sm p-1 text-textcolor2 border-darkborderc float-end mr-2 my-1
-                            hover:ring-darkbutton hover:ring rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
+                            hover:ring-darkbutton hover:ring-3 rounded-md hover:text-textcolor transition-all flex justify-center items-center" 
                     onclick={() => {
                         retranslate = true
                     }}
