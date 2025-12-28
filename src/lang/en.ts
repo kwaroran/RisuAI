@@ -224,6 +224,7 @@ export const languageEnglish = {
         dynamicMemory: "When enabled, assistant will make memory notes on response time. additional prompting is required to utilize this feature.",
         dynamicResponseTiming: "When enabled, it will adjust the response timing dynamically.",
         dynamicRequest: "When enabled, it will request to model at random timing without waiting for user input.",
+        settingsCloseButtonSize: "Adjusts the size of the close (X) button in the top right corner of the settings window. Default is 24.",
         showTypingEffect: "When enabled, it will show a typing indicator while the assistant is generating a response.",
         dynamicOutputPrompt: "When enabled, the schema information will be included in the request.",
         sourcemapTranslate:
@@ -1421,6 +1422,7 @@ export const languageEnglish = {
     dynamicRequest: "Dynamic Request",
     dynamicOutputPrompt: "Dynamic Output Prompt",
     sourcemapTranslate: "Translate stack traces using sourcemaps",
+    settingsCloseButtonSize: "Settings Close Button Size",
     translating: "Translating...",
     showOriginal: "Show Original Code Address",
     translate: "Translate Code Address",
