@@ -11,10 +11,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "tauri": "tauri",
     "buildsite": "vite build --outDir dist",
-    "updatePlugin": "tsc public/pluginApi.ts",
     "runserver": "node server/node/server.cjs",
-    "sync": "node electron/sync",
-    "electron": "node electron/dist/electron",
     "hono:build": "vite build --sourcemap && node server/hono/src/utils/postbuild.js"
   },
   "dependencies": {
@@ -116,7 +113,6 @@
     "source-map": "^0.7.6",
     "svelte": "^5.46.1",
     "svelte-check": "^4.3.5",
-    "svelte-preprocess": "^6.0.3",
     "tailwindcss": "^3.4.19",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
