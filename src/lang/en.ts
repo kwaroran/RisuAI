@@ -1458,4 +1458,5 @@ export const languageEnglish = {
     translate: "Translate",
     branch: "Branch",
     branchedText: "This chat has been branched from {}.",
+    loadMore: "Load More",
 }

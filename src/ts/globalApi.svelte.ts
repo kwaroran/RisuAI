@@ -2610,6 +2610,67 @@ export function aiWatermarkingLawApplies(): boolean {
     return false
 }
 
+export const chatFoldedState = $state<{
+    data: null| {
+        targetCharacterId: string,
+        targetChatId: string,
+        targetMessageId: string,
+    }
+}>({
+    data: null
+})
+
+//Since its exported, we cannot use $derived here
+export let chatFoldedStateMessageIndex = $state({
+    index: -1
+})
+
+$effect.root(() => {
+    $effect(() => {
+        if(!chatFoldedState.data){
+            return
+        }
+        const char = DBState.db.characters[selIdState.selId]
+        const chat = char.chats[char.chatPage]
+        if(chatFoldedState.data.targetCharacterId !== char.chaId){
+            chatFoldedState.data = null
+        }
+        if(chatFoldedState.data.targetChatId !== chat.id){
+            chatFoldedState.data = null
+        }
+    })
+
+    $effect(() => {
+        if(chatFoldedState.data === null){
+            chatFoldedStateMessageIndex.index = -1
+            return
+        }
+        const char = DBState.db.characters[selIdState.selId]
+        const chat = char.chats[char.chatPage]
+        const messageIndex = chat.message.findIndex((v) => {
+            return chatFoldedState.data?.targetMessageId === v.chatId
+        })
+        chatFoldedStateMessageIndex.index = messageIndex
+    })
+})
+
+export function foldChatToMessage(targetMessageIdOrIndex: string | number) {
+    let targetMessageId = ''
+    if (typeof targetMessageIdOrIndex === 'number') {
+        const char = getCurrentCharacter()
+        const chat = char.chats[char.chatPage]
+        const message = chat.message[targetMessageIdOrIndex]
+        targetMessageId = message.chatId
+    }
+    const char = getCurrentCharacter()
+    const chat = char.chats[char.chatPage]
+    chatFoldedState.data = {
+        targetCharacterId: char.chaId,
+        targetChatId: chat.id,
+        targetMessageId: targetMessageId,
+    }
+}
+
 export function changeChatTo(IdOrIndex: string | number) {
     let index = -1
     if (typeof IdOrIndex === 'number') {

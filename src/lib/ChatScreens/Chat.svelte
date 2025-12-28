@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ArrowLeft, ArrowLeftRightIcon, ArrowRight, BookmarkIcon, BotIcon, CopyIcon, GitBranch, HamburgerIcon, LanguagesIcon, PencilIcon, RefreshCcwIcon, SplitIcon, TrashIcon, UserIcon, Volume2Icon } from "@lucide/svelte"
-    import { aiLawApplies, changeChatTo, getFileSrc } from "src/ts/globalApi.svelte"
+    import { aiLawApplies, changeChatTo, foldChatToMessage, getFileSrc } from "src/ts/globalApi.svelte"
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
     import { getModelInfo } from "src/ts/model/modellist"
@@ -245,10 +245,8 @@
             } else {
                 let defaultName;
 
-                // 첫 번째 방법으로, 메시지를 줄 단위로 분리한 뒤에 앞에 특수 문자가 없는 줄을 찾는다
                 const blacklist = ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '-', '=', '[', ']', '{', '}', '|', ';', ':', '"', "'", ',', '.', '<', '>', '/', '?'];
                 let lines = messageContent.split('\n');
-                // 중반 내용을 사용함
                 lines = lines.splice(Math.floor(lines.length * 0.5));
                 for (const line of lines) {
                     if (line && !blacklist.some(char => line.startsWith(char))) {
@@ -263,7 +261,6 @@
             }
         }
 
-        // Svelte 5의 반응성을 위해 배열을 재할당합니다.
         chat.bookmarks = [...chat.bookmarks];
     }
 </script>
@@ -739,6 +736,15 @@
             <span class="ml-1">{language.branch}</span>
         {/if}
     </button>
+
+    {#if import.meta.env.DEV}
+        <!-- Debug button -->
+        <button onclick={() => {
+            foldChatToMessage(idx)
+        }}>
+            Test Fold
+        </button>
+    {/if}
 {/snippet}
 
 {#snippet senderIcon(options:{rounded?:boolean,styleFix?:string} = {})}
