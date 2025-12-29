@@ -547,7 +547,8 @@ Show Statistics
         const meta = {
             isTauri: isTauri,
             isNodeServer: isNodeServer,
-            protocol: location.protocol
+            protocol: location.protocol,
+            userAgent: navigator.userAgent
         }
 
         const json = JSON.stringify({ ...db, meta }, null, 2)
