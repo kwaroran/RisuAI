@@ -3,6 +3,7 @@
     import { DBState, MobileGUI } from "src/ts/stores.svelte";
     import { parseToggleSyntax, type sidebarToggle, type sidebarToggleGroup } from "src/ts/util";
     import { language } from "src/lang";
+    import type { PromptItem } from "src/ts/process/prompt";
     import type { character, groupChat } from "src/ts/storage/database.svelte";
     import Arcodion from '../UI/Arcodion.svelte'
     import CheckInput from "../UI/GUI/CheckInput.svelte";
@@ -17,9 +18,36 @@
 
     let { chara = $bindable(), noContainer }: Props = $props();
 
-    let hasJailbreakPrompt = $derived(
-        DBState.db.promptTemplate?.some(item => item.type === 'jailbreak') ?? false
-    )
+    const jailbreakToggleToken = '{{jbtoggled}}'
+    const usesJailbreakToggle = (value?: string) =>
+        typeof value === 'string' && value.includes(jailbreakToggleToken)
+    const templateUsesJailbreakToggle = (template: PromptItem[]) =>
+        template.some(item => {
+            if (item.type === 'jailbreak') {
+                return true
+            }
+            if ('text' in item && usesJailbreakToggle(item.text)) {
+                // plain, jailbreak, cot
+                return true
+            }
+            if ('innerFormat' in item && usesJailbreakToggle(item.innerFormat)) {
+                // persona, description, lorebook, postEverything, memory
+                return true
+            }
+            if ('defaultText' in item && usesJailbreakToggle(item.defaultText)) {
+                // author note
+                return true
+            }
+            return false
+        })
+
+    let hasJailbreakPrompt = $derived.by(() => {
+        const template = DBState.db.promptTemplate
+        if (!template) {
+            return (DBState.db.jailbreak ?? '').trim().length > 0
+        }
+        return templateUsesJailbreakToggle(template)
+    })
 
     let groupedToggles = $derived.by(() => {
         const ungrouped = parseToggleSyntax(DBState.db.customPromptTemplateToggle + getModuleToggles())
