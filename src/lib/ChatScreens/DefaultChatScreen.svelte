@@ -2,7 +2,7 @@
 
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "@lucide/svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon, ArrowDown } from "@lucide/svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message } from "../../ts/storage/database.svelte";
@@ -43,9 +43,15 @@
     let doingChatInputTranslate = false
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
+    let showNewMessageButton = $state(false)
+    let chatsInstance: any = $state()
 
     let currentCharacter = $derived(DBState.db.characters[$selectedCharID])
     let currentChat = $derived(currentCharacter?.chats[currentCharacter.chatPage]?.message ?? [])
+
+    function scrollToBottom() {
+        chatsInstance?.scrollToLatestMessage();
+    }
 
     async function send(){
         return sendMain(false)
@@ -427,9 +433,15 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="w-full h-full" style={customStyle} onclick={() => {
+<div class="w-full h-full relative" style={customStyle} onclick={() => {
     openMenu = false
 }}>
+    {#if showNewMessageButton}
+        <button class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+            <ArrowDown size={16} />
+            <span>{language.newMessage}</span>
+        </button>
+    {/if}
     {#if $selectedCharID < 0}
         {#if $PlaygroundStore === 0}
             <MainMenu />
@@ -437,11 +449,18 @@
             <PlaygroundMenu />
         {/if}
     {:else}
-        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  onscroll={(e) => {
+        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen" onscroll={(e) => {
             //@ts-expect-error scrollHeight/clientHeight/scrollTop don't exist on EventTarget, but target is HTMLElement here
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > loadPages){
                 loadPages += 15
+            }
+            const chatTarget = e.target as HTMLElement;
+            const chatsContainer = (DBState.db.fixedChatTextarea && chatTarget.children[1]) ? chatTarget.children[1] : chatTarget.children[0];
+            const lastEl = chatsContainer?.firstElementChild;
+            const isAtBottom = lastEl ? lastEl.getBoundingClientRect().top <= chatTarget.getBoundingClientRect().bottom + 100 : true;
+            if(isAtBottom){
+                showNewMessageButton = false;
             }
         }}>
             <div
@@ -675,6 +694,7 @@
             {/if}
             
             <Chats
+                bind:this={chatsInstance}
                 messages={currentChat}
                 loadPages={loadPages}
                 onReroll={reroll}
@@ -683,6 +703,7 @@
                 currentUsername={currentUsername}
                 userIcon={userIcon}
                 userIconPortrait={userIconPortrait}
+                bind:hasNewUnreadMessage={showNewMessageButton}
             />
 
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
