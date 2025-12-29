@@ -1,4 +1,4 @@
-<button title={name+' '+language.showHelp} class="relative help inline-block cursor-default hover:text-green-500" onclick={() => {
+<button title={name+' '+language.showHelp} class="relative help inline-block align-middle cursor-default hover:text-green-500" onclick={() => {
     alertMd(language.help[key])
 }}>
     
