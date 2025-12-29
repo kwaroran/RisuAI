@@ -131,9 +131,21 @@
         mountInstances.clear();
     })
 
+    let previousLength = $state(messages.length);
+
     $effect(() => {
         console.log('Updating Chats');
         updateChatBody()
+        if(messages.length > previousLength){
+            const lastMsg = messages[messages.length - 1];
+            if(lastMsg && lastMsg.role === 'char'){
+                const element = chatBody.firstElementChild;
+                if(element){
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+        previousLength = messages.length;
     })
 
 </script>
