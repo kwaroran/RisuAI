@@ -97,10 +97,10 @@
                             img.onerror = () => resolve(null);
                         });
                     });
-                    // Wait for all images or timeout after 2 seconds
+                    // Wait for all images or timeout after 4 seconds
                     await Promise.race([
                         Promise.all(promises),
-                        sleep(2000)
+                        sleep(4000)
                     ]);
                 }
 
