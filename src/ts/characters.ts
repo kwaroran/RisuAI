@@ -611,7 +611,7 @@ export function characterFormatUpdate(indexOrCharacter:number|character, arg:{
         if(!cha.newGenData){
             cha = updateInlayScreen(cha)
         }
-        cha.ttsMode ||= 'none'
+        cha.ttsMode ??= ''
     }
     else{
         if((!cha.characterTalks) || cha.characterTalks.length !== cha.characters.length){
