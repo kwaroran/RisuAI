@@ -60,36 +60,55 @@
         // Forces the loading of past messages not rendered on the screen
         isScrollingToMessage = true
         try {
-            let isAlreadyLoaded = false
             const totalMessages = currentChat.length
-            const neededLoadPages = totalMessages - index + 10
+            const neededLoadPages = totalMessages - index + 5
 
             if(loadPages < neededLoadPages){
                 loadPages = neededLoadPages
                 await tick()
-                await sleep(100)
-            } else {
-                isAlreadyLoaded = true
             }
 
-            const element = document.querySelector(`[data-chat-index="${index}"]`)
+            let element: Element | null = null;
+            // Poll for element existence (max 5 seconds)
+            for(let i = 0; i < 50; i++){
+                element = document.querySelector(`[data-chat-index="${index}"]`)
+                if(element) break;
+                await sleep(100)
+            }
+
+            const preIndex = Math.max(0, index - 3)
+            const preElement = document.querySelector(`[data-chat-index="${preIndex}"]`)
+            if(preElement){
+                preElement.scrollIntoView({behavior: "instant", block: "start"})
+            } else {
+                element?.scrollIntoView({behavior: "instant", block: "start"})
+            }
+            await sleep(50)
+
             if(element){
-                if(isAlreadyLoaded){
-                    element.scrollIntoView({behavior: "instant", block: "start"})
-                } else {
-                    // It may seem inefficient, but since loadPages is always increasing, this wait only occurs when reading chats outside the current loadPages range.
-                    const steps = 2
-                    const delay = 2500
-                    for(let i = steps; i > 0; i--){
-                        const tempIndex = Math.max(0, index - i)
-                        const tempElement = document.querySelector(`[data-chat-index="${tempIndex}"]`)
-                        if(tempElement){
-                            tempElement.scrollIntoView({behavior: "instant", block: "start"})
-                        }
-                        await sleep(delay)
-                    }
-                    element.scrollIntoView({behavior: "instant", block: "start"})
+                // Wait for images to load to prevent layout shift
+                const chatContainer = document.querySelector('.default-chat-screen');
+                if(chatContainer) {
+                    const images = Array.from(chatContainer.querySelectorAll('img'));
+                    const promises = images.map(img => {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(resolve => {
+                            img.onload = () => resolve(null);
+                            img.onerror = () => resolve(null);
+                        });
+                    });
+                    // Wait for all images or timeout after 2 seconds
+                    await Promise.race([
+                        Promise.all(promises),
+                        sleep(2000)
+                    ]);
                 }
+
+                element.scrollIntoView({behavior: "instant", block: "start"})
+                
+                // Small delay and scroll again to ensure position is correct after any final layout adjustments
+                await sleep(50)
+                element.scrollIntoView({behavior: "instant", block: "start"})
 
                 element.classList.add('ring-2', 'ring-blue-500')
                 setTimeout(() => {
