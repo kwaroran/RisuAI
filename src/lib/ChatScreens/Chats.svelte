@@ -141,7 +141,29 @@
             if(lastMsg && lastMsg.role === 'char' && DBState.db.autoScrollToNewMessage){
                 const element = chatBody.firstElementChild;
                 if(element){
-                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setTimeout(() => {
+                        // wait for all images in the message to load
+                        const imgElements = element.getElementsByTagName('img');
+                        const imgPromises = [];
+                        for(let i=0; i < imgElements.length; i++){
+                            const img = imgElements[i];
+                            if(!img.complete){
+                                imgPromises.push(new Promise((resolve) => {
+                                    img.onload = () => resolve(true);
+                                    img.onerror = () => resolve(true);
+                                }));
+                            }
+                        }
+
+                        if (imgPromises.length === 0) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            return;
+                        }
+                        
+                        Promise.all(imgPromises).then(() => {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        });
+                    }, 500);
                 }
             }
         }
