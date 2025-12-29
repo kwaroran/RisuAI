@@ -611,6 +611,11 @@ export function characterFormatUpdate(indexOrCharacter:number|character, arg:{
         if(!cha.newGenData){
             cha = updateInlayScreen(cha)
         }
+        // Migrate legacy 'none' value to '' for UI dropdown compatibility
+        // Using '' because it's falsy, so `if (ttsMode)` correctly detects enabled TTS
+        if (cha.ttsMode === 'none') {
+            cha.ttsMode = ''
+        }
         cha.ttsMode ??= ''
     }
     else{
