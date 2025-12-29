@@ -1,6 +1,7 @@
 import { BaseDirectory, readFile, readDir, writeFile } from "@tauri-apps/plugin-fs";
 import { alertError, alertNormal, alertStore, alertWait, alertMd } from "../alert";
-import { LocalWriter, forageStorage, isTauri, requiresFullEncoderReload } from "../globalApi.svelte";
+import { LocalWriter, forageStorage, requiresFullEncoderReload } from "../globalApi.svelte";
+import { isTauri } from "src/ts/platform"
 import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
 import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { relaunch } from "@tauri-apps/plugin-process";

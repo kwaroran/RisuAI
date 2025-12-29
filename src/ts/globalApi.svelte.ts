@@ -44,13 +44,9 @@ import { fetch as TauriHTTPFetch } from '@tauri-apps/plugin-http';
 import { moduleUpdate } from "./process/modules";
 import type { AccountStorage } from "./storage/accountStorage";
 import { makeColdData } from "./process/coldstorage.svelte";
+import { isTauri, isNodeServer, isCapacitor, isInStandaloneMode } from "./platform";
 
-//@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
-export const isTauri = !!window.__TAURI_INTERNALS__
-export const isNodeServer = !!globalThis.__NODE__
 export const forageStorage = new AutoStorage()
-export const googleBuild = false
-export const isMobile = navigator.userAgent.match(/(iPad)|(iPhone)|(iPod)|(android)|(webOS)/i)
 
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
@@ -155,7 +151,7 @@ export async function getFileSrc(loc: string) {
     if (forageStorage.isAccount && loc.startsWith('assets')) {
         return hubURL + `/rs/` + loc
     }
-    if (Capacitor.isNativePlatform()) {
+    if (isCapacitor) {
         if (!await checkCapFileExists({
             path: encodeCapKeySafe(loc),
             directory: CapFS.Directory.External
@@ -676,7 +672,7 @@ export async function loadData() {
                     return
                 }
                 LoadingStatusState.text = "Checking Service Worker..."
-                if (navigator.serviceWorker && (!Capacitor.isNativePlatform())) {
+                if (navigator.serviceWorker && !isCapacitor) {
                     usingSw = true
                     await registerSw()
                 }
@@ -704,8 +700,6 @@ export async function loadData() {
                 } catch (error) { }
             }
             try {
-                //@ts-expect-error navigator.standalone is iOS Safari non-standard property, not in Navigator interface
-                const isInStandaloneMode = (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || document.referrer.includes('android-app://');
                 if (isInStandaloneMode) {
                     await navigator.storage.persist()
                 }
@@ -896,7 +890,7 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
         if (isTauri) {
             return await fetchWithTauri(url, arg);
         }
-        if (Capacitor.isNativePlatform()) {
+        if (isCapacitor) {
             return await fetchWithCapacitor(url, arg);
         }
         return await fetchWithProxy(url, arg);
@@ -1708,7 +1702,7 @@ export class LocalWriter {
             this.writer = new TauriWriter(filePath)
             return true
         }
-        if (Capacitor.isNativePlatform()) {
+        if (isCapacitor) {
             this.writer = new MobileWriter(name + '.' + ext[0])
             return true
         }
@@ -1872,7 +1866,7 @@ if (isTauri) {
     })
 }
 
-if (Capacitor.isNativePlatform()) {
+if (isCapacitor) {
     capStreamedFetch = registerPlugin<StreamedFetchPlugin>('CapacitorHttp', CapacitorHttp)
 
     capStreamedFetch.addListener('streamed_fetch', (data) => {

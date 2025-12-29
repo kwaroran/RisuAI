@@ -1,7 +1,7 @@
 import { getDatabase } from "./database.svelte";
 import { alertNormal } from "../alert";
 import { language } from "src/lang";
-import { isNodeServer, isTauri } from "../globalApi.svelte";
+import { isTauri, isNodeServer, isFirefox } from "src/ts/platform"
 
 async function requestPersistantStorageMain() {
     
@@ -23,8 +23,6 @@ async function requestPersistantStorageMain() {
                 return navigator.storage.persist();
             }
         }
-
-        const isFirefox = navigator.userAgent.indexOf("Firefox") !== -1;
 
         if(isFirefox) {
             //firefox can just ask for persist

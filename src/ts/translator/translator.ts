@@ -1,6 +1,7 @@
 import { get } from "svelte/store"
 import { getDatabase, type character, type customscript, type groupChat } from "../storage/database.svelte"
-import { globalFetch, isNodeServer, isTauri } from "../globalApi.svelte"
+import { globalFetch } from "../globalApi.svelte"
+import { isTauri, isNodeServer } from "src/ts/platform"
 import { alertError } from "../alert"
 import { requestChatData } from "../process/request/request"
 import { doingChat, type OpenAIChat } from "../process/index.svelte"

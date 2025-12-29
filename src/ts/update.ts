@@ -1,14 +1,14 @@
 import { alertConfirm, alertWait } from "./alert";
 import { language } from "../lang";
-import { Capacitor } from "@capacitor/core";
 import {
     check,
 } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
+import { isCapacitor } from "./platform";
 
 export async function checkRisuUpdate(){
 
-    if(Capacitor.isNativePlatform()){
+    if(isCapacitor){
         return
     }
 

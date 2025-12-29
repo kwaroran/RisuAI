@@ -2,16 +2,13 @@ import { hubURL } from "./characterCards";
 import { fetchNative } from "./globalApi.svelte";
 import { DBState } from "./stores.svelte";
 import { readFile, BaseDirectory, writeFile } from "@tauri-apps/plugin-fs";
+import { isTauri } from "src/ts/platform"
 import * as client from 'openid-client'
 
 let accessToken = ''
 let refreshToken = ''
 let tokenInitalized = false
 let tokenExpiry = 0 // Unix timestamp in milliseconds
-
-//isTauri is NOT IMPORTED due to circular dependency issues
-//@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
-const isTauri = !!window.__TAURI_INTERNALS__
 
 interface SionywOauthData {
     refresh_token: string;
