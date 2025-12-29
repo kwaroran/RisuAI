@@ -680,7 +680,7 @@
     <Arcodion name={language.longTermMemory} styled disabled={submenu !== -1}>
         <span class="text-textcolor mt-4">{language.type}</span>
 
-        <SelectInput value={
+        <SelectInput className="mb-4" value={
             DBState.db.hypaV3 ? 'hypaV3' :
             DBState.db.hypav2 ? 'hypaV2' :
             DBState.db.supaModelType !== 'none' ? 'supaMemory' :
@@ -731,7 +731,7 @@
             <span class="mb-2 text-textcolor2 text-sm text-wrap wrap-break-word max-w-full">{language.hanuraiDesc}</span>
             <span>Chunk Size</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hanuraiTokens} min={100} />
-            <div class="flex">
+            <div class="flex mb-4">
                 <Check bind:check={DBState.db.hanuraiSplit} name="Text Spliting"/>
             </div>
         {:else if DBState.db.hypav2}
@@ -963,12 +963,12 @@
                 <span class="text-textcolor">{language.SuperMemory} Prompt</span>
                 <TextInput size="sm" marginBottom bind:value={DBState.db.supaMemoryPrompt} placeholder="Leave it blank to use default"/>
             {/if}
-            <div class="flex">
+            <div class="flex mb-4">
                 <Check bind:check={DBState.db.hypaMemory} name={language.enable + ' ' + language.HypaMemory}/>
             </div>
         {/if}
 
-        <span class="text-textcolor">{language.embedding}</span>
+        <span class="text-textcolor">{language.embedding} <Help key="embedding"/></span>
         <SelectInput className="mb-4" bind:value={DBState.db.hypaModel}>
             {#if 'gpu' in navigator}
                 <OptionInput value="MiniLMGPU">MiniLM L6 v2 (GPU)</OptionInput>

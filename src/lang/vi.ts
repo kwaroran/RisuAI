@@ -200,6 +200,15 @@ export const LanguageVietnamese = {
             "Bỏ qua các nhà cung cấp trong danh sách này, nếu tất cả các nhà cung cấp bị bỏ qua, yêu cầu sẽ thất bại. Xem chi tiết tại https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
         additionalPrompt:
             "Văn bản được thêm vào cuối Lời nhắc chính khi Tiền xử lý lời nhắc được bật. Mặc định là 'The assistant must act as {{char}}. user is {{user}}.' Điều này giúp thiết lập ngữ cảnh nhập vai cơ bản.",
+        embedding:
+            "Mô hình nhúng được sử dụng cho tìm kiếm tương đồng trên nhiều tính năng:\n\n" +
+            "- **Bộ nhớ dài hạn**: HypaV2, HypaV3, Bộ nhớ Hanurai và SupaMemory (khi bật HypaMemory)\n" +
+            "- **Văn bản bổ sung**: Khớp thông tin bổ sung của nhân vật dựa trên ngữ cảnh\n" +
+            "- **Tài sản động**: Tìm tên tài sản tương tự khi không tìm thấy kết quả khớp chính xác\n" +
+            "- **Hình ảnh cảm xúc**: Khi phương pháp Cảm xúc được đặt thành 'embedding'\n" +
+            "- **Tập lệnh kích hoạt**: Các điều kiện tương đồng trong tập lệnh kích hoạt\n" +
+            "- **Tệp đính kèm**: Tìm kiếm trong các tệp đính kèm PDF/TXT/XML\n" +
+            "- **Playground**: Thử nghiệm nhúng trong Playground",
     },
     setup: {
         chooseProvider: "Chọn nhà cung cấp AI",
