@@ -9,7 +9,7 @@
     </div>
 </div>
 <script lang="ts">
-    import { XIcon } from "lucide-svelte";
+    import { XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import MultiLangDisplay from "../UI/GUI/MultiLangDisplay.svelte";
 

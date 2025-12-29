@@ -2,7 +2,7 @@
 
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "lucide-svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "@lucide/svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message } from "../../ts/storage/database.svelte";
@@ -19,7 +19,7 @@
     import { stopTTS } from "src/ts/process/tts";
     import MainMenu from '../UI/MainMenu.svelte';
     import AssetInput from './AssetInput.svelte';
-    import { downloadFile } from 'src/ts/globalApi.svelte';
+    import { aiLawApplies, chatFoldedState, chatFoldedStateMessageIndex, downloadFile } from 'src/ts/globalApi.svelte';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
     import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
@@ -30,6 +30,7 @@
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
     import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
     import Chats from './Chats.svelte';
+    import Button from '../UI/GUI/Button.svelte';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -421,6 +422,9 @@
         }
     }
 </script>
+
+
+
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="w-full h-full" style={customStyle} onclick={() => {
@@ -434,7 +438,7 @@
         {/if}
     {:else}
         <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  onscroll={(e) => {
-            //@ts-ignore  
+            //@ts-expect-error scrollHeight/clientHeight/scrollTop don't exist on EventTarget, but target is HTMLElement here
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > loadPages){
                 loadPages += 15
@@ -452,7 +456,7 @@
                 {/if}
 
                 {#if !DBState.db.useAdvancedEditor}
-                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-none text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl flex-grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full"
+                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-hidden text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full placeholder:text-sm"
                           bind:value={messageInput}
                           bind:this={inputEle}
                           onkeydown={(e) => {
@@ -489,18 +493,20 @@
                                     reader.onload = async (e) => {
                                         const buf = e.target?.result as ArrayBuffer
                                         const uint8 = new Uint8Array(buf)
-                                        const res = await postChatFile({
+                                        const results = await postChatFile({
                                             name: file.name,
                                             data: uint8
                                         })
-                                        if(res?.type === 'asset'){
-                                            fileInput.push(res.data)
-                                            updateInputSizeAll()
+                                        if(!results) return
+                                        for(const res of results){
+                                            if(res?.type === 'asset'){
+                                                fileInput.push(res.data)
+                                            }
+                                            if(res?.type === 'text'){
+                                                messageInput += `{{file::${res.name}::${res.data}}}`
+                                            }
                                         }
-                                        if(res?.type === 'text'){
-                                            messageInput += `{{file::${res.name}::${res.data}}}`
-                                            updateInputSizeAll()
-                                        }
+                                        updateInputSizeAll()
                                     }
                                     reader.readAsArrayBuffer(file)
                                 }
@@ -566,7 +572,7 @@
                     <label for='messageInputTranslate' class="text-textcolor ml-4">
                         <LanguagesIcon />
                     </label>
-                    <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl flex-grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
+                    <textarea id = 'messageInputTranslate' class="text-textcolor rounded-md p-2 min-w-0 bg-transparent input-text text-xl grow ml-4 mr-2 border-darkbutton resize-none focus:bg-selected overflow-y-hidden overflow-x-hidden max-w-full"
                               bind:value={messageInputTranslate}
                               bind:this={inputTranslateEle}
                               onkeydown={(e) => {
@@ -656,6 +662,17 @@
                     <div></div>
                 {/await}
             {:else}
+
+            {#if chatFoldedStateMessageIndex.index !== -1}
+                <button class="w-full flex justify-center max-w-full p-4">
+                    <Button className="max-w-xl w-full" onclick={() => {
+                        loadPages += chatFoldedStateMessageIndex.index + 1
+                        chatFoldedState.data = null
+                    }}>
+                        {language.loadMore}
+                    </Button>
+                </button>
+            {/if}
             
             <Chats
                 messages={currentChat}
@@ -665,6 +682,7 @@
                 currentCharacter={currentCharacter}
                 currentUsername={currentUsername}
                 userIcon={userIcon}
+                userIconPortrait={userIconPortrait}
             />
 
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
@@ -711,6 +729,11 @@
                         totalPages={DBState.db.characters[$selectedCharID].alternateGreetings.length + 1}
 
                     />
+                    {#if (aiLawApplies() && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length === 0)}
+                        <div class="w-full flex justify-center text-textcolor2 italic m-2 max-w-full text-wrap">
+                            {language.aiGenerationWarning}
+                        </div>
+                    {/if}
                     {#if !DBState.db.characters[$selectedCharID].removedQuotes && DBState.db.characters[$selectedCharID].creatorNotes.length >= 2}
                         <CreatorQuote quote={DBState.db.characters[$selectedCharID].creatorNotes} onRemove={() => {
                             const cha = DBState.db.characters[$selectedCharID]
@@ -813,15 +836,17 @@
                     </div>
 
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={async () => {
-                        const res = await postChatFile(messageInput)
-                        if(res?.type === 'asset'){
-                            fileInput.push(res.data)
-                            updateInputSizeAll()
+                        const results = await postChatFile(messageInput)
+                        if(!results) return
+                        for(const res of results){
+                            if(res?.type === 'asset'){
+                                fileInput.push(res.data)
+                            }
+                            if(res?.type === 'text'){
+                                messageInput += `{{file::${res.name}::${res.data}}}`
+                            }
                         }
-                        if(res?.type === 'text'){
-                            messageInput += `{{file::${res.name}::${res.data}}}`
-                            updateInputSizeAll()
-                        }
+                        updateInputSizeAll()
                     }}>
 
                         <ImagePlusIcon />

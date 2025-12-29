@@ -1,25 +1,22 @@
 import DOMPurify from 'dompurify';
 import markdownit from 'markdown-it'
-import { appVer, getCurrentCharacter, getDatabase, type Database, type Message, type character, type customscript, type groupChat, type loreBook, type triggerscript } from './storage/database.svelte';
+import { appVer, getCurrentCharacter, getDatabase, type Database, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
 import { DBState } from './stores.svelte';
-import { getFileSrc, isMobile, isNodeServer, isTauri } from './globalApi.svelte';
+import { aiWatermarkingLawApplies, getFileSrc, isNodeServer, isTauri } from './globalApi.svelte';
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
-import { SizeStore, selectedCharID } from './stores.svelte';
+import { selectedCharID } from './stores.svelte';
 import { calcString } from './process/infunctions';
 import { findCharacterbyId, getPersonaPrompt, getUserIcon, getUserName, parseKeyValue, pickHashRand, replaceAsync} from './util';
-import { getInlayAsset, getInlayAssetBlob } from './process/files/inlays';
-import { getModuleAssets, getModuleLorebooks, getModules, type RisuModule } from './process/modules';
+import { getInlayAssetBlob } from './process/files/inlays';
+import { getModuleAssets, getModuleLorebooks, getModules } from './process/modules';
 import type { OpenAIChat } from './process/index.svelte';
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
-import airisu from '../etc/airisu.cbs?raw'
-import cbsIntro from '../etc/docs/cbs_intro.cbs?raw'
-import cbsDocs from '../etc/docs/cbs_docs.cbs?raw'
-import docsText from '../etc/docs/docs_text.cbs?raw'
-import { getModelInfo, type LLMModel } from './model/modellist';
+import katex from 'katex'
+import { getModelInfo } from './model/modellist';
 import { registerCBS, type matcherArg, type RegisterCallback } from './cbs';
 
 const markdownItOptions = {
@@ -139,6 +136,28 @@ function renderMarkdown(md:markdownit, data:string){
     if(DBState.db?.customQuotes){
         quotes = DBState.db.customQuotesData ?? quotes
     }
+    data = data.replace(/\$\$(.*?)\$\$/gs, (
+        match:string,
+        content:string,
+    ) => {
+
+        try {
+            content = content
+                .replace(/\uE9b8/gu, '{')
+                .replace(/\uE9b9/gu, '}')
+                .replace(/\uE9ba/gu, '(')
+                .replace(/\uE9bb/gu, ')')
+            const rendered = katex.renderToString(content, {
+                displayMode: false,
+                throwOnError: true,
+                output: 'mathml'
+            })
+            return rendered
+        } catch (error) {
+            console.error('KaTeX render error:', error)
+            return match
+        }
+    })
     let text = risuUnescape(md.render(data.replace(/“|”/g, '"').replace(/‘|’/g, "'")))
 
     if(DBState.db?.unformatQuotes){
@@ -357,59 +376,71 @@ async function renderHighlightableMarkdown(data:string) {
 
 export const assetRegex = /{{(raw|path|img|image|video|audio|bgm|bg|emotion|asset|video-img|source)::(.+?)}}/gms
 
-async function getAssetSrc(assetArr: string[][], name: string, assetPaths: {[key: string]:{path: string[], ext?: string}}) {
+function getAssetSrc(assetArr: string[][], assetPaths: AssetPaths) {
     for (const asset of assetArr) {
-        if (trimmer(asset[0].toLocaleLowerCase()) !== trimmer(name)) continue
-        const assetPath = await getFileSrc(asset[1])
         const key = asset[0].toLocaleLowerCase()
-        assetPaths[key] = {
-            path: [],
+        assetPaths[key] ??= {
+            srcPaths: [],
             ext: asset[2]
         }
         if(assetPaths[key].ext === asset[2]){
-            assetPaths[key].path.push(assetPath)
+            assetPaths[key].srcPaths.push(asset[1])
         }
-        return
     }
 }
 
-async function getEmoSrc(emoArr: string[][], emoPaths: {[key: string]:{path: string}}) {
+function getEmoSrc(emoArr: string[][], emoPaths: AssetPaths) {
     for (const emo of emoArr) {
-        const emoPath = await getFileSrc(emo[1])
         emoPaths[emo[0].toLocaleLowerCase()] = {
-            path: emoPath,
+            srcPaths: [emo[1]]
         }
     }
 }
+
+const fileSrcCache = new Map<string, string>()
+async function getFileSrcCached(path:string){
+    let cached = fileSrcCache.get(path)
+    if(cached){
+        return cached
+    }
+    const src = await getFileSrc(path)
+    fileSrcCache.set(path, src)
+    return src
+}
+
+type AssetPaths = {[key:string]:{
+    srcPaths:string[]
+    ext?:string
+}}
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', arg:{ch:number}){
     const assetWidthString = (DBState.db.assetWidth && DBState.db.assetWidth !== -1 || DBState.db.assetWidth === 0) ? `max-width:${DBState.db.assetWidth}rem;` : ''
 
-    let assetPaths:{[key:string]:{
-        path:string[]
-        ext?:string
-    }} = {}
-    let emoPaths:{[key:string]:{
-        path:string
-    }} = {}
+    let assetPaths:AssetPaths = {}
+    let emoPaths:AssetPaths = {}
 
     if (char.emotionImages) await getEmoSrc(char.emotionImages, emoPaths)
 
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
 
+    const moduleAssets = getModuleAssets()
+
+    if (char.additionalAssets) {
+        getAssetSrc(char.additionalAssets, assetPaths)
+    }
+    if (moduleAssets.length > 0) {
+        getAssetSrc(moduleAssets, assetPaths)
+    }
+
+    let cx:number|null = null
+
     data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
         name = name.toLocaleLowerCase()
-        const moduleAssets = getModuleAssets()
-        if (char.additionalAssets) {
-            await getAssetSrc(char.additionalAssets, name, assetPaths)
-        }
-        if (moduleAssets.length > 0) {
-            await getAssetSrc(moduleAssets, name, assetPaths)
-        }
 
         if(type === 'emotion'){
-            const path = emoPaths[name]?.path
+            const srcPath = emoPaths[name]?.srcPaths?.[0]
+            const path = srcPath ? await getFileSrcCached(srcPath) : null
             if(!path){
                 return ''
             }
@@ -428,25 +459,32 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
             }
         }
 
-        let path = assetPaths[name]
+        let match = assetPaths[name]
 
-        if(!path){
+        if(!match){
             if(DBState.db.legacyMediaFindings){
                 return ''
             }
 
-            path = await getClosestMatch(char, name, assetPaths)
+            match = getClosestMatch(char, name, assetPaths)
 
-            if(!path){
+            if(!match){
                 return ''
             }
         }
 
-        let p = path.path[0]
+        let pSrc = match.srcPaths[0]
 
-        if(path.path.length > 1){
-            p = path.path[Math.floor(arg.ch % p.length)]
+        if(match.srcPaths.length > 1){
+            if(cx === null){
+                const chatID = arg.ch
+                cx = pickHashRand(chatID, (char.chaId || 'global') + chatID)
+            }
+            const selIndex = Math.floor(cx * match.srcPaths.length)
+            pSrc = match.srcPaths[selIndex]
         }
+
+        const p = await getFileSrcCached(pSrc)
         switch(type){
             case 'raw':
             case 'path':
@@ -467,7 +505,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
                 }
                 break
             case 'asset':{
-                if(path.ext && videoExtention.includes(path.ext)){
+                if(match.ext && videoExtention.includes(match.ext)){
                     return `<video autoplay muted loop><source src="${p}" type="video/mp4"></video>\n`
                 }
                 return `<img src="${p}" alt="${p}" style="${assetWidthString} "/>\n`
@@ -493,7 +531,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     return data
 }
 
-async function getClosestMatch(char: simpleCharacterArgument|character, name:string, assetPaths:{[key:string]:{path:string[], ext?:string}}){   
+function getClosestMatch(char: simpleCharacterArgument|character, name:string, assetPaths:AssetPaths){   
     if(!char.additionalAssets) return null
 
     let closest = ''
@@ -517,9 +555,8 @@ async function getClosestMatch(char: simpleCharacterArgument|character, name:str
         return null
     }
 
-    const assetPath = await getFileSrc(targetPath)
     assetPaths[closest] = {
-        path: [assetPath],
+        srcPaths: [targetPath],
         ext: targetExt
     }
 
@@ -671,9 +708,76 @@ export async function ParseMarkdown(
 
 export function trimMarkdown(data:string){
     return decodeStyle(DOMPurify.sanitize(data, {
-        ADD_TAGS: ["iframe", "style", "risu-style", "x-em"],
+        ADD_TAGS: ["iframe", "style", "risu-style", "x-em", 'annotation', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt'],
         ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
     }))
+}
+
+const placeToPutMetadata = new Set([
+    ' ', '\n'
+])
+
+const metaCodes = [
+    '\u200B', //zero width space
+    '\u200C', //zero width non-joiner
+    '\u200D', //zero width joiner
+    '\uFEFF', //zero width no-break space
+    '\u2060', //word joiner
+    '\u180E', //mongolian vowel separator
+]
+
+export function addMetadataToElement(data:string, modelShortName:string){
+    if(!aiWatermarkingLawApplies()){
+        return data
+    }
+
+    let metadata = '{' + [
+        'aigen',
+        'risuai',
+        modelShortName.toLocaleLowerCase().replace(/[^a-z]/g, ''),
+    ].join('|') + '}'
+    let encodedMetaCode = ''
+
+    for(let i=0;i<metadata.length;i++){
+        let byte = (metadata.charCodeAt(i) - 97).toString(6).padStart(2,'0')
+        for(let j=0;j<byte.length;j++){
+            switch(byte.charAt(j)){
+                case '0':{
+                    encodedMetaCode += metaCodes[0]
+                    break
+                }
+                case '1':{
+                    encodedMetaCode += metaCodes[1]
+                    break
+                }
+                case '2':{
+                    encodedMetaCode += metaCodes[2]
+                    break
+                }
+                case '3':{
+                    encodedMetaCode += metaCodes[3]
+                    break
+                }
+                case '4':{
+                    encodedMetaCode += metaCodes[4]
+                    break
+                }
+                case '5':{
+                    encodedMetaCode += metaCodes[5]
+                    break
+                }
+            }
+        }
+    }
+
+    console.log('Encoded metadata:', encodedMetaCode.length, 'characters')
+    console.log('This requires at least', Math.ceil(encodedMetaCode.length / 32), '<p> tags to store')
+
+    let d =  data.replace(/\<p\>/g, (v) => {
+        return '<p>' + encodedMetaCode
+    })
+
+    return d + encodedMetaCode
 }
 
 export async function postTranslationParse(data:string){
@@ -767,7 +871,7 @@ function decodeStyle(text:string){
 }
 
 export async function hasher(data:Uint8Array){
-    return Buffer.from(await crypto.subtle.digest("SHA-256", data)).toString('hex');
+    return Buffer.from(await crypto.subtle.digest("SHA-256", data as any)).toString('hex');
 }
 
 export async function convertImage(data:Uint8Array) {
@@ -1233,6 +1337,7 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
                         else{
                             statement.push('0')
                         }
+                        break
                     }
                     case 'tis':{ //tis = toggle is
                         const variable = getGlobalChatVar('toggle_' + statement.pop())

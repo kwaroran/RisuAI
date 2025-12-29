@@ -10,14 +10,12 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import Help from "src/lib/Others/Help.svelte";
-    import { installPython } from "src/ts/process/models/local";
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
     import Arcodion from "src/lib/UI/Arcodion.svelte";
-  import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "lucide-svelte";
+  import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "@lucide/svelte";
   import { v4 } from "uuid";
-  import { MCPClient } from "src/ts/process/mcp/mcplib";
-    import { getDatabase } from "src/ts/storage/database.svelte";
+  import { getDatabase } from "src/ts/storage/database.svelte";
 
     let estaStorage:{
         key:string,
@@ -78,7 +76,7 @@
 <span class="text-textcolor">{language.autoContinueMinTokens}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} bind:value={DBState.db.autoContinueMinTokens}/>
 
-<span class="text-textcolor">{language.additionalPrompt}</span>
+<span class="text-textcolor">{language.additionalPrompt} <Help key="additionalPrompt"/></span>
 <TextInput marginBottom={true} size={"sm"} bind:value={DBState.db.additionalPrompt}/>
 
 <span class="text-textcolor">{language.descriptionPrefix}</span>
@@ -139,6 +137,9 @@
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.useExperimental} name={language.useExperimental}> <Help key="useExperimental"/></Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.sourcemapTranslate} name={language.sourcemapTranslate}> <Help key="sourcemapTranslate"/></Check>
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.forceProxyAsOpenAI} name={language.forceProxyAsOpenAI}> <Help key="forceProxyAsOpenAI"/></Check>
@@ -229,6 +230,11 @@
     </Check>
 </div>
 <div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.realmDirectOpen} name={language.realmDirectOpen}>
+        <Help key="realmDirectOpen"/>
+    </Check>
+</div>
+<div class="flex items-center mt-4">
     <Check bind:check={DBState.db.returnCSSError} name={language.returnCSSError}>
     </Check>
 </div>
@@ -250,9 +256,11 @@
         <Help key="experimental" />
     </Check>
 </div>
-
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.rememberToolUsage} name={language.rememberToolUsage}></Check>
+</div>
+<div class="flex items-center mt-4">
+    <Check bind:check={DBState.db.enableBookmark} name={language.bookmark}></Check>
 </div>
 <div class="flex items-center mt-4">
     <Check bind:check={DBState.db.simplifiedToolUse} name={language.simplifiedToolUse}></Check>
@@ -536,7 +544,7 @@ Show Statistics
             }
         }
 
-        //@ts-ignore
+        //@ts-expect-error meta is not defined in Database type, added for settings export report
         db.meta = {
             isTauri: isTauri,
             isNodeServer: isNodeServer,

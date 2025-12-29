@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { getAllContexts, mount, onDestroy, onMount, unmount } from "svelte";
-    //@ts-ignore
+	import { getAllContexts, mount, onMount, unmount } from "svelte";
 	import PortalConsumer from "./PortalConsumer.svelte";
-    import { sleep } from "src/ts/util";
-
-    interface Props {
+    
+interface Props {
         target?: HTMLElement;
         children: any;
         root?: HTMLElement

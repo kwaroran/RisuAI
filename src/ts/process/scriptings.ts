@@ -1,3 +1,4 @@
+import { asBuffer } from 'src/ts/util';
 import { getChatVar, hasher, setChatVar, getGlobalChatVar, type simpleCharacterArgument, risuChatParser } from "../parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
 import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
@@ -391,7 +392,7 @@ export async function runScripted(code:string, arg:{
                     const imgObj = new Image()
                     const extention = character.image.split('.').at(-1)
 
-                    imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/${extention}`}))
+                    imgObj.src = URL.createObjectURL(new Blob([asBuffer(img)], {type: `image/${extention}`}))
 
                     const imgid = await writeInlayImage(imgObj, { name: character.image, ext: extention, id: character.image})
 
@@ -418,7 +419,7 @@ export async function runScripted(code:string, arg:{
                     const imgObj = new Image()
                     const extention = icon.split('.').at(-1)
 
-                    imgObj.src = URL.createObjectURL(new Blob([img], {type: `image/${extention}`}))
+                    imgObj.src = URL.createObjectURL(new Blob([asBuffer(img)], {type: `image/${extention}`}))
 
                     const imgid = await writeInlayImage(imgObj, { name: icon, ext: extention, id: icon})
 

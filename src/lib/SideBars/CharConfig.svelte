@@ -1,22 +1,20 @@
 <script lang="ts">
     import { language } from "../../lang";
     import { tokenizeAccurate } from "../../ts/tokenizer";
-    import { saveImage as saveAsset, type Database, type character, type groupChat } from "../../ts/storage/database.svelte";
+    import { saveImage as saveAsset, type character, type groupChat } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { CharConfigSubMenu, MobileGUI, ShowRealmFrameStore, selectedCharID, hypaV3ModalOpen } from "../../ts/stores.svelte";
-    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, HardDriveUploadIcon, Share2Icon, ImageIcon, ImageOffIcon, ArrowUp, ArrowDown } from 'lucide-svelte'
+    import { PlusIcon, SmileIcon, TrashIcon, UserIcon, ActivityIcon, BookIcon, User, CurlyBraces, Volume2Icon, DownloadIcon, HardDriveUploadIcon, Share2Icon, ImageIcon, ImageOffIcon, ArrowUp, ArrowDown } from '@lucide/svelte'
     import Check from "../UI/GUI/CheckInput.svelte";
     import { addCharEmotion, addingEmotion, getCharImage, rmCharEmotion, selectCharImg, makeGroupImage, removeChar, changeCharImage } from "../../ts/characters";
     import LoreBook from "./LoreBook/LoreBookSetting.svelte";
-    import { alertConfirm, alertMd, alertNormal, alertSelectChar, alertTOS, showHypaV2Alert } from "../../ts/alert";
+    import { alertTOS, showHypaV2Alert } from "../../ts/alert";
     import BarIcon from "./BarIcon.svelte";
-    import { findCharacterbyId, getAuthorNoteDefaultText, parseKeyValue, selectMultipleFile, selectSingleFile } from "../../ts/util";
-    import { onDestroy } from "svelte";
-    import {includes, isEqual} from 'lodash'
+    import { findCharacterbyId, getAuthorNoteDefaultText, selectMultipleFile, selectSingleFile } from "../../ts/util";
     import Help from "../Others/Help.svelte";
-    import { exportChar, hubURL } from "src/ts/characterCards";
-    import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices, FixNAITTS } from "src/ts/process/tts";
-    import { checkCharOrder, getFileSrc, openURL } from "src/ts/globalApi.svelte";
+    import { exportChar } from "src/ts/characterCards";
+    import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices } from "src/ts/process/tts";
+    import { getFileSrc } from "src/ts/globalApi.svelte";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import NumberInput from "../UI/GUI/NumberInput.svelte";
@@ -30,9 +28,8 @@
     import { updateInlayScreen } from "src/ts/process/inlayScreen";
     import { registerOnnxModel } from "src/ts/process/transformers";
     import MultiLangInput from "../UI/GUI/MultiLangInput.svelte";
-    import { applyModule, getModuleToggles } from "src/ts/process/modules";
+    import { applyModule } from "src/ts/process/modules";
     import { exportRegex, importRegex } from "src/ts/process/scripts";
-    import Arcodion from "../UI/Arcodion.svelte";
     import SliderInput from "../UI/GUI/SliderInput.svelte";
     import Toggles from "./Toggles.svelte";
 
@@ -359,9 +356,9 @@
         {#if DBState.db.characters[$selectedCharID].type === 'group'}
             <button onclick={async () => {await selectCharImg($selectedCharID)}}>
                 {#await getCharImage(DBState.db.characters[$selectedCharID].image, 'css')}
-                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring"></div>
+                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3"></div>
                 {:then im}
-                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring" style={im}></div>     
+                    <div class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3" style={im}></div>     
                 {/await}
             </button>
         {:else}
@@ -383,12 +380,12 @@
                     }}>
                         {#await getCharImage(DBState.db.characters[$selectedCharID].image, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                             <div
-                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3 transition-shadow"
                                 class:ring-red-500={iconRemoveMode}
     ></div>
                         {:then im}
                             <div
-                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring transition-shadow"
+                                class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer ring-3 transition-shadow"
                                 class:ring-red-500={iconRemoveMode}
                                 style={im}
     ></div>     
@@ -408,13 +405,13 @@
                         }}>
                             {#await getCharImage(assets.uri, (DBState.db.characters[$selectedCharID] as character).largePortrait ? 'lgcss' : 'css')}
                                 <div
-                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
-                                    class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring-3 transition-shadow"
+                                    class:ring-red-500={iconRemoveMode} class:ring-3={iconRemoveMode}
     ></div>
                             {:then im}
                                 <div
-                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring transition-shadow"
-                                    style={im} class:ring-red-500={iconRemoveMode} class:ring={iconRemoveMode}
+                                    class="rounded-md h-24 w-24 shadow-lg bg-textcolor2 cursor-pointer hover:ring-3 transition-shadow"
+                                    style={im} class:ring-red-500={iconRemoveMode} class:ring-3={iconRemoveMode}
     ></div>     
                             {/await}
                         </button>
@@ -637,10 +634,10 @@
                                         <TrashIcon />
                                     </button>
                                     {#if DBState.db.useAdditionalAssetsPreview}
-                                        <button class="hover:text-blue-500" class:text-textcolor2={DBState.db.characters[$selectedCharID].prebuiltAssetExclude?.includes?.(assetFilePath[i])} onclick={() => {
+                                        <button class="hover:text-blue-500" class:text-textcolor2={DBState.db.characters[$selectedCharID].prebuiltAssetExclude?.includes?.(assets[1])} onclick={() => {
                                             DBState.db.characters[$selectedCharID].prebuiltAssetExclude ??= []
                                             if(DBState.db.characters[$selectedCharID].prebuiltAssetExclude.includes(assets[1])){
-                                                DBState.db.characters[$selectedCharID].prebuiltAssetExclude = DBState.db.characters[$selectedCharID].prebuiltAssetExclude.filter((e) => e !== assetFilePath[i])
+                                                DBState.db.characters[$selectedCharID].prebuiltAssetExclude = DBState.db.characters[$selectedCharID].prebuiltAssetExclude.filter((e) => e !== assets[1])
                                             }
                                             else {
                                                 DBState.db.characters[$selectedCharID].prebuiltAssetExclude.push(assets[1])

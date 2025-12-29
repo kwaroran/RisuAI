@@ -175,6 +175,68 @@ const reverseProxyFunc_get = async (req, res, next) => {
     }
 }
 
+let accessTokenCache = {
+    token: null,
+    expiry: 0
+}
+async function getSionywAccessToken() {
+    if(accessTokenCache.token && Date.now() < accessTokenCache.expiry){
+        return accessTokenCache.token;
+    }
+    //Schema of the client data file
+    // {
+    //     refresh_token: string;
+    //     client_id: string;
+    //     client_secret: string;
+    // }
+    
+    const clientDataPath = path.join(process.cwd(), 'save', '__sionyw_client_data.json');
+    let refreshToken = ''
+    let clientId = ''
+    let clientSecret = ''
+    if(!existsSync(clientDataPath)){
+        throw new Error('No Sionyw client data found');
+    }
+    const clientDataRaw = readFileSync(clientDataPath, 'utf-8');
+    const clientData = JSON.parse(clientDataRaw);
+    refreshToken = clientData.refresh_token;
+    clientId = clientData.client_id;
+    clientSecret = clientData.client_secret;
+
+    //Oauth Refresh Token Flow
+    
+    const tokenResponse = await fetch('account.sionyw.com/account/api/oauth/token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken,
+            client_id: clientId,
+            client_secret: clientSecret
+        })
+    })
+
+    if(!tokenResponse.ok){
+        throw new Error('Failed to refresh Sionyw access token');
+    }
+
+    const tokenData = await tokenResponse.json();
+
+    //Update the refresh token in the client data file
+    if(tokenData.refresh_token && tokenData.refresh_token !== refreshToken){
+        clientData.refresh_token = tokenData.refresh_token;
+        writeFileSync(clientDataPath, JSON.stringify(clientData), 'utf-8');
+    }
+
+    accessTokenCache.token = tokenData.access_token;
+    accessTokenCache.expiry = Date.now() + (tokenData.expires_in * 1000) - (5 * 60 * 1000); //5 minutes early
+
+    return tokenData.access_token;
+}
+
+
 async function hubProxyFunc(req, res) {
     const excludedHeaders = [
         'content-encoding',
@@ -183,16 +245,39 @@ async function hubProxyFunc(req, res) {
     ];
 
     try {
-        const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
-        const externalURL = hubURL + pathAndQuery;
+        let externalURL = '';
+
+        const pathHeader = req.headers['x-risu-node-path'];
+        if (pathHeader) {
+            const decodedPath = decodeURIComponent(pathHeader);
+            externalURL = decodedPath;
+        } else {
+            const pathAndQuery = req.originalUrl.replace(/^\/hub-proxy/, '');
+            externalURL = hubURL + pathAndQuery;
+        }
         
         const headersToSend = { ...req.headers };
         delete headersToSend.host;
         delete headersToSend.connection;
         delete headersToSend['content-length'];
-        
+        delete headersToSend['x-risu-node-path'];
+
         const hubOrigin = new URL(hubURL).origin;
         headersToSend.origin = hubOrigin;
+
+        //if Authorization header is "Server-Auth, set the token to be Server-Auth
+        if(headersToSend['Authorization'] === 'X-Node-Server-Auth'){
+            //this requires password auth
+            const authHeader = req.headers['risu-auth'];
+            if(!authHeader || authHeader.trim() !== password.trim()){
+                console.log('incorrect', 'received:', authHeader, 'expected:', password)
+                throw new Error('Incorrect password for server auth');
+            }
+
+            headersToSend['Authorization'] = "Bearer " + await getSionywAccessToken();
+            delete headersToSend['risu-auth'];
+        }
+        
         
         const response = await fetch(externalURL, {
             method: req.method,
@@ -210,7 +295,7 @@ async function hubProxyFunc(req, res) {
             res.setHeader(key, value);
         }
         res.status(response.status);
-        
+
         if (response.status >= 300 && response.status < 400 && response.headers.get('location')) {
             const redirectUrl = response.headers.get('location');
             const newHeaders = { ...headersToSend };
@@ -228,11 +313,19 @@ async function hubProxyFunc(req, res) {
                 res.setHeader(key, value);
             }
             res.status(redirectResponse.status);
-            await pipeline(redirectResponse.body, res);
+            if (redirectResponse.body) {
+                await pipeline(redirectResponse.body, res);
+            } else {
+                res.end();
+            }
             return;
         }
         
-        await pipeline(response.body, res);
+        if (response.body) {
+            await pipeline(response.body, res);
+        } else {
+            res.end();
+        }
         
     } catch (error) {
         console.error("[Hub Proxy] Error:", error);

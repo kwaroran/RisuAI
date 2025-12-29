@@ -1,5 +1,5 @@
 <script>
-    import { ChevronDown, ChevronUp } from "lucide-svelte";
+    import { ChevronDown, ChevronUp } from "@lucide/svelte";
     import { language } from "../../lang";
 
     /** @type {{list?: any}} */
@@ -9,7 +9,7 @@
 <div class="list flex flex-col rounded-md  border border-selected">
     {#each list as n, i}
         <div class="w-full h-10 flex items-center">
-            <span class="ml-2 flex-grow">{language.formating[n]}</span>
+            <span class="ml-2 grow">{language.formating[n]}</span>
             <button class="mr-1" onclick={() => {
                 if(i !== 0){
                     let tempList = list

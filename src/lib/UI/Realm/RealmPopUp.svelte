@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BookIcon, FlagIcon, ImageIcon, PaperclipIcon, SmileIcon, TrashIcon } from "lucide-svelte";
+    import { BookIcon, FlagIcon, ImageIcon, PaperclipIcon, SmileIcon, TrashIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { hubURL, type hubType, downloadRisuHub, getRealmInfo } from "src/ts/characterCards";
@@ -19,7 +19,7 @@
 
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="top-0 left-0 z-50 fixed w-full h-full bg-black bg-opacity-50 flex justify-center items-center text-textcolor" role="button" tabindex="0" onclick={() => {
+<div class="top-0 left-0 z-50 fixed w-full h-full bg-black/50 flex justify-center items-center text-textcolor" role="button" tabindex="0" onclick={() => {
     openedData = null
 }}>
     <div class="p-6 max-w-full bg-darkbg rounded-md flex flex-col gap-4 w-2xl overflow-y-auto max-h-full">
@@ -114,7 +114,7 @@
             })}>
                 <PaperclipIcon />
             </button>
-            <button class="bg-selected hover:ring flex-grow p-2 font-bold rounded-md mr-2" onclick={() => {
+            <button class="bg-selected hover:ring-3 grow p-2 font-bold rounded-md mr-2" onclick={() => {
                 downloadRisuHub(openedData.id)
                 openedData = null
             }}>

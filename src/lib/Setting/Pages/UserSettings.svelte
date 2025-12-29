@@ -13,6 +13,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { exportAsDataset } from "src/ts/storage/exportAsDataset";
     import { Capacitor } from "@capacitor/core";
+    import { loginToSionyw, testSionywLogin } from "src/ts/sionyw";
     let openIframe = $state(false)
     let openIframeURL = $state('')
     let popup:Window = null
@@ -116,13 +117,22 @@
 <div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start mt-2">
     <div class="w-full">
         <h1 class="text-3xl font-black min-w-0">Risu Account{#if DBState.db.account}
-            <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-green-500 transition-colors float-right" onclick={async () => {
+            <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-blue-500 transition-colors float-right" onclick={async () => {
                 if(DBState.db.account.useSync || forageStorage.isAccount){
                     unMigrationAccount()
                 }
                 
                 DBState.db.account = undefined
             }}>{language.logout}</button>
+                {#if import.meta.env.DEV}
+                <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-blue-500 transition-colors float-right" onclick={async () => {
+                    loginToSionyw()
+                }}>{language.loginSionyw}</button>
+
+                <button class="bg-selected p-1 text-sm font-light rounded-md hover:bg-blue-500 transition-colors float-right" onclick={async () => {
+                    testSionywLogin()
+                }}>TestSionyw</button>
+            {/if}
         {/if}</h1>
     </div>
     {#if DBState.db.account}
@@ -158,8 +168,24 @@
 
 </div>
 {#if openIframe}
-    <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
+    <div class="fixed top-0 left-0 bg-black/50 w-full h-full flex justify-center items-center">
         <iframe src={openIframeURL} title="login" class="w-full h-full">
         </iframe>
     </div>
 {/if}
+
+<!--
+
+    My song for dear, my old friend.
+
+    Should old aquaintance be forgot,
+    and never brought to mind?
+    Should old lang syne be forgot,
+    and auld lang syne?
+
+    For auld lang syne, my dear,
+    for auld lang syne,
+    we'll take a cup o' kindness yet,
+    for auld lang syne.
+
+-->

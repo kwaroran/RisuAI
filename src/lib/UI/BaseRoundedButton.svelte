@@ -15,7 +15,7 @@
    transition-colors rounded-full
    border border-textcolor2 text-gray-300
    hover:border-gray-300 
-   {isDisabled ? '!cursor-not-allowed' : ''}"
+   {isDisabled ? 'cursor-not-allowed!' : ''}"
 >
   {@render children?.()}
 </button>

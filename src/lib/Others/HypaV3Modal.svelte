@@ -1,19 +1,42 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import { ChevronUpIcon, ChevronDownIcon } from "lucide-svelte";
-  import { type SerializableSummary } from "src/ts/process/memory/hypav3";
+  import { ChevronUpIcon, ChevronDownIcon } from "@lucide/svelte";
+  import { 
+    type SerializableSummary, 
+    summarize,
+  } from "src/ts/process/memory/hypav3";
   import { alertNormalWait } from "src/ts/alert";
-  import { DBState, selectedCharID } from "src/ts/stores.svelte";
+  import { DBState, selectedCharID, hypaV3ModalOpen } from "src/ts/stores.svelte";
   import { language } from "src/lang";
+  import { translateHTML } from "src/ts/translator/translator";
+  import { alertConfirmTwice } from "./HypaV3Modal/utils";
   import ModalHeader from "./HypaV3Modal/modal-header.svelte";
   import ModalSummaryItem from "./HypaV3Modal/modal-summary-item.svelte";
   import ModalFooter from "./HypaV3Modal/modal-footer.svelte";
+  import CategoryManagerModal from "./HypaV3Modal/category-manager-modal.svelte";
+  import TagManagerModal from "./HypaV3Modal/tag-manager-modal.svelte";
+  import BulkEditActions from "./HypaV3Modal/bulk-edit-actions.svelte";
+  import BulkResummaryResult from "./HypaV3Modal/bulk-resummary-result.svelte";
+  
   import type {
     SummaryItemState,
     ExpandedMessageState,
     SearchState,
     SearchResult,
+    BulkResummaryState,
+    CategoryManagerState,
+    TagManagerState,
+    BulkEditState,
+    FilterState,
+    UIState,
   } from "./HypaV3Modal/types";
+  
+  import {
+    shouldShowSummary,
+    isGuidLike,
+    parseSelectionInput,
+  } from "./HypaV3Modal/utils";
+    import type { OpenAIChat } from "src/ts/process/index.svelte";
 
   const hypaV3Data = $derived(
     DBState.db.characters[$selectedCharID].chats[
@@ -21,19 +44,58 @@
     ].hypaV3Data
   );
 
-  let summaryItemStateMap = new WeakMap<
-    SerializableSummary,
-    SummaryItemState
-  >();
+  let categories = $derived((() => {
+    const savedCategories = hypaV3Data.categories || [];
+    const uncategorized = { id: "", name: language.hypaV3Modal.unclassified };
+
+    const hasUncategorized = savedCategories.some(c => c.id === "");
+
+    if (hasUncategorized) {
+      return [uncategorized, ...savedCategories.filter(c => c.id !== "")];
+    } else {
+      return [uncategorized, ...savedCategories];
+    }
+  })());
+
+  let summaryItemStateMap = new WeakMap<SerializableSummary, SummaryItemState>();
   let expandedMessageState = $state<ExpandedMessageState>(null);
   let searchState = $state<SearchState>(null);
-  let filterImportant = $state(false);
-  let dropdownOpen = $state(false);
   let filterSelected = $state(false);
+  let bulkResummaryState = $state<BulkResummaryState | null>(null);
+
+  let categoryManagerState = $state<CategoryManagerState>({
+    isOpen: false,
+    editingCategory: null,
+    selectedCategoryFilter: "all",
+  });
+
+  let tagManagerState = $state<TagManagerState>({
+    isOpen: false,
+    currentSummaryIndex: -1,
+    editingTag: "",
+    editingTagIndex: -1,
+  });
+
+  let bulkEditState = $state<BulkEditState>({
+    isEnabled: false,
+    selectedSummaries: new Set(),
+    selectedCategory: "",
+    bulkSelectInput: "",
+  });
+
+  let filterState = $state<FilterState>({
+    showImportantOnly: false,
+    selectedCategoryFilter: "all",
+    isManualImportantToggle: false,
+  });
+
+  let uiState = $state<UIState>({
+    collapsedSummaries: new Set(),
+    dropdownOpen: false,
+  });
 
   $effect.pre(() => {
     hypaV3Data?.summaries?.length;
-    filterImportant;
     filterSelected;
 
     untrack(() => {
@@ -41,109 +103,342 @@
         DBState.db.characters[$selectedCharID].chatPage
       ].hypaV3Data ??= {
         summaries: [],
+        categories: [{ id: "", name: language.hypaV3Modal.unclassified }],
+        lastSelectedSummaries: [],
       };
 
       expandedMessageState = null;
       searchState = null;
+      
+      uiState.collapsedSummaries = new Set(hypaV3Data.summaries.map((_, index) => index));
     });
   });
 
-  function onSearch(e: KeyboardEvent) {
-    if (!searchState) return;
+  $effect(() => {
+    if ($hypaV3ModalOpen) {
+      const currentImportantCount = untrack(() => hypaV3Data.summaries.filter(s => s.isImportant).length);
 
-    if (e.key === "Escape") {
-      searchState = null;
-      return;
+      if (currentImportantCount > 0) {
+        categoryManagerState.selectedCategoryFilter = "all";
+        filterState.selectedCategoryFilter = "all";
+        filterState.showImportantOnly = true;
+      } else {
+        categoryManagerState.selectedCategoryFilter = "";
+        filterState.selectedCategoryFilter = "";
+        filterState.showImportantOnly = false;
+      }
+
+      filterState.isManualImportantToggle = false;
     }
+  });
 
+  function handleToggleSummarySelection(summaryIndex: number) {
+    const newSelection = new Set(bulkEditState.selectedSummaries);
+    if (newSelection.has(summaryIndex)) {
+      newSelection.delete(summaryIndex);
+    } else {
+      newSelection.add(summaryIndex);
+    }
+    bulkEditState.selectedSummaries = newSelection;
+  }
+
+  function handleOpenTagManager(summaryIndex: number) {
+    tagManagerState.currentSummaryIndex = summaryIndex;
+    tagManagerState.isOpen = true;
+  }
+
+  // Search functionality
+  function onSearch(e: KeyboardEvent) {
     if (e.key === "Enter") {
-      e.preventDefault?.(); // Prevent event default action
+      if (!searchState || !searchState.query.trim()) return;
 
-      const query = searchState.query.trim();
-
-      if (!query) return;
-
-      // When received a new query
-      if (searchState.currentResultIndex === -1) {
-        const results = generateSearchResults(query);
-
-        if (results.length === 0) return;
-
-        searchState.results = results;
-      }
-
-      const nextResult = getNextSearchResult(e.shiftKey);
-
-      if (nextResult) {
-        navigateToSearchResult(nextResult);
-      }
+      // Perform search
+      performSearch(searchState.query, e.shiftKey);
     }
   }
 
-  function generateSearchResults(query: string): SearchResult[] {
+  function performSearch(query: string, backward: boolean = false) {
+    if (!searchState) return;
+
+    // Reset results if query changed
+    if (searchState.results.length === 0) {
+      searchState.results = findAllMatches(query);
+      searchState.currentResultIndex = -1;
+    }
+
+    // Navigate to next/previous result
+    const result = getNextSearchResult(backward);
+    if (result) {
+      navigateToSearchResult(result);
+    }
+  }
+
+  function findAllMatches(query: string): SearchResult[] {
     const results: SearchResult[] = [];
-    const normalizedQuery = query.trim().toLowerCase();
+    const lowerQuery = query.toLowerCase();
 
-    // Search summary index
-    if (query.match(/^#\d+$/)) {
-      const summaryIndex = parseInt(query.substring(1)) - 1;
-
-      if (
-        summaryIndex >= 0 &&
-        summaryIndex < hypaV3Data.summaries.length &&
-        isSummaryVisible(summaryIndex)
-      ) {
-        results.push({ type: "summary", summaryIndex, start: 0, end: 0 });
+    hypaV3Data.summaries.forEach((summary, summaryIndex) => {
+      // Search in summary text
+      const summaryText = summary.text.toLowerCase();
+      let index = 0;
+      while ((index = summaryText.indexOf(lowerQuery, index)) !== -1) {
+        results.push({
+          type: "summary",
+          summaryIndex,
+          start: index,
+          end: index + query.length,
+        });
+        index += query.length;
       }
 
-      return results;
-    }
-
-    if (isGuidLike(query)) {
-      // Search chatMemo
-      hypaV3Data.summaries.forEach((summary, summaryIndex) => {
-        if (!isSummaryVisible(summaryIndex)) return;
-
-        const summaryItemState = summaryItemStateMap.get(summary);
-
-        summaryItemState.chatMemoRefs.forEach((buttonRef, memoIndex) => {
-          const buttonText = buttonRef.textContent?.toLowerCase() || "";
-
-          if (buttonText.includes(normalizedQuery)) {
-            results.push({ type: "chatmemo", summaryIndex, memoIndex });
+      // Search in chat memos (if they're GUIDs)
+      if (isGuidLike(query)) {
+        summary.chatMemos.forEach((chatMemo, memoIndex) => {
+          if (chatMemo && chatMemo.toLowerCase().includes(lowerQuery)) {
+            results.push({
+              type: "chatmemo",
+              summaryIndex,
+              memoIndex,
+            });
           }
         });
-      });
-    } else {
-      // Search summary
-      hypaV3Data.summaries.forEach((summary, summaryIndex) => {
-        if (!isSummaryVisible(summaryIndex)) return;
-
-        const summaryItemState = summaryItemStateMap.get(summary);
-        const textAreaText = summaryItemState.originalRef.value?.toLowerCase();
-        let pos = -1;
-
-        while ((pos = textAreaText.indexOf(normalizedQuery, pos + 1)) !== -1) {
-          results.push({
-            type: "summary",
-            summaryIndex,
-            start: pos,
-            end: pos + normalizedQuery.length,
-          });
-        }
-      });
-    }
+      }
+    });
 
     return results;
   }
 
-  function isGuidLike(str: string): boolean {
-    const strTrimed = str.trim();
+  async function resummarizeBulkSelected() {
+    if (bulkEditState.selectedSummaries.size < 2) return;
 
-    // Exclude too short inputs
-    if (strTrimed.length < 4) return false;
+    const sortedIndices = Array.from(bulkEditState.selectedSummaries).sort((a, b) => a - b);
 
-    return /^[0-9a-f]{4,12}(-[0-9a-f]{4,12}){0,4}-?$/i.test(strTrimed);
+    try {
+      bulkResummaryState = {
+        isProcessing: true,
+        result: null,
+        selectedIndices: sortedIndices,
+        mergedChatMemos: [],
+        isTranslating: false,
+        translation: null
+      };
+
+      const selectedSummaryTexts = sortedIndices.map(index =>
+        hypaV3Data.summaries[index].text
+      );
+
+      const oaiMessages: OpenAIChat[] = selectedSummaryTexts.map(text => ({
+        role: "user",
+        content: text
+      }));
+
+      const mergedChatMemos: string[] = [];
+      for (const index of sortedIndices) {
+        const summary = hypaV3Data.summaries[index];
+        mergedChatMemos.push(...summary.chatMemos);
+      }
+
+      const uniqueChatMemos = [...new Set(mergedChatMemos)];
+
+      const resummary = await summarize(oaiMessages, true);
+
+      bulkResummaryState = {
+        isProcessing: false,
+        result: resummary,
+        selectedIndices: sortedIndices,
+        mergedChatMemos: uniqueChatMemos,
+        isTranslating: false,
+        translation: null
+      };
+
+    } catch (error) {
+      console.error('Re-summarize Failed:', error);
+      bulkResummaryState = null;
+      await alertNormalWait(`Re-summarize Failed: ${error.message || error}`);
+    }
+  }
+
+  async function applyBulkResummary() {
+    if (!bulkResummaryState || !bulkResummaryState.result) return;
+
+    const sortedIndices = bulkResummaryState.selectedIndices;
+    const minIndex = sortedIndices[0];
+
+    hypaV3Data.summaries[minIndex] = {
+      text: bulkResummaryState.result,
+      chatMemos: bulkResummaryState.mergedChatMemos,
+      isImportant: hypaV3Data.summaries[minIndex].isImportant,
+      categoryId: hypaV3Data.summaries[minIndex].categoryId,
+      tags: hypaV3Data.summaries[minIndex].tags
+    };
+    
+    for (let i = sortedIndices.length - 1; i > 0; i--) {
+      hypaV3Data.summaries.splice(sortedIndices[i], 1);
+    }
+    
+    uiState.collapsedSummaries = new Set(hypaV3Data.summaries.map((_, index) => index));
+    
+    bulkResummaryState = null;
+    bulkEditState.selectedSummaries = new Set();
+  }
+
+  async function rerollBulkResummary() {
+    if (!bulkResummaryState) return;
+    
+    const sortedIndices = bulkResummaryState.selectedIndices;
+    
+    try {
+      bulkResummaryState = {
+        ...bulkResummaryState,
+        isProcessing: true,
+        result: null,
+        isTranslating: false,
+        translation: null
+      };
+      
+      const selectedSummaryTexts = sortedIndices.map(index => 
+        hypaV3Data.summaries[index].text
+      );
+      
+      const oaiMessages: OpenAIChat[] = selectedSummaryTexts.map(text => ({
+        role: "user",
+        content: text
+      }));
+      
+      const resummary = await summarize(oaiMessages, true);
+      
+      bulkResummaryState = {
+        ...bulkResummaryState,
+        isProcessing: false,
+        result: resummary,
+        isTranslating: false,
+        translation: null
+      };
+      
+    } catch (error) {
+      console.error('Re-summarize Retry Failed:', error);
+      bulkResummaryState = null;
+      await alertNormalWait(`Re-summarize Retry Failed: ${error.message || error}`);
+    }
+  }
+
+  function cancelBulkResummary() {
+    bulkResummaryState = null;
+    bulkEditState.selectedSummaries = new Set();
+  }
+
+  async function toggleBulkResummaryTranslation(regenerate: boolean = false) {
+    if (!bulkResummaryState || !bulkResummaryState.result) return;
+    
+    if (bulkResummaryState.isTranslating) return;
+
+    if (bulkResummaryState.translation) {
+      bulkResummaryState.translation = null;
+      return;
+    }
+
+    bulkResummaryState.isTranslating = true;
+    bulkResummaryState.translation = "Loading...";
+
+    try {
+      const result = await translateHTML(bulkResummaryState.result, false, "", -1, regenerate);
+      
+      bulkResummaryState.translation = result;
+    } catch (error) {
+      bulkResummaryState.translation = `Translation failed: ${error}`;
+    } finally {
+      bulkResummaryState.isTranslating = false;
+    }
+  }
+
+  async function handleResetData() {
+    if (
+      await alertConfirmTwice(
+        language.hypaV3Modal.resetConfirmMessage,
+        language.hypaV3Modal.resetConfirmSecondMessage
+      )
+    ) {
+      DBState.db.characters[$selectedCharID].chats[
+        DBState.db.characters[$selectedCharID].chatPage
+      ].hypaV3Data = {
+        summaries: [],
+      };
+    }
+  }
+
+  function handleToggleBulkEditMode() {
+    bulkEditState.isEnabled = !bulkEditState.isEnabled;
+    if (!bulkEditState.isEnabled) {
+      bulkEditState.selectedSummaries = new Set();
+    }
+  }
+
+  function handleBulkEditClearSelection() {
+    bulkEditState.selectedSummaries = new Set();
+  }
+
+  function handleBulkEditUpdateSelectedCategory(categoryId: string) {
+    bulkEditState.selectedCategory = categoryId;
+  }
+
+  function handleBulkEditUpdateBulkSelectInput(input: string) {
+    bulkEditState.bulkSelectInput = input;
+  }
+
+  function handleBulkEditApplyCategory() {
+    if (bulkEditState.selectedSummaries.size === 0) return;
+
+    for (const summaryIndex of bulkEditState.selectedSummaries) {
+      hypaV3Data.summaries[summaryIndex].categoryId = bulkEditState.selectedCategory || undefined;
+    }
+
+    handleBulkEditClearSelection();
+  }
+
+  function handleBulkEditToggleImportant() {
+    if (bulkEditState.selectedSummaries.size === 0) return;
+    const selectedIndices = Array.from(bulkEditState.selectedSummaries);
+    const hasNonImportant = selectedIndices.some(index => !hypaV3Data.summaries[index].isImportant);
+
+    selectedIndices.forEach(index => {
+      const summary = hypaV3Data.summaries[index];
+      hasNonImportant ? summary.isImportant = true : summary.isImportant = false;
+    });
+    handleBulkEditClearSelection();
+  }
+
+  function handleBulkEditParseAndSelectSummaries() {
+    if (!bulkEditState.bulkSelectInput.trim()) return;
+    
+    const newSelection = parseSelectionInput(bulkEditState.bulkSelectInput, hypaV3Data.summaries.length);
+    const filteredSelection = new Set<number>();
+    
+    for (const index of newSelection) {
+      if (shouldShowSummary(hypaV3Data.summaries[index], index, filterState.showImportantOnly, filterState.selectedCategoryFilter)) {
+        filteredSelection.add(index);
+      }
+    }
+
+    bulkEditState.selectedSummaries = filteredSelection;
+    bulkEditState.bulkSelectInput = "";
+  }
+
+  function handleOpenCategoryManager() {
+    categoryManagerState.isOpen = true;
+  }
+
+  function handleCategoryFilter(categoryId: string) {
+    filterState.selectedCategoryFilter = categoryId;
+  }
+
+  function handleToggleCollapse(summaryIndex: number) {
+    const newCollapsed = new Set(uiState.collapsedSummaries);
+    if (newCollapsed.has(summaryIndex)) {
+      newCollapsed.delete(summaryIndex);
+    } else {
+      newCollapsed.add(summaryIndex);
+    }
+    uiState.collapsedSummaries = newCollapsed;
   }
 
   function getNextSearchResult(backward: boolean): SearchResult | null {
@@ -271,19 +566,21 @@
 
   function isSummaryVisible(index: number): boolean {
     const summary = hypaV3Data.summaries[index];
-    const metrics = hypaV3Data.metrics;
-
-    const selectedFilter =
+    
+    // Use the new shouldShowSummary utility function
+    return shouldShowSummary(
+      summary, 
+      index, 
+      filterState.showImportantOnly, 
+      filterState.selectedCategoryFilter
+    ) && (
       !filterSelected ||
-      !metrics ||
-      metrics.lastImportantSummaries.includes(index) ||
-      metrics.lastRecentSummaries.includes(index) ||
-      metrics.lastSimilarSummaries.includes(index) ||
-      metrics.lastRandomSummaries.includes(index);
-
-    const importantFilter = !filterImportant || summary.isImportant;
-
-    return selectedFilter && importantFilter;
+      !hypaV3Data.metrics ||
+      hypaV3Data.metrics.lastImportantSummaries.includes(index) ||
+      hypaV3Data.metrics.lastRecentSummaries.includes(index) ||
+      hypaV3Data.metrics.lastSimilarSummaries.includes(index) ||
+      hypaV3Data.metrics.lastRandomSummaries.includes(index)
+    );
   }
 
   function isHypaV2ConversionPossible(): boolean {
@@ -358,6 +655,11 @@
       };
     }
   }
+
+  type DualActionParams = {
+    onMainAction?: () => void;
+    onAlternativeAction?: () => void;
+  };
 </script>
 
 <!-- Modal Backdrop -->
@@ -374,15 +676,23 @@
         : 'h-full'}"
       onclick={(e) => {
         e.stopPropagation();
-        dropdownOpen = false;
+        uiState.dropdownOpen = false;
       }}
     >
       <!-- Header -->
       <ModalHeader
         bind:searchState
-        bind:filterImportant
-        bind:dropdownOpen
+        bind:filterImportant={filterState.showImportantOnly}
+        bind:dropdownOpen={uiState.dropdownOpen}
         bind:filterSelected
+        {bulkEditState}
+        {categoryManagerState}
+        {filterState}
+        {uiState}
+        {hypaV3Data}
+        onResetData={handleResetData}
+        onToggleBulkEditMode={handleToggleBulkEditMode}
+        onOpenCategoryManager={handleOpenCategoryManager}
       />
 
       <!-- Scrollable Container -->
@@ -440,7 +750,7 @@
                   }}
                 >
                   <input
-                    class="w-full px-2 py-2 border rounded sm:px-4 sm:py-3 border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
+                    class="w-full px-2 py-2 border rounded-sm sm:px-4 sm:py-3 border-zinc-700 focus:outline-hidden focus:ring-2 focus:ring-zinc-500 text-zinc-200 bg-zinc-900"
                     placeholder={language.hypaV3Modal.searchPlaceholder}
                     bind:this={searchState.ref}
                     bind:value={searchState.query}
@@ -456,7 +766,7 @@
 
                 {#if searchState.results.length > 0}
                   <span
-                    class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:px-3 py-1 sm:py-2 rounded text-sm font-semibold text-zinc-100 bg-zinc-700/65"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 sm:px-3 py-1 sm:py-2 rounded-sm text-sm font-semibold text-zinc-100 bg-zinc-700/65"
                   >
                     {searchState.currentResultIndex + 1}/{searchState.results
                       .length}
@@ -500,6 +810,12 @@
               bind:expandedMessageState
               bind:searchState
               {filterSelected}
+              {categories}
+              {bulkEditState}
+              {uiState}
+              onToggleSummarySelection={handleToggleSummarySelection}
+              onOpenTagManager={handleOpenTagManager}
+              onToggleCollapse={handleToggleCollapse}
             />
           {/if}
         {/each}
@@ -507,6 +823,42 @@
         <!-- Footer -->
         <ModalFooter {hypaV3Data} />
       </div>
+
+      <!-- Bulk Resummary Result -->
+      <BulkResummaryResult
+        {bulkResummaryState}
+        onToggleTranslation={toggleBulkResummaryTranslation}
+        onReroll={rerollBulkResummary}
+        onApply={applyBulkResummary}
+        onCancel={cancelBulkResummary}
+      />
+
+      <!-- Bulk Edit Actions -->
+      <BulkEditActions
+        {bulkEditState}
+        {categories}
+        showImportantOnly={filterState.showImportantOnly}
+        selectedCategoryFilter={filterState.selectedCategoryFilter}
+        onResummarize={resummarizeBulkSelected}
+        onClearSelection={handleBulkEditClearSelection}
+        onUpdateSelectedCategory={handleBulkEditUpdateSelectedCategory}
+        onUpdateBulkSelectInput={handleBulkEditUpdateBulkSelectInput}
+        onApplyCategory={handleBulkEditApplyCategory}
+        onToggleImportant={handleBulkEditToggleImportant}
+        onParseAndSelectSummaries={handleBulkEditParseAndSelectSummaries}
+      />
     </div>
   </div>
 </div>
+
+<!-- Component Modals -->
+<CategoryManagerModal
+  bind:categoryManagerState
+  bind:searchState
+  {filterState}
+  onCategoryFilter={handleCategoryFilter}
+/>
+
+<TagManagerModal
+  bind:tagManagerState
+/>

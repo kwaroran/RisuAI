@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { XIcon, LinkIcon, SunIcon, BookCopyIcon, FolderIcon, FolderOpen, FolderInputIcon, PlusIcon, PencilIcon } from "lucide-svelte";
+    import { XIcon, LinkIcon, SunIcon, BookCopyIcon, FolderIcon, FolderOpen, PlusIcon } from "@lucide/svelte";
     import { v4 } from "uuid";
     import { language } from "../../../lang";
     import { getCurrentCharacter, getCurrentChat, type loreBook } from "../../../ts/storage/database.svelte";
-    import { alertConfirm, alertInput, alertMd } from "../../../ts/alert";
+    import { alertConfirm, alertMd } from "../../../ts/alert";
     import Check from "../../UI/GUI/CheckInput.svelte";
     import Help from "../../Others/Help.svelte";
     import TextInput from "../../UI/GUI/TextInput.svelte";
@@ -41,11 +41,7 @@
         isLastInContainer = false
     }: Props = $props();
     
-    let open = $state(isOpen)
-    
-    $effect(() => {
-        open = isOpen
-    })
+    let open = $derived(isOpen)
 
     async function getTokens(data:string){
         tokens = await tokenizeAccurate(data)
@@ -198,7 +194,7 @@
     </div>
     {#if open}
         {#if value.mode === 'folder'}
-        <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
+        <div class="border-0 outline-hidden w-full mt-2 flex flex-col mb-2">
             <span class="text-textcolor mt-6 mb-2">{language.folderName}</span>
             <TextInput size="sm" bind:value={value.comment}/>
 
@@ -225,7 +221,7 @@
             </div>
         </div>
         {:else}
-        <div class="border-0 outline-none w-full mt-2 flex flex-col mb-2">
+        <div class="border-0 outline-hidden w-full mt-2 flex flex-col mb-2">
             <span class="text-textcolor mt-6">{language.name} <Help key="loreName"/></span>
             <TextInput size="sm" bind:value={value.comment}/>
             {#if !lorePlus}

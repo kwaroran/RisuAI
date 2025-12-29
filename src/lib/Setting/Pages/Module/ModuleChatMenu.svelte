@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CheckCircle2Icon, Waypoints, XIcon } from "lucide-svelte";
+    import { CheckCircle2Icon, Waypoints, XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
@@ -32,11 +32,11 @@
 </script>
 
 
-<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
+<div class="absolute w-full h-full z-40 bg-black/50 flex justify-center items-center">
     <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-full max-h-full overflow-y-auto">
         <div class="flex items-center text-textcolor">
             <h2 class="mt-0 mb-0 text-lg">{language.modules}</h2>
-            <div class="flex-grow flex justify-end">
+            <div class="grow flex justify-end">
                 <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={() => {
                     close('')
                 }}>
@@ -66,7 +66,7 @@
                         {:else}
                             <span class="">{rmodule.name}</span>
                         {/if}
-                        <div class="flex-grow flex justify-end">
+                        <div class="grow flex justify-end">
 
                             {#if alertMode}
                                 <button class={"text-textcolor2 mr-2 cursor-pointer hover:text-blue-500 transition-colors"} onclick={async (e) => {
@@ -121,7 +121,7 @@
             {/if}
         </div>
         <div>
-            <Button className="mt-4 flex-grow-0" size="sm" onclick={() => {
+            <Button className="mt-4 grow-0" size="sm" onclick={() => {
                 $SettingsMenuIndex = 14
                 $settingsOpen = true
                 close('')

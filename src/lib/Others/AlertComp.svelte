@@ -5,12 +5,12 @@
     import { getCharImage } from '../../ts/characters';
     import { ParseMarkdown } from '../../ts/parser.svelte';
     import BarIcon from '../SideBars/BarIcon.svelte';
-    import { ChevronRightIcon, User } from 'lucide-svelte';
+    import { ChevronRightIcon, User } from '@lucide/svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
-    import { openURL } from 'src/ts/globalApi.svelte';
+    import { aiLawApplies, openURL } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon } from "lucide-svelte";
+    import { XIcon } from "@lucide/svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
@@ -23,8 +23,12 @@
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
+    import { translateStackTrace } from "../../ts/sourcemap";
 
     let showDetails = $state(false);
+    let translatedStackTrace = $state('');
+    let isTranslated = $state(false);
+    let isTranslating = $state(false);
 
     let btn
     let input = $state('')
@@ -39,6 +43,9 @@
     } = $state(null)
     $effect.pre(() => {
         showDetails = false;
+        translatedStackTrace = '';
+        isTranslated = false;
+        isTranslating = false;
         if(btn){
             btn.focus()
         }
@@ -54,6 +61,36 @@
             cardLicense = ''
         }
     });
+
+    $effect(() => {
+        if (showDetails) {
+            const shouldAutoTranslate = DBState.db.sourcemapTranslate;
+            isTranslated = shouldAutoTranslate;
+            if (shouldAutoTranslate && !translatedStackTrace) {
+                loadTranslatedTrace();
+            }
+        }
+    });
+
+    async function loadTranslatedTrace() {
+        if (isTranslating || translatedStackTrace) return;
+        isTranslating = true;
+        try {
+            translatedStackTrace = await translateStackTrace($alertStore.stackTrace);
+        } catch (e) {
+            console.error("Failed to translate stack trace:", e);
+            isTranslated = false;
+        } finally {
+            isTranslating = false;
+        }
+    }
+
+    async function handleToggleTranslate() {
+        if (!isTranslated && !translatedStackTrace) {
+            await loadTranslatedTrace();
+        }
+        isTranslated = !isTranslated;
+    }
 
     const beautifyJSON = (data:string) =>{
         try {
@@ -76,7 +113,7 @@
 }}></svelte:window>
 
 {#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'branches' && $alertStore.type !== 'selectModule' && $alertStore.type !== 'pukmakkurit'}
-    <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
+    <div class="absolute w-full h-full z-50 bg-black/50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
                 <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
@@ -121,7 +158,7 @@
                     {/if}
                     <p class="confirm-message">{confirmMessage}</p>
                 </div>
-            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions' && $alertStore.type !== 'pluginconfirm'}
+            {:else if $alertStore.type !== 'select' && $alertStore.type !== 'requestdata' && $alertStore.type !== 'addchar' && $alertStore.type !== 'hypaV2' && $alertStore.type !== 'chatOptions'}
                 <span class="text-gray-300 whitespace-pre-wrap">{$alertStore.msg}</span>
                 {#if $alertStore.submsg && $alertStore.type !== 'progress'}
                     <span class="text-gray-500 text-sm">{$alertStore.submsg}</span>
@@ -138,14 +175,23 @@
                             {/if}
                         </Button>
                         {#if showDetails}
-                            <pre class="stack-trace">{@html $alertStore.stackTrace}</pre>
+                            <Button styled="outlined" size="sm" onclick={handleToggleTranslate} disabled={isTranslating} className="ml-2">
+                                {#if isTranslating}
+                                    {language.translating}
+                                {:else if isTranslated}
+                                    {language.showOriginal}
+                                {:else}
+                                    {language.translateCode}
+                                {/if}
+                            </Button>
+                            <pre class="stack-trace">{@html isTranslated ? translatedStackTrace : $alertStore.stackTrace}</pre>
                         {/if}
                     </div>
                 {/if}
             {/if}
             {#if $alertStore.type === 'progress'}
                 <div class="w-full min-w-64 md:min-w-138 h-2 bg-darkbg border border-darkborderc rounded-md mt-6">
-                    <div class="h-full bg-gradient-to-r from-blue-500 to-purple-800 saving-animation transition-[width]" style:width={$alertStore.submsg + '%'}></div>
+                    <div class="h-full bg-linear-to-r from-blue-500 to-purple-800 saving-animation transition-[width]" style:width={$alertStore.submsg + '%'}></div>
                 </div>
                 <div class="w-full flex justify-center mt-6">
                     <span class="text-gray-500 text-sm">{$alertStore.submsg + '%'}</span>
@@ -154,13 +200,13 @@
 
             {#if $alertStore.type === 'ask' || $alertStore.type === 'pluginconfirm'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" onclick={() => {
+                    <Button className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'yes'
                         })
                     }}>YES</Button>
-                    <Button className="mt-4 flex-grow" onclick={() => {
+                    <Button className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
@@ -169,13 +215,13 @@
                 </div>
             {:else if $alertStore.type === 'tos'}
                 <div class="flex gap-2 w-full">
-                    <Button className="mt-4 flex-grow" onclick={() => {
+                    <Button className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'yes'
                         })
                     }}>Accept</Button>
-                    <Button styled={'outlined'} className="mt-4 flex-grow" onclick={() => {
+                    <Button styled={'outlined'} className="mt-4 grow" onclick={() => {
                         alertStore.set({
                             type: 'none',
                             msg: 'no'
@@ -218,7 +264,7 @@
                 <Button className="mt-4" onclick={() => {
                     alertStore.set({
                         type: 'none',
-                        //@ts-ignore
+                        //@ts-expect-error 'value' doesn't exist on Element, but target is HTMLInputElement here
                         msg: document.querySelector('#alert-input')?.value
                     })
                 }}>OK</Button>
@@ -233,7 +279,7 @@
                     </datalist>
                 {/if}
             {:else if $alertStore.type === 'login'}
-                <div class="fixed top-0 left-0 bg-black bg-opacity-50 w-full h-full flex justify-center items-center">
+                <div class="fixed top-0 left-0 bg-black/50 w-full h-full flex justify-center items-center">
                     <iframe src={hubURL + '/hub/login'} title="login" class="w-full h-full">
                     </iframe>
                 </div>
@@ -244,21 +290,18 @@
                             {#if char.image}
                                 {#await getCharImage(DBState.db.characters[i].image, 'css')}
                                     <BarIcon onClick={() => {
-                                        //@ts-ignore
                                         alertStore.set({type: 'none',msg: char.chaId})
                                     }}>
                                         <User/>
                                     </BarIcon>
                                 {:then im} 
                                     <BarIcon onClick={() => {
-                                        //@ts-ignore
                                         alertStore.set({type: 'none',msg: char.chaId})
                                     }} additionalStyle={im} />
                                     
                                 {/await}
                             {:else}
                                 <BarIcon onClick={() => {
-                                    //@ts-ignore
                                     alertStore.set({type: 'none',msg: char.chaId})
                                 }}>
                                 <User/>
@@ -268,6 +311,11 @@
                     {/each}
                 </div>
             {:else if $alertStore.type === 'requestdata'}
+                {#if aiLawApplies()}
+                <div>
+                    {language.generatedByAIDisclaimer}
+                </div>
+                {/if}
                 <div class="flex flex-wrap gap-2">
                     <Button selected={generationInfoMenuIndex === 0} size="sm" onclick={() => {generationInfoMenuIndex = 0}}>
                         {language.tokens}
@@ -375,7 +423,7 @@
                             <span class="text-blue-500">Preset Name</span>
                             <span class="text-blue-500 justify-self-end">{DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptName}</span>
                             <span class="text-purple-500">Toggles</span>
-                            <div class="col-span-2 max-h-32 overflow-y-auto border border-stone-500 rounded p-2 bg-gray-900">
+                            <div class="col-span-2 max-h-32 overflow-y-auto border border-stone-500 rounded-sm p-2 bg-gray-900">
                                 {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptToggles.length === 0}
                                     <div class="text-gray-500 italic text-center py-4">{language.promptInfoEmptyToggle}</div>
                                 {:else}
@@ -388,14 +436,14 @@
                                 {/if}
                             </div>
                             <span class="text-red-500">Prompt Text</span>
-                            <div class="col-span-2 max-h-80 overflow-y-auto border border-stone-500 rounded p-4 bg-gray-900">
+                            <div class="col-span-2 max-h-80 overflow-y-auto border border-stone-500 rounded-sm p-4 bg-gray-900">
                                 {#if !DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptText}
                                     <div class="text-gray-500 italic text-center py-4">{language.promptInfoEmptyText}</div>
                                 {:else}
                                     {#each DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[$alertGenerationInfoStore.idx].promptInfo.promptText as block}
                                         <div class="mb-2">
                                             <div class="font-bold text-gray-600">{block.role}</div>
-                                            <pre class="whitespace-pre-wrap text-sm bg-stone-900 p-2 rounded border border-stone-500">{block.content}</pre>
+                                            <pre class="whitespace-pre-wrap text-sm bg-stone-900 p-2 rounded-sm border border-stone-500">{block.content}</pre>
                                         </div>
                                     {/each}
                                 {/if}
@@ -578,7 +626,7 @@
 
 {:else if $alertStore.type === 'cardexport'}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" role="button" tabindex="0" onclick={close}>
+    <div  class="fixed top-0 left-0 h-full w-full bg-black/50 flex flex-col z-50 items-center justify-center" role="button" tabindex="0" onclick={close}>
         <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl" role="button" tabindex="0" onclick={(e) => {
             e.stopPropagation()
         }}>
@@ -678,14 +726,14 @@
     <!-- Log Generator by dootaang, GPL3 -->
     <!-- Svelte, Typescript version by Kwaroran -->
     
-    <div class="absolute w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="absolute w-full h-full z-50 bg-black/50 flex justify-center items-center">
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             <h2 class="text-green-700 mt-0 mb-2 w-40 max-w-full">{language.preview}</h2>
 
         </div>
     </div>
 {:else if $alertStore.type === 'branches'}
-    <div class="absolute w-full h-full z-50 bg-black bg-opacity-80 flex justify-center items-center overflow-x-auto overflow-y-auto">
+    <div class="absolute w-full h-full z-50 bg-black/80 flex justify-center items-center overflow-x-auto overflow-y-auto">
         {#if branchHover !== null}
             <div class="z-30 whitespace-pre-wrap p-4 text-textcolor bg-darkbg border-darkborderc border rounded-md absolute text-white" style="top: {branchHover.y * 80 + 24}px; left: {(branchHover.x + 1) * 80 + 24}px">
                 {branchHover.content}

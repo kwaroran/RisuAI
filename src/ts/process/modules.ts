@@ -265,16 +265,12 @@ function getModuleById(id:string){
 }
 
 function getModuleByIds(ids:string[]){
-    let modules:RisuModule[] = []
     const db = getDatabase()
-    for(let i=0;i<ids.length;i++){
-        const module = db.modules.find((m) => m.id === ids[i] || (m.namespace === ids[i] && m.namespace))
-        if(module){
-            modules.push(module)
-        }
-    }
-    modules = deduplicateModuleById(modules)
-    return modules
+    const idSet = new Set(ids)
+    const modules = db.modules.filter(m => 
+        idSet.has(m.id) || (m.namespace && idSet.has(m.namespace))
+    )
+    return deduplicateModuleById(modules)
 }
 
 function deduplicateModuleById(modules:RisuModule[]){

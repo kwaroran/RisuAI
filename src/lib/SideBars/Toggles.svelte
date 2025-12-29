@@ -67,7 +67,7 @@
                     {#if toggle.value}
                         <span class="shrink-0">{toggle.value}</span>
                     {/if}
-                    <hr class="border-t border-darkborderc m-0 flex-grow" />
+                    <hr class="border-t border-darkborderc m-0 grow" />
                 </div>
             {/if}
         {:else}
@@ -81,7 +81,7 @@
 {/snippet}
 
 {#if !noContainer && groupedToggles.length > 4}
-    <div class="h-48 border-darkborderc p-2 border rounded flex flex-col items-start mt-2 overflow-y-auto">
+    <div class="h-48 border-darkborderc p-2 border rounded-sm flex flex-col items-start mt-2 overflow-y-auto">
         <div class="flex mt-2 items-center w-full" class:justify-end={$MobileGUI}>
             <CheckInput bind:check={DBState.db.jailbreakToggle} name={language.jailbreakToggle} reverse />
         </div>

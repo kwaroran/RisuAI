@@ -1,5 +1,8 @@
 <script lang="ts">
-	const { children } = $props();
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+	const { children }: Props = $props();
 </script>
 
 {#if children}

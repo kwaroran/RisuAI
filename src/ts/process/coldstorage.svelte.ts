@@ -4,14 +4,12 @@ import {
     readFile,
     exists,
     mkdir,
-    readDir,
     remove
 } from "@tauri-apps/plugin-fs"
 import { forageStorage, isNodeServer, isTauri } from "../globalApi.svelte"
 import { DBState } from "../stores.svelte"
-import { hubURL } from "../characterCards"
-import type { AccountStorage } from "../storage/accountStorage"
 import type { NodeStorage } from "../storage/nodeStorage"
+import { fetchProtectedResource } from "../sionyw"
 
 export const coldStorageHeader = '\uEF01COLDSTORAGE\uEF01'
 
@@ -30,11 +28,10 @@ async function decompress(data:Uint8Array) {
 async function getColdStorageItem(key:string) {
 
     if(forageStorage.isAccount){
-        const d = await fetch(hubURL + '/hub/account/coldstorage', {
+        const d = await fetchProtectedResource('/hub/account/coldstorage', {
             method: 'GET',
             headers: {
                 'x-risu-key': key,
-                'x-risu-auth': (forageStorage.realStorage as AccountStorage).auth
             }
         })
 
@@ -105,14 +102,13 @@ async function setColdStorageItem(key:string, value:any) {
     }))
     
     if(forageStorage.isAccount){
-        const res = await fetch(hubURL + '/hub/account/coldstorage', {
+        const res = await fetchProtectedResource('/hub/account/coldstorage', {
             method: 'POST',
             headers: {
                 'x-risu-key': key,
-                'x-risu-auth': (forageStorage.realStorage as AccountStorage).auth,
                 'content-type': 'application/json'
             },
-            body: compressed
+            body: compressed as any
         })
         if(res.status !== 200){
             try {
@@ -148,7 +144,7 @@ async function setColdStorageItem(key:string, value:any) {
             const opfs = await navigator.storage.getDirectory()
             const file = await opfs.getFileHandle('coldstorage_' + key+'.json', { create: true })
             const writable = await file.createWritable()
-            await writable.write(compressed)
+            await writable.write(compressed as any)
             await writable.close()
         } catch (error) {
             console.error(error)

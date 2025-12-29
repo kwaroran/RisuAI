@@ -1,26 +1,21 @@
 import { defineConfig } from "vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
-import {sveltePreprocess} from "svelte-preprocess";
+import { svelte, vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import wasm from "vite-plugin-wasm";
-import { internalIpV4 } from 'internal-ip'
-import topLevelAwait from "vite-plugin-top-level-await";
 import strip from '@rollup/plugin-strip';
+import tailwindcss from '@tailwindcss/vite'
 // https://vitejs.dev/config/
 export default defineConfig(({command, mode}) => {
   return {
     plugins: [
       svelte({
-        preprocess: [
-          sveltePreprocess({
-            typescript: true,
-          }),
-        ],
+        preprocess: vitePreprocess(),
         onwarn: (warning, handler) => {
           // disable a11y warnings
           if (warning.code.startsWith("a11y-")) return;
           handler(warning);
         },
       }),
+      tailwindcss(),
       wasm(),
       command === 'build' ? strip({
         include: '**/*.(mjs|js|svelte|ts)'
@@ -37,16 +32,15 @@ export default defineConfig(({command, mode}) => {
       strictPort: true,
       // hmr: false,
     },
-    // to make use of `TAURI_DEBUG` and other env variables
-    // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
+    // to make use of `TAURI_ENV_DEBUG` and other env variables
+    // https://v2.tauri.app/reference/environment-variables/
     envPrefix: ["VITE_", "TAURI_"],
     build: {
-      // Tauri supports es2021
-      target:['safari15','chrome100','firefox100','edge100'],
+      target:'baseline-widely-available',
       // don't minify for debug builds
-      minify: process.env.TAURI_DEBUG ? false : 'esbuild',
+      minify: process.env.TAURI_ENV_DEBUG === 'true' ? false : 'esbuild',
       // produce sourcemaps for debug builds
-      sourcemap: !!process.env.TAURI_DEBUG,
+      sourcemap: process.env.TAURI_ENV_DEBUG === 'true',
       chunkSizeWarningLimit: 2000,
     },
     
@@ -62,7 +56,6 @@ export default defineConfig(({command, mode}) => {
     resolve:{
       alias:{
         'src':'/src',
-        'modules': '/modules'
       }
     },
     worker: {

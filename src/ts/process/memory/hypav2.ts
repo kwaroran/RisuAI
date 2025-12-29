@@ -583,7 +583,7 @@ export async function hypaMemoryV2(
     await processor.addText(
         data.chunks
             .filter((v) => v.text.trim().length > 0)
-            .map((v) => searchDocumentPrefix + v.text.trim()) // sometimes this should not be used at all. RisuAI does not support embedding model that this is meaningful, isn't it?
+            .map((v) => searchDocumentPrefix + v.text.trim()) // sometimes this should not be used at all. Risuai does not support embedding model that this is meaningful, isn't it?
     );
 
     let scoredResults: { [key: string]: number } = {};

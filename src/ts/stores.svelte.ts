@@ -1,9 +1,11 @@
-import { get, writable, type Writable } from "svelte/store";
+import { writable } from "svelte/store";
 import type { character, Database, groupChat } from "./storage/database.svelte";
 import type { simpleCharacterArgument } from "./parser.svelte";
 import type { alertData } from "./alert";
-import { getModules, moduleUpdate } from "./process/modules";
+import { moduleUpdate } from "./process/modules";
 import { resetScriptCache } from "./process/scripts";
+import type { hubType } from "./characterCards";
+import type { PluginSafetyErrors } from "./plugins/pluginSafety";
 
 function updateSize(){
     SizeStore.set({
@@ -32,6 +34,7 @@ export const botMakerMode = writable(false)
 export const moduleBackgroundEmbedding = writable('')
 export const openPresetList = writable(false)
 export const openPersonaList = writable(false)
+export const bookmarkListOpen = writable(false)
 export const MobileGUI = writable(false)
 export const MobileGUIStack = writable(0)
 export const MobileSideBar = writable(0)
@@ -40,6 +43,7 @@ export const SettingsMenuIndex = writable(-1)
 export const ReloadGUIPointer = writable(0)
 export const ReloadChatPointer = writable({} as Record<number, number>)
 export const OpenRealmStore = writable(false)
+export const RealmInitialOpenChar = writable<null | hubType>(null)
 export const ShowRealmFrameStore = writable('')
 export const PlaygroundStore = writable(0)
 export const HideIconStore = writable(false)
@@ -112,7 +116,31 @@ export const QuickSettings = $state({
     index: 0
 })
 
+export const pluginAlertModalStore = $state({
+    open: false,
+    errors: [] as PluginSafetyErrors[]
+})
+
 export const disableHighlight = writable(true)
+
+export type MenuDef = {
+    name: string,
+    icon: string,
+    iconType:'html'|'img'|'none',
+    callback: any,
+    id: string,
+}
+
+export const additionalSettingsMenu = $state([] as MenuDef[])
+export const additionalFloatingActionButtons = $state([] as MenuDef[])
+export const additionalHamburgerMenu = $state([] as MenuDef[])
+export const additionalChatMenu = $state([] as MenuDef[])
+export const popupStore = $state({
+    children: null as null | import("svelte").Snippet,
+    mouseX: 0,
+    mouseY: 0,
+openId: 0,
+})
 
 ReloadGUIPointer.subscribe(() => {
     ReloadChatPointer.set({})

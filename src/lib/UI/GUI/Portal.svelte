@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getAllContexts, mount, unmount } from "svelte";
-    //@ts-ignore
 	import PortalConsumer from "./PortalConsumer.svelte";
 
     interface Props {

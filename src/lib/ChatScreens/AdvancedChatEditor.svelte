@@ -1,6 +1,6 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
-    import { EditIcon, LanguagesIcon } from "lucide-svelte";
+    import { SquarePenIcon, LanguagesIcon } from "@lucide/svelte";
     
     import { DBState } from 'src/ts/stores.svelte';
     import CodeMirror from 'codemirror';
@@ -119,7 +119,7 @@
         {#if toggleTranslate}
             <LanguagesIcon />
         {:else}
-            <EditIcon />
+            <SquarePenIcon />
         {/if}
         </button>
     {/if}

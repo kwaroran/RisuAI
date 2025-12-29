@@ -1,9 +1,8 @@
 <script lang="ts">
-    import { CheckIcon } from "lucide-svelte";
 
     interface Props {
         check?: boolean;
-        onChange?: any;
+        onChange?: (check:boolean) => any,
         margin?: boolean;
         name?: string;
         hiddenName?: boolean;
@@ -27,7 +26,7 @@
 </script>
 
 <label 
-    class={"flex items-center space-x-2 cursor-pointer" + (className ? " " + className : "") + (grayText ? " text-textcolor2" : " text-textcolor")}
+    class={"flex items-center gap-2 cursor-pointer" + (className ? " " + className : "") + (grayText ? " text-textcolor2" : " text-textcolor")}
     class:mr-2={margin}
     aria-describedby="{name} {check ? 'abled' : 'disabled'}"
     aria-labelledby="{name} {check ? 'abled' : 'disabled'}"

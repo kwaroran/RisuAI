@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import { doingChat, sendChat } from '../index.svelte';
 import { downloadFile, isTauri } from 'src/ts/globalApi.svelte';
 import { HypaProcesser } from '../memory/hypamemory';
-import { BufferToText as BufferToText, selectSingleFile, sleep } from 'src/ts/util';
+import { BufferToText as BufferToText, selectMultipleFile } from 'src/ts/util';
 import { postInlayAsset } from './inlays';
 
 type sendFileArg = {
@@ -196,9 +196,9 @@ type postFileResultText = {
 }
 export async function postChatFile(query:string|{
     name:string,
-    data:Uint8Array<ArrayBufferLike>
-}):Promise<postFileResult>{
-    const file = typeof(query) === 'string' ? (await selectSingleFile([
+    data:Uint8Array
+}):Promise<postFileResult[]>{
+    const files = typeof(query) === 'string' ? (await selectMultipleFile([
         //image format
         'jpg',
         'jpeg',
@@ -223,86 +223,95 @@ export async function postChatFile(query:string|{
         'po',
         // 'pdf',
         'txt'
-    ])) : query
+    ])) : [query]
 
-    if(!file){
+    if(!files){
         return null
     }
 
     const xquery = typeof(query) === 'string' ? query : ''
-    const extention = file.name.split('.').at(-1)
-    console.log(extention)
+    const results: postFileResult[] = []
 
-    switch(extention){
-        case 'po':{
-            await sendPofile({
-                file: BufferToText(file.data),
-                query: xquery
-            })
-            return {
-                type: 'void'
-            }
-        }
-        case 'pdf':{
-            return {
-                type: 'text',
-                data: await sendPDFFile({
-                    file: BufferToText(file.data),
-                    query: xquery
-                }),
-                name: file.name
-            }
-        }
-        case 'xml':{
-            return {
-                type: 'text',
-                data: await sendXMLFile({
-                    file: BufferToText(file.data),
-                    query: xquery
-                }),
-                name: file.name
-            }
-        }
+    for(const file of files){
+        const extention = file.name.split('.').at(-1)
+        console.log(extention)
 
-        //image format
-        case 'jpg':
-        case 'jpeg':
-        case 'png':
-        case 'webp':
-        case 'gif':
-        case 'avif':
-            
-        //audio format
-        case 'wav':
-        case 'mp3':
-        case 'ogg':
-        case 'flac':
-            
-        //video format
-        case 'mp4':
-        case 'webm':
-        case 'mpeg':
-        case 'avi':{
-            const postData = await postInlayAsset(file)
-            if(!postData){
-                return null
-            }
-            return {
-                data: postData,
-                type: 'asset'
-            }
-        }
-        case 'txt':{
-            return {
-                type: 'text',
-                data: await sendTxtFile({
+        switch(extention){
+            case 'po':{
+                await sendPofile({
                     file: BufferToText(file.data),
                     query: xquery
-                }),
-                name: file.name
+                })
+                results.push({
+                    type: 'void'
+                })
+                break
+            }
+            case 'pdf':{
+                results.push({
+                    type: 'text',
+                    data: await sendPDFFile({
+                        file: BufferToText(file.data),
+                        query: xquery
+                    }),
+                    name: file.name
+                })
+                break
+            }
+            case 'xml':{
+                results.push({
+                    type: 'text',
+                    data: await sendXMLFile({
+                        file: BufferToText(file.data),
+                        query: xquery
+                    }),
+                    name: file.name
+                })
+                break
+            }
+
+            //image format
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'webp':
+            case 'gif':
+            case 'avif':
+
+            //audio format
+            case 'wav':
+            case 'mp3':
+            case 'ogg':
+            case 'flac':
+
+            //video format
+            case 'mp4':
+            case 'webm':
+            case 'mpeg':
+            case 'avi':{
+                const postData = await postInlayAsset(file)
+                if(!postData){
+                    continue
+                }
+                results.push({
+                    data: postData,
+                    type: 'asset'
+                })
+                break
+            }
+            case 'txt':{
+                results.push({
+                    type: 'text',
+                    data: await sendTxtFile({
+                        file: BufferToText(file.data),
+                        query: xquery
+                    }),
+                    name: file.name
+                })
+                break
             }
         }
     }
 
-    return 
+    return results
 }

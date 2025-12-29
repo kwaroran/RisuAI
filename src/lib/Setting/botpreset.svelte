@@ -3,13 +3,16 @@
     import { language } from "../../lang";
     import { changeToPreset, copyPreset, downloadPreset, importPreset, getDatabase } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { CopyIcon, Share2Icon, PencilIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon, GitCompare } from "lucide-svelte";
+    import { CopyIcon, Share2Icon, PencilIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon, GitCompare } from "@lucide/svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { ShowRealmFrameStore } from "src/ts/stores.svelte";
     import type { PromptItem, PromptItemPlain, PromptItemChatML, PromptItemTyped, PromptItemAuthorNote, PromptItemChat } from "src/ts/process/prompt.ts";
 
     let editMode = $state(false)
+    let isDragging = $state(false)
+    let dragOverIndex = $state(-1)
+
     interface Props {
         close?: any;
     }
@@ -52,20 +55,24 @@
 
     function movePreset(fromIndex: number, toIndex: number) {
         if (fromIndex === toIndex) return;
-        
+        if (fromIndex < 0 || toIndex < 0 || fromIndex >= DBState.db.botPresets.length || toIndex > DBState.db.botPresets.length) return;
+
         let botPresets = [...DBState.db.botPresets];
         const movedItem = botPresets.splice(fromIndex, 1)[0];
-        botPresets.splice(toIndex, 0, movedItem);
-        
+        if (!movedItem) return;
+
+        const adjustedToIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+        botPresets.splice(adjustedToIndex, 0, movedItem);
+
         const currentId = DBState.db.botPresetsId;
         if (currentId === fromIndex) {
-            DBState.db.botPresetsId = toIndex;
-        } else if (fromIndex < currentId && toIndex >= currentId) {
+            DBState.db.botPresetsId = adjustedToIndex;
+        } else if (fromIndex < currentId && adjustedToIndex >= currentId) {
             DBState.db.botPresetsId = currentId - 1;
-        } else if (fromIndex > currentId && toIndex <= currentId) {
+        } else if (fromIndex > currentId && adjustedToIndex <= currentId) {
             DBState.db.botPresetsId = currentId + 1;
         }
-        
+
         DBState.db.botPresets = botPresets;
     }
 
@@ -327,29 +334,34 @@
 
 </script>
 
-<div class="absolute w-full h-full z-40 bg-black bg-opacity-50 flex justify-center items-center">
+<div class="absolute w-full h-full z-40 bg-black/50 flex justify-center items-center">
     <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl w-124 max-h-full overflow-y-auto">
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="mt-0 mb-0">{language.presets}</h2>
-            <div class="flex-grow flex justify-end">
+            <div class="grow flex justify-end">
                 <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer items-center" onclick={close}>
                     <XIcon size={24}/>
                 </button>
             </div>
         </div>
         {#each DBState.db.botPresets as preset, i}
-            <div class="w-full h-1 transition-colors duration-200 hover:bg-gray-600" 
+            <div class="w-full transition-all duration-200"
+                class:h-0.5={!isDragging || dragOverIndex !== i}
+                class:h-1={isDragging && dragOverIndex === i}
+                class:bg-blue-500={isDragging && dragOverIndex === i}
+                class:shadow-lg={isDragging && dragOverIndex === i}
+                class:hover:bg-gray-600={!isDragging}
                 role="listitem"
                 ondragover={(e) => {
                     e.preventDefault()
-                    e.currentTarget.classList.add('bg-gray-600')
-                }} 
+                    dragOverIndex = i
+                }}
                 ondragleave={(e) => {
-                    e.currentTarget.classList.remove('bg-gray-600')
-                }} 
+                    dragOverIndex = -1
+                }}
                 ondrop={(e) => {
-                    e.currentTarget.classList.remove('bg-gray-600')
                     handlePresetDrop(i, e)
+                    dragOverIndex = -1
                 }}>
             </div>
             
@@ -368,14 +380,39 @@
                     e.preventDefault()
                     return
                 }
+                isDragging = true
                 e.dataTransfer?.setData('text', 'preset')
                 e.dataTransfer?.setData('presetIndex', i.toString())
+
+                const dragElement = document.createElement('div')
+                dragElement.textContent = preset?.name || 'Unnamed Preset'
+                dragElement.className = 'absolute -top-96 -left-96 px-4 py-2 bg-darkbg text-textcolor2 rounded-sm text-sm whitespace-nowrap shadow-lg pointer-events-none z-50'
+                document.body.appendChild(dragElement)
+                e.dataTransfer?.setDragImage(dragElement, 10, 10)
+
+                setTimeout(() => {
+                    document.body.removeChild(dragElement)
+                }, 0)
+            }}
+            ondragend={(e) => {
+                isDragging = false
+                dragOverIndex = -1
             }}
             ondragover={(e) => {
                 e.preventDefault()
+                const rect = e.currentTarget.getBoundingClientRect()
+                const mouseY = e.clientY
+                const elementCenter = rect.top + rect.height / 2
+
+                if (mouseY < elementCenter) {
+                    dragOverIndex = i
+                } else {
+                    dragOverIndex = i + 1
+                }
             }}
             ondrop={(e) => {
-                handlePresetDrop(i, e)
+                handlePresetDrop(dragOverIndex, e)
+                dragOverIndex = -1
             }}>
                 {#if editMode}
                     <TextInput bind:value={DBState.db.botPresets[i].name} placeholder="string" padding={false}/>
@@ -389,7 +426,7 @@
                     {/if}
                     <span>{preset.name}</span>
                 {/if}
-                <div class="flex-grow flex justify-end">
+                <div class="grow flex justify-end">
                     {#if DBState.db.showPromptComparison}
                         <div class="{selectedDiffPreset === i ? 'text-green-500' : 'text-textcolor2 hover:text-green-500'} cursor-pointer mr-2" role="button" tabindex="0" onclick={(e) => {
                             e.stopPropagation()
@@ -454,19 +491,24 @@
                 </div>
             </button>
         {/each}
-        
-        <div class="w-full h-1 transition-colors duration-200 hover:bg-gray-600" 
+
+        <div class="w-full transition-all duration-200"
+            class:h-0.5={!isDragging || dragOverIndex !== DBState.db.botPresets.length}
+            class:h-1={isDragging && dragOverIndex === DBState.db.botPresets.length}
+            class:bg-blue-500={isDragging && dragOverIndex === DBState.db.botPresets.length}
+            class:shadow-lg={isDragging && dragOverIndex === DBState.db.botPresets.length}
+            class:hover:bg-gray-600={!isDragging}
             role="listitem"
             ondragover={(e) => {
                 e.preventDefault()
-                e.currentTarget.classList.add('bg-gray-600')
-            }} 
+                dragOverIndex = DBState.db.botPresets.length
+            }}
             ondragleave={(e) => {
-                e.currentTarget.classList.remove('bg-gray-600')
-            }} 
+                dragOverIndex = -1
+            }}
             ondrop={(e) => {
-                e.currentTarget.classList.remove('bg-gray-600')
                 handlePresetDrop(DBState.db.botPresets.length, e)
+                dragOverIndex = -1
             }}>
         </div>
         
@@ -526,7 +568,13 @@
         cursor: grabbing;
     }
 
+    .h-0\.5 {
+        min-height: 2px;
+        height: 2px;
+    }
+
     .h-1 {
         min-height: 4px;
+        height: 4px;
     }
 </style>

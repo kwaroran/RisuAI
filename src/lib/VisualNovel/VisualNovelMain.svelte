@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getCustomBackground, getEmotion } from "../../ts/util";
+    import { getCustomBackground } from "../../ts/util";
     
     import { DBState } from 'src/ts/stores.svelte';
     import BackgroundDom from "../ChatScreens/BackgroundDom.svelte";
@@ -20,7 +20,7 @@
         })()
     });
 </script>
-<div class="flex-grow h-full min-w-0 relative justify-center flex">
+<div class="grow h-full min-w-0 relative justify-center flex">
     <SideBarArrow />
     <BackgroundDom />
     <div style={wallPaper} class="h-full w-full bg-cover">

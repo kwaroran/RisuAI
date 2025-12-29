@@ -2,10 +2,10 @@ import { get, writable } from "svelte/store";
 import { saveImage, setDatabase, type character, type Chat, defaultSdDataFunc, type loreBook, getDatabase, getCharacterByIndex, setCharacterByIndex } from "./storage/database.svelte";
 import { alertAddCharacter, alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
-import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile, sleep } from "./util";
+import { checkNullish, findCharacterbyId, getUserName, selectMultipleFile, selectSingleFile } from "./util";
 import { v4 as uuidv4, v4 } from 'uuid';
 import { MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores.svelte";
-import { AppendableBuffer, checkCharOrder, downloadFile, getFileSrc, requiresFullEncoderReload } from "./globalApi.svelte";
+import { AppendableBuffer, changeChatTo, checkCharOrder, downloadFile, getFileSrc, requiresFullEncoderReload } from "./globalApi.svelte";
 import { updateInlayScreen } from "./process/inlayScreen";
 import { checkImageType, parseMarkdownSafe } from "./parser.svelte";
 import { translateHTML } from "./translator/translator";
@@ -67,7 +67,7 @@ export async function getCharImage(loc:string, type:'plain'|'css'|'contain'|'lgc
     else if(type ==='css'){
         return `background: url("${filesrc}");background-size: cover;`
     }
-    else if(type ='lgcss'){
+    else if(type === 'lgcss'){
         return `background: url("${filesrc}");background-size: cover;height: 10.66rem;`
 
     }
@@ -330,7 +330,7 @@ export async function exportChat(page:number){
                     </tr>
                     ${chatContentHTML}
                 </table>
-                <p>Chat from RisuAI</p>
+                <p>Chat from Risuai</p>
             `
 
             //copy to clipboard
@@ -416,6 +416,7 @@ export async function importChat(){
             }
 
             db.characters[selectedID].chats.unshift(newChat)
+            changeChatTo(0)
             setDatabase(db)
             alertNormal(language.successImport)
         }

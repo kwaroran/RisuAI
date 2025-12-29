@@ -10,9 +10,9 @@ import { extractJSON, getOpenAIJSONSchema } from "../templates/jsonSchema"
 import { applyChatTemplate } from "../templates/chatTemplate"
 import { supportsInlayImage } from "../files/inlays"
 import { Capacitor } from "@capacitor/core"
-import { replaceAsync, simplifySchema } from "src/ts/util"
+import { simplifySchema } from "src/ts/util"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
-import { alertError, alertNormal, alertWait, showHypaV2Alert } from "src/ts/alert";
+import { alertError } from "src/ts/alert";
 
 
 interface OAIResponseInputItem {
@@ -409,7 +409,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         delete body.logit_bias
     }
 
-    if(aiModel.startsWith('gpt4o1') || arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
+    if(arg.modelInfo.flags.includes(LLMFlags.OAICompletionTokens)){
         body.max_completion_tokens = body.max_tokens
         delete body.max_tokens
     }
@@ -439,8 +439,18 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         body.transforms = db.openrouterMiddleOut ? ['middle-out'] : []
 
         if(db.openrouterProvider){
-            body.provider = {
-                order: [db.openrouterProvider]
+            const provider: typeof db.openrouterProvider = {} as typeof db.openrouterProvider;
+            if (db.openrouterProvider.order?.length) {
+                provider.order = db.openrouterProvider.order;
+            }
+            if (db.openrouterProvider.only?.length) {
+                provider.only = db.openrouterProvider.only;
+            }
+            if (db.openrouterProvider.ignore?.length) {
+                provider.ignore = db.openrouterProvider.ignore;
+            }
+            if (Object.keys(provider).length) {
+                body.provider = provider;
             }
         }
 
@@ -477,7 +487,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         const keys = Object.keys(OobaBodyTemplate)
         for(const key of keys){
             if(OobaBodyTemplate[key] !== undefined && OobaBodyTemplate[key] !== null){
-                // @ts-ignore
                 body[key] = OobaBodyTemplate[key]
             }
         }
@@ -493,7 +502,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                 db.proxyRequestModel?.startsWith('gpt') ||
                 (db.proxyRequestModel === 'custom' && db.customProxyRequestModel.startsWith('gpt'))
             )))){
-            // @ts-ignore
             delete body.logit_bias
         }
     }
@@ -555,7 +563,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
                 result: 'MultiGen mode cannot be used with tool calls. Please disable one of them.'
             }
         }
-        // @ts-ignore
         body.n = db.genTime
     }
     let throughProxi = (!isTauri) && (!isNodeServer) && (!db.usePlainFetch) && (!Capacitor.isNativePlatform())
@@ -735,6 +742,10 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
         }
         if(dat?.choices[0]?.reasoning_content){
             result = `<Thoughts>\n${dat.choices[0].reasoning_content}\n</Thoughts>\n${result}`
+        }
+        // For openrouter, https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request#response.body.choices.message.reasoning
+        if(dat?.choices?.[0]?.message?.reasoning){
+            result = `<Thoughts>\n${dat.choices[0].message.reasoning}\n</Thoughts>\n${result}`
         }
 
         return result
@@ -1060,16 +1071,78 @@ export async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):
         store: false
     }, ['temperature', 'top_p'], {}, arg.mode)
 
+    let requestURL = arg.customURL ?? "https://api.openai.com/v1/responses"
+    if(arg.modelInfo?.endpoint){
+        requestURL = arg.modelInfo.endpoint
+    }
+
+    let risuIdentify = false
+    if(requestURL.startsWith("risu::")){
+        risuIdentify = true
+        requestURL = requestURL.replace("risu::", '')
+    }
+
+    if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
+        try{
+            const url = new URL(requestURL)
+            const pathSegments = url.pathname.split('/').filter(Boolean)
+            const lastSegment = pathSegments[pathSegments.length - 1] ?? ''
+
+            if(url.searchParams.has('api-version') && url.pathname.includes('/responses')){
+                // Azure-style Responses API URL already includes the endpoint
+            }
+            else if(lastSegment === 'responses'){
+                // keep as-is
+            }
+            else if(lastSegment === 'v1'){
+                url.pathname = url.pathname.replace(/\/?$/, '/responses')
+            }
+            else{
+                url.pathname = url.pathname.replace(/\/?$/, '/v1/responses')
+            }
+
+            requestURL = url.toString()
+        }
+        catch{
+            const [baseURL, query] = requestURL.split('?', 2)
+            let nextURL = baseURL
+            const pathSegments = nextURL.split('/').filter(Boolean)
+            const lastSegment = pathSegments[pathSegments.length - 1] ?? ''
+            const hasApiVersion = query?.includes('api-version=')
+
+            if(hasApiVersion && nextURL.includes('/responses')){
+                // Azure-style Responses API URL already includes the endpoint
+            }
+            else if(lastSegment === 'responses'){
+                // keep as-is
+            }
+            else if(lastSegment === 'v1'){
+                nextURL += nextURL.endsWith('/') ? 'responses' : '/responses'
+            }
+            else{
+                nextURL += nextURL.endsWith('/') ? 'v1/responses' : '/v1/responses'
+            }
+
+            requestURL = query ? `${nextURL}?${query}` : nextURL
+        }
+    }
+
+    const headers = {
+        "Authorization": "Bearer " + (arg.key ?? db.openAIKey),
+        "Content-Type": "application/json"
+    }
+
+    if(risuIdentify){
+        headers["X-Proxy-Risu"] = 'RisuAI'
+    }
+
     if(arg.previewBody){
         return {
             type: 'success',
             result: JSON.stringify({
-                url: "https://api.openai.com/v1/responses",
+                url: requestURL,
                 body: body,
-                headers: {
-                    "Authorization": "Bearer " + (arg.key ?? db.openAIKey),
-                    "Content-Type": "application/json"
-                }
+                headers: headers
             })
         }
     }
@@ -1078,12 +1151,9 @@ export async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):
         body.tools.push('web_search_preview')
     }
 
-    const response = await globalFetch("https://api.openai.com/v1/responses", {
+    const response = await globalFetch(requestURL, {
         body: body,
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + (arg.key ?? db.openAIKey),
-        },
+        headers: headers,
         chatId: arg.chatId,
         abortSignal: arg.abortSignal
     });

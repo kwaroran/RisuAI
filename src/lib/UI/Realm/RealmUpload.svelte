@@ -1,5 +1,5 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div  class="fixed top-0 left-0 h-full w-full bg-black bg-opacity-50 flex flex-col z-50 items-center justify-center" role="button" tabindex="0" onclick={close}>
+<div  class="fixed top-0 left-0 h-full w-full bg-black/50 flex flex-col z-50 items-center justify-center" role="button" tabindex="0" onclick={close}>
     <div class="bg-darkbg rounded-md p-4 max-w-full flex flex-col w-2xl max-h-full overflow-y-auto" role="button" tabindex="0" onclick={(e)=>{
         e.stopPropagation()
         onclick?.(e)
@@ -107,7 +107,7 @@
 
 
 <script lang="ts">
-    import { XIcon } from "lucide-svelte";
+    import { XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertError } from "src/ts/alert";
     import { shareRisuHub2 } from "src/ts/characterCards";
@@ -118,7 +118,7 @@
     import SelectInput from "../GUI/SelectInput.svelte";
     import { CCLicenseData } from "src/ts/creation/license";
     import OptionInput from "../GUI/OptionInput.svelte";
-    import { TagList, parseMultilangString, searchTagList, sleep } from "src/ts/util";
+    import { parseMultilangString, searchTagList, sleep } from "src/ts/util";
     import MultiLangInput from "../GUI/MultiLangInput.svelte";
     interface Props {
         close?: any;

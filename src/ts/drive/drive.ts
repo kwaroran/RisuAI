@@ -418,7 +418,7 @@ async function createFileInFolder(accessToken:string, fileName:string, content:U
       "metadata",
       new Blob([JSON.stringify(metadata)], { type: "application/json" })
     );
-    body.append("file", new Blob([content], { type: mimeType }));
+    body.append("file", new Blob([content as any], { type: mimeType }));
   
     const response = await fetch(
       "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",

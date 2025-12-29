@@ -8,23 +8,30 @@
     BarChartIcon,
     Trash2Icon,
     XIcon,
-  } from "lucide-svelte";
+    SquarePenIcon,
+    TagIcon,
+  } from "@lucide/svelte";
   import { language } from "src/lang";
   import {
     hypaV3ModalOpen,
     settingsOpen,
     SettingsMenuIndex,
-    DBState,
-    selectedCharID,
   } from "src/ts/stores.svelte";
-  import type { SearchState } from "./types";
-  import { alertConfirmTwice } from "./utils";
+  import type { SearchState, BulkEditState, CategoryManagerState, FilterState, UIState } from "./types";
 
   interface Props {
     searchState: SearchState;
     filterImportant: boolean;
     dropdownOpen: boolean;
     filterSelected: boolean;
+    bulkEditState?: BulkEditState;
+    categoryManagerState?: CategoryManagerState;
+    filterState?: FilterState;
+    uiState?: UIState;
+    hypaV3Data: any;
+    onResetData?: () => Promise<void>;
+    onToggleBulkEditMode?: () => void;
+    onOpenCategoryManager?: () => void;
   }
 
   let {
@@ -32,7 +39,16 @@
     filterImportant = $bindable(),
     dropdownOpen = $bindable(),
     filterSelected = $bindable(),
+    bulkEditState,
+    categoryManagerState,
+    filterState,
+    uiState,
+    hypaV3Data,
+    onResetData,
+    onToggleBulkEditMode,
+    onOpenCategoryManager,
   }: Props = $props();
+
 
   async function toggleSearch() {
     if (searchState === null) {
@@ -76,22 +92,25 @@
   }
 
   async function resetData() {
-    if (
-      await alertConfirmTwice(
-        language.hypaV3Modal.resetConfirmMessage,
-        language.hypaV3Modal.resetConfirmSecondMessage
-      )
-    ) {
-      DBState.db.characters[$selectedCharID].chats[
-        DBState.db.characters[$selectedCharID].chatPage
-      ].hypaV3Data = {
-        summaries: [],
-      };
+    if (onResetData) {
+      await onResetData();
     }
   }
 
   function closeModal() {
     $hypaV3ModalOpen = false;
+  }
+
+  function toggleBulkEditMode() {
+    if (onToggleBulkEditMode) {
+      onToggleBulkEditMode();
+    }
+  }
+
+  function openCategoryManager() {
+    if (onOpenCategoryManager) {
+      onOpenCategoryManager();
+    }
   }
 </script>
 
@@ -114,7 +133,7 @@
 
     <!-- Filter Important Summary Button -->
     <button
-      class="p-2 transition-colors {filterImportant
+      class="p-2 transition-colors {filterState?.showImportantOnly
         ? 'text-yellow-400 hover:text-yellow-300'
         : 'text-zinc-400 hover:text-zinc-200'}"
       tabindex="-1"
@@ -122,6 +141,30 @@
     >
       <StarIcon class="w-6 h-6" />
     </button>
+
+    <!-- Bulk Edit Mode Button -->
+    {#if bulkEditState}
+      <button
+        class="p-2 transition-colors {bulkEditState.isEnabled
+          ? 'text-blue-400 hover:text-blue-300'
+          : 'text-zinc-400 hover:text-zinc-200'}"
+        tabindex="-1"
+        onclick={toggleBulkEditMode}
+      >
+        <SquarePenIcon class="w-6 h-6" />
+      </button>
+    {/if}
+
+    <!-- Category Manager Button -->
+    {#if categoryManagerState}
+      <button
+        class="p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+        tabindex="-1"
+        onclick={openCategoryManager}
+      >
+        <TagIcon class="w-6 h-6" />
+      </button>
+    {/if}
 
     <!-- Open Global Settings Button -->
     <button

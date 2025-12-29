@@ -11,9 +11,7 @@
     import Sortable from 'sortablejs/modular/sortable.core.esm.js';
     import { onDestroy, onMount } from "svelte";
     import { sleep, sortableOptions } from "src/ts/util";
-    import { setDatabase } from "src/ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
-    import { get } from "svelte/store";
     import { v4 } from "uuid"
 
     let stb: Sortable = null
@@ -70,18 +68,18 @@
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.persona}</h2>
 
 {#key sorted}
-<div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2" bind:this={ele}>
+<div class="p-4 rounded-md border-darkborderc border mb-2 flex-wrap flex gap-2 w-full max-w-full min-w-0" bind:this={ele}>
     {#each DBState.db.personas as persona, i}
         <button data-risu-idx={i} onclick={() => {
             changeUserPersona(i)
         }}>
             {#if persona.icon === ''}
-                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === DBState.db.selectedPersona}></div>
+                <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring-3={i === DBState.db.selectedPersona}></div>
             {:else}
                 {#await getCharImage(persona.icon, 'css')}
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring={i === DBState.db.selectedPersona}></div>
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" class:ring-3={i === DBState.db.selectedPersona}></div>
                 {:then im} 
-                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring={i === DBState.db.selectedPersona}></div>                
+                    <div class="rounded-md h-20 w-20 shadow-lg bg-textcolor2 cursor-pointer hover:text-green-500" style={im} class:ring-3={i === DBState.db.selectedPersona}></div>                
                 {/await}
             {/if}
         </button>
@@ -131,7 +129,7 @@
             {/if}
         </button>
     </div>
-    <div class="flex flex-grow flex-col p-2 max-w-full">
+    <div class="flex grow flex-col p-2 max-w-full">
         <span class="text-sm text-textcolor2">{language.name}</span>
         <TextInput marginBottom size="lg" placeholder="User" bind:value={DBState.db.username}/>
         <span class="text-sm text-textcolor2">{language.note}</span>

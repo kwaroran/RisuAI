@@ -1,10 +1,10 @@
 import { fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
+import { language } from "src/lang"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
 import { getDatabase, setDatabase } from "src/ts/storage/database.svelte"
-import { replaceAsync, simplifySchema, sleep } from "src/ts/util"
+import { simplifySchema } from "src/ts/util"
 import { v4 } from "uuid"
 import { setInlayAsset, writeInlayImage } from "../files/inlays"
-import type { OpenAIChat } from "../index.svelte"
 import { extractJSON, getGeneralJSONSchema } from "../templates/jsonSchema"
 import { applyParameters, type Parameter, type RequestDataArgumentExtended, type requestDataResponse, type StreamResponseChunk } from "./request"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
@@ -344,10 +344,38 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     }
 
     if(arg.modelInfo.flags.includes(LLMFlags.geminiThinking)){
-        body.generation_config.thinkingConfig = {
-            "thinkingBudget": body.generation_config.thinkingBudget,
-            "includeThoughts": true,
+        const internalId = arg.modelInfo.internalID
+        const thinkingBudget = body.generation_config.thinkingBudget
+
+        // Gemini 3 models use `thinking_level` (via thinkingConfig.thinkingLevel) instead of `thinking_budget`.
+        // Keep UI/param name 'thinking_tokens' but translate it here for compatibility.
+        if (internalId && /^gemini-3-/.test(internalId)) {
+            const budgetNum = typeof thinkingBudget === 'number' ? thinkingBudget : Number(thinkingBudget)
+
+            // Conservative mapping: keep levels coarse to avoid model-specific strict validation.
+            // - gemini-3-flash-preview: LOW/MEDIUM/HIGH
+            // - gemini-3-pro* (incl. image): LOW/HIGH
+            let thinkingLevel: 'LOW' | 'MEDIUM' | 'HIGH' = 'HIGH'
+            if (internalId === 'gemini-3-flash-preview') {
+                if (!Number.isFinite(budgetNum) || budgetNum >= 16384) thinkingLevel = 'HIGH'
+                else if (budgetNum >= 4096) thinkingLevel = 'MEDIUM'
+                else thinkingLevel = 'LOW'
+            } else {
+                if (!Number.isFinite(budgetNum) || budgetNum >= 8192) thinkingLevel = 'HIGH'
+                else thinkingLevel = 'LOW'
+            }
+
+            body.generation_config.thinkingConfig = {
+                "thinkingLevel": thinkingLevel,
+                "includeThoughts": true,
+            }
+        } else {
+            body.generation_config.thinkingConfig = {
+                "thinkingBudget": thinkingBudget,
+                "includeThoughts": true,
+            }
         }
+
         delete body.generation_config.thinkingBudget
     }
 
@@ -376,13 +404,18 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     const REGION = db.vertexRegion
     console.log(arg.modelInfo);
 
+    const isVertexGlobalOnlyModel = (modelId: string) => {
+        // As of 2025-12, Gemini 3 preview models are only available on the global endpoint.
+        return /^gemini-3-.*-preview$/.test(modelId)
+    }
+
     async function generateToken(email:string,key:string){
         if (!window.crypto || !window.crypto.subtle) {
             throw new Error("Web Crypto API is not available in this environment. Please ensure you are using HTTPS.");
         }
         // Input validation
         if (!email.includes("gserviceaccount.com")) {
-            throw new Error("Invalid Vertex project id. Must include gserviceaccount.com");
+            throw new Error("Invalid Vertex client email. Must include gserviceaccount.com");
         }
         if (!key.includes("-----BEGIN PRIVATE KEY-----") ||
             !key.includes("-----END PRIVATE KEY-----")) {
@@ -479,8 +512,8 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         if(db.vertexAccessTokenExpires < Date.now()){
             if (!db.vertexClientEmail || !db.vertexPrivateKey) {
-                alertError(language.vertexAuthError || "Vertex AI authentication details are missing.");
-                return { type: 'fail', result: 'Vertex AI authentication details are missing.' };
+                alertError("Vertex AI authentication information is missing or incomplete. Please check your settings.");
+                return { type: 'fail', result: "Vertex AI authentication information is missing or incomplete. Please check your settings." };
             }
             headers['Authorization'] = "Bearer " + await generateToken(db.vertexClientEmail, db.vertexPrivateKey)
         }
@@ -514,9 +547,13 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     }
     else if(arg.modelInfo.format === LLMFormat.VertexAIGemini){
         const endpoint = arg.useStreaming ? 'streamGenerateContent?alt=sse' : 'generateContent'
-        url = REGION === 'global' ?
-            `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}` :
-            `https://${REGION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${REGION}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}`
+
+        // Some models (e.g. Gemini 3 preview) are only available via the global endpoint.
+        const effectiveRegion = isVertexGlobalOnlyModel(arg.modelInfo.internalID) ? 'global' : REGION
+
+        url = effectiveRegion === 'global' ?
+            `https://aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${effectiveRegion}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}` :
+            `https://${effectiveRegion}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${effectiveRegion}/publishers/google/models/${arg.modelInfo.internalID}:${endpoint}`
         
         }
     else if(arg.modelInfo.format === LLMFormat.GoogleCloud && arg.useStreaming){

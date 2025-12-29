@@ -1,5 +1,5 @@
 <input 
-    class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
+    class={"border border-darkborderc focus:border-borderc rounded-md shadow-xs bg-transparent numinput focus:ring-borderc focus:ring-2 focus:outline-hidden transition-colors duration-200" + ((className) ? (' ' + className) : '')} 
     class:text-sm={size === 'sm'}
     class:text-md={size === 'md'}
     class:text-lg={size === 'lg'}
@@ -21,6 +21,7 @@
     disabled={disabled}
     bind:value
     onchange={onChange}
+    placeholder={placeholder}
 />
 
 <script lang="ts">
@@ -39,6 +40,7 @@
         }) => any;
         className?: string;
         disabled?: boolean;
+        placeholder?: string;
     }
 
     let {
@@ -53,7 +55,8 @@
         fullh = false,
         onChange = () => {},
         className = '',
-        disabled = false
+        disabled = false,
+        placeholder
     }: Props = $props();
 </script>
 

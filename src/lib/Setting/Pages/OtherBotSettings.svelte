@@ -17,7 +17,7 @@
     import { untrack } from "svelte";
     import { tokenizePreset } from "src/ts/process/prompt";
     import { getCharToken } from "src/ts/tokenizer";
-    import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "lucide-svelte";
+    import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "@lucide/svelte";
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
 
@@ -297,7 +297,7 @@
                             DBState.db.NAIImgConfig.vibe_data = undefined;
                             DBState.db.NAIImgConfig.vibe_model_selection = undefined;
                         }}
-                        class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                        class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-sm"
                     >
                         Delete
                     </button>
@@ -391,7 +391,7 @@
                                 DBState.db.NAIImgConfig.character_image = undefined;
                                 DBState.db.NAIImgConfig.character_base64image = undefined;
                             }}
-                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-sm"
                         >
                             Delete
                         </button>
@@ -470,7 +470,7 @@
                                 DBState.db.NAIImgConfig.image = undefined;
                                 DBState.db.NAIImgConfig.base64image = undefined;
                             }}
-                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                            class="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded-sm"
                         >
                             Delete
                         </button>
@@ -686,7 +686,7 @@
             DBState.db.supaModelType !== 'none' ? 'supaMemory' :
             DBState.db.hanuraiEnable ? 'hanuraiMemory' : 'none'
         } onchange={(v) => {
-            //@ts-ignore
+            //@ts-expect-error 'value' doesn't exist on EventTarget, but target is HTMLSelectElement here
             const value = v.target.value
             if (value === 'supaMemory'){
                 DBState.db.supaModelType = 'distilbart'
@@ -728,14 +728,14 @@
         </SelectInput>
 
         {#if DBState.db.hanuraiEnable}
-            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hanuraiDesc}</span>
+            <span class="mb-2 text-textcolor2 text-sm text-wrap wrap-break-word max-w-full">{language.hanuraiDesc}</span>
             <span>Chunk Size</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hanuraiTokens} min={100} />
             <div class="flex">
                 <Check bind:check={DBState.db.hanuraiSplit} name="Text Spliting"/>
             </div>
         {:else if DBState.db.hypav2}
-            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.hypaV2Desc}</span>
+            <span class="mb-2 text-textcolor2 text-sm text-wrap wrap-break-word max-w-full">{language.hypaV2Desc}</span>
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.supaModelType}>
                 <OptionInput value="distilbart">distilbart-cnn-6-6 (Free/Local)</OptionInput>
@@ -753,9 +753,9 @@
             <span class="text-textcolor">{language.hypaAllocatedTokens}</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.hypaAllocatedTokens} min={100} />
         {:else if DBState.db.hypaV3}
-            <span class="max-w-full mb-6 text-sm text-wrap break-words text-textcolor2">{language.hypaV3Settings.descriptionLabel}</span>
+            <span class="max-w-full mb-6 text-sm text-wrap wrap-break-word text-textcolor2">{language.hypaV3Settings.descriptionLabel}</span>
             <span class="text-textcolor">Preset</span>
-            <select class={"border border-darkborderc focus:border-borderc rounded-md shadow-sm text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-none transition-colors duration-200 text-md px-4 py-2 mb-1"}
+            <select class={"border border-darkborderc focus:border-borderc rounded-md shadow-xs text-textcolor bg-transparent focus:ring-borderc focus:ring-2 focus:outline-hidden transition-colors duration-200 text-md px-4 py-2 mb-1"}
                 bind:value={DBState.db.hypaV3PresetId}
             >
                 {#each DBState.db.hypaV3Presets as preset, i}
@@ -889,6 +889,10 @@
                 <div class="mb-4">
                     <TextAreaInput size="sm" placeholder={language.hypaV3Settings.supaMemoryPromptPlaceHolder} bind:value={settings.summarizationPrompt} />
                 </div>
+                <span class="text-textcolor">{language.reSummarizationPrompt}</span>
+                <div class="mb-4">
+                    <TextAreaInput size="sm" placeholder={language.hypaV3Settings.supaMemoryPromptPlaceHolder} bind:value={settings.reSummarizationPrompt} />
+                </div>
                 {#await getMaxMemoryRatio() then maxMemoryRatio}
                 <span class="text-textcolor">{language.hypaV3Settings.maxMemoryTokensRatioLabel}</span>
                 <NumberInput marginBottom disabled size="sm" value={maxMemoryRatio} />
@@ -942,7 +946,7 @@
 
             <div class="mb-8"></div>
         {:else if (DBState.db.supaModelType !== 'none' && DBState.db.hypav2 === false && DBState.db.hypaV3 === false)}
-            <span class="mb-2 text-textcolor2 text-sm text-wrap break-words max-w-full">{language.supaDesc}</span>
+            <span class="mb-2 text-textcolor2 text-sm text-wrap wrap-break-word max-w-full">{language.supaDesc}</span>
             <span class="text-textcolor mt-4">{language.SuperMemory} {language.model}</span>
             <SelectInput className="mt-2 mb-2" bind:value={DBState.db.supaModelType}>
                 <OptionInput value="distilbart" >distilbart-cnn-6-6 (Free/Local)</OptionInput>
