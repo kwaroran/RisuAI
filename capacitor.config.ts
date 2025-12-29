@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'co.aiclient.risu',
-  appName: 'RisuAI',
+  appName: 'Risuai',
   webDir: 'dist',
   server: {
     androidScheme: 'https'

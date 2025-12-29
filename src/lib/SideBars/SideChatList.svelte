@@ -18,7 +18,8 @@
     import { createMultiuserRoom } from "src/ts/sync/multiuser";
     import { bookmarkListOpen } from "src/ts/stores.svelte";
     import { language } from "src/lang";
-  import Toggles from "./Toggles.svelte";
+    import Toggles from "./Toggles.svelte";
+    import { changeChatTo } from "src/ts/globalApi.svelte";
 
     interface Props {
         chara: character|groupChat;
@@ -66,7 +67,7 @@
                         }
                     })
 
-                    chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
+                    changeChatTo(newChats.indexOf(chara.chats[currentChatPage]))
                     chara.chats = newChats
 
                     try {
@@ -106,7 +107,7 @@
                 })
                 
                 chara.chatFolders = newFolders
-                chara.chatPage = newChats.indexOf(chara.chats[currentChatPage])
+                changeChatTo(newChats.indexOf(chara.chats[currentChatPage]))
                 chara.chats = newChats
                 try {
                     folderStb.destroy()
@@ -152,7 +153,7 @@
             })
         }
         chara.chats = chats
-        chara.chatPage = 0
+        changeChatTo(0)
         $ReloadGUIPointer += 1
     }}>{language.newChat}</Button>
 
@@ -245,7 +246,7 @@
                     {#each chara.chats.filter(chat => chat.folderId == chara.chatFolders[i].id) as chat}
                     <button data-risu-chat-idx={chara.chats.indexOf(chat)} onclick={() => {
                         if(!editMode){
-                            chara.chatPage = chara.chats.indexOf(chat)
+                            changeChatTo(chara.chats.indexOf(chat))
                             $ReloadGUIPointer += 1
                         }
                     }} class="risu-chats flex items-center text-textcolor border-solid border-0 border-darkborderc p-2 cursor-pointer rounded-md"class:bg-selected={chara.chats.indexOf(chat) === chara.chatPage}>
@@ -267,7 +268,7 @@
                                         newChat.name = `Copy of ${newChat.name}`
                                         newChat.id = v4()
                                         chara.chats.unshift(newChat)
-                                        chara.chatPage = 0
+                                        changeChatTo(0)
                                         chara.chats = chara.chats
                                         break
                                     }
@@ -293,7 +294,7 @@
                                         break
                                     }
                                     case 2:{
-                                        chara.chatPage = chara.chats.indexOf(chat)
+                                        changeChatTo(chara.chats.indexOf(chat))
                                         createMultiuserRoom()
                                     }
                                 }
@@ -331,7 +332,7 @@
                                 }
                                 const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                                 if(d){
-                                    chara.chatPage = 0
+                                    changeChatTo(0)
                                     $ReloadGUIPointer += 1
                                     let chats = chara.chats
                                     chats.splice(chara.chats.indexOf(chat), 1)
@@ -354,7 +355,7 @@
             {#if chat.folderId == null}
             <button data-risu-chat-idx={i} onclick={() => {
                 if(!editMode){
-                    chara.chatPage = i
+                    changeChatTo(i)
                     $ReloadGUIPointer += 1
                 }
             }}
@@ -378,7 +379,7 @@
                                 newChat.name = `Copy of ${newChat.name}`
                                 newChat.id = v4()
                                 chara.chats.unshift(newChat)
-                                chara.chatPage = 0
+                                changeChatTo(0)
                                 chara.chats = chara.chats
                                 break
                             }
@@ -405,7 +406,7 @@
                                 break
                             }
                             case 2:{
-                                chara.chatPage = i
+                                changeChatTo(i)
                                 createMultiuserRoom()
                             }
                         }
@@ -443,7 +444,7 @@
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                         if(d){
-                            chara.chatPage = 0
+                            changeChatTo(0)
                             $ReloadGUIPointer += 1
                             let chats = chara.chats
                             chats.splice(i, 1)

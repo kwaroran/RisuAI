@@ -81,11 +81,11 @@
             const textElement = document.createElement('p')
             textElement.innerText = currentTree.type
             if(treeChain === selectedContatiner){
-                element.classList.add("bg-blue-200", "border-2", "border-blue-400", "relative", "bg-opacity/50", "p-4", "z-20")
+                element.classList.add("bg-blue-200/50", "border-2", "border-blue-400", "relative", "p-4", "z-20")
                 textElement.classList.add("absolute", "top-0", "left-0", "bg-blue-200", "p-1", "text-black")
             }
             else{
-                element.classList.add("bg-gray-200", "border-2", "border-gray-400", "relative", "bg-opacity/50", "p-4", "z-20")
+                element.classList.add("bg-gray-200/50", "border-2", "border-gray-400", "relative", "p-4", "z-20")
                 textElement.classList.add("absolute", "top-0", "left-0", "bg-white", "p-1", "text-black")
             }
             element.appendChild(textElement)

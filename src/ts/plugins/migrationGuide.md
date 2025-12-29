@@ -2,7 +2,7 @@
 
 ## Overview
 
-Originally, RisuAI plugins got unlimited access to the global environment, which posed significant security risks. To mitigate these risks, we limited some of the accessible APIs in plugin scripts.
+Originally, Risuai plugins got unlimited access to the global environment, which posed significant security risks. To mitigate these risks, we limited some of the accessible APIs in plugin scripts.
 This is due to the fact that plugins can run arbitrary code, which may lead to security vulnerabilities if they access sensitive API keys or data, especially with planned account systems in the future.
 
 So plugin 2.1 and 3.0 introduced a new plugin API versioning system. 2.1 is mostly compatible with 2.0, but with some restricted APIs and added safe alternatives. however, 2.1 were just a transitional version, and still have some security issues due to API's structure. 3.0 will introduce API overhaul with many breaking changes, with focus on security and stability.
@@ -31,7 +31,7 @@ API 2.1 works like 2.0, mostly compatible and working in same document context, 
 
 ### Restricted APIs
 
-- Global Scope: Plugins can no longer access the global scope directly. Instead, they must use the safeGlobalThis object provided by RisuAI. `window`, `global`, `self` and similar references will be automatically redirected to `safeGlobalThis`.
+- Global Scope: Plugins can no longer access the global scope directly. Instead, they must use the safeGlobalThis object provided by Risuai. `window`, `global`, `self` and similar references will be automatically redirected to `safeGlobalThis`.
 
 - Document: Direct access to the Document object has been removed. instead, `safeDocument` is provided for secure DOM manipulations. `document` will be redirected to `safeDocument`.
 
@@ -149,7 +149,7 @@ All API v3 methods are accessed through the `risuai` global object. The API uses
 
 The following APIs from v2.1 are still available in v3.0:
 
-- `risuFetch`: Fetch wrapper with RisuAI-specific enhancements
+- `risuFetch`: Fetch wrapper with Risuai-specific enhancements
 - `nativeFetch`: Direct native fetch access
 - `getChar`: Get current character data (deprecated, use `getCharacter` instead)
 - `setChar`: Set character data (deprecated, use `setCharacter` instead)
@@ -451,7 +451,7 @@ Centralized logging with plugin identification:
 
 ```javascript
 console.log('This is a log message')
-// Output: [RisuAI Plugin: YourPluginName] This is a log message
+// Output: [Risuai Plugin: YourPluginName] This is a log message
 ```
 
 #### Metadata

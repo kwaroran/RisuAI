@@ -25,7 +25,7 @@ export const languageGerman = {
         wrongPassword: "Falsches Passwort",
         networkFetch: "Dies passiert, wenn das Netzwerk instabil ist oder der Server ausgefallen ist.",
         networkFetchWeb:
-            "Dies kann ein CORS-Fehler sein. Dies geschieht nur bei Verwendung der Webversion aufgrund von Browserbeschränkungen. Versuchen Sie, die lokale Desktop-Version oder eine andere Version von RisuAI zu verwenden.",
+            "Dies kann ein CORS-Fehler sein. Dies geschieht nur bei Verwendung der Webversion aufgrund von Browserbeschränkungen. Versuchen Sie, die lokale Desktop-Version oder eine andere Version von Risuai zu verwenden.",
         networkFetchPlain: "Dies kann ein einfacher Abruffehler sein. Versuchen Sie, die Option 'Erzwinge einfachen Abruf' in den Einstellungen zu deaktivieren.",
         requestLogRemoved: "Dieses Anfrage-Protokoll wurde entfernt.",
         requestLogRemovedDesc: "Dieses Anfrage-Protokoll wird entfernt, wenn der Client aktualisiert oder neu geladen wird.",
@@ -822,9 +822,9 @@ export const languageGerman = {
     proxyAPIKey: "Schlüssel/Passwort",
     proxyRequestModel: "Anforderungsmodell",
     officialWiki: "Offizielles Wiki",
-    officialWikiDesc: "Offizielles Wiki für RisuAI. Schauen Sie doch gerne bei uns vorbei",
+    officialWikiDesc: "Offizielles Wiki für Risuai. Schauen Sie doch gerne bei uns vorbei",
     officialDiscord: "Offizieller Discord",
-    officialDiscordDesc: "Offizieller Discord zum Austausch über RisuAI",
+    officialDiscordDesc: "Offizieller Discord zum Austausch über Risuai",
     confirmRecommendedPreset:
         "Für dieses Modell gibt es empfohlene Einstellungen. Möchten Sie die Einstellungen darauf ändern? (Sie können das Fragen in den Zugangseinstellungen ausschalten)",
     toggleConfirmRecommendedPreset: "Bei Modelländerung nach empfohlener Einstellung fragen",
@@ -928,7 +928,7 @@ export const languageGerman = {
     supporterThanks: "Dankessagung",
     supporterThanksDesc: "Danke für Ihre Unterstützung!",
     donatorPatreonDesc:
-        "Standardmäßig wird es nicht in der Liste angezeigt, um die Privatsphäre zu wahren. Wenn Sie Ihren Spitznamen anzeigen möchten, gehen Sie auf die RisuAI Patreon-Seite und klicken Sie auf den 'Link' Button",
+        "Standardmäßig wird es nicht in der Liste angezeigt, um die Privatsphäre zu wahren. Wenn Sie Ihren Spitznamen anzeigen möchten, gehen Sie auf die Risuai Patreon-Seite und klicken Sie auf den 'Link' Button",
     useNamePrefix: "Einen Präfix vor dem Namen verwenden",
     textAdventureNAI: "Als Textabenteuer ausführen",
     appendNameNAI: "Namen an NAI anhängen",

@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat, type Message } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
@@ -205,13 +205,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return v
     })
     
-// ─────────────────────────────────────────────────────────
-// Snapshot preset name & toggles before sending a message.
-// Ensures correct metadata is recorded, even if presets
-// change immediately after clicking "send".
-//
-// Used later in promptInfo assembly (e.g. promptInfo.promptText)
-// ─────────────────────────────────────────────────────────
     let promptInfo: MessagePresetInfo = {}
     let initialPresetNameForPromptInfo = null
     let initialPromptTogglesForPromptInfo: {
@@ -237,7 +230,6 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             promptToggles: initialPromptTogglesForPromptInfo,
         }
     }
-// ─────────────────────────────────────────────────────────────
 
     let currentChar:character
     let caculatedChatTokens = 0
@@ -769,7 +761,28 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         })
     }
 
-    if(nowChatroom.type !== 'group'){
+    
+    let msReseted = false
+    const makeMs = (currentChat:Chat) => {
+        let mss:Message[] = []
+        msReseted = false
+        for(let i=currentChat.message.length -1;i>=0;i--){
+            const d = currentChat.message[i]
+            if(d.disabled === true){
+                continue
+            }
+            if(d.disabled === 'allBefore'){
+                msReseted = true
+                break
+            }
+            mss.unshift(d)
+        }
+        return mss
+    }
+
+    let ms:Message[] = makeMs(currentChat)
+
+    if(nowChatroom.type !== 'group' && !msReseted){
         const firstMsg = currentChat.fmIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[currentChat.fmIndex]
 
         const chat:OpenAIChat = {
@@ -786,14 +799,14 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         chats.push(chat)
         currentTokens += await tokenizer.tokenizeChat(chat)
     }
-
-    let ms = currentChat.message
+    
+    console.log('Prepared messages for token calculation:', ms)
 
     const triggerResult = await runTrigger(currentChar, 'start', {chat: currentChat})
     if(triggerResult){
         currentChat = triggerResult.chat
         setCurrentChat(currentChat)
-        ms = currentChat.message
+        ms = makeMs(currentChat)
         currentTokens += triggerResult.tokens
         if(triggerResult.stopSending){
             doingChat.set(false)
@@ -1702,7 +1715,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         try {
             const permission = await Notification.requestPermission()
             if(permission === 'granted'){
-                const noti = new Notification('RisuAI', {
+                const noti = new Notification('Risuai', {
                     body: result
                 })
                 noti.onclick = () => {

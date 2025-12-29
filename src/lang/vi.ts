@@ -807,9 +807,9 @@ export const LanguageVietnamese = {
     proxyAPIKey: "Khóa/Mật khẩu",
     proxyRequestModel: "Mô hình yêu cầu proxy",
     officialWiki: "Wiki chính thức",
-    officialWikiDesc: "Wiki chính thức của RisuAI. cứ thoải mái xem nhé.",
+    officialWikiDesc: "Wiki chính thức của Risuai. cứ thoải mái xem nhé.",
     officialDiscord: "Bất hòa chính thức",
-    officialDiscordDesc: "Discord chính thức nói về RisuAI",
+    officialDiscordDesc: "Discord chính thức nói về Risuai",
     confirmRecommendedPreset:
         "Có một cài đặt được đề xuất cho mô hình này. bạn có muốn thay đổi cài đặt đó không? (bạn có thể tắt tính năng hỏi trong phần cài đặt khả năng truy cập)",
     toggleConfirmRecommendedPreset: "Yêu cầu cài đặt được đề xuất khi thay đổi kiểu máy",
@@ -913,7 +913,7 @@ export const LanguageVietnamese = {
     supporterThanks: "Người ủng hộ Cảm ơn",
     supporterThanksDesc: "Cảm ơn sự hỗ trợ của bạn!",
     donatorPatreonDesc:
-        "Theo mặc định, nó sẽ không được hiển thị trong danh sách bảo mật. nếu bạn muốn hiển thị biệt danh của mình, hãy truy cập trang patreon của RisuAI và nhấn nút liên kết.",
+        "Theo mặc định, nó sẽ không được hiển thị trong danh sách bảo mật. nếu bạn muốn hiển thị biệt danh của mình, hãy truy cập trang patreon của Risuai và nhấn nút liên kết.",
     useNamePrefix: "Sử dụng tiền tố tên",
     textAdventureNAI: "Chạy dưới dạng cuộc phiêu lưu văn bản",
     appendNameNAI: "Nối tên vào NAI",

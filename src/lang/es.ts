@@ -25,7 +25,7 @@ export const languageSpanish = {
         wrongPassword: "Contraseña incorrecta",
         networkFetch: "Esto ocurre cuando la red es inestable o el servidor está caído.",
         networkFetchWeb:
-            "Esto puede ser un error de CORS. Esto solo ocurre al usar la versión web debido a las limitaciones del navegador. Intenta usar la versión local de escritorio u otra versión de RisuAI.",
+            "Esto puede ser un error de CORS. Esto solo ocurre al usar la versión web debido a las limitaciones del navegador. Intenta usar la versión local de escritorio u otra versión de Risuai.",
         networkFetchPlain: "Esto puede ser un error de fetch simple. Intenta desactivar la opción de forzar fetch simple en la configuración.",
         requestLogRemoved: "Este registro de solicitud ha sido eliminado.",
         requestLogRemovedDesc: "Este registro de solicitud se elimina cuando el cliente se actualiza o recarga.",
@@ -85,7 +85,7 @@ export const languageSpanish = {
             "Datos de Markdown/HTML que se inyectarán en el fondo de la pantalla de chat.\n\n También puedes usar activos adicionales. por ejemplo, puedes usar `{{audio::<nombre del activo}}` para música de fondo.\n\n Además, puedes usar estos con activos adicionales:\n - `{{bg::<nombre del activo>}}`: inyecta el fondo como activo",
         additionalText:
             "El texto que se agregará a la Descripción del Personaje solo cuando la IA crea que es necesario, por lo que puedes poner textos largos aquí. Sepáralo con doble salto de línea.",
-        charjs: "Un código JavaScript que se ejecutará con el personaje. Por ejemplo, puedes consultar `https://github.com/kwaroran/RisuAI/blob/main/src/etc/example-char.js` ACTUALMENTE NO SE RECOMIENDA USAR DEBIDO A PROBLEMAS DE SEGURIDAD. EXPORTAR NO INCLUIRÁ ESTO.",
+        charjs: "Un código JavaScript que se ejecutará con el personaje. Por ejemplo, puedes consultar `https://github.com/kwaroran/Risuai/blob/main/src/etc/example-char.js` ACTUALMENTE NO SE RECOMIENDA USAR DEBIDO A PROBLEMAS DE SEGURIDAD. EXPORTAR NO INCLUIRÁ ESTO.",
         romanizer:
             "Romanizador es un complemento que convierte caracteres no romanos a caracteres romanos para reducir tokens al usar caracteres no romanos al solicitar datos. Esto puede resultar en una respuesta diferente del modelo original. No se recomienda usar este complemento al usar caracteres romanos en el chat.",
         oaiRandomUser:
@@ -115,7 +115,7 @@ export const languageSpanish = {
         additionalParams:
             'Parámetros adicionales que se agregarán al cuerpo de la solicitud. Si deseas excluir algunos parámetros, puedes poner `{{none}}` en el valor. Si deseas agregar un encabezado en lugar de un cuerpo, puedes poner `header::` delante de la clave, como `header::Authorization`. Si deseas el valor como JSON, puedes poner `json::` delante del valor, como `json::{"key":"value"}`. De lo contrario, el tipo del valor se determinará automáticamente.',
         antiClaudeOverload:
-            "Si ocurre sobrecarga de Claude, RisuAI intentará evitarla continuando con el mismo prompt, haciéndolo menos probable que ocurra. Funciona solo para respuestas transmitidas. Esto podría no funcionar para endpoints de API no oficiales.",
+            "Si ocurre sobrecarga de Claude, Risuai intentará evitarla continuando con el mismo prompt, haciéndolo menos probable que ocurra. Funciona solo para respuestas transmitidas. Esto podría no funcionar para endpoints de API no oficiales.",
         triggerScript:
             'Trigger Script es un script personalizado que se ejecuta cuando se cumple una condición. Se puede usar para modificar los datos del chat, ejecutar un comando, cambiar variables, etc. El tipo depende de cuándo se activa. También puede ejecutarse mediante botones, que se pueden usar con {{button::Display::TriggerName}}, o botones HTML con el atributo `risu-trigger="<TriggerName>"`.',
         autoContinueChat: "Si está habilitado, intentará continuar el chat si no termina con un signo de puntuación. NO USES ESTO CON IDIOMAS QUE NO USAN SIGNOS DE PUNTUACIÓN.",
@@ -132,7 +132,7 @@ export const languageSpanish = {
         customPromptTemplateToggle:
             "Aquí puedes definir tus propios interruptores de prompt. Usa el formato `<variable del interruptor>=<nombre del interruptor>`, separado por nueva línea. Por ejemplo, `cot=Toggle COT`. Puedes usar estos interruptores en el prompt usando `{{getglobalvar::toggle_<variable del interruptor>}}`. Como `{{getglobalvar::toggle_cot}}`.",
         defaultVariables:
-            "Aquí puedes definir tus propias variables predeterminadas. Usa el formato `<nombre de la variable>=<valor de la variable>`, separado por nueva línea. Por ejemplo, `name=RisuAI`, que luego se puede usar con scripts de activación y variables CBS como `{{getvar::A}}`, `{{setvar::A::B}}` o `{{? $A + 1}}`. Si la variable predeterminada del template del prompt y la variable predeterminada del personaje tienen el mismo nombre, se usará la variable predeterminada del personaje.",
+            "Aquí puedes definir tus propias variables predeterminadas. Usa el formato `<nombre de la variable>=<valor de la variable>`, separado por nueva línea. Por ejemplo, `name=Risuai`, que luego se puede usar con scripts de activación y variables CBS como `{{getvar::A}}`, `{{setvar::A::B}}` o `{{? $A + 1}}`. Si la variable predeterminada del template del prompt y la variable predeterminada del personaje tienen el mismo nombre, se usará la variable predeterminada del personaje.",
         lowLevelAccess:
             "Si está habilitado, permitirá el acceso a funciones que requieren altas potencias de computación y ejecutar el modelo de IA a través de activadores en el personaje. No habilites esto a menos que realmente necesites estas características.",
         triggerLLMPrompt:
@@ -157,7 +157,7 @@ export const languageSpanish = {
         betaMobileGUI: "Si está habilitado, usará la GUI móvil beta en pantallas pequeñas (menos de 800px). Requiere recargar.",
         unrecommended: "Esta es una configuración no recomendada. No se recomienda usar esta configuración.",
         jsonSchema:
-            'Este es un esquema JSON que se enviará al modelo de IA si el modelo admite JSON Schema.\n\nSin embargo, dado que JSON Schema es difícil de aprender, en RisuAI puedes usar un subconjunto de la interfaz TypeScript en lugar de JSON Schema. RisuAI lo convertirá en tiempo de ejecución. Por ejemplo, si quieres enviar un JSON como este:\n\n```js\n{\n  "name": "Risuai", //name must be Risuai,\n  "age": 1, //age must be number,\n  "icon": "slim", //icon must be \'slim\' or \'rounded\'\n  "thoughts": ["Good View!", "Lorem"] //thoughts must be array of strings\n}\n```\n\nPuedes poner esta interfaz TypeScript:\n\n```typescript\ninterface Schema {\n  name: string;\n  age: number;\n  icon: \'slim\'|\'rounded\'\n  thoughts: string[]\n}\n```\n\nEl nombre de la interfaz no importa. Para más información, consulta la documentación de TypeScript (https://www.typescriptlang.org/docs/handbook/interfaces.html), y para verificar qué subconjunto de TypeScript es compatible, consulta a continuación.<details><summary>Subconjunto de TypeScript Compatible</summary>\n\nLos tipos compatibles son `boolean`, `number`, `string`, `Array`. Tipos avanzados como tipos unitarios, tipos de intersección, tipos de unión, opcionales, tipos literales, etc., no son compatibles excepto en estos casos:\n\n        - Array de tipos primitivos: (ej. `string[]`, `Array<boolean>)`\n        - Tipos unitarios entre cadenas: (ej. `\'slim\'|\'rounded\'`).\n\n        Las propiedades deben estar una por línea. Si hay múltiples propiedades en una línea, arrojará un error. Las propiedades y el nombre de la interfaz deben estar solo en caracteres latinos, en el rango ASCII. El nombre de las propiedades no debe estar entre comillas o comillas dobles. No se admite anidamiento dentro de la interfaz. No se permite poner `{` o `}` en la línea donde se definen las propiedades. Si deseas usar tipos más avanzados, usa JSON Schema en su lugar.\n        </details>',
+            'Este es un esquema JSON que se enviará al modelo de IA si el modelo admite JSON Schema.\n\nSin embargo, dado que JSON Schema es difícil de aprender, en Risuai puedes usar un subconjunto de la interfaz TypeScript en lugar de JSON Schema. Risuai lo convertirá en tiempo de ejecución. Por ejemplo, si quieres enviar un JSON como este:\n\n```js\n{\n  "name": "Risuai", //name must be Risuai,\n  "age": 1, //age must be number,\n  "icon": "slim", //icon must be \'slim\' or \'rounded\'\n  "thoughts": ["Good View!", "Lorem"] //thoughts must be array of strings\n}\n```\n\nPuedes poner esta interfaz TypeScript:\n\n```typescript\ninterface Schema {\n  name: string;\n  age: number;\n  icon: \'slim\'|\'rounded\'\n  thoughts: string[]\n}\n```\n\nEl nombre de la interfaz no importa. Para más información, consulta la documentación de TypeScript (https://www.typescriptlang.org/docs/handbook/interfaces.html), y para verificar qué subconjunto de TypeScript es compatible, consulta a continuación.<details><summary>Subconjunto de TypeScript Compatible</summary>\n\nLos tipos compatibles son `boolean`, `number`, `string`, `Array`. Tipos avanzados como tipos unitarios, tipos de intersección, tipos de unión, opcionales, tipos literales, etc., no son compatibles excepto en estos casos:\n\n        - Array de tipos primitivos: (ej. `string[]`, `Array<boolean>)`\n        - Tipos unitarios entre cadenas: (ej. `\'slim\'|\'rounded\'`).\n\n        Las propiedades deben estar una por línea. Si hay múltiples propiedades en una línea, arrojará un error. Las propiedades y el nombre de la interfaz deben estar solo en caracteres latinos, en el rango ASCII. El nombre de las propiedades no debe estar entre comillas o comillas dobles. No se admite anidamiento dentro de la interfaz. No se permite poner `{` o `}` en la línea donde se definen las propiedades. Si deseas usar tipos más avanzados, usa JSON Schema en su lugar.\n        </details>',
         strictJsonSchema: "Si está habilitado, seguirá estrictamente el esquema proporcionado para JSON en algunos modelos. Si está deshabilitado, puede ignorar el esquema JSON.",
         extractJson:
             'Si no está en blanco, extraerá datos JSON específicos de la respuesta. Por ejemplo, si deseas extraer `response.text[0]` en la respuesta `{"response": {"text": ["hello"]}}`, puedes poner `response.text.0`.',
@@ -222,14 +222,14 @@ export const languageSpanish = {
         themeDescClassic: "Apto para todos los dispositivos",
         texttheme: "Selecciona el color del texto",
         inputName: "Por último, ingresa tu apodo.",
-        welcome: "¡Bienvenido a RisuAI! Aquí te guiaré para configurarlo. Primero, ¿cómo puedo llamarte?",
+        welcome: "¡Bienvenido a Risuai! Aquí te guiaré para configurarlo. Primero, ¿cómo puedo llamarte?",
         welcome2:
             "Hola {username}! Antes de empezar, te haré algunas preguntas. Puedes cambiar estas configuraciones más tarde en la configuración.\n\nPrimero selecciona el proveedor de IA.",
         openrouterProvider: "Openrouter tiene muchos modelos, algunos de ellos sin filtro y algunos gratuitos, pero no es tan bueno como OpenAI.",
         hordeProvider: "Horde es un proveedor gratuito, pero el tiempo de respuesta es largo y la calidad es baja.",
         setProviderLater: "Hay otros proveedores, pero puedes configurarlo más tarde en la configuración. selecciona esto si deseas configurarlo más tarde.",
         setupOpenAI:
-            "Para usar OpenAI, necesitas obtener una clave API. \n1. ve a https://beta.openai.com/ \n2. inicia sesión con tu cuenta \n3. ve a https://beta.openai.com/account/api-keys \n4. haz clic en 'Crear Nueva Clave API' y nombra tu clave como quieras. \n5. copia la clave en el sitio web.\n6. regresa a RisuAI\n7. pégala y haz clic en el botón enviar.",
+            "Para usar OpenAI, necesitas obtener una clave API. \n1. ve a https://beta.openai.com/ \n2. inicia sesión con tu cuenta \n3. ve a https://beta.openai.com/account/api-keys \n4. haz clic en 'Crear Nueva Clave API' y nombra tu clave como quieras. \n5. copia la clave en el sitio web.\n6. regresa a Risuai\n7. pégala y haz clic en el botón enviar.",
         setupClaude: "Para usar Claude, necesitas obtener una clave API.",
         setupClaudeSteps: [
             "Ve a esta URL e inicia sesión como Google",
@@ -246,7 +246,7 @@ export const languageSpanish = {
             "Copia la clave, pégala aquí y envíala.",
         ],
         setupOpenrouter:
-            "Para usar Openrouter, necesitas obtener una clave API. \n1. ve a https://openrouter.ai/keys\n2. haz clic en 'Crear Clave'\n3. establece el nombre de la clave como quieras.\n4. copia la clave en el sitio web\n5. regresa a RisuAI\n6. pégala y haz clic en el botón enviar.",
+            "Para usar Openrouter, necesitas obtener una clave API. \n1. ve a https://openrouter.ai/keys\n2. haz clic en 'Crear Clave'\n3. establece el nombre de la clave como quieras.\n4. copia la clave en el sitio web\n5. regresa a Risuai\n6. pégala y haz clic en el botón enviar.",
         allDone: "¡Todo listo! por favor, espera un momento.",
         setupLaterMessage: "¡Bienvenido {username}! ¿Quieres que te guíe para configurar o lo harás tú mismo?",
         setupMessageOption1: "Guíame para configurar",
@@ -814,9 +814,9 @@ export const languageSpanish = {
     proxyAPIKey: "Clave/Contraseña del Proxy",
     proxyRequestModel: "Modelo de Solicitud",
     officialWiki: "Wiki Oficial",
-    officialWikiDesc: "Wiki Oficial de RisuAI. siéntete libre de consultarla.",
+    officialWikiDesc: "Wiki Oficial de Risuai. siéntete libre de consultarla.",
     officialDiscord: "Discord Oficial",
-    officialDiscordDesc: "Discord Oficial para hablar sobre RisuAI",
+    officialDiscordDesc: "Discord Oficial para hablar sobre Risuai",
     confirmRecommendedPreset:
         "Hay una configuración recomendada para este modelo. ¿Deseas cambiar la configuración a esa? (puedes desactivar esta pregunta en la configuración de accesibilidad)",
     toggleConfirmRecommendedPreset: "Preguntar por configuración recomendada al cambiar modelo",
@@ -919,7 +919,7 @@ export const languageSpanish = {
     import: "Importar",
     supporterThanks: "Agradecimiento a los Soportes",
     supporterThanksDesc: "¡Gracias por tu apoyo!",
-    donatorPatreonDesc: "Por defecto, no se mostrará en la lista por privacidad. Si deseas mostrar tu apodo, ve a la página de patreon de RisuAI y presiona el botón de enlace.",
+    donatorPatreonDesc: "Por defecto, no se mostrará en la lista por privacidad. Si deseas mostrar tu apodo, ve a la página de patreon de Risuai y presiona el botón de enlace.",
     useNamePrefix: "Usar Prefijo de Nombre",
     textAdventureNAI: "Ejecutar como Aventura de Texto",
     appendNameNAI: "Agregar Nombre en NAI",
@@ -978,7 +978,7 @@ export const languageSpanish = {
     inputCardPassword: "Ingresa la Contraseña de la Tarjeta",
     ccv2Desc: "Character Card V2 es un formato ampliamente utilizado en programas de chatbot.",
     ccv3Desc: "Character Card V3 es un formato de próxima generación que se usa en programas de chatbot.",
-    realmDesc: "RisuRealm es una plataforma de compartición de contenido para RisuAI. Puedes compartir tu personaje con otros usuarios.",
+    realmDesc: "RisuRealm es una plataforma de compartición de contenido para Risuai. Puedes compartir tu personaje con otros usuarios.",
     rccDesc: "Risu Refined Character Card es un formato con características adicionales como contraseña, verificación de integridad, etc.",
     password: "Contraseña",
     license: "Licencia",
@@ -1051,8 +1051,8 @@ export const languageSpanish = {
     trashDesc:
         "Los personajes eliminados se mueven a la papelera. Puedes restaurarlos o eliminarlos permanentemente. Los personajes eliminados se purgan automáticamente después de 3 días.",
     shareExport: "Compartir/Exportar",
-    risupresetDesc: "El formato Risupreset es un formato específicamente diseñado para presets de RisuAI.",
-    risuMDesc: "El formato RisuM es un formato diseñado específicamente para módulos de RisuAI.",
+    risupresetDesc: "El formato Risupreset es un formato específicamente diseñado para presets de Risuai.",
+    risuMDesc: "El formato RisuM es un formato diseñado específicamente para módulos de Risuai.",
     jsonDesc: "El formato JSON es un formato fácil de leer y escribir tanto para humanos como para máquinas.",
     nickname: "Apodo",
     useRegexLorebook: "Usar Regex",
@@ -1199,7 +1199,7 @@ export const languageSpanish = {
     home: "Inicio",
     showSavingIcon: "Mostrar Icono de Guardado",
     pluginVersionWarn:
-        "Esta es la versión {{plugin_version}} del plugin, que no es compatible con esta versión de RisuAI. Por favor, actualiza el plugin a la versión {{required_version}}.",
+        "Esta es la versión {{plugin_version}} del plugin, que no es compatible con esta versión de Risuai. Por favor, actualiza el plugin a la versión {{required_version}}.",
     imageTranslation: "Traducción de Imagen",
     banCharacterset: "Regeneración Automática en Conjunto de Caracteres",
     checkCorruption: "Verificar Corrupción",
@@ -1405,10 +1405,10 @@ export const languageSpanish = {
     nightlyWarning:
         "## Builds Nightly\n\nTe estás conectando a una build nightly del software. Esta versión está destinada a pruebas y muy probablemente contiene errores. **En esta versión, incluso si encuentras problemas, no admitimos resolverlos directamente.**",
     loginSionyw: "Iniciar sesión con cuenta de Sionyw",
-    pluginRiskDetectedAlert: "RisuAI detectó código que puede ser dañino y que podría ROBAR TU CLAVE API O DATOS PERSONALES. te recomendamos NO INSTALAR ESTE PLUGIN.",
+    pluginRiskDetectedAlert: "Risuai detectó código que puede ser dañino y que podría ROBAR TU CLAVE API O DATOS PERSONALES. te recomendamos NO INSTALAR ESTE PLUGIN.",
     doNotInstall: "No Instalar",
     continueAnyway: "Continuar de Todos Modos",
-    pluginNoRiskButAlert: "RisuAI no detectó código dañino, pero ten en cuenta que instalar plugins de fuentes no confiables puede plantear riesgos de seguridad.",
+    pluginNoRiskButAlert: "Risuai no detectó código dañino, pero ten en cuenta que instalar plugins de fuentes no confiables puede plantear riesgos de seguridad.",
     pluginRisksInuserFriendly: {
         eval: "Evaluando Código desde Cadenas",
         globalAccess: "Accediendo a Variables Globales",

@@ -20,7 +20,7 @@
     import { stopTTS } from "src/ts/process/tts";
     import MainMenu from '../UI/MainMenu.svelte';
     import AssetInput from './AssetInput.svelte';
-    import { aiLawApplies, downloadFile } from 'src/ts/globalApi.svelte';
+    import { aiLawApplies, chatFoldedState, chatFoldedStateMessageIndex, downloadFile } from 'src/ts/globalApi.svelte';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
     import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
@@ -31,6 +31,7 @@
     import { ConnectionOpenStore } from 'src/ts/sync/multiuser';
     import { coldStorageHeader, preLoadChat } from 'src/ts/process/coldstorage.svelte';
     import Chats from './Chats.svelte';
+    import Button from '../UI/GUI/Button.svelte';
 
     let messageInput:string = $state('')
     let messageInputTranslate:string = $state('')
@@ -740,6 +741,17 @@
                     <div></div>
                 {/await}
             {:else}
+
+            {#if chatFoldedStateMessageIndex.index !== -1}
+                <button class="w-full flex justify-center max-w-full p-4">
+                    <Button className="max-w-xl w-full" onclick={() => {
+                        loadPages += chatFoldedStateMessageIndex.index + 1
+                        chatFoldedState.data = null
+                    }}>
+                        {language.loadMore}
+                    </Button>
+                </button>
+            {/if}
             
             <Chats
                 messages={currentChat}

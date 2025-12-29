@@ -147,13 +147,11 @@ function renderMarkdown(md:markdownit, data:string){
                 .replace(/\uE9b9/gu, '}')
                 .replace(/\uE9ba/gu, '(')
                 .replace(/\uE9bb/gu, ')')
-            console.log(content)
             const rendered = katex.renderToString(content, {
                 displayMode: false,
                 throwOnError: true,
                 output: 'mathml'
             })
-            console.log('KaTeX rendered:', rendered)
             return rendered
         } catch (error) {
             console.error('KaTeX render error:', error)
@@ -746,15 +744,27 @@ export function addMetadataToElement(data:string, modelShortName:string){
             switch(byte.charAt(j)){
                 case '0':{
                     encodedMetaCode += metaCodes[0]
+                    break
                 }
                 case '1':{
                     encodedMetaCode += metaCodes[1]
+                    break
                 }
                 case '2':{
                     encodedMetaCode += metaCodes[2]
+                    break
                 }
                 case '3':{
                     encodedMetaCode += metaCodes[3]
+                    break
+                }
+                case '4':{
+                    encodedMetaCode += metaCodes[4]
+                    break
+                }
+                case '5':{
+                    encodedMetaCode += metaCodes[5]
+                    break
                 }
             }
         }
@@ -1327,6 +1337,7 @@ function blockStartMatcher(p1:string,matcherArg:matcherArg):{type:blockMatch,typ
                         else{
                             statement.push('0')
                         }
+                        break
                     }
                     case 'tis':{ //tis = toggle is
                         const variable = getGlobalChatVar('toggle_' + statement.pop())

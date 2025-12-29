@@ -569,15 +569,16 @@
       {#if char.type === 'folder' && openFolders.includes(char.id)}
         {#key char.color}
         <div class="p-1 flex flex-col items-center py-1 mt-1 rounded-lg relative">
-          <div class="absolute top-0 left-1  border border-selected w-full h-full rounded-lg z-0 bg-opacity/20"
-          class:bg-darkbg={char.color === 'default' || char.color === ''}
-          class:bg-red-700={char.color === 'red'}
-          class:bg-yellow-700={char.color === 'yellow'}
-          class:bg-green-700={char.color === 'green'}
-          class:bg-blue-700={char.color === 'blue'}
-          class:bg-indigo-700={char.color === 'indigo'}
-          class:bg-purple-700={char.color === 'purple'}
-          class:bg-pink-700={char.color === 'pink'}></div>
+          <div class="absolute top-0 left-1 border border-selected w-full h-full rounded-lg z-0 {
+            char.color === 'red' ? 'bg-red-700/20' :
+            char.color === 'yellow' ? 'bg-yellow-700/20' :
+            char.color === 'green' ? 'bg-green-700/20' :
+            char.color === 'blue' ? 'bg-blue-700/20' :
+            char.color === 'indigo' ? 'bg-indigo-700/20' :
+            char.color === 'purple' ? 'bg-purple-700/20' :
+            char.color === 'pink' ? 'bg-pink-700/20' :
+            'bg-darkbg/20'
+          }"></div>
           <div class="h-4 min-h-4 w-14 relative z-10" role="listitem" ondragover={(e) => {
             e.preventDefault()
             e.dataTransfer.dropEffect = 'move'

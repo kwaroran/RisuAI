@@ -24,6 +24,7 @@
     "strict": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
 
     /* Debugging */
     "sourceMap": true

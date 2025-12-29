@@ -168,7 +168,7 @@
 
 </div>
 {#if openIframe}
-    <div class="fixed top-0 left-0 bg-black bg-opacity/50 w-full h-full flex justify-center items-center">
+    <div class="fixed top-0 left-0 bg-black/50 w-full h-full flex justify-center items-center">
         <iframe src={openIframeURL} title="login" class="w-full h-full">
         </iframe>
     </div>
