@@ -3,7 +3,7 @@
     import { mount, onDestroy, unmount } from 'svelte';
     import Chat from './Chat.svelte';
     import { getCharImage } from 'src/ts/characters';
-    import { createSimpleCharacter } from 'src/ts/stores.svelte';
+    import { createSimpleCharacter, DBState } from 'src/ts/stores.svelte';
     import { chatFoldedStateMessageIndex } from 'src/ts/globalApi.svelte';
 
     const {
@@ -138,7 +138,7 @@
         updateChatBody()
         if(messages.length > previousLength){
             const lastMsg = messages[messages.length - 1];
-            if(lastMsg && lastMsg.role === 'char'){
+            if(lastMsg && lastMsg.role === 'char' && DBState.db.autoScrollToNewMessage){
                 const element = chatBody.firstElementChild;
                 if(element){
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
