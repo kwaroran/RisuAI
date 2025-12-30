@@ -5,7 +5,7 @@ import { alertConfirm, alertError, alertPluginConfirm } from "../alert";
 import { selectSingleFile, sleep } from "../util";
 import type { OpenAIChat } from "../process/index.svelte";
 import { fetchNative, globalFetch, readImage, saveAsset, toGetter } from "../globalApi.svelte";
-import { DBState, pluginAlertModalStore, selectedCharID } from "../stores.svelte";
+import { DBState, hotReloading, pluginAlertModalStore, selectedCharID } from "../stores.svelte";
 import type { ScriptMode } from "../process/scripts";
 import { checkCodeSafety } from "./pluginSafety";
 import { SafeDocument, SafeIdbFactory, SafeLocalStorage } from "./pluginSafeClass";
@@ -439,6 +439,10 @@ export async function importPlugin(code:string|null = null, argu:{
         }
         else if(!isUpdate || argu.isHotReload){
             db.plugins.push(pluginData)
+        }
+
+        if(argu.isHotReload && !hotReloading.includes(pluginData.name)){
+            hotReloading.push(pluginData.name)
         }
 
         console.log(`Imported plugin: ${pluginData.name} (API v${apiVersion})`)
