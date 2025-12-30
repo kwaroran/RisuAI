@@ -1405,4 +1405,10 @@ export const languageKorean = {
     alwaysScrollToNewMessage: "항상 새 메시지로 스크롤 (스크롤 위치 무시)",
     newMessage: "새 메시지",
     newMessageButtonStyle: "새 메시지 버튼 스타일",
+    newMessageButtonBottomCenter: "하단 중앙 (기본값)",
+    newMessageButtonBottomRight: "하단 우측",
+    newMessageButtonBottomLeft: "하단 좌측",
+    newMessageButtonFloatingCircle: "아이콘 원 (우측 하단)",
+    newMessageButtonRightCenter: "우측 중앙",
+    newMessageButtonTopBar: "상단 바",
 }

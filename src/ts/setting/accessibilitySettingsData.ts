@@ -5,6 +5,7 @@
  */
 
 import type { SettingItem } from './types';
+import { language } from "src/lang";
 
 export const accessibilitySettingsItems: SettingItem[] = [
     // Header
@@ -158,12 +159,12 @@ export const accessibilitySettingsItems: SettingItem[] = [
         condition: (db) => db.autoScrollToNewMessage && !db.alwaysScrollToNewMessage,
         options: {
             selectOptions: [
-                { value: 'bottom-center', label: 'Bottom Center (Default)' },
-                { value: 'bottom-right', label: 'Bottom Right' },
-                { value: 'bottom-left', label: 'Bottom Left' },
-                { value: 'floating-circle', label: 'Floating Circle (Bottom Right)' },
-                { value: 'minimal-pill', label: 'Minimal Pill (Right Center)' },
-                { value: 'top-bar', label: 'Top Bar' }
+                { value: 'bottom-center', label: language.newMessageButtonBottomCenter },
+                { value: 'bottom-right', label: language.newMessageButtonBottomRight },
+                { value: 'bottom-left', label: language.newMessageButtonBottomLeft },
+                { value: 'floating-circle', label: language.newMessageButtonFloatingCircle },
+                { value: 'right-center', label: language.newMessageButtonRightCenter },
+                { value: 'top-bar', label: language.newMessageButtonTopBar }
             ]
         }
     },
