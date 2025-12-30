@@ -10,7 +10,9 @@
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { aiLawApplies, openURL, getFetchLogs } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon, ChevronDownIcon, ChevronUpIcon } from "@lucide/svelte";
+    import { XIcon, ChevronDownIcon, ChevronUpIcon, CopyIcon } from "@lucide/svelte";
+    import hljs from 'highlight.js/lib/core';
+    import json from 'highlight.js/lib/languages/json';
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
@@ -43,6 +45,33 @@
     } = $state(null)
     let expandedLogs: Set<number> = $state(new Set())
     let allExpanded = $state(false)
+
+    // Register JSON language for syntax highlighting
+    if (!hljs.getLanguage('json')) {
+        hljs.registerLanguage('json', json)
+    }
+
+    function highlightJson(code: string): string {
+        try {
+            return hljs.highlight(code, { language: 'json' }).value
+        } catch {
+            return code.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        }
+    }
+
+    async function copyToClipboard(text: string) {
+        try {
+            await navigator.clipboard.writeText(text)
+        } catch {
+            // fallback
+            const textarea = document.createElement('textarea')
+            textarea.value = text
+            document.body.appendChild(textarea)
+            textarea.select()
+            document.execCommand('copy')
+            document.body.removeChild(textarea)
+        }
+    }
     $effect.pre(() => {
         showDetails = false;
         translatedStackTrace = '';
@@ -855,15 +884,15 @@
                                     }}
                                 >
                                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                                        <span class="px-2 py-1 rounded text-xs font-mono {log.success ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                                        <span class="px-2 py-1 rounded text-xs font-bold font-mono {log.success ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}">
                                             {log.status ?? (log.success ? 'OK' : 'ERR')}
                                         </span>
-                                        <span class="text-textcolor2 text-sm truncate flex-1 text-left" title={log.url}>
+                                        <span class="text-textcolor text-sm truncate flex-1 text-left font-mono" title={log.url}>
                                             {log.url}
                                         </span>
-                                        <span class="text-textcolor2 text-xs whitespace-nowrap">{log.date}</span>
+                                        <span class="text-textcolor text-xs whitespace-nowrap opacity-70">{log.date}</span>
                                     </div>
-                                    <div class="ml-2 text-textcolor2">
+                                    <div class="ml-2 text-textcolor">
                                         {#if isExpanded}
                                             <ChevronUpIcon size={20} />
                                         {:else}
@@ -872,19 +901,59 @@
                                     </div>
                                 </button>
                                 {#if isExpanded}
-                                    <div class="border-t border-darkborderc p-3 bg-bgcolor/30">
-                                        <div class="space-y-3">
+                                    <div class="border-t border-darkborderc p-4 bg-bgcolor/30">
+                                        <div class="space-y-4">
                                             <div>
-                                                <div class="text-textcolor2 text-sm mb-1 font-semibold">Request Body</div>
-                                                <pre class="text-textcolor text-xs bg-bgcolor p-2 rounded overflow-x-auto max-h-48 overflow-y-auto">{log.body}</pre>
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-textcolor text-sm font-semibold">URL</span>
+                                                    <button
+                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.url) }}
+                                                        title="Copy"
+                                                    >
+                                                        <CopyIcon size={14} />
+                                                    </button>
+                                                </div>
+                                                <pre class="request-log-code hljs text-sm">{log.url}</pre>
                                             </div>
                                             <div>
-                                                <div class="text-textcolor2 text-sm mb-1 font-semibold">Request Header</div>
-                                                <pre class="text-textcolor text-xs bg-bgcolor p-2 rounded overflow-x-auto max-h-32 overflow-y-auto">{log.header}</pre>
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-textcolor text-sm font-semibold">Request Body</span>
+                                                    <button
+                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.body) }}
+                                                        title="Copy"
+                                                    >
+                                                        <CopyIcon size={14} />
+                                                    </button>
+                                                </div>
+                                                <pre class="request-log-code hljs">{@html highlightJson(log.body)}</pre>
                                             </div>
                                             <div>
-                                                <div class="text-textcolor2 text-sm mb-1 font-semibold">Response</div>
-                                                <pre class="text-textcolor text-xs bg-bgcolor p-2 rounded overflow-x-auto max-h-64 overflow-y-auto">{log.response}</pre>
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-textcolor text-sm font-semibold">Request Header</span>
+                                                    <button
+                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.header) }}
+                                                        title="Copy"
+                                                    >
+                                                        <CopyIcon size={14} />
+                                                    </button>
+                                                </div>
+                                                <pre class="request-log-code hljs max-h-32">{@html highlightJson(log.header)}</pre>
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-textcolor text-sm font-semibold">Response</span>
+                                                    <button
+                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.response) }}
+                                                        title="Copy"
+                                                    >
+                                                        <CopyIcon size={14} />
+                                                    </button>
+                                                </div>
+                                                <pre class="request-log-code hljs max-h-64">{@html highlightJson(log.response)}</pre>
                                             </div>
                                         </div>
                                     </div>
@@ -957,5 +1026,20 @@
         word-break: break-all;
         max-height: 200px;
         overflow-y: auto;
+    }
+
+    .request-log-code {
+        background-color: #1a1a2e;
+        color: #e0e0e0;
+        border: 1px solid var(--risu-theme-darkborderc);
+        border-radius: 0.375rem;
+        padding: 0.75rem;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-all;
+        max-height: 12rem;
+        overflow: auto;
     }
 </style>
