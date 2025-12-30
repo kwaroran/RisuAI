@@ -125,17 +125,14 @@
 
     function savePrefsToDB() {
         const db = getDatabase()
-        const normalizedGrouped = !isFlatText && diffStyle === 'line' ? isGrouped : DEFAULT_PROMPT_DIFF_PREFS.isGrouped
-        const normalizedFormat = isFlatText ? DEFAULT_PROMPT_DIFF_PREFS.formatStyle : formatStyle
-        const normalizedShowOnlyChanges = isFlatText ? DEFAULT_PROMPT_DIFF_PREFS.showOnlyChanges : showOnlyChanges
 
         db.promptDiffPrefs = {
             ...DEFAULT_PROMPT_DIFF_PREFS,
             diffStyle,
-            formatStyle: normalizedFormat,
+            formatStyle,
             viewStyle,
-            isGrouped: normalizedGrouped,
-            showOnlyChanges: normalizedShowOnlyChanges,
+            isGrouped,
+            showOnlyChanges,
             contextRadius,
         }
     }
@@ -1271,11 +1268,11 @@
       <div class="flex items-center gap-4 flex-wrap">
         {@render pillRadioGroup('Diff', 'diffStyle', diffOptions, diffStyle, (v) => (diffStyle = v as DiffStyle))}
         {@render pillRadioGroup('Format', 'formatStyle', formatOptions, formatStyle, (v) => (formatStyle = v as FormatStyle), isFlatText)}
-        {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle))}        
+        {@render pillRadioGroup('View', 'viewStyle', viewOptions, viewStyle, (v) => (viewStyle = v as ViewStyle), isFlatText)}        
         {@render checkboxToggle('Legacy', isFlatText, (v) => (isFlatText = v))}
         {@render checkboxToggle( 'Grouped', isGrouped, (v) => (isGrouped = v), isFlatText || diffStyle !== 'line' || viewStyle === 'split', true)}
         {@render checkboxToggle('Only changes', showOnlyChanges, (v) => (showOnlyChanges = v), isFlatText, true)}
-        {#if showOnlyChanges}
+        {#if !isFlatText && showOnlyChanges}
           {@render rangeControl('Context', contextRadius, (v) => (contextRadius = v), 0, 5)}
         {/if}
       </div>
@@ -1463,7 +1460,7 @@
                 <span class="text-sm">No changes</span>
               </div>
             </div>
-          {:else if viewStyle === 'unified'}
+          {:else if viewStyle === 'unified' || isFlatText}
           <div class="font-mono text-sm leading-5">
             {#each segments as seg, sIdx (sIdx)}
               {#if seg.kind === 'divider'}
