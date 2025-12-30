@@ -8,6 +8,7 @@
     import { exportChat, importChat } from "../../ts/characters";
     import { findCharacterbyId } from "../../ts/util";
     import TextInput from "../UI/GUI/TextInput.svelte";
+    import { changeChatTo } from "src/ts/globalApi.svelte";
 
     let editMode = $state(false)
     /** @type {{close?: any}} */
@@ -27,8 +28,8 @@
         {#each DBState.db.characters[$selectedCharID].chats as chat, i}
             <button onclick={() => {
                 if(!editMode){
-                    DBState.db.characters[$selectedCharID].chatPage = i
-                     close()
+                    changeChatTo(i)
+                    close()
                 }
             }} class="flex items-center text-textcolor border-t-1 border-solid border-0 border-darkborderc p-2 cursor-pointer" class:bg-selected={i === DBState.db.characters[$selectedCharID].chatPage}>
                 {#if editMode}
@@ -53,7 +54,7 @@
                         }
                         const d = await alertConfirm(`${language.removeConfirm}${chat.name}`)
                         if(d){
-                            DBState.db.characters[$selectedCharID].chatPage = 0
+                            changeChatTo(0)
                             let chats = DBState.db.characters[$selectedCharID].chats
                             chats.splice(i, 1)
                             DBState.db.characters[$selectedCharID].chats = chats
@@ -84,8 +85,7 @@
                     })
                 }
                 DBState.db.characters[$selectedCharID].chats = chats
-                $ReloadGUIPointer += 1
-                DBState.db.characters[$selectedCharID].chatPage = len
+                changeChatTo(len)
                 close()
             }}>
                 <PlusIcon/>

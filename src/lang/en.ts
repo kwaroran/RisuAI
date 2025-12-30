@@ -1425,7 +1425,7 @@ export const languageEnglish = {
     settingsCloseButtonSize: "Settings Close Button Size",
     translating: "Translating...",
     showOriginal: "Show Original Code Address",
-    translate: "Translate Code Address",
+    translateCode: "Translate Code Address",
     apply: "Apply",
     add: "Add",
     nightlyWarning:
@@ -1454,4 +1454,12 @@ export const languageEnglish = {
     aiGenerationWarning: "Contents will be AI generated and may contain inaccuracies or biases.",
     duplicatePluginFoundUpdateIt: "Duplicate plugin found. do you want to update the existing plugin?",
     pluginUpdateFoundInstallIt: "Plugin update found. do you want to install the update?",
+    bookmark: "Bookmark",
+    translate: "Translate",
+    branch: "Branch",
+    branchedText: "This chat has been branched from {}.",
+    loadMore: "Load More",
+    disableMessage: "Disable Message",
+    disableAbove: "Cut Messages for AI",
+    trimStartNewChat: "Trim 'Start New Chat' Messages",
 }

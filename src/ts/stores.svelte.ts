@@ -135,6 +135,12 @@ export const additionalSettingsMenu = $state([] as MenuDef[])
 export const additionalFloatingActionButtons = $state([] as MenuDef[])
 export const additionalHamburgerMenu = $state([] as MenuDef[])
 export const additionalChatMenu = $state([] as MenuDef[])
+export const popupStore = $state({
+    children: null as null | import("svelte").Snippet,
+    mouseX: 0,
+    mouseY: 0,
+openId: 0,
+})
 
 ReloadGUIPointer.subscribe(() => {
     ReloadChatPointer.set({})

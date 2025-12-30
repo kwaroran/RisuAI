@@ -740,8 +740,10 @@ export async function requestHTTPOpenAI(replacerURL:string,body:any, headers:Rec
                 result = `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${result}`
             }
         }
-        if(dat?.choices[0]?.reasoning_content){
-            result = `<Thoughts>\n${dat.choices[0].reasoning_content}\n</Thoughts>\n${result}`
+        // For deepseek Official Reasoning Model: https://api-docs.deepseek.com/guides/thinking_mode#api-example
+        const reasoningContentField = dat?.choices[0]?.reasoning_content ?? dat?.choices[0]?.message?.reasoning_content
+        if(reasoningContentField){
+            result = `<Thoughts>\n${reasoningContentField}\n</Thoughts>\n${result}`
         }
         // For openrouter, https://openrouter.ai/docs/api/api-reference/chat/send-chat-completion-request#response.body.choices.message.reasoning
         if(dat?.choices?.[0]?.message?.reasoning){

@@ -181,7 +181,7 @@
                                 {:else if isTranslated}
                                     {language.showOriginal}
                                 {:else}
-                                    {language.translate}
+                                    {language.translateCode}
                                 {/if}
                             </Button>
                             <pre class="stack-trace">{@html isTranslated ? translatedStackTrace : $alertStore.stackTrace}</pre>

@@ -13,10 +13,10 @@ import { v4 as uuidv4, v4 } from 'uuid';
 import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import { open } from '@tauri-apps/plugin-shell'
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase, appVer } from "./storage/database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase, appVer, getCurrentCharacter } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
-import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState } from "./stores.svelte";
+import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState, selIdState, ReloadGUIPointer } from "./stores.svelte";
 import { loadPlugins } from "./plugins/plugins";
 import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, waitAlert } from "./alert";
 import { checkDriverInit, syncDrive } from "./drive/drive";
@@ -2608,4 +2608,94 @@ export function aiWatermarkingLawApplies(): boolean {
     //lets now assume it is false for now,
     //becuase very few countries have it for now
     return false
+}
+
+export const chatFoldedState = $state<{
+    data: null| {
+        targetCharacterId: string,
+        targetChatId: string,
+        targetMessageId: string,
+    }
+}>({
+    data: null
+})
+
+//Since its exported, we cannot use $derived here
+export let chatFoldedStateMessageIndex = $state({
+    index: -1
+})
+
+$effect.root(() => {
+    $effect(() => {
+        if(!chatFoldedState.data){
+            return
+        }
+        const char = DBState.db.characters[selIdState.selId]
+        const chat = char.chats[char.chatPage]
+        if(chatFoldedState.data.targetCharacterId !== char.chaId){
+            chatFoldedState.data = null
+        }
+        if(chatFoldedState.data.targetChatId !== chat.id){
+            chatFoldedState.data = null
+        }
+    })
+
+    $effect(() => {
+        if(chatFoldedState.data === null){
+            chatFoldedStateMessageIndex.index = -1
+            return
+        }
+        const char = DBState.db.characters[selIdState.selId]
+        const chat = char.chats[char.chatPage]
+        const messageIndex = chat.message.findIndex((v) => {
+            return chatFoldedState.data?.targetMessageId === v.chatId
+        })
+        if(messageIndex === -1){
+            console.warn('Target message for folding id' + chatFoldedState.data?.targetMessageId + ' not found')
+            chatFoldedStateMessageIndex.index = -1
+            return
+        }
+        chatFoldedStateMessageIndex.index = messageIndex
+    })
+})
+
+export function foldChatToMessage(targetMessageIdOrIndex: string | number) {
+    let targetMessageId = ''
+    if (typeof targetMessageIdOrIndex === 'number') {
+        const char = getCurrentCharacter()
+        const chat = char.chats[char.chatPage]
+        const message = chat.message[targetMessageIdOrIndex]
+        targetMessageId = message.chatId
+    }
+    else{
+        targetMessageId = targetMessageIdOrIndex
+    }
+    const char = getCurrentCharacter()
+    const chat = char.chats[char.chatPage]
+    chatFoldedState.data = {
+        targetCharacterId: char.chaId,
+        targetChatId: chat.id,
+        targetMessageId: targetMessageId,
+    }
+}
+
+export function changeChatTo(IdOrIndex: string | number) {
+    let index = -1
+    if (typeof IdOrIndex === 'number') {
+        index = IdOrIndex
+    }
+
+    if (typeof IdOrIndex === 'string') {
+        const currentCharacter = getCurrentCharacter()
+        index = currentCharacter.chats.findIndex((v) => {
+            return v.id === IdOrIndex
+        })
+    }
+
+    if(index === -1){
+        return
+    }
+
+    DBState.db.characters[selIdState.selId].chatPage = index
+    ReloadGUIPointer.set(Math.random())
 }
