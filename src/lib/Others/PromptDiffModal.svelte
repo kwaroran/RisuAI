@@ -229,21 +229,21 @@
     const pillActive = 'text-black bg-white'
     const pillInactive = 'text-textcolor2 bg-transparent'
     const diffLineBase = 'whitespace-pre-wrap'
-    const diffLineCommon = 'border-l-4 rounded pl-2'
+    const diffLineCommon = 'border-l-4 rounded-sm pl-2'
 
     const diffSameClass = 'text-textcolor'
     const diffAddClass = `${diffLineCommon} bg-green-500/10 border-green-500 text-green-400`
     const diffRemoveClass = `${diffLineCommon} bg-red-500/10 border-red-500 text-red-400`
 
-    const tokenAddClass = 'text-green-400 bg-green-500/15 rounded px-0.5'
-    const tokenRemoveClass = 'text-red-400 bg-red-500/15 rounded px-0.5'
+    const tokenAddClass = 'text-green-400 bg-green-500/15 rounded-sm px-0.5'
+    const tokenRemoveClass = 'text-red-400 bg-red-500/15 rounded-sm px-0.5'
     const tokenSameClass = 'text-textcolor'
 
-    const lineRemoveClass = 'pl-2 border-l-4 border-red-500 bg-red-500/10 text-red-400 rounded'
-    const lineAddClass    = 'pl-2 border-l-4 border-green-500 bg-green-500/10 text-green-400 rounded'
-    const lineModifyClass = 'pl-2 border-l-4 border-blue-500 bg-blue-500/10 rounded'
+    const lineRemoveClass = 'pl-2 border-l-4 border-red-500 bg-red-500/10 text-red-400 rounded-sm'
+    const lineAddClass    = 'pl-2 border-l-4 border-green-500 bg-green-500/10 text-green-400 rounded-sm'
+    const lineModifyClass = 'pl-2 border-l-4 border-blue-500 bg-blue-500/10 rounded-sm'
 
-    const nameHeaderTagClass = 'shrink-0 text-[10px] px-1.5 py-0.5 rounded border border-white/15 text-textcolor2 bg-black/20'
+    const nameHeaderTagClass = 'shrink-0 text-[10px] px-1.5 py-0.5 rounded-sm border border-white/15 text-textcolor2 bg-black/20'
 
     const splitEmptyLineClass = `${diffLineBase} ${diffLineCommon} ` +
         'border-white/10 text-transparent select-none ' +
@@ -251,14 +251,14 @@
         'bg-[length:20px_20px]'
 
     const tokenPackLineAdd: TokenClassPack = {
-      add: 'bg-green-500/20 rounded px-0.5',
+      add: 'bg-green-500/20 rounded-sm px-0.5',
       remove: '',
       same: 'text-green-200/90',
     }
 
     const tokenPackLineRemove: TokenClassPack = {
       add: '',
-      remove: 'bg-red-500/20 rounded px-0.5',
+      remove: 'bg-red-500/20 rounded-sm px-0.5',
       same: 'text-red-200/90',
     }
 
@@ -988,15 +988,15 @@
 {#snippet renderCounts(counts: DiffCounts)}
   <div class="flex flex-wrap gap-3 text-xs text-textcolor2 mb-3">
     <span class="inline-flex items-center gap-2">
-      <span class="inline-block w-1 h-4 rounded bg-blue-500"></span>
+      <span class="inline-block w-1 h-4 rounded-sm bg-blue-500"></span>
       {counts.modifiedCount}
     </span>
     <span class="inline-flex items-center gap-2">
-      <span class="inline-block w-1 h-4 rounded bg-green-500"></span>
+      <span class="inline-block w-1 h-4 rounded-sm bg-green-500"></span>
       {counts.addedCount}
     </span>
     <span class="inline-flex items-center gap-2">
-      <span class="inline-block w-1 h-4 rounded bg-red-500"></span>
+      <span class="inline-block w-1 h-4 rounded-sm bg-red-500"></span>
       {counts.removedCount}
     </span>
   </div>
@@ -1162,7 +1162,7 @@
     <div class="h-px flex-1 bg-white/10"></div>
     <button
       type="button"
-      class={`px-2 py-0.5 rounded border border-darkborderc bg-darkbg shadow-md
+      class={`px-2 py-0.5 rounded-sm border border-darkborderc bg-darkbg shadow-md
         ${d.omitted > 0 ? 'hover:border-white/40 hover:text-textcolor hover:shadow-lg cursor-pointer' : 'text-textcolor2/50 cursor-default'}`}
       disabled={d.omitted === 0}
       onclick={() => expandRange(scope, d.from, d.to)}
@@ -1264,7 +1264,7 @@
 {/snippet}
 
 
-<div class="absolute inset-0 z-50 bg-black bg-opacity-60 flex justify-center items-center p-4">
+<div class="absolute inset-0 z-50 bg-black bg-black/60 flex justify-center items-center p-4">
   <div class="bg-darkbg rounded-md w-full max-w-4xl max-h-full overflow-hidden flex flex-col">
     
     <div class="flex items-center justify-between px-4 py-3 border-b border-darkborderc">
