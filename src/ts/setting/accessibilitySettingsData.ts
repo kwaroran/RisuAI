@@ -147,6 +147,7 @@ export const accessibilitySettingsItems: SettingItem[] = [
         type: 'select',
         labelKey: 'newMessageButtonStyle',
         bindKey: 'newMessageButtonStyle',
+        condition: (db) => db.autoScrollToNewMessage,
         options: {
             selectOptions: [
                 { value: 'bottom-center', label: 'Bottom Center (Default)' },
