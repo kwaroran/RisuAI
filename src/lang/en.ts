@@ -1411,6 +1411,7 @@ export const languageEnglish = {
     bookmarkAskNameOrCancel: "Enter bookmark name. If not entered, rename will be canceled.",
     collapseAll: "Collapse All",
     expandAll: "Expand All",
+    noRequestLogs: "No request logs available.",
     hideErrorDetails: "Hide Error Details",
     showErrorDetails: "Show Error Details",
     dynamicOutput: "Dynamic Output",

@@ -1147,6 +1147,7 @@ function wrapToolStream(
                                     response: "Streaming",
                                     success: true,
                                     url: url,
+                                    status: resRec.status,
                                 })
 
                                 errorFlag = false
