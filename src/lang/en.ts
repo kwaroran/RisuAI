@@ -1454,6 +1454,7 @@ export const languageEnglish = {
     aiGenerationWarning: "Contents will be AI generated and may contain inaccuracies or biases.",
     duplicatePluginFoundUpdateIt: "Duplicate plugin found. do you want to update the existing plugin?",
     pluginUpdateFoundInstallIt: "Plugin update found. do you want to install the update?",
+    goToChat: "Go to Chat",
     bookmark: "Bookmark",
     translate: "Translate",
     branch: "Branch",

@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon } from "@lucide/svelte";
+    import { onMount, onDestroy } from "svelte";
+    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon, ArrowRightIcon } from "@lucide/svelte";
     import Chat from "../ChatScreens/Chat.svelte";
     import { getCharImage } from "src/ts/characters";
     import { findCharacterbyId, getUserName, getUserIcon } from "src/ts/util";
-    import { createSimpleCharacter, bookmarkListOpen, DBState, selectedCharID } from "src/ts/stores.svelte";
+    import { createSimpleCharacter, bookmarkListOpen, DBState, selectedCharID, ScrollToMessageStore } from "src/ts/stores.svelte";
     import { language } from "src/lang";
     import { alertInput } from "src/ts/alert";
 
@@ -106,6 +106,11 @@
             delete chat.bookmarkNames[chatId];
         }
     }
+
+    function goToChat(index: number) {
+        ScrollToMessageStore.value = index;
+        close();
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -158,6 +163,9 @@
                         >
                             <span class="grow text-left truncate">{chara.chats[chara.chatPage].bookmarkNames?.[msg.chatId] || msg.data.substring(0, 30) + '...'}</span>
                             <div class="shrink-0 flex items-center gap-2 ml-2">
+                                <button class="text-textcolor2 hover:text-blue-500" title={language.goToChat} onclick={(e) => { e.stopPropagation(); goToChat(msg.originalIndex); }}>
+                                    <ArrowRightIcon size={20} />
+                                </button>
                                 <button class="text-textcolor2 hover:text-green-500" onclick={(e) => { e.stopPropagation(); editName(msg.chatId); }}>
                                     <PencilIcon size={16} />
                                 </button>
