@@ -1224,3 +1224,9 @@ export function asBuffer(arr: Uint8Array<ArrayBufferLike> | ArrayBufferLike): Ui
         return arr as unknown as ArrayBuffer
     }
 }
+
+const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+
+export function toGraphemes(str: string): string[] {
+    return [...graphemeSegmenter.segment(str)].map(s => s.segment)
+}

@@ -5,7 +5,7 @@ import { getModuleTriggers } from "./modules";
 import { get } from "svelte/store";
 import { ReloadChatPointer, ReloadGUIPointer, selectedCharID, CurrentTriggerIdStore } from "../stores.svelte";
 import { processMultiCommand } from "./command";
-import { parseKeyValue, sleep } from "../util";
+import { parseKeyValue, sleep, toGraphemes } from "../util";
 import { alertError, alertInput, alertNormal, alertSelect } from "../alert";
 import type { OpenAIChat } from "./index.svelte";
 import { HypaProcesser } from "./memory/hypamemory";
@@ -2027,7 +2027,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     let source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
                     let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
                     let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
-                    const source2 = [...source]
+                    const source2 = toGraphemes(source)
                     source2[index] = value
                     setVar(risuChatParser(effect.outputVar, {chara:char}), source2.join(''))
                     break
