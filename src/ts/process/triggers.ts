@@ -2027,7 +2027,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     let source = effect.sourceType === 'value' ? risuChatParser(effect.source,{chara:char}) : getVar(risuChatParser(effect.source,{chara:char}))
                     let index = effect.indexType === 'value' ? Number(risuChatParser(effect.index,{chara:char})) : Number(getVar(risuChatParser(effect.index,{chara:char})))
                     let value = effect.valueType === 'value' ? risuChatParser(effect.value,{chara:char}) : getVar(risuChatParser(effect.value,{chara:char}))
-                    const source2 = source.split('')
+                    const source2 = [...source]
                     source2[index] = value
                     setVar(risuChatParser(effect.outputVar, {chara:char}), source2.join(''))
                     break
