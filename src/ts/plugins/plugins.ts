@@ -10,6 +10,7 @@ import type { ScriptMode } from "../process/scripts";
 import { checkCodeSafety } from "./pluginSafety";
 import { SafeDocument, SafeIdbFactory, SafeLocalStorage } from "./pluginSafeClass";
 import { loadV3Plugins } from "./apiV3/v3";
+import { pluginCodeTranspiler } from "./apiV3/transpiler";
 
 export const customProviderStore = writable([] as string[])
 
@@ -128,23 +129,32 @@ export async function importPlugin(code:string|null = null, argu:{
     isUpdate?: boolean
     originalPluginName?: string
     isHotReload?: boolean
+    isTypescript?: boolean
 } = {}) {
     try {
         let jsFile = ''
         let db = getDatabase()
         let isUpdate = argu.isUpdate || false
         let originalPluginName = argu.originalPluginName || ''
+        let isTypescript = argu.isTypescript || false
         
         if(!code){
-            const f = await selectSingleFile(['js'])
+            const f = await selectSingleFile(['js','ts'])
             if (!f) {
                 return
+            }
+            if(f.name.endsWith('.ts')){
+                isTypescript = true
             }
             //support utf-8 with BOM or without BOM
             jsFile = Buffer.from(f.data).toString('utf-8').replace(/^\uFEFF/gm, "");
         }
         else{
             jsFile = code
+        }
+
+        if(isTypescript){
+            jsFile = await pluginCodeTranspiler(jsFile)
         }
 
         const splitedJs = jsFile.split('\n')
