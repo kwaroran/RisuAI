@@ -8,9 +8,9 @@
     import { ChevronRightIcon, User } from '@lucide/svelte';
     import { hubURL, isCharacterHasAssets } from 'src/ts/characterCards';
     import TextInput from '../UI/GUI/TextInput.svelte';
-    import { aiLawApplies, openURL } from 'src/ts/globalApi.svelte';
+    import { aiLawApplies, openURL, getFetchLogs } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon } from "@lucide/svelte";
+    import { XIcon, ChevronDownIcon, ChevronUpIcon } from "@lucide/svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import OptionInput from "../UI/GUI/OptionInput.svelte";
     import { language } from 'src/lang';
@@ -41,6 +41,8 @@
         y:number,
         content:string,
     } = $state(null)
+    let expandedLogs: Set<number> = $state(new Set())
+    let allExpanded = $state(false)
     $effect.pre(() => {
         showDetails = false;
         translatedStackTrace = '';
@@ -59,6 +61,10 @@
             cardExportType = 'realm'
             cardExportType2 = ''
             cardLicense = ''
+        }
+        if($alertStore.type !== 'requestlogs'){
+            expandedLogs = new Set()
+            allExpanded = false
         }
     });
 
@@ -112,7 +118,7 @@
     }
 }}></svelte:window>
 
-{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'branches' && $alertStore.type !== 'selectModule' && $alertStore.type !== 'pukmakkurit'}
+{#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'branches' && $alertStore.type !== 'selectModule' && $alertStore.type !== 'pukmakkurit' && $alertStore.type !== 'requestlogs'}
     <div class="absolute w-full h-full z-50 bg-black/50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
         <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
             {#if $alertStore.type === 'error'}
@@ -803,6 +809,92 @@
                 </div>
             {/if}
         {/each}
+    </div>
+{:else if $alertStore.type === 'requestlogs'}
+    {@const logs = getFetchLogs()}
+    <div class="fixed inset-0 z-50 bg-black/80 flex justify-center items-start overflow-y-auto p-4">
+        <div class="bg-darkbg rounded-lg w-full max-w-4xl my-4 flex flex-col max-h-[90vh]">
+            <div class="flex items-center justify-between p-4 border-b border-darkborderc sticky top-0 bg-darkbg z-10">
+                <h1 class="text-xl font-bold text-textcolor">{language.ShowLog}</h1>
+                <div class="flex items-center gap-2">
+                    <Button size="sm" onclick={() => {
+                        if(allExpanded) {
+                            expandedLogs = new Set()
+                        } else {
+                            expandedLogs = new Set(logs.map((_, i) => i))
+                        }
+                        allExpanded = !allExpanded
+                    }}>
+                        {allExpanded ? language.collapseAll : language.expandAll}
+                    </Button>
+                    <button class="text-textcolor2 hover:text-textcolor p-1" onclick={() => {
+                        alertStore.set({ type: 'none', msg: '' })
+                    }}>
+                        <XIcon />
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                {#if logs.length === 0}
+                    <div class="text-textcolor2 text-center py-8">{language.noRequestLogs}</div>
+                {:else}
+                    <div class="flex flex-col gap-2">
+                        {#each logs as log, i}
+                            {@const isExpanded = expandedLogs.has(i)}
+                            <div class="border border-darkborderc rounded-lg overflow-hidden">
+                                <button
+                                    class="w-full flex items-center justify-between p-3 hover:bg-bgcolor/50 transition-colors"
+                                    onclick={() => {
+                                        const newSet = new Set(expandedLogs)
+                                        if(isExpanded) {
+                                            newSet.delete(i)
+                                        } else {
+                                            newSet.add(i)
+                                        }
+                                        expandedLogs = newSet
+                                    }}
+                                >
+                                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                                        <span class="px-2 py-1 rounded text-xs font-mono {log.success ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                                            {log.status ?? (log.success ? 'OK' : 'ERR')}
+                                        </span>
+                                        <span class="text-textcolor2 text-sm truncate flex-1 text-left" title={log.url}>
+                                            {log.url}
+                                        </span>
+                                        <span class="text-textcolor2 text-xs whitespace-nowrap">{log.date}</span>
+                                    </div>
+                                    <div class="ml-2 text-textcolor2">
+                                        {#if isExpanded}
+                                            <ChevronUpIcon size={20} />
+                                        {:else}
+                                            <ChevronDownIcon size={20} />
+                                        {/if}
+                                    </div>
+                                </button>
+                                {#if isExpanded}
+                                    <div class="border-t border-darkborderc p-3 bg-bgcolor/30">
+                                        <div class="space-y-3">
+                                            <div>
+                                                <div class="text-textcolor2 text-sm mb-1 font-semibold">Request Body</div>
+                                                <pre class="text-textcolor text-xs bg-bgcolor p-2 rounded overflow-x-auto max-h-48 overflow-y-auto">{log.body}</pre>
+                                            </div>
+                                            <div>
+                                                <div class="text-textcolor2 text-sm mb-1 font-semibold">Request Header</div>
+                                                <pre class="text-textcolor text-xs bg-bgcolor p-2 rounded overflow-x-auto max-h-32 overflow-y-auto">{log.header}</pre>
+                                            </div>
+                                            <div>
+                                                <div class="text-textcolor2 text-sm mb-1 font-semibold">Response</div>
+                                                <pre class="text-textcolor text-xs bg-bgcolor p-2 rounded overflow-x-auto max-h-64 overflow-y-auto">{log.response}</pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {/if}
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+        </div>
     </div>
 {/if}
 

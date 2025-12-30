@@ -63,6 +63,7 @@ interface fetchLog {
     url: string
     responseType?: string
     chatId?: string
+    status?: number
 }
 
 let fetchLog: fetchLog[] = []
@@ -849,7 +850,8 @@ export function addFetchLog(arg: {
     success: boolean,
     url: string,
     resType?: string,
-    chatId?: string
+    chatId?: string,
+    status?: number
 }): number {
     fetchLog.unshift({
         body: typeof (arg.body) === 'string' ? arg.body : JSON.stringify(arg.body, null, 2),
@@ -859,7 +861,8 @@ export function addFetchLog(arg: {
         success: arg.success,
         date: (new Date()).toLocaleTimeString(),
         url: arg.url,
-        chatId: arg.chatId
+        chatId: arg.chatId,
+        status: arg.status
     });
     return 0;
 }
@@ -915,7 +918,7 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
  * @param {string} url - The URL of the fetch request.
  * @param {GlobalFetchArgs} arg - The arguments for the fetch request.
  */
-function addFetchLogInGlobalFetch(response: any, success: boolean, url: string, arg: GlobalFetchArgs) {
+function addFetchLogInGlobalFetch(response: any, success: boolean, url: string, arg: GlobalFetchArgs, status?: number) {
     try {
         fetchLog.unshift({
             body: JSON.stringify(arg.body, null, 2),
@@ -924,7 +927,8 @@ function addFetchLogInGlobalFetch(response: any, success: boolean, url: string, 
             success: success,
             date: (new Date()).toLocaleTimeString(),
             url: url,
-            chatId: arg.chatId
+            chatId: arg.chatId,
+            status: status
         })
     }
     catch {
@@ -935,7 +939,8 @@ function addFetchLogInGlobalFetch(response: any, success: boolean, url: string, 
             success: success,
             date: (new Date()).toLocaleTimeString(),
             url: url,
-            chatId: arg.chatId
+            chatId: arg.chatId,
+            status: status
         })
     }
 
@@ -957,7 +962,7 @@ async function fetchWithPlainFetch(url: string, arg: GlobalFetchArgs): Promise<G
         const response = await fetch(new URL(url), { body: JSON.stringify(arg.body), headers, method: arg.method ?? "POST", signal: arg.abortSignal });
         const data = arg.rawResponse ? new Uint8Array(await response.arrayBuffer()) : await response.json();
         const ok = response.ok && response.status >= 200 && response.status < 300;
-        addFetchLogInGlobalFetch(data, ok, url, arg);
+        addFetchLogInGlobalFetch(data, ok, url, arg, response.status);
         return { ok, data, headers: Object.fromEntries(response.headers), status: response.status };
     } catch (error) {
         return { ok: false, data: `${error}`, headers: {}, status: 400 };
@@ -977,7 +982,7 @@ async function fetchWithUSFetch(url: string, arg: GlobalFetchArgs): Promise<Glob
         const response = await userScriptFetch(url, { body: JSON.stringify(arg.body), headers, method: arg.method ?? "POST", signal: arg.abortSignal });
         const data = arg.rawResponse ? new Uint8Array(await response.arrayBuffer()) : await response.json();
         const ok = response.ok && response.status >= 200 && response.status < 300;
-        addFetchLogInGlobalFetch(data, ok, url, arg);
+        addFetchLogInGlobalFetch(data, ok, url, arg, response.status);
         return { ok, data, headers: Object.fromEntries(response.headers), status: response.status };
     } catch (error) {
         return { ok: false, data: `${error}`, headers: {}, status: 400 };
@@ -997,7 +1002,7 @@ async function fetchWithTauri(url: string, arg: GlobalFetchArgs): Promise<Global
         const response = await TauriHTTPFetch(new URL(url), { body: JSON.stringify(arg.body), headers, method: arg.method ?? "POST", signal: arg.abortSignal });
         const data = arg.rawResponse ? new Uint8Array(await response.arrayBuffer()) : await response.json();
         const ok = response.status >= 200 && response.status < 300;
-        addFetchLogInGlobalFetch(data, ok, url, arg);
+        addFetchLogInGlobalFetch(data, ok, url, arg, response.status);
         return { ok, data, headers: Object.fromEntries(response.headers), status: response.status };
     } catch (error) {
 
@@ -1011,7 +1016,7 @@ async function fetchWithCapacitor(url: string, arg: GlobalFetchArgs): Promise<Gl
 
     const res = await CapacitorHttp.request({ url, method: arg.method ?? "POST", headers, data: body, responseType: rawResponse ? "arraybuffer" : "json" });
 
-    addFetchLogInGlobalFetch(rawResponse ? "Uint8Array Response" : res.data, true, url, arg);
+    addFetchLogInGlobalFetch(rawResponse ? "Uint8Array Response" : res.data, true, url, arg, res.status);
 
     return {
         ok: true,
@@ -1055,18 +1060,18 @@ async function fetchWithProxy(url: string, arg: GlobalFetchArgs): Promise<Global
 
         if (arg.rawResponse) {
             const data = new Uint8Array(await response.arrayBuffer());
-            addFetchLogInGlobalFetch("Uint8Array Response", isSuccess, url, arg);
+            addFetchLogInGlobalFetch("Uint8Array Response", isSuccess, url, arg, response.status);
             return { ok: isSuccess, data, headers: Object.fromEntries(response.headers), status: response.status };
         }
 
         const text = await response.text();
         try {
             const data = JSON.parse(text);
-            addFetchLogInGlobalFetch(data, isSuccess, url, arg);
+            addFetchLogInGlobalFetch(data, isSuccess, url, arg, response.status);
             return { ok: isSuccess, data, headers: Object.fromEntries(response.headers), status: response.status };
         } catch (error) {
             const errorMsg = text.startsWith('<!DOCTYPE') ? "Responded HTML. Is your URL, API key, and password correct?" : text;
-            addFetchLogInGlobalFetch(text, false, url, arg);
+            addFetchLogInGlobalFetch(text, false, url, arg, response.status);
             return { ok: false, data: errorMsg, headers: Object.fromEntries(response.headers), status: response.status };
         }
     } catch (error) {
@@ -1503,6 +1508,15 @@ export function getRequestLog() {
             + `* Response Body\n\n${b}${log.response}${bend}\n\n* Response Success\n\n${b}${log.success}${bend}\n\n`
     }
     return logString
+}
+
+/**
+ * Retrieves the fetch logs array.
+ *
+ * @returns {fetchLog[]} The fetch logs array.
+ */
+export function getFetchLogs() {
+    return fetchLog
 }
 
 /**
