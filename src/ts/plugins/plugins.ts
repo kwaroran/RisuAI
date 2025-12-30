@@ -153,10 +153,6 @@ export async function importPlugin(code:string|null = null, argu:{
             jsFile = code
         }
 
-        if(isTypescript){
-            jsFile = await pluginCodeTranspiler(jsFile)
-        }
-
         const splitedJs = jsFile.split('\n')
         let name = ''
         for (const line of splitedJs) {
@@ -319,6 +315,15 @@ export async function importPlugin(code:string|null = null, argu:{
         if(versionOfPlugin && compareVersions(versionOfPlugin, '0.0.1') === -1){
             showError('plugin version must be at least 0.0.1')
             return
+        }
+
+        
+        if(isTypescript){
+            try {
+                jsFile = await pluginCodeTranspiler(jsFile)                
+            } catch (error) {
+                showError('Failed to transpile TypeScript code: ' + error.message)
+            }
         }
 
         let apiInternalVersion: 2|'2.1'|'3.0' = '2.1'
