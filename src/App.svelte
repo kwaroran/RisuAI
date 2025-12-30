@@ -10,6 +10,8 @@
     import BookmarkList from './lib/Others/BookmarkList.svelte';
     import Settings from './lib/Setting/Settings.svelte';
     import { showRealmInfoStore, importCharacterProcess } from './ts/characterCards';
+    import { importPreset, getDatabase, setDatabase } from './ts/storage/database.svelte';
+    import { readModule } from './ts/process/modules';
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
     import SavePopupIconComp from './lib/Others/SavePopupIcon.svelte';
     import Botpreset from './lib/Setting/botpreset.svelte';
@@ -40,11 +42,24 @@
     e.preventDefault()
     const file = e.dataTransfer.files[0]
     if (file) {
-        await importCharacterProcess({
-            name: file.name,
-            data: file
-        })
-        checkCharOrder()
+        const name = file.name.toLowerCase()
+
+        if (name.endsWith('.risup')) {
+            const data = new Uint8Array(await file.arrayBuffer())
+            await importPreset({ name: file.name, data })
+        } else if (name.endsWith('.risum')) {
+            const data = new Uint8Array(await file.arrayBuffer())
+            const module = await readModule(Buffer.from(data))
+            const db = getDatabase()
+            db.modules.push(module)
+            setDatabase(db)
+        } else {
+            await importCharacterProcess({
+                name: file.name,
+                data: file
+            })
+            checkCharOrder()
+        }
     }
 }}>
     {#if aprilFools}
