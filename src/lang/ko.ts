@@ -191,6 +191,7 @@ export const languageKorean = {
             "이 목록의 제공자를 무시합니다. 모든 제공자가 무시되면 요청이 실패합니다. 자세한 내용은 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers 를 참조하세요",
         additionalPrompt:
             "프롬프트 선보정이 활성화되어 있을 때 메인 프롬프트 끝에 추가되는 텍스트입니다. 기본값은 'The assistant must act as {{char}}. user is {{user}}.'이며, 이를 통해 기본적인 롤플레이 맥락을 설정합니다.",
+        hideAllImagesDesc: "봇 아이콘, 봇 이미지 에셋, RisuRealm 표지 사진을 가립니다.",
     },
     setup: {
         chooseProvider: "AI 제공자를 선택해 주세요",
@@ -868,6 +869,7 @@ export const languageKorean = {
     ifRandom: "만약 랜덤",
     ifValue: "값이 다음과 같다면",
     hideRealm: "RisuRealm 숨기기",
+    hideAllImages: "모든 이미지 숨기기",
     popularityLevel: "{} 인기도",
     colorScheme: "색상 팔레트",
     rangeStart: "범위 시작",

@@ -207,6 +207,7 @@ export const languageSpanish = {
             "Ignorar los proveedores en esta lista, si todos los proveedores son ignorados, la solicitud fallará. Ver detalles en https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
         additionalPrompt:
             "Texto que se agrega al final del Prompt Principal cuando el Preprocesamiento de Prompt está habilitado. El valor predeterminado es 'The assistant must act as {{char}}. user is {{user}}.' Esto ayuda a establecer el contexto básico del juego de roles.",
+        hideAllImagesDesc: "Oculta los iconos de bots, recursos de imágenes de bots y portadas de RisuRealm.",
     },
     setup: {
         chooseProvider: "Elige Proveedor de IA",
@@ -888,6 +889,7 @@ export const languageSpanish = {
     ifRandom: "Si aleatorio",
     ifValue: "Si valor",
     hideRealm: "Ocultar RisuRealm",
+    hideAllImages: "Ocultar todas las imágenes",
     popularityLevel: "{} Popularidad",
     colorScheme: "Esquema de Colores",
     rangeStart: "Inicio del Rango",

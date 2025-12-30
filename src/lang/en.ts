@@ -238,6 +238,7 @@ export const languageEnglish = {
             "Ignore the providers in this list, if all the provider is ingored, the request will failed. See detail on https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
         additionalPrompt:
             "Text that gets appended to the Main Prompt when Prompt Preprocess is enabled. Default is 'The assistant must act as {{char}}. user is {{user}}.' This helps set up basic roleplay context.",
+        hideAllImagesDesc: "Hides bot icons, bot image assets, and RisuRealm cover images.",
     },
     setup: {
         chooseProvider: "Choose AI Provider",
@@ -917,6 +918,7 @@ export const languageEnglish = {
     ifRandom: "If random",
     ifValue: "If Value",
     hideRealm: "Hide RisuRealm",
+    hideAllImages: "Hide All Images",
     popularityLevel: "{} Popularity",
     colorScheme: "Color Scheme",
     rangeStart: "Range Start",

@@ -181,6 +181,7 @@ export const languageChineseTraditional = {
             "忽略此列表中的提供商,若所有提供商均被忽略,請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
         additionalPrompt:
             "啟用提示詞預處理時，這段文字會加在主要提示詞的末尾。預設值是 'The assistant must act as {{char}}. user is {{user}}.'，用於設定基本的角色扮演情境。",
+        hideAllImagesDesc: "隱藏機器人圖示、機器人圖片資源和RisuRealm封面圖片。",
     },
     setup: {
         chooseProvider: "選擇 AI 提供者",
@@ -859,6 +860,7 @@ export const languageChineseTraditional = {
     ifRandom: "如果隨機",
     ifValue: "如果值",
     hideRealm: "隱藏 RisuRealm",
+    hideAllImages: "隱藏所有圖片",
     popularityLevel: "{} 人氣",
     colorScheme: "配色方案",
     rangeStart: "範圍開始",

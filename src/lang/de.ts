@@ -215,6 +215,7 @@ export const languageGerman = {
             "Ignorieren Sie die Anbieter in dieser Liste. Wenn alle Anbieter ignoriert werden, schlägt die Anfrage fehl. Siehe Details unter https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
         additionalPrompt:
             "Text, der am Ende der Haupt-Anweisung angehängt wird, wenn die Anweisungsvorverarbeitung aktiviert ist. Der Standardwert ist 'The assistant must act as {{char}}. user is {{user}}.' Dies hilft, den grundlegenden Rollenspielkontext einzurichten.",
+        hideAllImagesDesc: "Blendet Bot-Symbole, Bot-Bild-Assets und RisuRealm-Coverbilder aus.",
     },
     setup: {
         chooseProvider: "Wählen Sie Ihren AI-Anbieter aus",
@@ -896,6 +897,7 @@ export const languageGerman = {
     ifRandom: "Wenn zufällig",
     ifValue: "Wenn Wert",
     hideRealm: "RisuRealm verstecken",
+    hideAllImages: "Alle Bilder ausblenden",
     popularityLevel: "{} Beliebtheit",
     colorScheme: "Farbschema",
     rangeStart: "Bereichsstart",
