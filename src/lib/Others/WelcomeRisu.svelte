@@ -6,6 +6,7 @@
     import Chat from "../ChatScreens/Chat.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { updateTextThemeAndCSS } from "src/ts/gui/colorscheme";
+    import { alertError } from "src/ts/alert";
     import Airisu from '../../etc/Airisu.webp'
 
     const airisuStyle = `background: url("${Airisu}");background-size: cover;`
@@ -46,27 +47,25 @@
                 break
             }
             case 4:{
+                if(input.length === 0){
+                    break
+                }
+                if(!input.startsWith('sk-')){
+                    alertError('Invalid API key')
+                    break
+                }
                 if(provider === 'openai'){
-                    if(input.length > 0 && input.startsWith('sk-')){
-                        DBState.db.openAIKey = input
-                        step = 5
-                        input = ''
-                    }
+                    DBState.db.openAIKey = input
                 }
                 if(provider === 'openrouter'){
-                    if(input.length > 0 && input.startsWith('sk-')){
-                        DBState.db.openrouterKey = input
-                        step = 5
-                        input = ''
-                    }
+                    DBState.db.openrouterKey = input
                 }
                 if(provider === 'claude'){
-                    if(input.length > 0 && input.startsWith('sk-')){
-                        DBState.db.claudeAPIKey = input
-                        step = 5
-                        input = ''
-                    }
+                    DBState.db.claudeAPIKey = input
                 }
+                step = 5
+                input = ''
+                break
             }
         }
     }
