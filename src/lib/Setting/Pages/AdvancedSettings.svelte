@@ -69,9 +69,6 @@
 </script>
 <h2 class="text-2xl font-bold mt-2">{language.advancedSettings}</h2>
 <span class="text-draculared text-xs mb-2">{language.advancedSettingsWarn}</span>
-<div class="flex items-center mt-4">
-    <Check bind:check={DBState.db.autoScrollToNewMessage} name={language.autoScrollToNewMessage}></Check>
-</div>
 <span class="text-textcolor mt-4 mb-2">{language.loreBookDepth}</span>
 <NumberInput marginBottom={true} size={"sm"} min={0} max={20} bind:value={DBState.db.loreBookDepth}/>
 <span class="text-textcolor">{language.loreBookToken}</span>
