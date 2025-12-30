@@ -10,7 +10,7 @@
     import TextInput from '../UI/GUI/TextInput.svelte';
     import { aiLawApplies, openURL, getFetchLogs } from 'src/ts/globalApi.svelte';
     import Button from '../UI/GUI/Button.svelte';
-    import { XIcon, ChevronDownIcon, ChevronUpIcon, CopyIcon } from "@lucide/svelte";
+    import { XIcon, ChevronDownIcon, ChevronUpIcon, CopyIcon, CheckIcon } from "@lucide/svelte";
     import hljs from 'highlight.js/lib/core';
     import json from 'highlight.js/lib/languages/json';
     import SelectInput from "../UI/GUI/SelectInput.svelte";
@@ -45,6 +45,7 @@
     } = $state(null)
     let expandedLogs: Set<number> = $state(new Set())
     let allExpanded = $state(false)
+    let copiedKey: string | null = $state(null)
 
     // Register JSON language for syntax highlighting
     if (!hljs.getLanguage('json')) {
@@ -59,7 +60,7 @@
         }
     }
 
-    async function copyToClipboard(text: string) {
+    async function copyToClipboard(text: string, key: string) {
         try {
             await navigator.clipboard.writeText(text)
         } catch {
@@ -71,6 +72,10 @@
             document.execCommand('copy')
             document.body.removeChild(textarea)
         }
+        copiedKey = key
+        setTimeout(() => {
+            if (copiedKey === key) copiedKey = null
+        }, 1500)
     }
     $effect.pre(() => {
         showDetails = false;
@@ -907,11 +912,15 @@
                                                 <div class="flex items-center justify-between mb-2">
                                                     <span class="text-textcolor text-sm font-semibold">URL</span>
                                                     <button
-                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
-                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.url) }}
+                                                        class="p-1 rounded hover:bg-bgcolor transition-colors {copiedKey === `${i}-url` ? 'text-green-500' : 'text-textcolor2 hover:text-textcolor'}"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.url, `${i}-url`) }}
                                                         title="Copy"
                                                     >
-                                                        <CopyIcon size={14} />
+                                                        {#if copiedKey === `${i}-url`}
+                                                            <CheckIcon size={14} />
+                                                        {:else}
+                                                            <CopyIcon size={14} />
+                                                        {/if}
                                                     </button>
                                                 </div>
                                                 <pre class="request-log-code hljs text-sm">{log.url}</pre>
@@ -920,11 +929,15 @@
                                                 <div class="flex items-center justify-between mb-2">
                                                     <span class="text-textcolor text-sm font-semibold">Request Body</span>
                                                     <button
-                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
-                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.body) }}
+                                                        class="p-1 rounded hover:bg-bgcolor transition-colors {copiedKey === `${i}-body` ? 'text-green-500' : 'text-textcolor2 hover:text-textcolor'}"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.body, `${i}-body`) }}
                                                         title="Copy"
                                                     >
-                                                        <CopyIcon size={14} />
+                                                        {#if copiedKey === `${i}-body`}
+                                                            <CheckIcon size={14} />
+                                                        {:else}
+                                                            <CopyIcon size={14} />
+                                                        {/if}
                                                     </button>
                                                 </div>
                                                 <pre class="request-log-code hljs">{@html highlightJson(log.body)}</pre>
@@ -933,11 +946,15 @@
                                                 <div class="flex items-center justify-between mb-2">
                                                     <span class="text-textcolor text-sm font-semibold">Request Header</span>
                                                     <button
-                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
-                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.header) }}
+                                                        class="p-1 rounded hover:bg-bgcolor transition-colors {copiedKey === `${i}-header` ? 'text-green-500' : 'text-textcolor2 hover:text-textcolor'}"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.header, `${i}-header`) }}
                                                         title="Copy"
                                                     >
-                                                        <CopyIcon size={14} />
+                                                        {#if copiedKey === `${i}-header`}
+                                                            <CheckIcon size={14} />
+                                                        {:else}
+                                                            <CopyIcon size={14} />
+                                                        {/if}
                                                     </button>
                                                 </div>
                                                 <pre class="request-log-code hljs max-h-32">{@html highlightJson(log.header)}</pre>
@@ -946,11 +963,15 @@
                                                 <div class="flex items-center justify-between mb-2">
                                                     <span class="text-textcolor text-sm font-semibold">Response</span>
                                                     <button
-                                                        class="text-textcolor2 hover:text-textcolor p-1 rounded hover:bg-bgcolor transition-colors"
-                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.response) }}
+                                                        class="p-1 rounded hover:bg-bgcolor transition-colors {copiedKey === `${i}-response` ? 'text-green-500' : 'text-textcolor2 hover:text-textcolor'}"
+                                                        onclick={(e) => { e.stopPropagation(); copyToClipboard(log.response, `${i}-response`) }}
                                                         title="Copy"
                                                     >
-                                                        <CopyIcon size={14} />
+                                                        {#if copiedKey === `${i}-response`}
+                                                            <CheckIcon size={14} />
+                                                        {:else}
+                                                            <CopyIcon size={14} />
+                                                        {/if}
                                                     </button>
                                                 </div>
                                                 <pre class="request-log-code hljs max-h-64">{@html highlightJson(log.response)}</pre>
