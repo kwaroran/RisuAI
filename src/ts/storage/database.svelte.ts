@@ -1126,6 +1126,7 @@ export interface Database{
     ImagenPersonGeneration:string,
     sourcemapTranslate:boolean
     settingsCloseButtonSize:number
+    promptDiffPrefs:PromptDiffPrefs
     enableBookmark?: boolean
     pluginDevelopMode?: boolean
 }
@@ -1690,6 +1691,15 @@ export interface MessagePresetInfo{
     promptName?: string,
     promptToggles?: {key: string, value: string}[],
     promptText?: OpenAIChat[],
+}
+
+export interface PromptDiffPrefs {
+    diffStyle: 'line' | 'intraline'
+    formatStyle: 'raw' | 'card'
+    viewStyle: 'unified' | 'split'
+    isGrouped: boolean
+    showOnlyChanges: boolean
+    contextRadius: number
 }
 
 interface AINsettings{

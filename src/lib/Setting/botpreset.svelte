@@ -1,13 +1,13 @@
 <script lang="ts">
-    import { alertCardExport, alertConfirm, alertError, alertMd, alertWait } from "../../ts/alert";
+    import { alertCardExport, alertConfirm, alertError } from "../../ts/alert";
     import { language } from "../../lang";
-    import { changeToPreset, copyPreset, downloadPreset, importPreset, getDatabase } from "../../ts/storage/database.svelte";
+    import { changeToPreset, copyPreset, downloadPreset, importPreset } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { CopyIcon, Share2Icon, PencilIcon, HardDriveUploadIcon, PlusIcon, TrashIcon, XIcon, GitCompare } from "@lucide/svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import { prebuiltPresets } from "src/ts/process/templates/templates";
     import { ShowRealmFrameStore } from "src/ts/stores.svelte";
-    import type { PromptItem, PromptItemPlain, PromptItemChatML, PromptItemTyped, PromptItemAuthorNote, PromptItemChat } from "src/ts/process/prompt.ts";
+    import PromptDiffModal from "../Others/PromptDiffModal.svelte";
 
     let editMode = $state(false)
     let isDragging = $state(false)
@@ -19,39 +19,10 @@
 
     let { close = () => {} }: Props = $props();
 
-    let diffMode = false
-    let selectedPrompts: string[] = []
-    let selectedDiffPreset = $state(-1)
-
-
-
-    function isPromptItemPlain(item: PromptItem): item is PromptItemPlain {
-        return (
-            item.type === 'plain' || item.type === 'jailbreak' || item.type === 'cot'
-        );
-    }
-
-    function isPromptItemChatML(item: PromptItem): item is PromptItemChatML {
-        return item.type === 'chatML'
-    }
-
-    function isPromptItemTyped(item: PromptItem): item is PromptItemTyped {
-        return (
-            item.type === 'persona' ||
-            item.type === 'description' ||
-            item.type === 'lorebook' ||
-            item.type === 'postEverything' ||
-            item.type === 'memory'
-        )
-    }
-
-    function isPromptItemAuthorNote(item: PromptItem): item is PromptItemAuthorNote {
-        return item.type === 'authornote'
-    }
-
-    function isPromptItemChat(item: PromptItem): item is PromptItemChat {
-        return item.type === 'chat'
-    }
+    let showDiffModal = $state(false)
+    let selectedDiffPreset = $state<number | null>(null)
+    let firstPresetId = $state<number | null>(null);
+    let secondPresetId = $state<number | null>(null);
 
     function movePreset(fromIndex: number, toIndex: number) {
         if (fromIndex === toIndex) return;
@@ -86,250 +57,33 @@
         }
     }
 
-    function escapeHtml(text: string): string {
-        return text
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;')
-            .replace(/\//g, '&#x2F;')
-            .replace(/\\/g, '&#92;')
-            .replace(/`/g, '&#96;')
-            .replace(/ /g, ' \u200B')
-            .replace(/\n/g, '<br>')
-    }
-
-    function getPrompt(id: number): string {
-        const db = getDatabase()
-        const formated = safeStructuredClone(db.botPresets[id].promptTemplate)
-        let prompt = ''
-
-        for(let i=0;i<formated.length;i++){
-            const item = formated[i]
-
-            switch (true) {
-                case isPromptItemPlain(item):{
-                    prompt += '## ' + (item.role ?? 'Unknown') + '; ' + item.type + '; ' + item.type2 + '\n'
-                    prompt += '\n' + item.text.replaceAll('```', '\\`\\`\\`') + '\n\n'
-                    break
-                }
-
-                case isPromptItemChatML(item):{
-                    prompt += '## ' + item.type + '\n'
-                    prompt += '\n' + item.text.replaceAll('```', '\\`\\`\\`') + '\n\n'
-                    break
-                }
-
-                case isPromptItemTyped(item):{
-                    prompt += '## ' + 'system' + '; ' + item.type + '\n'
-                    if(item.innerFormat){
-                        prompt += '\n' + item.innerFormat.replaceAll('```', '\\`\\`\\`') + '\n\n'
-                    }
-                    break
-                }
-
-                case isPromptItemAuthorNote(item):{
-                    prompt += '## ' + 'system' + '; ' + item.type + '\n'
-                    if(item.innerFormat){
-                        prompt += '\n' + item.innerFormat.replaceAll('```', '\\`\\`\\`') + '\n\n'
-                    }
-                    break
-                }
-
-                case isPromptItemChat(item):{
-                    prompt += '## ' + 'chat' + '; ' + item.type + '\n'
-                    prompt += '\n' + item.rangeStart + ' - ' + item.rangeEnd + '\n\n'
-                    break
-                }
-            }
-
-        }
-
-        return prompt
-    }
-
-    async function checkDiff(prompt1: string, prompt2: string): Promise<void> {
-        const { diffLines } = await import('diff')
-        const lineDiffs = diffLines(prompt1, prompt2)
-
-        let resultHtml = '';
-        let changedLines: string[] = []
-        let modifiedLinesCount = 0
-        let addedLinesCount = 0
-        let removedLinesCount = 0
-
-        const forTooltip = (line: string, idx: number): string => {
-            return line.replace('<div', `<div class="prompt-diff-hover" data-line-id="prompt-diff-line-${idx}"`)
-        }
-
-        const withId = (line: string, idx: number): string => {
-            return line.replace('<div', `<div id="prompt-diff-line-${idx}"`)
-        }
-
-        for (let i = 0; i < lineDiffs.length; i++) {
-            const linePart = lineDiffs[i]
-
-            if(linePart.removed){
-                const nextPart = lineDiffs[i + 1]
-                if(nextPart?.added){
-                    const modifiedLine = `<div style="border-left: 4px solid blue; padding-left: 8px;">${await highlightChanges(linePart.value, nextPart.value)}</div>`
-                    changedLines.push(forTooltip(modifiedLine, i))
-                    resultHtml += withId(modifiedLine, i)
-                    i++;
-                    modifiedLinesCount += 1
-                }
-                else{
-                    const removedLine = `<div style="color: red; background-color: #ffe6e6; border-left: 4px solid red; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
-                    changedLines.push(forTooltip(removedLine, i))
-                    resultHtml += withId(removedLine, i)
-                    removedLinesCount += 1
-                }
-            }
-            else if(linePart.added){
-                const addedLine = `<div style="color: green; background-color: #e6ffe6; border-left: 4px solid green; padding-left: 8px;">${escapeHtml(linePart.value)}</div>`
-                changedLines.push(forTooltip(addedLine, i))
-                resultHtml += withId(addedLine, i)
-                addedLinesCount += 1
-            }
-            else{
-                resultHtml += `<div>${escapeHtml(linePart.value)}</div>`
-            }
-        }
-
-        if(lineDiffs.length === 1 && !lineDiffs[0].added && !lineDiffs[0].removed) {
-            const userResponse = await alertConfirm('The two prompts are identical. Would you like to review the content?')
-
-            if(userResponse){
-                resultHtml = `<div style="background-color: #4caf50; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">No differences detected.</div>` + resultHtml
-                alertMd(resultHtml)
-            }
-        }
-        else{
-            const modifiedCount = `<span style="border-left: 4px solid blue; padding-left: 8px; padding-right: 8px;">${modifiedLinesCount}</span>`
-            const addedCount = `<span style="border-left: 4px solid green; padding-left: 8px; padding-right: 8px;">${addedLinesCount}</span>`
-            const removedCount = `<span style="border-left: 4px solid red; padding-left: 8px; padding-right: 8px;">${removedLinesCount}</span>`
-            const diffCounts = `<div>${modifiedCount}${addedCount}${removedCount}</div>`
-
-            resultHtml = `<div id="differences-detected" style="background-color: #ff9800; color: white; padding: 10px 20px; border-radius: 5px; text-align: center;">Differences detected. Please review the changes.${diffCounts}</div>` + resultHtml
-            alertMd(resultHtml)
-
-            setTimeout(() => {
-                const differencesDetected = document.querySelector('#differences-detected');
-                if (differencesDetected) {
-                    differencesTooltip(changedLines)
-                }
-            }, 0)
-        }
-    }
-
-    async function highlightChanges(string1: string, string2: string) {
-        const { diffWordsWithSpace } = await import('diff')
-        const charDiffs = diffWordsWithSpace(string1, string2)
-
-        return charDiffs
-            .map(charPart => {
-                const escapedText = escapeHtml(charPart.value)
-
-                if (charPart.added) {
-                    return `<span style="color: green; background-color: #e6ffe6;">${escapedText}</span>`
-                }
-                else if(charPart.removed) {
-                    return `<span style="color: red; background-color: #ffe6e6;">${escapedText}</span>`
-                }
-                else{
-                    return escapedText
-                }
-            })
-            .join('')
-    }
-
-    function differencesTooltip(changedLines: string[]) {
-        const differencesDetected = document.querySelector('#differences-detected')
-        if(!differencesDetected){
-            return
-        }
-
-        const tooltip = document.createElement('div')
-        tooltip.id = 'diff-tooltip'
-        tooltip.style.display = 'none'
-        tooltip.style.position = 'absolute'
-        tooltip.style.backgroundColor = '#282a36'
-        tooltip.style.padding = '10px'
-        tooltip.style.borderRadius = '5px'
-        tooltip.style.boxShadow = '0px 5px 5px rgba(0, 0, 0, 1)'
-        tooltip.style.maxWidth = '500px'
-        tooltip.style.overflowY = 'auto'
-        tooltip.style.maxHeight = '300px'
-        tooltip.style.textAlign = 'initial'
-
-        differencesDetected.appendChild(tooltip)
-
-        differencesDetected.addEventListener('mouseenter', () => {
-            const tooltipContent = !changedLines.length ? '' : `<div><strong>Changed Lines</strong></div>
-                <div>${changedLines.join('<br>')}</div>`
-
-            tooltip.innerHTML = tooltipContent;
-            tooltip.style.display = 'block'
-        })
-
-        tooltip.addEventListener('click', (e) => {
-            const target = (e.target as HTMLElement).closest('.prompt-diff-hover')
-            const lineId = target?.getAttribute('data-line-id')
-            if(!lineId){
-                return
-            }
-
-            const targetElement = document.getElementById(lineId)
-            if(!targetElement){
-                return
-            }
-
-            targetElement.classList.add('prompt-diff-highlight')
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-
-            setTimeout(() => {
-                targetElement.classList.remove('prompt-diff-highlight')
-            }, 1000)
-        })
-
-        differencesDetected.addEventListener('mouseleave', () => {
-            tooltip.style.display = 'none'
-        })
-    }
-    
 
     async function handleDiffMode(id: number) {
         if (selectedDiffPreset === id) {
-            selectedDiffPreset = -1
-            selectedPrompts = []
-            diffMode = !diffMode
-            return
-        } else {
-            selectedDiffPreset = id
-        }
-
-        const prompt = getPrompt(id)
-
-        if(!prompt){
+            selectedDiffPreset = null
+            firstPresetId = null
+            secondPresetId = null
             return
         }
         
-        if(!diffMode){
-            selectedPrompts = [prompt]
-        }
-        else if(selectedPrompts.length === 0){
+        selectedDiffPreset = id
+
+        if (firstPresetId === null) {
+            firstPresetId = id
+            secondPresetId = null
             return
         }
-        else{
-            alertWait("Loading...")
-            await checkDiff(selectedPrompts[0], prompt)
 
-            selectedDiffPreset = -1
-            selectedPrompts = []
-        }
+        secondPresetId = id
+        selectedDiffPreset = null
+        showDiffModal = true
+    }
 
-        diffMode = !diffMode
+    function closeDiff() {
+        showDiffModal = false;
+        firstPresetId = null;
+        secondPresetId = null;
+        selectedDiffPreset = null;
     }
 
 </script>
@@ -538,25 +292,18 @@
     </div>
 </div>
 
+{#if showDiffModal && firstPresetId !== null && secondPresetId !== null}
+  <PromptDiffModal
+    firstPresetId={firstPresetId}
+    secondPresetId={secondPresetId}
+    onClose={closeDiff}
+  />
+{/if}
+
 <style>
     .break-any{
         word-break: normal;
         overflow-wrap: anywhere;
-    }
-
-    :global(.prompt-diff-hover){
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    :global(.prompt-diff-hover:hover){
-        transform: translateY(-4px);
-        box-shadow: 0px 8px 12px rgba(0, 0, 0, 0.2);
-    }
-
-    :global(.prompt-diff-highlight){
-        background-color: yellow !important;
     }
 
     /* Drag and drop styles */
