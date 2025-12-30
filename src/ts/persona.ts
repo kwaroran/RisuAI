@@ -58,16 +58,25 @@ interface PersonaCard {
 
 export async function exportUserPersona() {
     let db = getDatabase({ snapshot: true })
-    if (!db.userIcon) {
-        alertError(language.errors.noUserIcon)
-        return
-    }
     if ((!db.username) || (!db.personaPrompt)) {
         alertError("username or persona prompt is empty")
         return
     }
 
-    let img = await readImage(db.userIcon)
+    let img: Uint8Array
+    if (!db.userIcon) {
+        const canvas = document.createElement('canvas')
+        canvas.width = 256
+        canvas.height = 256
+        const ctx = canvas.getContext('2d')
+        ctx.fillStyle = 'rgb(100, 116, 139)'
+        ctx.fillRect(0, 0, 256, 256)
+        const dataUrl = canvas.toDataURL('image/png')
+        const base64 = dataUrl.split(',')[1]
+        img = new Uint8Array(Buffer.from(base64, 'base64'))
+    } else {
+        img = await readImage(db.userIcon)
+    }
 
     let card: PersonaCard = safeStructuredClone({
         name: db.username,
