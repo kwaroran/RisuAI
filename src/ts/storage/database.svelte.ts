@@ -1127,6 +1127,7 @@ export interface Database{
     sourcemapTranslate:boolean
     settingsCloseButtonSize:number
     enableBookmark?: boolean
+    pluginDevelopMode?: boolean
 }
 
 interface SeparateParameters{

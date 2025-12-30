@@ -1462,4 +1462,5 @@ export const languageEnglish = {
     disableMessage: "Disable Message",
     disableAbove: "Cut Messages for AI",
     trimStartNewChat: "Trim 'Start New Chat' Messages",
+    pluginDevelopMode: "Plugin Develop Mode",
 }

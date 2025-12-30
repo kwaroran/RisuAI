@@ -13,6 +13,7 @@
     import migrationGuideContent from "src/ts/plugins/migrationGuide.md?raw";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import { hotReloadPluginFiles } from "src/ts/plugins/apiV3/developMode";
 
     let showParams = $state([])
 </script>
@@ -227,8 +228,8 @@
     </button>
 
     <button
-        onclick={() => {
-            createBlankPlugin();
+        onclick={async () => {
+            await hotReloadPluginFiles()
         }}
         class="hover:text-textcolor cursor-pointer"
     >

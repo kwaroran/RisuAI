@@ -127,6 +127,7 @@ export async function updatePlugin(plugin: RisuPlugin) {
 export async function importPlugin(code:string|null = null, argu:{
     isUpdate?: boolean
     originalPluginName?: string
+    isHotReload?: boolean
 } = {}) {
     try {
         let jsFile = ''
@@ -155,6 +156,15 @@ export async function importPlugin(code:string|null = null, argu:{
             }
         }
 
+        const showError = (msg: string) => {
+            if(argu.isHotReload){
+                console.error(`Hot-reload plugin "${name}" error: ${msg}`)
+            }
+            else{
+                alertError(msg)
+            }
+        }
+
         let displayName: string = undefined
         let arg: { [key: string]: 'int' | 'string' | string[] } = {}
         let realArg: { [key: string]: number | string } = {}
@@ -167,7 +177,7 @@ export async function importPlugin(code:string|null = null, argu:{
             if (line.startsWith('//@name')) {
                 const provied = line.slice(7)
                 if (provied === '') {
-                    alertError('plugin name must be longer than 0, did you put it correctly?')
+                    showError('plugin name must be longer than 0, did you put it correctly?')
                     return
                 }
                 name = provied.trim()
@@ -188,7 +198,7 @@ export async function importPlugin(code:string|null = null, argu:{
             if (line.startsWith('//@display-name')) {
                 const provied = line.slice('//@display-name'.length + 1)
                 if (provied === '') {
-                    alertError('plugin display name must be longer than 0, did you put it correctly?')
+                    showError('plugin display name must be longer than 0, did you put it correctly?')
                     return
                 }
                 displayName = provied.trim()
@@ -197,11 +207,11 @@ export async function importPlugin(code:string|null = null, argu:{
             if (line.startsWith('//@link')) {
                 const link = line.split(" ")[1]
                 if (!link || link === '') {
-                    alertError('plugin link is empty, did you put it correctly?')
+                    showError('plugin link is empty, did you put it correctly?')
                     return
                 }
                 if (!link.startsWith('https')) {
-                    alertError('plugin link must start with https, did you check it?')
+                    showError('plugin link must start with https, did you check it?')
                     return
                 }
                 const hoverText = line.split(' ').slice(2).join(' ').trim()
@@ -221,13 +231,13 @@ export async function importPlugin(code:string|null = null, argu:{
             if (line.startsWith('//@risu-arg') || line.startsWith('//@arg')) {
                 const provied = line.trim().split(' ')
                 if (provied.length < 3) {
-                    alertError('plugin argument is incorrect, did you put space in argument name?')
+                    showError('plugin argument is incorrect, did you put space in argument name?')
                     return
                 }
                 const provKey = provied[1]
 
                 if (provied[2] !== 'int' && provied[2] !== 'string') {
-                    alertError(`plugin argument type is "${provied[2]}", which is an unknown type.`)
+                    showError(`plugin argument type is "${provied[2]}", which is an unknown type.`)
                     return
                 }
                 if (provied[2] === 'int') {
@@ -265,11 +275,11 @@ export async function importPlugin(code:string|null = null, argu:{
                 try {
                     const url = new URL(updateURL)
                     if(url.protocol !== 'https:'){
-                        alertError('plugin update URL must start with https, did you put it correctly?')
+                        showError('plugin update URL must start with https, did you put it correctly?')
                         return
                     }
                 } catch (error) {
-                    alertError('plugin update URL is not a valid URL, did you put it correctly?')
+                    showError('plugin update URL is not a valid URL, did you put it correctly?')
                     return
                 }
             }
@@ -280,24 +290,24 @@ export async function importPlugin(code:string|null = null, argu:{
                 const versionLocation = jsFile.indexOf('//@version')
                 const numberOfBytesBefore = new TextEncoder().encode(jsFile.slice(0, versionLocation) + line).length
                 if(numberOfBytesBefore > 500){
-                    alertError('plugin version declaration must be within the first 512 Bytes of the file for proper parsing. move //@version line to the top of the file.')
+                    showError('plugin version declaration must be within the first 512 Bytes of the file for proper parsing. move //@version line to the top of the file.')
                     return
                 }
             }
         }
 
         if (name.length === 0) {
-            alertError('plugin name not found, did you put it correctly?')
+            showError('plugin name not found, did you put it correctly?')
             return
         }
 
         if(updateURL && versionOfPlugin.length === 0){
-            alertError('plugin version not found, did you put it correctly? It is required when update URL is provided.')
+            showError('plugin version not found, did you put it correctly? It is required when update URL is provided.')
             return
         }
 
         if(versionOfPlugin && compareVersions(versionOfPlugin, '0.0.1') === -1){
-            alertError('plugin version must be at least 0.0.1')
+            showError('plugin version must be at least 0.0.1')
             return
         }
 
@@ -374,6 +384,10 @@ export async function importPlugin(code:string|null = null, argu:{
             apiInternalVersion = '3.0'
         }
 
+        if(apiInternalVersion !== '3.0' && argu.isHotReload){
+            showError('Only API version 3.0 plugins can be hot-reloaded.')
+            return
+        }
         
         let pluginData: RisuPlugin = {
             name: name,
@@ -393,7 +407,7 @@ export async function importPlugin(code:string|null = null, argu:{
         const oldPluginIndex = db.plugins.findIndex((p: RisuPlugin) => p.name === pluginData.name);
 
         if(originalPluginName && originalPluginName !== pluginData.name){
-            alertError(`When updating plugin "${originalPluginName}", the plugin name cannot be changed to "${pluginData.name}". Please keep the original name to update.`)
+            showError(`When updating plugin "${originalPluginName}", the plugin name cannot be changed to "${pluginData.name}". Please keep the original name to update.`)
             return
         }
 
@@ -408,10 +422,11 @@ export async function importPlugin(code:string|null = null, argu:{
         if(oldPluginIndex !== -1){
             db.plugins[oldPluginIndex] = pluginData;
         }
-        else if(!isUpdate){
+        else if(!isUpdate || argu.isHotReload){
             db.plugins.push(pluginData)
         }
 
+        console.log(`Imported plugin: ${pluginData.name} (API v${apiVersion})`)
         setDatabaseLite(db)
 
         loadPlugins()
