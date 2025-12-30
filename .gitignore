@@ -27,8 +27,8 @@ src-others/
 *.njsproj
 *.sln
 *.sw?
-/src-taurl/target/
-/src-taurl/gen/
+/src-tauri/target/
+/src-tauri/gen/
 /build/
 pycache/
 test.ts
