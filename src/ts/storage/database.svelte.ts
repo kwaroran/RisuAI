@@ -1131,6 +1131,7 @@ export interface Database{
     enableBookmark?: boolean
     echoMessage?:string
     echoDelay?:number
+    pluginDevelopMode?: boolean
 }
 
 interface SeparateParameters{

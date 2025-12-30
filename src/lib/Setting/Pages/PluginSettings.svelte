@@ -4,7 +4,7 @@
     import { alertConfirm, alertMd } from "src/ts/alert";
     import { AlertTriangle } from '@lucide/svelte';
 
-    import { DBState } from "src/ts/stores.svelte";
+    import { DBState, hotReloading } from "src/ts/stores.svelte";
     import { checkPluginUpdate, createBlankPlugin, importPlugin, loadPlugins, updatePlugin } from "src/ts/plugins/plugins";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
@@ -13,6 +13,7 @@
     import migrationGuideContent from "src/ts/plugins/migrationGuide.md?raw";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import { hotReloadPluginFiles } from "src/ts/plugins/apiV3/developMode";
 
     let showParams = $state([])
 </script>
@@ -40,7 +41,16 @@
                 showParams.push(i)
             }
         }}>
-            <span class="font-bold grow">{plugin.displayName ?? plugin.name}</span>
+            <div class="font-bold grow">
+                <span>
+                    {plugin.displayName ?? plugin.name}
+                </span>
+                {#if hotReloading.includes(plugin.name)}
+                    <span class="text-sm rounded bg-amber-700 ml-2 px-2 py-1 text-white">
+                        Hot
+                    </span>
+                {/if}
+            </div>
             {#if plugin.version === 2}
                 <button class="text-yellow-400 hover:gray-200 cursor-pointer" onclick={() => {
                     alertMd(migrationGuideContent);
@@ -227,8 +237,8 @@
     </button>
 
     <button
-        onclick={() => {
-            createBlankPlugin();
+        onclick={async () => {
+            await hotReloadPluginFiles()
         }}
         class="hover:text-textcolor cursor-pointer"
     >
