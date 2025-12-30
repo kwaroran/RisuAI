@@ -1402,4 +1402,6 @@ export const languageKorean = {
     generatedByAIDisclaimer: "이 콘텐츠는 AI에 의해 생성되었으며 부정확하거나 편향된 정보가 포함될 수 있습니다.",
     aiGenerationWarning: "콘텐츠는 AI로 생성되며 부정확하거나 편향된 정보가 포함될 수 있습니다.",
     autoScrollToNewMessage: "새 메시지로 자동 스크롤",
+    newMessage: "새 메시지",
+    newMessageButtonStyle: "새 메시지 버튼 스타일",
 }

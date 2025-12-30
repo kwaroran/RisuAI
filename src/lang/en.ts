@@ -1463,4 +1463,5 @@ export const languageEnglish = {
     disableAbove: "Cut Messages for AI",
     autoScrollToNewMessage: "Auto scroll to new message",
     newMessage: "New Message",
+    newMessageButtonStyle: "New Message Button Style",
 }

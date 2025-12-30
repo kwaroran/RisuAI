@@ -436,9 +436,51 @@
 <div class="w-full h-full relative" style={customStyle} onclick={() => {
     openMenu = false
 }}>
-    {#if showNewMessageButton}
+    <!-- showNewMessageButton 버튼 스타일 -->
+    
+    <!-- 1. 하단 중앙 (기본값) -->
+    {#if showNewMessageButton && (DBState.db.newMessageButtonStyle === 'bottom-center' || !DBState.db.newMessageButtonStyle)}
         <button class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
             <ArrowDown size={16} />
+            <span>{language.newMessage}</span>
+        </button>
+    {/if}
+
+    <!-- 2. 오른쪽 하단 구석 -->
+    {#if showNewMessageButton && DBState.db.newMessageButtonStyle === 'bottom-right'}
+        <button class="absolute bottom-20 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+            <ArrowDown size={16} />
+            <span>{language.newMessage}</span>
+        </button>
+    {/if}
+
+    <!-- 3. 왼쪽 하단 구석 -->
+    {#if showNewMessageButton && DBState.db.newMessageButtonStyle === 'bottom-left'}
+        <button class="absolute bottom-20 left-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+            <ArrowDown size={16} />
+            <span>{language.newMessage}</span>
+        </button>
+    {/if}
+
+    <!-- 4. 플로팅 원형 버튼 (우하단) - 아이콘만 -->
+    {#if showNewMessageButton && DBState.db.newMessageButtonStyle === 'floating-circle'}
+        <button class="absolute bottom-36 right-4 bg-blue-500 text-white w-12 h-12 rounded-full shadow-lg z-50 flex items-center justify-center hover:bg-blue-600 transition-colors" onclick={scrollToBottom} title="4. 원형 (우하단)">
+            <ArrowDown size={20} />
+        </button>
+    {/if}
+
+    <!-- 5. 미니멀 필 형태 (우측 중앙) -->
+    {#if showNewMessageButton && DBState.db.newMessageButtonStyle === 'minimal-pill'}
+        <button class="absolute top-1/2 right-2 -translate-y-1/2 bg-blue-500 text-white px-2 py-3 rounded-l-lg shadow-lg z-50 flex flex-col items-center gap-1 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+            <ArrowDown size={14} />
+            <span class="text-xs writing-mode-vertical">{language.newMessage}</span>
+        </button>
+    {/if}
+
+    <!-- 6. 상단 바 스타일 -->
+    {#if showNewMessageButton && DBState.db.newMessageButtonStyle === 'top-bar'}
+        <button class="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-6 py-1.5 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors text-sm" onclick={scrollToBottom}>
+            <ArrowDown size={14} />
             <span>{language.newMessage}</span>
         </button>
     {/if}

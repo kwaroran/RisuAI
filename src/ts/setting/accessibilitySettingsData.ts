@@ -142,4 +142,20 @@ export const accessibilitySettingsItems: SettingItem[] = [
         bindKey: 'autoScrollToNewMessage',
         keywords: ['auto', 'scroll', 'new', 'message']
     },
+    {
+        id: 'acc.newMessageButtonStyle',
+        type: 'select',
+        labelKey: 'newMessageButtonStyle',
+        bindKey: 'newMessageButtonStyle',
+        options: {
+            selectOptions: [
+                { value: 'bottom-center', label: 'Bottom Center (Default)' },
+                { value: 'bottom-right', label: 'Bottom Right' },
+                { value: 'bottom-left', label: 'Bottom Left' },
+                { value: 'floating-circle', label: 'Floating Circle (Bottom Right)' },
+                { value: 'minimal-pill', label: 'Minimal Pill (Right Center)' },
+                { value: 'top-bar', label: 'Top Bar' }
+            ]
+        }
+    },
 ];
