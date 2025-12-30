@@ -143,11 +143,19 @@ export const accessibilitySettingsItems: SettingItem[] = [
         keywords: ['auto', 'scroll', 'new', 'message']
     },
     {
+        id: 'acc.alwaysScrollToNewMessage',
+        type: 'check',
+        labelKey: 'alwaysScrollToNewMessage',
+        bindKey: 'alwaysScrollToNewMessage',
+        condition: (db) => db.autoScrollToNewMessage,
+        keywords: ['always', 'scroll', 'new', 'message']
+    },
+    {
         id: 'acc.newMessageButtonStyle',
         type: 'select',
         labelKey: 'newMessageButtonStyle',
         bindKey: 'newMessageButtonStyle',
-        condition: (db) => db.autoScrollToNewMessage,
+        condition: (db) => db.autoScrollToNewMessage && !db.alwaysScrollToNewMessage,
         options: {
             selectOptions: [
                 { value: 'bottom-center', label: 'Bottom Center (Default)' },

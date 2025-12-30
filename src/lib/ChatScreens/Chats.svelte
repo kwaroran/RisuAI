@@ -175,7 +175,7 @@
         if(isSameChat && messages.length > previousLength){
             const lastMsg = messages[messages.length - 1];
             if(lastMsg && lastMsg.role === 'char' && DBState.db.autoScrollToNewMessage){
-                if(wasAtBottom){
+                if(wasAtBottom || DBState.db.alwaysScrollToNewMessage){
                     const element = chatBody.firstElementChild;
                     if(element){
                         setTimeout(() => {

@@ -612,6 +612,7 @@ export function setDatabase(data:Database){
     data.ImagenAspectRatio ??= '1:1'
     data.ImagenPersonGeneration ??= 'allow_all'
     data.autoScrollToNewMessage ??= true
+    data.alwaysScrollToNewMessage ??= false
     data.newMessageButtonStyle ??= 'bottom-center'
     //@ts-expect-error __TAURI_INTERNALS__ is injected by Tauri runtime, not defined in Window interface
     if(!globalThis.__NODE__ && !window.__TAURI_INTERNALS__){
@@ -1130,6 +1131,7 @@ export interface Database{
     settingsCloseButtonSize:number
     enableBookmark?: boolean
     autoScrollToNewMessage?: boolean
+    alwaysScrollToNewMessage?: boolean
     newMessageButtonStyle?: string
 }
 
