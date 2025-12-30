@@ -42,6 +42,7 @@ export async function hotReloadPluginFiles(){
             await importPlugin(content, {
                 isHotReload: true,
                 isUpdate: true,
+                isTypescript: file.name.endsWith(".ts")
             })
         }
         catch (e){
