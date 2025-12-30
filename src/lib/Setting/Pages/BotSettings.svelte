@@ -302,6 +302,13 @@ let tokens = $state({
 
     {/if}
 
+    {#if DBState.db.aiModel === 'echo_model' || DBState.db.subModel === 'echo_model'}
+        <span class="text-textcolor mt-2">Echo Message</span>
+        <TextAreaInput margin="bottom" bind:value={DBState.db.echoMessage} placeholder="Message to echo..."/>
+        <span class="text-textcolor mt-2">Echo Delay (Seconds)</span>
+        <NumberInput marginBottom={true} bind:value={DBState.db.echoDelay} min={0}/>
+    {/if}
+
 
     {#if DBState.db.aiModel.startsWith("horde") || DBState.db.subModel.startsWith("horde") }
         <span class="text-textcolor">Horde {language.apiKey}</span>

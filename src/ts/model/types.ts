@@ -40,7 +40,8 @@ export enum LLMProvider{
     AWS,
     AI21,
     DeepSeek,
-    DeepInfra
+    DeepInfra,
+    Echo
 }
 
 export enum LLMFormat{
@@ -62,7 +63,8 @@ export enum LLMFormat{
     Ollama,
     Horde,
     AWSBedrockClaude,
-    OpenAIResponseAPI
+    OpenAIResponseAPI,
+    Echo
 }
 
 export enum LLMTokenizer{
@@ -112,7 +114,8 @@ export const ProviderNames = new Map<LLMProvider, string>([
     [LLMProvider.Horde, 'Horde'],
     [LLMProvider.AWS, 'AWS'],
     [LLMProvider.DeepSeek, 'DeepSeek'],
-    [LLMProvider.DeepInfra, 'DeepInfra']
+    [LLMProvider.DeepInfra, 'DeepInfra'],
+    [LLMProvider.Echo, 'For Developer']
 ])
 
 export const OpenAIParameters:Parameter[] = ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty']
