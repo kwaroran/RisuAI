@@ -212,7 +212,7 @@ class SafeElement {
 
     #eventIdMap = new Map<string, Function>()
 
-    public addEventListener(type:string, listener: (event: any) => void, options?: boolean | AddEventListenerOptions):string {
+    public async addEventListener(type:string, listener: (event: any) => void, options?: boolean | AddEventListenerOptions):Promise<string> {
         const realOptions = typeof options === 'boolean' ? { capture: options } : options || {};
 
         //allowed with unlimited
@@ -489,7 +489,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         setArg: oldApis.setArg,
 
         //New APIs for v3
-        getArgument: (key:string) => {
+        getArgument: async (key:string) => {
             const db = getDatabase()
             for (const p of db.plugins) {
                 if (p.name === plugin.name) {
@@ -497,7 +497,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                 }
             }
         },
-        setArgument: (key:string, value:string) => {
+        setArgument: async (key:string, value:string) => {
             const db = getDatabase();
             for (const plugin of db.plugins) {
                 if (plugin.name === plugin.name) {
@@ -703,7 +703,7 @@ export async function loadV3Plugins(plugins:RisuPlugin[]){
     await Promise.all(loadPromises);
 }
 
-export function executePluginV3(plugin:RisuPlugin){
+export async function executePluginV3(plugin:RisuPlugin){
     const iframe = document.createElement('iframe');
     iframe.style.display = "none";
     document.body.appendChild(iframe);

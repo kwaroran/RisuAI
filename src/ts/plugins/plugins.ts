@@ -908,11 +908,11 @@ export async function loadV2Plugin(plugins: RisuPlugin[]) {
     }
 }
 
-export function translatorPlugin(text: string, from: string, to: string) {
+export async function translatorPlugin(text: string, from: string, to: string) {
     return false
 }
 
-export function pluginProcess(arg: {
+export async function pluginProcess(arg: {
     prompt_chat: OpenAIChat,
     temperature: number,
     max_tokens: number,
