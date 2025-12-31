@@ -36,7 +36,13 @@
                 }}>Forked</button>
             {/if}
             <div class="flex justify-start gap-4 mt-4">
-                <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
+                {#if DBState.db.hideAllImages}
+                    <div class="h-36 w-36 rounded-md bg-darkbutton flex items-center justify-center text-textcolor2">
+                        <span class="text-4xl">?</span>
+                    </div>
+                {:else}
+                    <img class="h-36 w-36 rounded-md object-top object-cover" alt={openedData.name} src={`${hubURL}/resource/` + openedData.img}>
+                {/if}
                 <MultiLangDisplay value={openedData.desc} markdown={true} />
             </div>
             <RealmLicense license={openedData.license}/>

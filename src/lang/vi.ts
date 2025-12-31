@@ -200,6 +200,7 @@ export const LanguageVietnamese = {
             "Bỏ qua các nhà cung cấp trong danh sách này, nếu tất cả các nhà cung cấp bị bỏ qua, yêu cầu sẽ thất bại. Xem chi tiết tại https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
         additionalPrompt:
             "Văn bản được thêm vào cuối Lời nhắc chính khi Tiền xử lý lời nhắc được bật. Mặc định là 'The assistant must act as {{char}}. user is {{user}}.' Điều này giúp thiết lập ngữ cảnh nhập vai cơ bản.",
+        hideAllImagesDesc: "Ẩn biểu tượng bot, tài nguyên hình ảnh bot và ảnh bìa RisuRealm.",
     },
     setup: {
         chooseProvider: "Chọn nhà cung cấp AI",
@@ -881,6 +882,7 @@ export const LanguageVietnamese = {
     ifRandom: "Nếu ngẫu nhiên",
     ifValue: "Nếu giá trị",
     hideRealm: "Ẩn RisuRealm",
+    hideAllImages: "Ẩn tất cả hình ảnh",
     popularityLevel: "{} Mức độ phổ biến",
     colorScheme: "Bảng màu",
     rangeStart: "Phạm vi bắt đầu",

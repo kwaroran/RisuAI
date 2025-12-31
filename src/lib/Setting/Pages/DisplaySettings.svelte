@@ -255,6 +255,11 @@
     </div>
 
     <div class="flex items-center mt-2">
+        <Check bind:check={DBState.db.hideAllImages} name={language.hideAllImages}/>
+        <Help key="hideAllImagesDesc"/>
+    </div>
+
+    <div class="flex items-center mt-2">
         <Check bind:check={DBState.db.showFolderName} name={language.showFolderNameInIcon}/>
     </div>
 
