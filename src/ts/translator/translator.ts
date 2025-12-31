@@ -281,7 +281,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             audio.play();
         }
 
-        return r
+        return applyEdittransRegex(r, charArg, alwaysExistChar)
     }
     if(db.translatorType == "bergamot" && db.htmlTranslation) {
         const from = db.aiModel.startsWith('novellist') ? 'ja' : 'en'
@@ -291,8 +291,8 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
             const bergamotTranslator = await import('./bergamotTranslator')
             bergamotTranslate = bergamotTranslator.bergamotTranslate
         }
-        
-        return bergamotTranslate(html, from, to, true)
+ 
+        return applyEdittransRegex(await bergamotTranslate(html, from, to, true), charArg, alwaysExistChar)
     }
     const dom = new DOMParser().parseFromString(html, 'text/html');
     console.log(html)
@@ -478,18 +478,7 @@ export async function translateHTML(html: string, reverse:boolean, charArg:simpl
     // Remove the outer <html|body|head> tags
     translatedHTML = translatedHTML.replace(/<\/?(html|body|head)[^>]*>/g, '');
 
-    if(charArg !== ''){
-        let scripts:customscript[] = []
-        scripts = (getModuleRegexScripts() ?? []).concat(alwaysExistChar?.customscript ?? [])
-        for(const script of scripts){
-            if(script.type === 'edittrans'){
-                const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
-                let outScript = script.out.replaceAll("$n", "\n")
-                translatedHTML = translatedHTML.replace(reg, outScript)
-            }
-        }
-
-    }
+    translatedHTML = applyEdittransRegex(translatedHTML, charArg, alwaysExistChar);
 
     // console.log(html)
     // console.log(translatedHTML)
@@ -571,3 +560,24 @@ async function translateLLM(text:string, arg:{to:string, from:string, regenerate
 export async function getLLMCache(text:string):Promise<string | null>{
     return await LLMCacheStorage.getItem(text)
 }
+
+
+function applyEdittransRegex(
+      text: string, 
+      charArg: simpleCharacterArgument | string, 
+      alwaysExistChar: character | groupChat | simpleCharacterArgument
+  ): string {
+      if (charArg === '') return text
+
+      let scripts: customscript[] = []
+      scripts = (getModuleRegexScripts() ?? []).concat(alwaysExistChar?.customscript ?? [])
+
+      for (const script of scripts) {
+          if (script.type === 'edittrans') {
+              const reg = new RegExp(script.in, script.ableFlag ? script.flag : 'g')
+              let outScript = script.out.replaceAll("$n", "\n")
+              text = text.replace(reg, outScript)
+          }
+      }
+      return text
+  }
