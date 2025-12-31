@@ -42,6 +42,33 @@ export const tokenizerList = [
     ['deepseek', 'DeepSeek'],
 ] as const
 
+export async function encodeWithTokenizer(data: string, tokenizerType: string): Promise<(number[] | Uint32Array | Int32Array)> {
+    switch (tokenizerType) {
+        case 'tik':
+            return await tikJS(data, 'cl100k_base');
+        case 'mistral':
+            return await tokenizeWebTokenizers(data, 'mistral');
+        case 'novelai':
+            return await tokenizeWebTokenizers(data, 'novelai');
+        case 'claude':
+            return await tokenizeWebTokenizers(data, 'claude');
+        case 'llama':
+            return await tokenizeWebTokenizers(data, 'llama');
+        case 'llama3':
+            return await tokenizeWebTokenizers(data, 'llama3');
+        case 'novellist':
+            return await tokenizeWebTokenizers(data, 'novellist');
+        case 'gemma':
+            return await gemmaTokenize(data);
+        case 'cohere':
+            return await tokenizeWebTokenizers(data, 'cohere');
+        case 'deepseek':
+            return await tokenizeWebTokenizers(data, 'DeepSeek');
+        default:
+            return await tikJS(data, 'cl100k_base');
+    }
+}
+
 export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Array)>{
     const db = getDatabase();
     const modelInfo = getModelInfo(db.aiModel);
