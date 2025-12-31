@@ -569,7 +569,7 @@
       {#if char.type === 'folder' && openFolders.includes(char.id)}
         {#key char.color}
         <div class="p-1 flex flex-col items-center py-1 mt-1 rounded-lg relative">
-          <div class="absolute top-0 left-1 border border-selected w-full h-full rounded-lg z-0 {
+          <div class="absolute top-0 left-1 right-1 border border-selected h-full rounded-lg z-0 {
             char.color === 'red' ? 'bg-red-700/20' :
             char.color === 'yellow' ? 'bg-yellow-700/20' :
             char.color === 'green' ? 'bg-green-700/20' :
