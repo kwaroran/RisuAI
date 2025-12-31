@@ -12,7 +12,7 @@
     import { DBState } from 'src/ts/stores.svelte';
     import PlaygroundImageGen from "./PlaygroundImageGen.svelte";
     import PlaygroundParser from "./PlaygroundParser.svelte";
-    import ToolConvertion from "./ToolConvertion.svelte";
+    import ToolConversion from "./ToolConversion.svelte";
     import { joinMultiuserRoom } from "src/ts/sync/multiuser";
   import PlaygroundSubtitle from "./PlaygroundSubtitle.svelte";
   import PlaygroundImageTrans from "./PlaygroundImageTrans.svelte";
@@ -185,7 +185,7 @@
                 <PlaygroundDocs/>
             {/if}
             {#if $PlaygroundStore === 101}
-                <ToolConvertion/>
+                <ToolConversion/>
             {/if}  
         </div>
     {/if}
