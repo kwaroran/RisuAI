@@ -11,37 +11,34 @@ export class RisuAccessClient extends MCPClientLike {
     constructor(){
         const additionalServerInfo = `
 <About Risuai Features>
-Regex Scripts are used to replace text in the chat based on regex patterns.
-Each script has the following fields:
-- 'type': The type of the script. one of:
-- 'editinput': Modifies the input text of user
-- 'editoutput': Modifies the output text of the character
-- 'editprocess': Modifies the text before sending HTTP request
-- 'editdisplay': Modifies the text before displaying it in the chat
-- 'edittrans': Modifies the text after translation
-- 'disabled': The script is disabled and will not be applied
-- 'in': The regex pattern to match in the input text, without the leading and trailing slashes and flags. should be a valid regex at ECMAScript.
-- 'out': The replacement text for the matched input. can contain $1, $2, etc. to refer to the captured groups in the regex.
-    - Note: if it is 'editdisplay' type, since it can accept markdown and HTML, and also <style> tag which can use CSS, it can be used for decorating.
-    - Note: if CSS is used, class names are recommended to be prefixed with x-risu- to avoid conflicts with other styles.
-- 'flag': The regex flags to use. should be a valid regex flags in string at ECMAScript, like 'g', 'i', 'm', etc. it can be also use multiple flags like 'gi' or 'gm'.
-- 'ableFlag': A boolean value indicating whether the script is enabled or not. if it is false, the script will use default flags.
-- 'comment': A comment or name for the script. This is used to identify the script in the list.
+Regex Scripts are used to replace text in the chat based on regex patterns. Each script has the following fields:
+- 'type': The type of the script. One of:
+  - 'editinput': Modifies the user's input text.
+  - 'editoutput': Modifies the character's output text.
+  - 'editprocess': Modifies the text before sending the HTTP request.
+  - 'editdisplay': Modifies the text before displaying it in the chat.
+  - 'edittrans': Modifies the text after translation.
+- 'in': The regex pattern to match, without the leading and trailing slashes and flags. Should be a valid ECMAScript regex.
+- 'out': The replacement text for the matches. It can use $1, $2, or $<name> (for named capture groups) to refer to the captured groups.
+    - Note: It can accept markdown and HTML, even <style> tags. One can use regex scripts for decoration with 'editdisplay' type.
+    - Note: All class names will be prefixed with 'x-risu-' to avoid conflicts with the platform styles.
+- 'flag': The regex flags to use. Should be valid ECMAScript regex flags, like 'g', 'i', 'm', etc. Multiple flags can also be used like 'gi' or 'gm'.
+- 'ableFlag': A boolean value indicating whether the flag settings are enabled. If false, the script will use default flags of 'g'.
+- 'comment': A name of the script. This is used to identify the script in the list.
 
-Lorebook is a collection of lore entries that can be used to store information about the character.
-Each lore entry has the following fields:
-- 'key': The key that triggers this lore entry. if the key is in the chat history, the lore entry will be recognized. multiple keys can be used, separated by commas.
-- 'content': The content of the lore entry. This is a string that contains the lore information.
-- 'comment': A comment or name for the lore entry. This is used to identify the lore entry in the list.
-- 'alwaysActive': A boolean value indicating whether the lore entry is always active or not. if it is true, the lore entry will be recognized even if the key is not in the chat history.
+Lorebooks are texts containing various information about the character with conditional activation based on chat history. Each entry has the following fields:
+- 'key': The key that will activate this lorebook. Multiple keys can be specified separated by commas. If one of the keys is in the chat history, the entry will be included in the next prompt.
+- 'content': The content of the entry.
+- 'comment': Name of the lorebook. Used for identifying the entry in the list.
+- 'alwaysActive': A boolean value indicating whether the entry is always active or not. If true, the entry will be included even if all of its keys are not in the chat history.
 
-Character fields:
+Characters are the AI personas that Risuai chats with. Each character has the following fields:
 - 'name': The name of the character.
 - 'greeting': The greeting message of the character. This is the first message that the character will send when the chat starts.
 - 'description': The description of the character. This is used to describe the character in the chat.
-- 'replaceGlobalNote': A note that is used to put instructions to AI models (but not you)
+- 'replaceGlobalNote': A note that is used to put instructions to AI models (but not you).
 - 'alternateGreetings': An array of alternate greetings that the character can use.
-- 'backgroundEmbedding': A string that contains the HTML code for the background embedding of the character. This is used mostly used for visual purposes like using HTML background and CSS to style.
+- 'backgroundEmbedding': A string that contains the HTML code for the background embedding of the character. This is mostly used for visual purposes like using HTML background and CSS to style.
 `
         super('internal:risuai');
         this.serverInfo.serverInfo.name = "Risuai Access MCP";
@@ -74,7 +71,7 @@ Character fields:
                 }
             },
             {
-                name: 'risu-get-character-lorebook',
+                name: 'risu-get-character-lorebooks',
                 description: 'Get the lorebook of a Risuai character',
                 inputSchema: {
                     type: 'object',
@@ -406,8 +403,8 @@ Character fields:
             switch (toolName) {
                 case 'risu-get-character-info':
                     return await this.getCharacterInfo(args.id, args.fields);
-                case 'risu-get-character-lorebook':
-                    return await this.getCharacterLorebook(args.id, args.count, args.offset);
+                case 'risu-get-character-lorebooks':
+                    return await this.getCharacterLorebooks(args.id, args.count, args.offset);
                 case 'risu-get-chat-history':
                     return await this.getChatHistory(args.id, args.count, args.offset);
                 case 'risu-set-character-info':
@@ -496,7 +493,7 @@ Character fields:
         }];
     }
 
-    async getCharacterLorebook(id: string, count: number = 100, offset: number = 0): Promise<RPCToolCallContent[]> {
+    async getCharacterLorebooks(id: string, count: number = 100, offset: number = 0): Promise<RPCToolCallContent[]> {
         const char:character|groupChat = this.getCharacter(id);
         if (!char) {
             return [{
