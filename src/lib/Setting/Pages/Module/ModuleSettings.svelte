@@ -5,7 +5,7 @@
     import Button from "src/lib/UI/GUI/Button.svelte";
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, importModule, refreshModules, type RisuModule } from "src/ts/process/modules";
-    import { Edit, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints } from "@lucide/svelte";
+    import { SquarePen, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints } from "@lucide/svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
     import { alertConfirm } from "src/ts/alert";
@@ -88,14 +88,14 @@
                                 editModuleIndex = index
                                 mode = 2
                             }}>
-                                <Edit size={18}/>
+                                <SquarePen size={18}/>
                             </button>
                         {:else}
                             <button class="text-textcolor2 mr-2 cursor-not-allowed">
                                 <Share2Icon size={18}/>
                             </button>
                             <button class="text-textcolor2 mr-2 cursor-not-allowed">
-                                <Edit size={18}/>
+                                <SquarePen size={18}/>
                             </button>
                         {/if}
                         <button class="text-textcolor2 hover:text-green-500 mr-2 cursor-pointer" use:tooltip={language.remove} onclick={async (e) => {

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FileAudioIcon, PlusIcon } from "@lucide/svelte";
+    import { FileMusicIcon, PlusIcon } from "@lucide/svelte";
     import { type character, type groupChat } from "src/ts/storage/database.svelte";
     import { getFileSrc, saveAsset } from "src/ts/globalApi.svelte";
     import { selectMultipleFile } from "src/ts/util";
@@ -62,7 +62,7 @@
                             <video class="w-16 h-16 m-1 rounded-md"><source src={assetFilePath[i]} type="video/mp4"></video>
                         {:else if assetFileExtensions[i] === 'mp3'}
                             <div class='w-16 h-16 m-1 rounded-md bg-slate-500 flex flex-col justify-center items-center'>
-                                <FileAudioIcon/>
+                                <FileMusicIcon/>
                                 <div class='w-16 px-1 text-ellipsis whitespace-nowrap overflow-hidden'>{additionalAsset[0]}</div>
                             </div>
                             <!-- <audio controls class="w-16 h-16 m-1 rounded-md"><source src={assetPath} type="audio/mpeg"></audio> -->

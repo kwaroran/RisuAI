@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { HomeIcon, MailIcon, MaximizeIcon, WalletIcon } from "@lucide/svelte";
+    import { HouseIcon, MailIcon, MaximizeIcon, WalletIcon } from "@lucide/svelte";
     import { isTauri, openURL, toggleFullscreen } from "src/ts/globalApi.svelte";
 
 </script>
@@ -20,7 +20,7 @@
   <button class="text-textcolor" onclick={() => {
     openURL("https://risuai.net/")
   }}>
-    <HomeIcon size={24} />
+    <HouseIcon size={24} />
   </button>
   <button class="text-textcolor" onclick={() => {
     openURL("https://www.patreon.com/RisuAI")
