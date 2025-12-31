@@ -269,6 +269,7 @@
   }
   const avatarDragStart = (ind:DragData, e:DragEv) => {
     e.dataTransfer.setData('text/plain', '');
+    e.dataTransfer.setData('application/x-risu-internal', 'true');
     currentDrag = ind
     const avatar = e.currentTarget.querySelector('.avatar')
     if(avatar){

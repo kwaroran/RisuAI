@@ -38,6 +38,9 @@
     e.dataTransfer.dropEffect = 'link'
 }} ondrop={async (e) => {
     e.preventDefault()
+    if (e.dataTransfer.types.includes('application/x-risu-internal')) {
+        return
+    }
     const file = e.dataTransfer.files[0]
     if (file) {
         await importCharacterProcess({
