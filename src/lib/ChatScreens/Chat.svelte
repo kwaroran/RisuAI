@@ -4,7 +4,7 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme"
     import { longpress } from "src/ts/gui/longtouch"
     import { getModelInfo } from "src/ts/model/modellist"
-    import { runLuaButtonTrigger } from 'src/ts/process/scriptings'
+    import { runLuaInteractionTrigger } from 'src/ts/process/scriptings'
     import { risuChatParser } from "src/ts/process/scripts"
     import { runTrigger } from 'src/ts/process/triggers'
     import { sayTTS } from "src/ts/process/tts"
@@ -191,7 +191,7 @@
                     triggerId: triggerId || undefined,
                 }) :
             btnEvent ?
-                await runLuaButtonTrigger(currentChar, btnEvent) :
+                await runLuaInteractionTrigger('button', currentChar, btnEvent) :
             null
 
         if(triggerResult) {
@@ -206,6 +206,46 @@
             setTimeout(() => {
                 CurrentTriggerIdStore.set(null)
             }, 100) // Small delay to allow display mode to complete
+        }
+    }
+
+    async function handleFormTriggerWithin(event: SubmitEvent) {
+        // Regardless of attribute presence, prevent undesirable site exits via form submission
+        event.preventDefault()
+
+        const currentChar = getCurrentCharacter()
+        if (currentChar.type === 'group') {
+            return
+        }
+
+        const target = event.target as HTMLFormElement
+        const formEvent = target.getAttribute('risu-form')
+
+        if (!formEvent) {
+            return
+        }
+
+        const obj = {}
+        for (const [k, v] of new FormData(target)) {
+            if (obj[k]) {
+                if (Array.isArray(obj[k])) {
+                    (obj[k] as any[]).push(v)
+                } else {
+                    obj[k] = [obj[k], v]
+                }
+            } else {
+                obj[k] = v
+            }
+        }
+
+        const triggerResult =  formEvent ? await runLuaInteractionTrigger('form', currentChar, formEvent, { data: obj }) : null
+
+        if(triggerResult) {
+            setCurrentChat(triggerResult.chat)
+            ReloadChatPointer.update((v) => {
+                v[idx] = (v[idx] ?? 0) + 1
+                return v
+            })
         }
     }
 
@@ -946,7 +986,8 @@
      data-chat-index={idx}
      data-chat-id={DBState.db.characters?.[selIdState.selId]?.chats?.[DBState.db.characters?.[selIdState.selId]?.chatPage]?.message?.[idx]?.chatId ?? ''}
      style={isLastMemory ? `border-top:${DBState.db.memoryLimitThickness}px solid rgba(98, 114, 164, 0.7);` : ''}
-     onclickcapture={handleButtonTriggerWithin}>
+     onclickcapture={handleButtonTriggerWithin}
+     onsubmitcapture={handleFormTriggerWithin}>
     <div class="text-textcolor mt-1 ml-4 mr-4 mb-1 p-2 bg-transparent grow border-t-gray-900 border-opacity/30 border-transparent flexium items-start max-w-full" >
         {#if DBState.db.theme === 'mobilechat' && !blankMessage}
             <div class={role === 'user' ? "flex items-start w-full justify-end" : "flex items-start"}>
