@@ -90,20 +90,21 @@
     {#if checkCondition(item)}
         {#if item.type === 'header'}
             {#if item.options?.level === 'h2'}
-                <h2 class="mb-2 text-2xl font-bold mt-2">{getLabel(item)}</h2>
+                <h2 class="mb-2 text-2xl font-bold mt-2 {item.classes ?? ''}">{getLabel(item)}</h2>
             {:else if item.options?.level === 'warning'}
-                <span class="text-draculared text-xs mb-2">{getLabel(item)}</span>
+                <span class="text-draculared text-xs mb-2 {item.classes ?? ''}">{getLabel(item)}</span>
             {:else}
-                <span class="text-textcolor mt-4 mb-2">{getLabel(item)}</span>
+                <span class="text-textcolor mt-4 mb-2 {item.classes ?? ''}">{getLabel(item)}</span>
             {/if}
         {:else if item.type === 'check'}
-            <div class="flex items-center mt-2">
+            <div class="flex items-center {item.classes ?? 'mt-2'}">
                 <Check bind:check={(DBState.db as any)[item.bindKey]} name={getLabel(item)}>
-                    {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
+                    {#if item.showExperimental}<Help key="experimental"/>{/if}
+                    {#if item.helpKey}<Help key={item.helpKey as any} unrecommended={item.helpUnrecommended ?? false}/>{/if}
                 </Check>
             </div>
         {:else if item.type === 'text'}
-            <span class="text-textcolor">{getLabel(item)}
+            <span class="text-textcolor {item.classes ?? ''}">{getLabel(item)}
                 {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
             <TextInput
@@ -114,7 +115,7 @@
                 hideText={item.options?.hideText}
             />
         {:else if item.type === 'number'}
-            <span class="text-textcolor">{getLabel(item)}
+            <span class="text-textcolor {item.classes ?? ''}">{getLabel(item)}
                 {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
             <NumberInput
@@ -125,7 +126,7 @@
                 bind:value={(DBState.db as any)[item.bindKey]}
             />
         {:else if item.type === 'textarea'}
-            <span class="text-textcolor">{getLabel(item)}
+            <span class="text-textcolor {item.classes ?? ''}">{getLabel(item)}
                 {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
             <TextAreaInput
@@ -133,7 +134,7 @@
                 placeholder={item.options?.placeholder}
             />
         {:else if item.type === 'slider'}
-            <span class="text-textcolor">{getLabel(item)}
+            <span class="text-textcolor {item.classes ?? ''}">{getLabel(item)}
                 {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
             <SliderInput 
@@ -148,7 +149,7 @@
                 bind:value={(DBState.db as any)[item.bindKey]}
             />
         {:else if item.type === 'select'}
-            <span class="text-textcolor mt-4">{getLabel(item)}
+            <span class="text-textcolor {item.classes ?? 'mt-4'}">{getLabel(item)}
                 {#if item.helpKey}<Help key={item.helpKey as any}/>{/if}
             </span>
             <SelectInput bind:value={(DBState.db as any)[item.bindKey]}>
@@ -157,13 +158,13 @@
                 {/each}
             </SelectInput>
         {:else if item.type === 'color'}
-            <div class="flex items-center mt-2">
+            <div class="flex items-center {item.classes ?? 'mt-2'}">
                 <ColorInput bind:value={(DBState.db as any)[item.bindKey]} />
                 <span class="ml-2">{getLabel(item)}</span>
             </div>
         {:else if item.type === 'button'}
             <Button 
-                className="mt-4"
+                className={item.classes ?? 'mt-4'}
                 onclick={item.options?.onClick}
             >
                 {getLabel(item)}

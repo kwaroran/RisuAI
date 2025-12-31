@@ -89,8 +89,14 @@ export interface SettingItem {
     /** Fallback label if language key doesn't exist */
     fallbackLabel?: string;
     
-    /** Help tooltip key */
+    /** Key for help tooltip lookup in language.help */
     helpKey?: string;
+
+    /** If true, the help icon will show as unrecommended (triangle warning icon) */
+    helpUnrecommended?: boolean;
+
+    /** If true, shows an additional experimental marker (flask icon) */
+    showExperimental?: boolean;
     
     /** 
      * Database key for binding (DBState.db.xxx)
@@ -117,7 +123,10 @@ export interface SettingItem {
     
     /** Search keywords for future search feature */
     keywords?: string[];
-    
+
+    /** Custom CSS classes for the main container or label */
+    classes?: string;
+        
     /**
      * Component ID for custom components (type: 'custom')
      * Must be a key in customComponents registry
