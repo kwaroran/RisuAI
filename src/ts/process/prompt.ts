@@ -146,7 +146,7 @@ export function stChatConvert(pre:any){
         return pre.prompts.find((p:any) => p.identifier === identifier)
     }
 
-    for(const prompt of pre?.prompt_order?.[0]?.order){
+    for(const prompt of pre?.prompt_order?.[0]?.order ?? []){
         if(!prompt?.enabled){
             continue
         }
