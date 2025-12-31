@@ -16,7 +16,7 @@ import { getStopStrings, stringlizeAINChat, unstringlizeAIN, unstringlizeChat } 
 import { applyChatTemplate } from "../templates/chatTemplate";
 import { runTransformers } from "../transformers";
 import { runTrigger } from "../triggers";
-import { requestClaude } from './antrophic';
+import { requestClaude } from './anthropic';
 import { requestGoogleCloudVertex } from './google';
 import { requestOpenAI, requestOpenAILegacyInstruct, requestOpenAIResponseAPI } from "./openAI";
 
