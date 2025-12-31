@@ -27,7 +27,7 @@ export class CharXWriter{
     apb = new AppendableBuffer()
     #takenFilenames:Set<string> = new Set()
     constructor(private writer:LocalWriter|WritableStreamDefaultWriter<Uint8Array>|VirtualWriter){
-        const handlerAsync = async (err:Error, dat:Uint8Array, final:boolean) => {
+        const handlerAsync = (err:Error, dat:Uint8Array, final:boolean) => {
             if(dat){
                 this.apb.append(dat)
             }

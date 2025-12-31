@@ -1889,7 +1889,7 @@ export function setChatVar(key:string, value:string){
 }
 
 
-async function editDisplay(text){
+function editDisplay(text){
     let rt = ""
     if(!text.includes("<obs>")){
         return text
@@ -1907,7 +1907,7 @@ async function editDisplay(text){
 
 export type PromptParsed ={[key:string]:string|PromptParsed}
 
-export async function promptTypeParser(prompt:string):Promise<string | PromptParsed>{
+export function promptTypeParser(prompt:string):string | PromptParsed{
     //XML type
     try {
         const parser = new DOMParser()

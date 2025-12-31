@@ -1148,7 +1148,7 @@ function convertCharbook(arg:{
 
 
 
-async function createBaseV2(char:character) {
+function createBaseV2(char:character) {
     
     let charBook:charBookEntry[] = []
     for(const lore of char.globalLore){

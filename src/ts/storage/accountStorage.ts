@@ -154,11 +154,11 @@ export class AccountStorage{
 
         return Buffer.from(appendable)
     }
-    async keys():Promise<string[]>{
+    keys():string[]{
         let db = getDatabase()
         return getUnpargeables(db, 'pure')
     }
-    async removeItem(key:string){
+    removeItem(key:string){
         throw "Error: You cannot remove data in account. report this to dev if you found this."
     }
 

@@ -53,7 +53,7 @@ export const SafeIdbFactory = {
             return [];
         }
     },
-    deleteDatabase: async (name: string): Promise<IDBOpenDBRequest> => {
+    deleteDatabase: (name: string): IDBOpenDBRequest => {
         return indexedDB.deleteDatabase(`safe_plugin_${name}`);
     },
     open: (name: string, version?: number): IDBOpenDBRequest => {

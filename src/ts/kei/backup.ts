@@ -80,7 +80,7 @@ export async function autoServerBackup(){
 }
 
 let lastKeiSave = 0
-export async function saveDbKei() {
+export function saveDbKei() {
     try{
         let db = getDatabase()
         if(db.account.kei){

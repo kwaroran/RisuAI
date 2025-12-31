@@ -179,7 +179,7 @@ export async function addCharEmotion(charId:number) {
     addingEmotion.set(false)
 }
 
-export async function rmCharEmotion(charId:number, emotionId:number) {
+export function rmCharEmotion(charId:number, emotionId:number) {
     let db = getDatabase()
     let dbChar = db.characters[charId]
     if(dbChar.type !== 'group'){

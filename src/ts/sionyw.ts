@@ -65,7 +65,7 @@ export async function fetchProtectedResource(url: string, options: RequestInit =
     return fetchProtectedResourceSPA(url, options, arg)
 }
 
-const readFileUnSecure = isTauri ? readFile : async (path:string, options:any) => {
+const readFileUnSecure = isTauri ? readFile : (path:string, options:any) => {
     const data = localStorage.getItem(path)
     if(!data){
         throw new Error("File not found")
@@ -73,7 +73,7 @@ const readFileUnSecure = isTauri ? readFile : async (path:string, options:any) =
     return Buffer.from(data, 'base64')
 }
 
-const writeFileUnSecure = isTauri ? writeFile : async (path:string, data:Uint8Array, options:any) => {
+const writeFileUnSecure = isTauri ? writeFile : (path:string, data:Uint8Array, options:any) => {
     localStorage.setItem(path, Buffer.from(data).toString('base64'))
 }
 

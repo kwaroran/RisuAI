@@ -1188,7 +1188,7 @@ function getTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Arr
     const db = getDatabase()
 
     return new TransformStream<Uint8Array, StreamResponseChunk>({
-        async transform(chunk, control) {
+        transform(chunk, control) {
             dataUint = Buffer.from(new Uint8Array([...dataUint, ...chunk]))
             let JSONreaded:{[key:string]:string} = {}
                         try {

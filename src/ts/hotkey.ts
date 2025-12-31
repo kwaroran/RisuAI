@@ -278,7 +278,7 @@ export function initHotkey(){
     let touchs = 0
     let touchStartTime = 0
     //check for triple touch
-    document.addEventListener('touchstart', async (ev) => {
+    document.addEventListener('touchstart', (ev) => {
         touchs++
         if(touchs > 2){
             if(Date.now() - touchStartTime > 300){

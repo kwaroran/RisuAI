@@ -142,7 +142,7 @@ export const PngChunk = {
         let readableStreamData = new AppendableBuffer()
         const trimedData = new AppendableBuffer()
 
-        async function appendTrimed(data:Uint8Array){
+        function appendTrimed(data:Uint8Array){
             if(arg.returnTrimed){
                 trimedData.append(data)
             }

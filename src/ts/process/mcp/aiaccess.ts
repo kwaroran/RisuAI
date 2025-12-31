@@ -13,7 +13,7 @@ export class AIAccessClient extends MCPClientLike {
         this.serverInfo.serverInfo.name = "AI Access Client";
         this.serverInfo.instructions = "Client for accessing AI services and tools.";
     }
-    async getToolList(): Promise<MCPTool[]>{
+    async getToolList(): Promise<MCPTool[]> {
         return [{
             name: 'runLLM',
             description: 'Run a large language model (LLM) with specified parameters.',

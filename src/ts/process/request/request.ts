@@ -832,7 +832,7 @@ async function requestOobaLegacy(arg:RequestDataArgumentExtended):Promise<reques
         const stream = new ReadableStream({
             start(controller){
                 let readed = "";
-                oobaboogaSocket.onmessage = async (event) => {
+                oobaboogaSocket.onmessage = (event) => {
                     const json = JSON.parse(event.data);
                     if (json.event === "stream_end") {
                         close()

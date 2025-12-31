@@ -30,7 +30,7 @@ export async function shareRealmCardData():Promise<{ name: ArrayBuffer; data: Ar
     }
 }
 
-export async function openRealm(name:string,data:ArrayBuffer) {
+export function openRealm(name:string,data:ArrayBuffer) {
     const tk = getDatabase()?.account?.token;
     const id = getDatabase()?.account?.id
     const trimedName = name.replace(/[^a-zA-Z0-9]/g, '') || 'character';

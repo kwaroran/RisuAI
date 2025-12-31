@@ -87,7 +87,7 @@ export async function translateStackTrace(stackTrace: string): Promise<string> {
     // Step 3: Process all stack lines in parallel while maintaining order
     try {
         const processedLines = await Promise.all(
-            stackLines.map(async (line) => {
+            stackLines.map((line) => {
                 const match = line.match(linePattern);
                 if (match) {
                     const [, url, lineNumber, columnNumber] = match;
