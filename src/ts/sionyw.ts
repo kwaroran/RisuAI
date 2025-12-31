@@ -306,7 +306,7 @@ async function loginToSionywSPAVersion(){
     let code_verifier: string = client.randomPKCECodeVerifier()
     let code_challenge: string =  await client.calculatePKCECodeChallenge(code_verifier)
 
-    const authUrl = await client.buildAuthorizationUrl(config, {
+    const authUrl = client.buildAuthorizationUrl(config, {
         redirect_uri: 'risuai://sionyw/callback',
         scope: 'risuai refresh_token',
         code_challenge_method: 'S256',

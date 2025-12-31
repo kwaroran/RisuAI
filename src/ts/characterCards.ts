@@ -1685,7 +1685,7 @@ export async function shareRisuHub2(char:character, arg:{
             tagList.push("nsfw")
         }
     
-        await alertWait("Uploading...")
+        alertWait("Uploading...")
         
     
         let tags = tagList.filter((v, i) => {

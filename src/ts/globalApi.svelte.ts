@@ -2350,7 +2350,7 @@ export async function loadInternalBackup() {
         await decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
     )
 
-    await alertNormal('Loaded backup')
+    alertNormal('Loaded backup')
 
 
 

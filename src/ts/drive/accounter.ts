@@ -135,7 +135,7 @@ export async function loadRisuAccountBackup() {
             await decodeRisuSave(buf.buffer)
         )
     
-        await alertNormal('Loaded backup')
+        alertNormal('Loaded backup')
     }
 
 }

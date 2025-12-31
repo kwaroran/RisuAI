@@ -77,8 +77,8 @@ export class CharXWriter{
         const file = new fflate.ZipDeflate(key, {
             level: level ?? 0
         });
-        await this.zip.add(file)
-        await file.push(dat, true)
+        this.zip.add(file)
+        file.push(dat, true)
         await this.writer.write(this.apb.buffer)
         this.apb.clear()
         if(this.writeEnd){
@@ -113,7 +113,7 @@ export class CharXWriter{
     }
 
     async end(){
-        await this.zip.end()
+        this.zip.end()
         await this.writer.write(this.apb.buffer)
         this.apb.clear()
         if(this.writeEnd){

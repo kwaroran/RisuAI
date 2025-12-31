@@ -419,7 +419,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     let assetPaths:AssetPaths = {}
     let emoPaths:AssetPaths = {}
 
-    if (char.emotionImages) await getEmoSrc(char.emotionImages, emoPaths)
+    if (char.emotionImages) getEmoSrc(char.emotionImages, emoPaths)
 
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
