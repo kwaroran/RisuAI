@@ -205,7 +205,7 @@ export function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|
     });
 }
 
-function readFileAsUint8Array(file) {
+function readFileAsUint8Array(file: File) {
     return new Promise<Uint8Array>((resolve, reject) => {
       const reader = new FileReader();
   
@@ -966,7 +966,7 @@ export const searchTagList = (query:string) => {
     }
     const realQuery = splited.at(-1).trim().toLowerCase()
 
-    let result = []
+    const result: string[] = []
 
     for(const tag of TagList){
         if(tag.value.startsWith(realQuery)){
@@ -1108,10 +1108,10 @@ export function pickHashRand(cid:number,word:string) {
     return randF()
 }
 
-export async function replaceAsync(string:string, regexp:RegExp, replacerFunction: (...args: string[]) => Promise<string> | string) {
+export async function replaceAsync(string:string, regexp:RegExp, replacerFunction: (...args: string[]) => Promise<string>) {
     const replacements = await Promise.all(
         Array.from(string.matchAll(regexp),
-            match => replacerFunction(...match as any)))
+            match => replacerFunction(...(match as string[]))))
     let i = 0;
     return string.replace(regexp, () => replacements[i++])
 }
