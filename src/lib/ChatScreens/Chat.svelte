@@ -169,7 +169,7 @@
 
     async function handleButtonTriggerWithin(event: UIEvent) {
         const currentChar = getCurrentCharacter()
-        if(currentChar.type === 'group'){
+        if(!currentChar || currentChar.type === 'group'){
             return
         }
 
@@ -391,14 +391,20 @@
             <div class="flex items-center ml-2 gap-2">
                 {#if window.innerWidth >= 640}
                     {@render majorIconButtonsBody(false)}
-                    <PopupButton>
-                        {@render minorIconButtonsBody(true)}
-                    </PopupButton>
+                    {#if DBState.db.characters[selIdState.selId]}
+                        <PopupButton>
+                            {@render minorIconButtonsBody(true)}
+                        </PopupButton>
+                    {/if}
                 {:else}
-                    <PopupButton>
-                        {@render majorIconButtonsBody(true)}
-                        {@render minorIconButtonsBody(true)}
-                    </PopupButton>
+                    {#if DBState.db.characters[selIdState.selId]}
+                        <PopupButton>
+                            {@render majorIconButtonsBody(true)}
+                            {@render minorIconButtonsBody(true)}
+                        </PopupButton>
+                    {:else}
+                        {@render majorIconButtonsBody(false)}
+                    {/if}
                 {/if}
                 {@render rerolls()}
 
