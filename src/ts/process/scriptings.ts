@@ -1046,7 +1046,7 @@ export async function runScripted(code:string, arg:{
                     break
                 }
                 case 'onButtonClick':{
-                    res = await ScriptingEngineState.pyodide?.python(`onButtonClick('${accessKey}', '${data}')`)
+                    res = await ScriptingEngineState.pyodide?.python(`onButtonClick('${accessKey}', '${data as string}')`)
                     break
                 }
                 case 'editRequest':
