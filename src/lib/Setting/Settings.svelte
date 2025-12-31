@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AccessibilityIcon, ActivityIcon, PackageIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, XCircleIcon, KeyboardIcon } from "@lucide/svelte";
+    import { AccessibilityIcon, ActivityIcon, PackageIcon, BotIcon, BoxIcon, CodeIcon, ContactIcon, LanguagesIcon, MonitorIcon, Sailboat, UserIcon, CircleXIcon, KeyboardIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import DisplaySettings from "./Pages/DisplaySettings.svelte";
     import UserSettings from "./Pages/UserSettings.svelte";
@@ -165,7 +165,7 @@
                 {#if window.innerWidth < 700 && !$MobileGUI}
                     <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
                         settingsOpen.set(false)
-                    }}> <XCircleIcon size={DBState.db.settingsCloseButtonSize} /> </button>
+                    }}> <CircleXIcon size={DBState.db.settingsCloseButtonSize} /> </button>
                 {/if}
             </div>
         {/if}
@@ -222,7 +222,7 @@
                         $SettingsMenuIndex = -1
                     }
                 }}>
-                    <XCircleIcon size={DBState.db.settingsCloseButtonSize} />
+                    <CircleXIcon size={DBState.db.settingsCloseButtonSize} />
                 </button>
             {/if}
         {/if}

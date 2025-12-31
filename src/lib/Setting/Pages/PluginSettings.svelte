@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { PlusIcon, TrashIcon, LinkIcon, Code2Icon } from "@lucide/svelte";
+    import { PlusIcon, TrashIcon, LinkIcon, CodeXmlIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertMd } from "src/ts/alert";
-    import { AlertTriangle } from '@lucide/svelte';
+    import { TriangleAlert } from '@lucide/svelte';
 
     import { DBState, hotReloading } from "src/ts/stores.svelte";
     import { checkPluginUpdate, createBlankPlugin, importPlugin, loadPlugins, updatePlugin } from "src/ts/plugins/plugins";
@@ -55,7 +55,7 @@
                 <button class="text-yellow-400 hover:gray-200 cursor-pointer" onclick={() => {
                     alertMd(migrationGuideContent);
                 }} >
-                    <AlertTriangle />
+                    <TriangleAlert />
                 </button>
             {/if}
 
@@ -242,6 +242,6 @@
         }}
         class="hover:text-textcolor cursor-pointer"
     >
-        <Code2Icon />
+        <CodeXmlIcon />
     </button>
 </div>

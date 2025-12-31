@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { CheckCircle2Icon, Waypoints, XIcon } from "@lucide/svelte";
+    import { CircleCheckIcon, Waypoints, XIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
@@ -74,7 +74,7 @@
 
                                     close(rmodule.id)
                                 }}>
-                                    <CheckCircle2Icon size={18}/>
+                                    <CircleCheckIcon size={18}/>
                                 </button>
                             {:else if DBState.db.enabledModules.includes(rmodule.id)}
                                 <button class="mr-2 text-textcolor2 cursor-not-allowed"aria-labelledby="disabled">
@@ -112,7 +112,7 @@
                                     $ReloadGUIPointer += 1
                                 }}>
 
-                                    <CheckCircle2Icon size={18}/>
+                                    <CircleCheckIcon size={18}/>
                                 </button>
                             {/if}
                         </div>

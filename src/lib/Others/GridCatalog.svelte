@@ -3,7 +3,7 @@
     import { type Database } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import BarIcon from "../SideBars/BarIcon.svelte";
-    import { ArrowLeft, User, Users, Inspect, TrashIcon, Undo2Icon } from "@lucide/svelte";
+    import { ArrowLeft, User, Users, SquareMousePointer, TrashIcon, Undo2Icon } from "@lucide/svelte";
     import { selectedCharID } from "../../ts/stores.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
@@ -121,7 +121,7 @@
                             <button class="hover:text-textcolor text-textcolor2" onclick={() => {
                                 changeChar(char.index)
                             }}>
-                                <Inspect />
+                                <SquareMousePointer />
                             </button>
                             <button class="hover:text-textcolor text-textcolor2" onclick={() => {
                                 removeChar(char.index, char.name)
