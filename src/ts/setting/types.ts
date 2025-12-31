@@ -31,7 +31,7 @@ export type SettingType =
     | 'color'      // Color picker (ColorInput)
     | 'header'     // Section header (h2, span, warning)
     | 'button'     // Action button (Button)
-    | 'accordion'  // Collapsible section (Arcodion)
+    | 'accordion'  // Collapsible section (Accordion)
     | 'custom';    // Custom component from registry
 
 /**

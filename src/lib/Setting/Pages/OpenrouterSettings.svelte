@@ -1,6 +1,6 @@
 <script lang="ts">
     import { language } from "src/lang";
-    import Arcodion from "src/lib/UI/Arcodion.svelte";
+    import Accordion from "src/lib/UI/Accordion.svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     
     import { DBState } from 'src/ts/stores.svelte';
@@ -78,7 +78,7 @@
     ].sort((a, b) => a.localeCompare(b));
 </script>
 
-<Arcodion name="Openrouter Settings" styled>
+<Accordion name="Openrouter Settings" styled>
     <div class="flex items-center mb-4">
         <Check bind:check={DBState.db.openrouterFallback} name={language.openrouterFallback}/>
     </div>
@@ -89,7 +89,7 @@
         <Check bind:check={DBState.db.useInstructPrompt} name={language.useInstructPrompt}/>
     </div>
 
-    <Arcodion name={language.openrouterProviderOrder} help="openrouterProviderOrder" styled>
+    <Accordion name={language.openrouterProviderOrder} help="openrouterProviderOrder" styled>
         {#each DBState.db.openrouterProvider.order as model, i}
             <span class="text-textcolor mt-4">
                 {language.provider} {i + 1}
@@ -108,9 +108,9 @@
                 DBState.db.openrouterProvider.order = value
         }}><TrashIcon /></button>
         </div>
-    </Arcodion>
+    </Accordion>
 
-    <Arcodion name={language.openrouterProviderOnly} help="openrouterProviderOnly" styled>
+    <Accordion name={language.openrouterProviderOnly} help="openrouterProviderOnly" styled>
         {#each DBState.db.openrouterProvider.only as model, i}
             <span class="text-textcolor mt-4">
                 {language.provider} {i + 1}
@@ -129,9 +129,9 @@
                 DBState.db.openrouterProvider.only = value
         }}><TrashIcon /></button>
         </div>
-    </Arcodion>
+    </Accordion>
 
-    <Arcodion name={language.openrouterProviderIgnore} help="openrouterProviderIgnore" styled>
+    <Accordion name={language.openrouterProviderIgnore} help="openrouterProviderIgnore" styled>
         {#each DBState.db.openrouterProvider.ignore as model, i}
             <span class="text-textcolor mt-4">
                 {language.provider} {i + 1}
@@ -150,9 +150,9 @@
                 DBState.db.openrouterProvider.ignore = value
         }}><TrashIcon /></button>
         </div>
-    </Arcodion>
+    </Accordion>
 
     {#if DBState.db.useInstructPrompt}
         <ChatFormatSettings />
     {/if}
-</Arcodion>
+</Accordion>

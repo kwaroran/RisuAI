@@ -11,7 +11,7 @@
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
     import { getCharImage } from "src/ts/characters";
-    import Arcodion from "src/lib/UI/Arcodion.svelte";
+    import Accordion from "src/lib/UI/Accordion.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import { untrack } from "svelte";
@@ -106,7 +106,7 @@
 {/if}
 
 {#if submenu === 3 || submenu === -1}
-    <Arcodion name={language.imageGeneration} styled disabled={submenu !== -1}>
+    <Accordion name={language.imageGeneration} styled disabled={submenu !== -1}>
         <span class="text-textcolor mt-2">{language.imageGeneration} {language.provider} <Help key="sdProvider"/></span>
         <SelectInput className="mt-2 mb-4" bind:value={DBState.db.sdProvider}>
             <OptionInput value="" >None</OptionInput>
@@ -636,11 +636,11 @@
                 <OptionInput value="dont_allow" >Don't allow</OptionInput>
             </SelectInput>
         {/if}
-    </Arcodion>
+    </Accordion>
 {/if}
 
 {#if submenu === 1 || submenu === -1}
-<Arcodion name="TTS" styled disabled={submenu !== -1}>
+<Accordion name="TTS" styled disabled={submenu !== -1}>
     <span class="text-textcolor mt-2">Auto Speech</span>
     <CheckInput bind:check={DBState.db.ttsAutoSpeech}/>
 
@@ -662,22 +662,22 @@
     <span class="text-textcolor">fish-speech API Key</span>
     <TextInput size="sm" marginBottom bind:value={DBState.db.fishSpeechKey}/>
 
-</Arcodion>
+</Accordion>
 {/if}
 
 {#if submenu === 2 || submenu === -1}
-<Arcodion name={language.emotionImage} styled disabled={submenu !== -1}>
+<Accordion name={language.emotionImage} styled disabled={submenu !== -1}>
     <span class="text-textcolor mt-2">{language.emotionMethod}</span>
 
     <SelectInput className="mt-2 mb-4" bind:value={DBState.db.emotionProcesser}>
         <OptionInput value="submodel" >Ax. Model</OptionInput>
         <OptionInput value="embedding" >MiniLM-L6-v2</OptionInput>
     </SelectInput>
-</Arcodion>
+</Accordion>
 {/if}
 
 {#if submenu === 0 || submenu === -1}
-    <Arcodion name={language.longTermMemory} styled disabled={submenu !== -1}>
+    <Accordion name={language.longTermMemory} styled disabled={submenu !== -1}>
         <span class="text-textcolor mt-4">{language.type}</span>
 
         <SelectInput value={
@@ -920,7 +920,7 @@
                 <div class="mb-2">
                     <Check name={language.hypaV3Settings.doNotSummarizeUserMessageLabel} bind:check={settings.doNotSummarizeUserMessage} />
                 </div>
-                <Arcodion name="Advanced Settings" styled>
+                <Accordion name="Advanced Settings" styled>
                     <div class="mb-2">
                         <Check name="Use Experimental Implementation" bind:check={settings.useExperimentalImpl} />
                     </div>
@@ -941,7 +941,7 @@
                             <Check name={language.hypaV3Settings.enableSimilarityCorrectionLabel} bind:check={settings.enableSimilarityCorrection} />
                         </div>
                     {/if}
-                </Arcodion>
+                </Accordion>
             {/if}
 
             <div class="mb-8"></div>
@@ -1004,5 +1004,5 @@
             <TextInput size="sm" marginBottom bind:value={DBState.db.hypaCustomSettings.model}/>
         {/if}
 
-    </Arcodion>
+    </Accordion>
 {/if}

@@ -9,7 +9,7 @@
     import TextAreaInput from "../../UI/GUI/TextAreaInput.svelte";
     import SelectInput from "../../UI/GUI/SelectInput.svelte";
     import OptionInput from "../../UI/GUI/OptionInput.svelte";
-    import Arcodion from "src/lib/UI/Arcodion.svelte";
+    import Accordion from "src/lib/UI/Accordion.svelte";
   import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
   
 interface Props {
@@ -132,7 +132,7 @@ interface Props {
             {#if value.ableFlag}
                 <!-- <span class="text-textcolor mt-6">FLAG:</span>
                 <TextInput size="sm" bind:value={value.flag} /> -->
-                <Arcodion styled name="FLAGS">
+                <Accordion styled name="FLAGS">
                     <span class="text-textcolor mt-3">Normal Flag</span>
                     <div class="grid w-full grid-cols-2 rounded-md border border-darkborderc">
                         {#each flags as flag, i}
@@ -155,7 +155,7 @@ interface Props {
                         changeOrder(parseInt(e.currentTarget.value))
                     }} />
                     
-                </Arcodion>
+                </Accordion>
             {/if}
             <div class="flex items-center mt-4">
                 <Check bind:check={value.ableFlag} onChange={() => {

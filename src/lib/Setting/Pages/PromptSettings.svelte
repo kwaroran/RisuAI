@@ -13,7 +13,7 @@
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
-    import Arcodion from "src/lib/UI/Arcodion.svelte";
+    import Accordion from "src/lib/UI/Accordion.svelte";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import { onDestroy, onMount } from "svelte";
     import {defaultAutoSuggestPrompt} from "../../../ts/storage/defaultPrompts";
@@ -313,7 +313,7 @@
 
     {#if DBState.db.seperateModelsForAxModels}
         <Check bind:check={DBState.db.doNotChangeSeperateModels} name={language.doNotChangeSeperateModels}></Check>
-        <Arcodion name={language.axModelsDef} styled>
+        <Accordion name={language.axModelsDef} styled>
             <span class="text-textcolor mt-4">
                 Memory
             </span>
@@ -336,7 +336,7 @@
 
             <ModelList bind:value={DBState.db.seperateModels.otherAx} blankable />
             
-        </Arcodion>
+        </Accordion>
     {/if}
 
     {#snippet fallbackModelList(arg:'model'|'memory'|'translate'|'emotion'|'otherAx')}
@@ -360,25 +360,25 @@
         </div>
     {/snippet}
 
-    <Arcodion name={language.fallbackModel} styled>
+    <Accordion name={language.fallbackModel} styled>
         <Check bind:check={DBState.db.fallbackWhenBlankResponse} name={language.fallbackWhenBlankResponse} className="mt-4"/>
         <Check bind:check={DBState.db.doNotChangeFallbackModels} name={language.doNotChangeFallbackModels} className="mt-4"/>
 
-        <Arcodion name={language.model} styled>
+        <Accordion name={language.model} styled>
             {@render fallbackModelList('model')}
-        </Arcodion>
-        <Arcodion name={"Memory"} styled>
+        </Accordion>
+        <Accordion name={"Memory"} styled>
             {@render fallbackModelList('memory')}
-        </Arcodion>
-        <Arcodion name={"Translations"} styled>
+        </Accordion>
+        <Accordion name={"Translations"} styled>
             {@render fallbackModelList('translate')}
-        </Arcodion>
-        <Arcodion name={"Emotion"} styled>
+        </Accordion>
+        <Accordion name={"Emotion"} styled>
             {@render fallbackModelList('emotion')}
-        </Arcodion>
-        <Arcodion name={"OtherAx"} styled>
+        </Accordion>
+        <Accordion name={"OtherAx"} styled>
             {@render fallbackModelList('otherAx')}
-        </Arcodion>
-    </Arcodion>
+        </Accordion>
+    </Accordion>
 
 {/if}
