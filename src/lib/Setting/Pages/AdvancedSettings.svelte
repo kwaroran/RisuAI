@@ -12,7 +12,7 @@
     import Help from "src/lib/Others/Help.svelte";
     import { Capacitor } from "@capacitor/core";
     import { capStorageInvestigation } from "src/ts/storage/mobileStorage";
-    import Arcodion from "src/lib/UI/Arcodion.svelte";
+    import Accordion from "src/lib/UI/Accordion.svelte";
   import { PlusIcon, TrashIcon, ArrowUp, ArrowDown } from "@lucide/svelte";
   import { v4 } from "uuid";
   import { getDatabase } from "src/ts/storage/database.svelte";
@@ -308,7 +308,7 @@
     </div>
 {/if}
 
-<Arcodion styled name={language.banCharacterset}>
+<Accordion styled name={language.banCharacterset}>
     {#each characterSets as set}
         <Button styled={DBState.db.banCharacterset.includes(set) ? 'primary' : "outlined"} onclick={(e) => {
             if (DBState.db.banCharacterset.includes(set)) {
@@ -320,7 +320,7 @@
             {new Intl.DisplayNames([navigator.language,'en'], { type: 'script' }).of(set)} ({characterSetsPreview[set]})
         </Button>
     {/each}
-</Arcodion>
+</Accordion>
 
 {#snippet CustomFlagButton(index:number,name:string,flag:number)}
     <Button className="mt-2" onclick={(e) => {
@@ -335,7 +335,7 @@
     </Button>
 {/snippet}
 
-<Arcodion styled name={language.customModels} className="overflow-x-auto">
+<Accordion styled name={language.customModels} className="overflow-x-auto">
 
     {#each DBState.db.customModels as model, index (model.id)}
         <div class="flex flex-col mt-2">
@@ -436,7 +436,7 @@
             <TextInput size={"sm"} bind:value={DBState.db.customModels[index].key}/>
             <span class="text-textcolor">{language.additionalParams}</span>
             <TextInput size={"sm"} bind:value={DBState.db.customModels[index].params}/>
-            <Arcodion styled name={language.flags}>
+            <Accordion styled name={language.flags}>
                 {@render CustomFlagButton(index,'hasImageInput', 0)}
                 {@render CustomFlagButton(index,'hasImageOutput', 1)}
                 {@render CustomFlagButton(index,'hasAudioInput', 2)}
@@ -456,7 +456,7 @@
                 {@render CustomFlagButton(index,'deepSeekPrefix', 17)}
                 {@render CustomFlagButton(index,'deepSeekThinkingInput', 18)}
                 {@render CustomFlagButton(index,'deepSeekThinkingOutput', 19)}
-            </Arcodion>
+            </Accordion>
                 </div>
             {/if}
         </div>
@@ -478,7 +478,7 @@
             <PlusIcon />
         </button>
     </div>
-</Arcodion>
+</Accordion>
 
 <Button
     className="mt-4"

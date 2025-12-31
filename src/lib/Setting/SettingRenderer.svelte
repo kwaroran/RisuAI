@@ -15,7 +15,7 @@
     import ColorInput from 'src/lib/UI/GUI/ColorInput.svelte';
     import Button from 'src/lib/UI/GUI/Button.svelte';
     import Help from 'src/lib/Others/Help.svelte';
-    import Arcodion from 'src/lib/UI/Arcodion.svelte';
+    import Accordion from 'src/lib/UI/Accordion.svelte';
     import Self from './SettingRenderer.svelte';
 
     interface Props {
@@ -169,11 +169,11 @@
                 {getLabel(item)}
             </Button>
         {:else if item.type === 'accordion'}
-            <Arcodion name={getLabel(item)} styled={item.options?.styled ?? false}>
+            <Accordion name={getLabel(item)} styled={item.options?.styled ?? false}>
                 {#if item.options?.children}
                     <Self items={item.options.children} {modelInfo} {subModelInfo} />
                 {/if}
-            </Arcodion>
+            </Accordion>
         {:else if item.type === 'custom' && item.componentId}
             {@const CustomComponent = customComponents[item.componentId]}
             {#if CustomComponent}

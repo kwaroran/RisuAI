@@ -2,7 +2,7 @@
     
     import { DBState } from 'src/ts/stores.svelte';
     import { getHordeModels } from "src/ts/horde/getModels";
-    import Arcodion from "./Arcodion.svelte";
+    import Accordion from "./Accordion.svelte";
     import { language } from "src/lang";
     import CheckInput from "./GUI/CheckInput.svelte";
     import { getModelInfo, getModelList } from 'src/ts/model/modellist';
@@ -61,14 +61,14 @@
                         <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}}>{model.name}</button>
                     {/each}
                 {:else}
-                    <Arcodion name={provider.providerName}>
+                    <Accordion name={provider.providerName}>
                         {#each provider.models as model}
                             <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}}>{model.name}</button>
                         {/each}
-                    </Arcodion>
+                    </Accordion>
                 {/if}
             {/each}
-            <Arcodion name="Horde">
+            <Accordion name="Horde">
                 {#await getHordeModels()}
                     <button class="p-2">Loading...</button>
                 {:then models}
@@ -83,14 +83,14 @@
                         </button>
                     {/each}
                 {/await}
-            </Arcodion>
+            </Accordion>
 
             {#if DBState?.db.customModels?.length > 0}
-                <Arcodion name={language.customModels}>
+                <Accordion name={language.customModels}>
                     {#each DBState.db.customModels as model}
                         <button class="hover:bg-selected px-6 py-2 text-lg" onclick={() => {changeModel(model.id)}}>{model.name ?? "Unnamed"}</button>
                     {/each}
-                </Arcodion>
+                </Accordion>
 
             {/if}
 
