@@ -6,7 +6,7 @@ import { alertError, alertInput, alertNormal } from "src/ts/alert";
 import { v4 } from "uuid";
 import type { MCPClientLike } from "./internalmcp";
 import localforage from "localforage";
-import { isTauri } from "src/ts/globalApi.svelte";
+import { isTauri } from "src/ts/platform"
 import { sleep } from "src/ts/util";
 
 export type MCPToolWithURL = MCPTool & {

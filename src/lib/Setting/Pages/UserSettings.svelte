@@ -6,13 +6,13 @@
     import { DBState } from 'src/ts/stores.svelte';
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { alertConfirm} from "src/ts/alert";
-    import { forageStorage, isNodeServer, isTauri, loadInternalBackup } from "src/ts/globalApi.svelte";
+    import { forageStorage, loadInternalBackup } from "src/ts/globalApi.svelte";
+    import { isTauri, isNodeServer, isCapacitor } from "src/ts/platform"
     import { unMigrationAccount } from "src/ts/storage/accountStorage";
     import { checkDriver } from "src/ts/drive/drive";
     import { LoadLocalBackup, SaveLocalBackup } from "src/ts/drive/backuplocal";
     import Button from "src/lib/UI/GUI/Button.svelte";
     import { exportAsDataset } from "src/ts/storage/exportAsDataset";
-    import { Capacitor } from "@capacitor/core";
     import { loginToSionyw, testSionywLogin } from "src/ts/sionyw";
     let openIframe = $state(false)
     let openIframeURL = $state('')
@@ -84,7 +84,7 @@
         if(await alertConfirm(language.backupConfirm)){
             localStorage.setItem('backup', 'save')
             
-            if(isTauri || isNodeServer || Capacitor.isNativePlatform()){
+            if(isTauri || isNodeServer || isCapacitor){
                 checkDriver('savetauri')
             }
             else{
@@ -99,7 +99,7 @@
     onclick={async () => {
         if((await alertConfirm(language.backupLoadConfirm)) && (await alertConfirm(language.backupLoadConfirm2))){
             localStorage.setItem('backup', 'load')
-            if(isTauri || isNodeServer || Capacitor.isNativePlatform()){
+            if(isTauri || isNodeServer || isCapacitor){
                 checkDriver('loadtauri')
             }
             else{
@@ -137,7 +137,7 @@
     </div>
     {#if DBState.db.account}
         <span class="mb-4 text-textcolor2">ID: {DBState.db.account.id}</span>
-        {#if !isTauri && (!Capacitor.isNativePlatform())}
+        {#if !isTauri && !isCapacitor}
             <div class="flex items-center mt-2">
                 {#if DBState.db.account.useSync || forageStorage.isAccount}
                     <Check check={true} name={language.SaveDataInAccount} onChange={(v) => {

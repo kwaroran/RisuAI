@@ -1,5 +1,6 @@
 import localforage from "localforage"
-import { isNodeServer, replaceDbResources } from "../globalApi.svelte"
+import { replaceDbResources } from "../globalApi.svelte"
+import { isCapacitor, isNodeServer } from "src/ts/platform"
 import { NodeStorage } from "./nodeStorage"
 import { OpfsStorage } from "./opfsStorage"
 import { alertInput, alertSelect, alertStore } from "../alert"
@@ -8,7 +9,6 @@ import { AccountStorage } from "./accountStorage"
 import { decodeRisuSave, encodeRisuSaveLegacy } from "./risuSave";
 import { language } from "src/lang"
 import { MobileStorage } from "./mobileStorage"
-import { Capacitor } from "@capacitor/core"
 
 export class AutoStorage{
     isAccount:boolean = false
@@ -124,7 +124,7 @@ export class AutoStorage{
                 this.isAccount = true
                 return
             }
-            if(Capacitor.isNativePlatform()){
+            if(isCapacitor){
                 this.realStorage = new MobileStorage()
                 return
             }

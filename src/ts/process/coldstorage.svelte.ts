@@ -6,7 +6,8 @@ import {
     mkdir,
     remove
 } from "@tauri-apps/plugin-fs"
-import { forageStorage, isNodeServer, isTauri } from "../globalApi.svelte"
+import { forageStorage } from "../globalApi.svelte"
+import { isTauri, isNodeServer } from "src/ts/platform"
 import { DBState } from "../stores.svelte"
 import type { NodeStorage } from "../storage/nodeStorage"
 import { fetchProtectedResource } from "../sionyw"

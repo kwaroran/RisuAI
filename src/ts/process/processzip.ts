@@ -1,8 +1,7 @@
-import { AppendableBuffer, isNodeServer, isTauri, saveAsset, type LocalWriter, type VirtualWriter } from "../globalApi.svelte";
+import { AppendableBuffer, saveAsset, type LocalWriter, type VirtualWriter } from "../globalApi.svelte";
 import * as fflate from "fflate";
 import { asBuffer, sleep } from "../util";
 import { alertStore } from "../alert";
-import { Capacitor } from "@capacitor/core";
 import { hasher } from "../parser.svelte";
 import { hubURL } from "../characterCards";
 

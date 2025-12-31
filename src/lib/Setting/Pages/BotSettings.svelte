@@ -6,7 +6,8 @@
     
     import { DBState } from 'src/ts/stores.svelte';
     import { customProviderStore } from "src/ts/plugins/plugins";
-    import { downloadFile, isTauri } from "src/ts/globalApi.svelte";
+    import { downloadFile } from "src/ts/globalApi.svelte";
+    import { isTauri } from "src/ts/platform"
     import { tokenizeAccurate, tokenizerList } from "src/ts/tokenizer";
     import ModelList from "src/lib/UI/ModelList.svelte";
     import DropList from "src/lib/SideBars/DropList.svelte";

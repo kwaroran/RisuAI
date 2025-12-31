@@ -7,13 +7,11 @@ import { readFile } from "@tauri-apps/plugin-fs"
 import { basename } from "@tauri-apps/api/path"
 import { createBlankChar, getCharImage } from "./characters"
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
-import { isTauri } from "./globalApi.svelte"
+import { isIOS, isTauri } from "src/ts/platform"
 import type { Attachment } from "svelte/attachments"
 import { mount, unmount, type Snippet } from "svelte"
 import PopupList from "src/lib/UI/PopupList.svelte"
 const appWindow = isTauri ? getCurrentWebviewWindow() : null
-
-export const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export interface Messagec extends Message{
     index: number
@@ -165,15 +163,12 @@ export function getUserIconProtrait(){
     }
 }
 
-export function checkIsIos(){
-    return /(iPad|iPhone|iPod)/g.test(navigator.userAgent)
-}
 export function selectFileByDom(allowedExtensions:string[], multiple:'multiple'|'single' = 'single') {
     return new Promise<null|File[]>((resolve) => {
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.multiple = multiple === 'multiple';
-        const acceptAll = (getDatabase().allowAllExtentionFiles || checkIsIos() || allowedExtensions[0] === '*')
+        const acceptAll = (getDatabase().allowAllExtentionFiles || isIOS() || allowedExtensions[0] === '*')
         if(!acceptAll){
             if (allowedExtensions && allowedExtensions.length) {
                 fileInput.accept = allowedExtensions.map(ext => `.${ext}`).join(',');

@@ -2,7 +2,8 @@ import { Packr, Unpackr, decode } from "msgpackr/index-no-eval";
 import * as fflate from "fflate";
 import { presetTemplate, type Database } from "./database.svelte";
 import localforage from "localforage";
-import { forageStorage, isTauri } from "../globalApi.svelte";
+import { forageStorage } from "../globalApi.svelte";
+import { isTauri } from "src/ts/platform"
 import {
     writeFile,
     BaseDirectory,

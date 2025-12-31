@@ -4,7 +4,8 @@
     import Help from "src/lib/Others/Help.svelte";
     import { selectSingleFile } from "src/ts/util";
     import { DBState, selectedCharID } from 'src/ts/stores.svelte';
-    import { isTauri, saveAsset, downloadFile } from "src/ts/globalApi.svelte";
+    import { saveAsset, downloadFile } from "src/ts/globalApi.svelte";
+    import { isTauri } from "src/ts/platform"
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";

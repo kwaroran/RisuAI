@@ -100,10 +100,10 @@
 <script lang="ts">
     import { textAreaSize, textAreaTextSize } from 'src/ts/gui/guisize'
     import { highlighter, getNewHighlightId, removeHighlight, AllCBS } from 'src/ts/gui/highlight'
-    import { isMobile } from 'src/ts/globalApi.svelte';
     import { sleep } from 'src/ts/util';
     import { onDestroy, onMount } from 'svelte';
   import { disableHighlight } from 'src/ts/stores.svelte';
+  import { isMobile } from 'src/ts/platform'
     interface Props {
         size?: 'xs'|'sm'|'md'|'lg'|'xl'|'default';
         autocomplete?: 'on'|'off';

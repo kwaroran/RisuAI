@@ -2,7 +2,8 @@ import DOMPurify from 'dompurify';
 import markdownit from 'markdown-it'
 import { appVer, getCurrentCharacter, getDatabase, type Database, type character, type customscript, type groupChat, type triggerscript } from './storage/database.svelte';
 import { DBState } from './stores.svelte';
-import { aiWatermarkingLawApplies, getFileSrc, isNodeServer, isTauri } from './globalApi.svelte';
+import { aiWatermarkingLawApplies, getFileSrc } from './globalApi.svelte';
+import { isTauri, isNodeServer } from "src/ts/platform"
 import { processScriptFull } from './process/scripts';
 import { get } from 'svelte/store';
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
