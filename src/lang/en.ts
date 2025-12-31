@@ -1471,4 +1471,6 @@ export const languageEnglish = {
     newMessageButtonFloatingCircle: "Floating Circle (Bottom Right)",
     newMessageButtonRightCenter: "Right Center",
     newMessageButtonTopBar: "Top Bar",
+    trimStartNewChat: "Trim 'Start New Chat' Messages",
+    pluginDevelopMode: "Plugin Develop Mode",
 }

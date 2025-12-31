@@ -1133,6 +1133,7 @@ export interface Database{
     autoScrollToNewMessage?: boolean
     alwaysScrollToNewMessage?: boolean
     newMessageButtonStyle?: string
+    pluginDevelopMode?: boolean
 }
 
 interface SeparateParameters{

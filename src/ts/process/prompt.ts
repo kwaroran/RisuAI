@@ -13,6 +13,7 @@ export type PromptSettings = {
     utilOverride: boolean
     customChainOfThought?: boolean
     maxThoughtTagDepth?: number
+    trimStartNewChat?: boolean
 }
 
 export interface PromptItemPlain {

@@ -1133,7 +1133,7 @@ export function registerCBS(arg:CBSRegisterArg) {
     registerFunction({
         name: 'tonumber',
         callback: (str, matcherArg, args, vars) => {
-            return (args[0].split('').filter((v) => {
+            return ([...args[0]].filter((v) => {
                 return !isNaN(Number(v)) || v === '.'
             })).join('')
         },
@@ -2118,7 +2118,7 @@ export function registerCBS(arg:CBSRegisterArg) {
     registerFunction({
         name: 'reverse',
         callback: (str, matcherArg, args, vars) => {
-            return str.split('').reverse().join('')
+            return [...str].reverse().join('')
         },
         alias: [],
         description: 'Reverses the input string.\n\nUsage:: {{reverse::some_value}}',
