@@ -12,7 +12,7 @@
 <div class="w-full flex" class:mb-4={marginBottom}>
   {#if disableable}
 
-    <div class="relative h-8 border-darkborderc border rounded-full cursor-pointer rounded-r-none border-r-0 flex justify-center items-center">
+    <div class="relative h-8 border-darkborderc border rounded-full cursor-pointer rounded-r-none border-r-0 flex justify-center items-center pl-2">
       <CheckInput check={value !== -1000 && value !== undefined} margin={false} onChange={(c) => {
         onchange?.()
         if(c) {

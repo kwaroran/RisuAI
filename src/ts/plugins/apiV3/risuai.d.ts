@@ -101,7 +101,7 @@
 /**
  * OpenAI-format chat message
  */
-export interface OpenAIChat {
+interface OpenAIChat {
     role: 'system' | 'user' | 'assistant' | 'function';
     content: string;
     name?: string;
@@ -114,27 +114,27 @@ export interface OpenAIChat {
 /**
  * Container display mode
  */
-export type ContainerMode = 'fullscreen';
+type ContainerMode = 'fullscreen';
 
 /**
  * Icon type for UI elements
  */
-export type IconType = 'html' | 'img' | 'none';
+type IconType = 'html' | 'img' | 'none';
 
 /**
  * Script handler mode
  */
-export type ScriptMode = 'display' | 'output' | 'input' | 'process';
+type ScriptMode = 'display' | 'output' | 'input' | 'process';
 
 /**
  * Replacer type
  */
-export type ReplacerType = 'beforeRequest' | 'afterRequest';
+type ReplacerType = 'beforeRequest' | 'afterRequest';
 
 /**
  * Risuai Plugin definition
  */
-export interface RisuPlugin {
+interface RisuPlugin {
     /** Plugin name (identifier) */
     name: string;
     /** Display name shown in UI */
@@ -163,7 +163,7 @@ export interface RisuPlugin {
 /**
  * Risuai Module definition
  */
-export interface RisuModule {
+interface RisuModule {
     /** Module name */
     name: string;
     /** Module description */
@@ -197,7 +197,7 @@ export interface RisuModule {
 /**
  * User persona definition
  */
-export interface Persona {
+interface Persona {
     /** Persona prompt/description */
     personaPrompt: string;
     /** Persona name */
@@ -216,7 +216,7 @@ export interface Persona {
  * Database subset with limited access to allowed keys only.
  * Plugins can only access these specific database properties for security.
  */
-export interface DatabaseSubset {
+interface DatabaseSubset {
     /** Array of characters and group chats */
     characters?: any[];
     /** Risuai modules */
@@ -293,7 +293,7 @@ export interface DatabaseSubset {
  * });
  * ```
  */
-export interface SafeElement {
+interface SafeElement {
     // ========== Element Manipulation ==========
 
     /**
@@ -683,7 +683,7 @@ export interface SafeElement {
  * const link = doc.createAnchorElement('https://example.com');
  * ```
  */
-export interface SafeDocument extends SafeElement {
+interface SafeDocument extends SafeElement {
     /**
      * Creates an element (limited to whitelisted tags)
      * @param tagName - HTML tag name
@@ -744,7 +744,7 @@ export interface SafeDocument extends SafeElement {
  * 
  * ```
  */
-export interface SafeClassArray<T> {
+interface SafeClassArray<T> {
     /**
      * Gets an item at a specific index
      * @param index - Array index (supports negative indexing)
@@ -772,7 +772,7 @@ export interface SafeClassArray<T> {
 /**
  * Mutation record from SafeMutationObserver
  */
-export interface SafeMutationRecord {
+interface SafeMutationRecord {
     /** Type of mutation */
     getType(): Promise<string>;
     /** Target element of mutation */
@@ -789,7 +789,7 @@ type SafeMutationCallback = (mutations: SafeClassArray<SafeMutationRecord>) => v
 /**
  * SafeMutationObserver watches for DOM changes in the main document
  */
-export interface SafeMutationObserver {
+interface SafeMutationObserver {
     /**
      * Starts observing an element for changes
      * @param element - SafeElement to observe
@@ -821,7 +821,7 @@ export interface SafeMutationObserver {
  * const keys = await risuai.pluginStorage.keys();
  * ```
  */
-export interface PluginStorage {
+interface PluginStorage {
     /**
      * Gets an item from storage
      * @param key - Storage key
@@ -882,7 +882,7 @@ export interface PluginStorage {
  * const deviceId = await risuai.safeLocalStorage.getItem('device_id');
  * ```
  */
-export interface SafeLocalStorage {
+interface SafeLocalStorage {
     getItem(key: string): Promise<string | null>;
     setItem(key: string, value: string): Promise<void>;
     removeItem(key: string): Promise<void>;
@@ -898,7 +898,7 @@ export interface SafeLocalStorage {
 /**
  * Arguments passed to custom AI providers
  */
-export interface ProviderArguments {
+interface ProviderArguments {
     /** Chat message history */
     prompt_chat: OpenAIChat[];
     /** Temperature setting */
@@ -924,7 +924,7 @@ export interface ProviderArguments {
 /**
  * Provider response
  */
-export interface ProviderResponse {
+interface ProviderResponse {
     /** Whether the request was successful */
     success: boolean;
     /** Generated content (string or stream) */
@@ -934,7 +934,7 @@ export interface ProviderResponse {
 /**
  * Provider function type
  */
-export type ProviderFunction = (
+type ProviderFunction = (
     args: ProviderArguments,
     abortSignal?: AbortSignal
 ) => Promise<ProviderResponse>;
@@ -942,7 +942,7 @@ export type ProviderFunction = (
 /**
  * Provider options
  */
-export interface ProviderOptions {
+interface ProviderOptions {
     /** Tokenizer name (e.g., 'gpt-4') */
     tokenizer?: string;
     /** Custom tokenizer function */
@@ -961,7 +961,7 @@ export interface ProviderOptions {
  * @important All methods are asynchronous unless otherwise noted.
  * Always use `await` or `.then()` when calling API methods.
  */
-export interface RisuaiPluginAPI {
+interface RisuaiPluginAPI {
     // ========== Version Information ==========
 
     /** API version string */
@@ -1365,8 +1365,9 @@ export interface RisuaiPluginAPI {
 /**
  * Global Risuai API object available in all plugins
  */
-declare global {
-    const risuai: RisuaiPluginAPI;
-}
+declare const risuai: RisuaiPluginAPI;
 
-export {};
+/**
+ * Global Risuai API object available in all plugins, alias for `risuai`
+ */
+declare const Risuai: RisuaiPluginAPI;

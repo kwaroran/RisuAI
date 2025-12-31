@@ -1129,6 +1129,7 @@ export interface Database{
     settingsCloseButtonSize:number
     enableBookmark?: boolean
     hideAllImages?: boolean
+    pluginDevelopMode?: boolean
 }
 
 interface SeparateParameters{

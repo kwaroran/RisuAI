@@ -80,6 +80,7 @@
     "rfdc": "^1.4.1",
     "sortablejs": "^1.15.6",
     "streamsaver": "^2.0.6",
+    "sucrase": "^3.35.1",
     "sv": "^0.11.0",
     "svelte-awesome-color-picker": "^4.1.0",
     "three": "^0.154.0",
