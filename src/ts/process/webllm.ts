@@ -14,7 +14,7 @@ export async function chatCompletion(
 ): Promise<string> {
   try {
     if (!engine || lastModel !== model) {
-      if (engine) engine.unload();
+      if (engine) await engine.unload();
 
       const initProgressCallback = (progress) => {
         console.log("[WebLLM]", progress);
