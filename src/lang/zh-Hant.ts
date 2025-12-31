@@ -181,6 +181,15 @@ export const languageChineseTraditional = {
             "忽略此列表中的提供商,若所有提供商均被忽略,請求將失敗。詳情請參閱 https://openrouter.ai/docs/guides/routing/provider-selection#ignoring-providers",
         additionalPrompt:
             "啟用提示詞預處理時，這段文字會加在主要提示詞的末尾。預設值是 'The assistant must act as {{char}}. user is {{user}}.'，用於設定基本的角色扮演情境。",
+        embedding:
+            "嵌入模型用於多個功能中的相似度搜尋：\n\n" +
+            "- **長期記憶**: HypaV2, HypaV3, Hanurai Memory 和 SupaMemory (啟用 HypaMemory 時)\n" +
+            "- **附加文本**: 基於上下文匹配角色附加資訊\n" +
+            "- **動態資源**: 當未找到精確匹配時尋找相似的資源名稱\n" +
+            "- **情感圖片**: 當情感方式設定為 'embedding' 時\n" +
+            "- **觸發腳本**: 觸發腳本中的相似度條件\n" +
+            "- **檔案附件**: 在 PDF/TXT/XML 附件中搜尋\n" +
+            "- **Playground**: Playground 中的嵌入測試",
     },
     setup: {
         chooseProvider: "選擇 AI 提供者",
