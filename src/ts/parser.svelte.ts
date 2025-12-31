@@ -643,11 +643,11 @@ export interface simpleCharacterArgument{
 function parseThoughtsAndTools(data:string){
     let result = '', i = 0
     while (i < data.length) {
-        if (data.substr(i, 10) === '<Thoughts>') {
+        if (data.slice(i, i + 10) === '<Thoughts>') {
             let j = i + 10, depth = 1
             while (j < data.length && depth > 0) {
-                if (data.substr(j, 10) === '<Thoughts>') depth++
-                if (data.substr(j, 11) === '</Thoughts>') depth--
+                if (data.slice(j, j + 10) === '<Thoughts>') depth++
+                if (data.slice(j, j + 11) === '</Thoughts>') depth--
                 j++
             }
             if (depth === 0) {
