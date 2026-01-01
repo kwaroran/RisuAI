@@ -193,9 +193,9 @@ export class HypaProcesser{
         return await this.similaritySearchVectorWithScore((await this.getEmbeds(query))[0],);
     }
 
-    private async similaritySearchVectorWithScore(
+    private similaritySearchVectorWithScore(
         query: VectorArray,
-      ): Promise<[string, number][]> {
+      ): [string, number][] {
           const memoryVectors = this.vectors
           const searches = memoryVectors
                 .map((vector, index) => ({

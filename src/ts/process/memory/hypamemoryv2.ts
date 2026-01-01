@@ -298,7 +298,7 @@ export class HypaProcessorV2<TMetadata> {
     return `${content}|${this.options.model}${suffix}`;
   }
 
-  private async getOptimalChunkSize(): Promise<number> {
+  private getOptimalChunkSize(): number {
     // API
     if (!this.isLocalModel()) {
       return 50;

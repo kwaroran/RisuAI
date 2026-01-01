@@ -419,7 +419,7 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     let assetPaths:AssetPaths = {}
     let emoPaths:AssetPaths = {}
 
-    if (char.emotionImages) await getEmoSrc(char.emotionImages, emoPaths)
+    if (char.emotionImages) getEmoSrc(char.emotionImages, emoPaths)
 
     const videoExtention = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
     let needsSourceAccess = false
@@ -643,11 +643,11 @@ export interface simpleCharacterArgument{
 function parseThoughtsAndTools(data:string){
     let result = '', i = 0
     while (i < data.length) {
-        if (data.substr(i, 10) === '<Thoughts>') {
+        if (data.slice(i, i + 10) === '<Thoughts>') {
             let j = i + 10, depth = 1
             while (j < data.length && depth > 0) {
-                if (data.substr(j, 10) === '<Thoughts>') depth++
-                if (data.substr(j, 11) === '</Thoughts>') depth--
+                if (data.slice(j, j + 10) === '<Thoughts>') depth++
+                if (data.slice(j, j + 11) === '</Thoughts>') depth--
                 j++
             }
             if (depth === 0) {
@@ -1889,7 +1889,7 @@ export function setChatVar(key:string, value:string){
 }
 
 
-async function editDisplay(text){
+function editDisplay(text){
     let rt = ""
     if(!text.includes("<obs>")){
         return text
@@ -1907,7 +1907,7 @@ async function editDisplay(text){
 
 export type PromptParsed ={[key:string]:string|PromptParsed}
 
-export async function promptTypeParser(prompt:string):Promise<string | PromptParsed>{
+export function promptTypeParser(prompt:string):string | PromptParsed{
     //XML type
     try {
         const parser = new DOMParser()

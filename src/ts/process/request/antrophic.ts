@@ -707,7 +707,7 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
                 let reader = res.body.getReader()
                 let parserData = ''
                 const decoder = new TextDecoder()
-                const parseEvent = (async (e:string) => {
+                const parseEvent = ((e:string) => {
                     try {               
                         const parsedData = JSON.parse(e)
 

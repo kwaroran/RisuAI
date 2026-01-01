@@ -296,11 +296,11 @@ function cleanInvalidChunks(
     }
 }
 
-export async function regenerateSummary(
+export function regenerateSummary(
     chats: OpenAIChat[],
     data: HypaV2Data,
     mainChunkIndex: number
-) : Promise<void> {
+) : void {
     const targetMainChunk = data.mainChunks[mainChunkIndex];
 
 }

@@ -27,7 +27,7 @@ export class CharXWriter{
     apb = new AppendableBuffer()
     #takenFilenames:Set<string> = new Set()
     constructor(private writer:LocalWriter|WritableStreamDefaultWriter<Uint8Array>|VirtualWriter){
-        const handlerAsync = async (err:Error, dat:Uint8Array, final:boolean) => {
+        const handlerAsync = (err:Error, dat:Uint8Array, final:boolean) => {
             if(dat){
                 this.apb.append(dat)
             }
@@ -77,8 +77,8 @@ export class CharXWriter{
         const file = new fflate.ZipDeflate(key, {
             level: level ?? 0
         });
-        await this.zip.add(file)
-        await file.push(dat, true)
+        this.zip.add(file)
+        file.push(dat, true)
         await this.writer.write(this.apb.buffer)
         this.apb.clear()
         if(this.writeEnd){
@@ -113,7 +113,7 @@ export class CharXWriter{
     }
 
     async end(){
-        await this.zip.end()
+        this.zip.end()
         await this.writer.write(this.apb.buffer)
         this.apb.clear()
         if(this.writeEnd){

@@ -373,7 +373,7 @@ export class ChatTokenizer {
         return encoded
     }
 
-    async tokenizeMultiModal(data:MultiModal){
+    tokenizeMultiModal(data:MultiModal){
         const db = getDatabase()
         if(!supportsInlayImage()){
             return this.chatAdditionalTokens

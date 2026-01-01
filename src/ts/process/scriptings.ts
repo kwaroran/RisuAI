@@ -568,14 +568,14 @@ export async function runScripted(code:string, arg:{
                 }
             })
             
-            declareAPI('getName', async (id:string) => {
+            declareAPI('getName', (id:string) => {
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.name
             })
 
-            declareAPI('setName', async (id:string, name:string) => {
+            declareAPI('setName', (id:string, name:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
@@ -588,7 +588,7 @@ export async function runScripted(code:string, arg:{
                 setDatabase(db)
             })
 
-            declareAPI('getDescription', async (id:string) => {
+            declareAPI('getDescription', (id:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
@@ -600,8 +600,8 @@ export async function runScripted(code:string, arg:{
                 }
                 return char.desc
             })
-            
-            declareAPI('setDescription', async (id:string, desc:string) => {
+
+            declareAPI('setDescription', (id:string, desc:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
@@ -619,14 +619,14 @@ export async function runScripted(code:string, arg:{
                 setDatabase(db)
             })
 
-            declareAPI('getCharacterFirstMessage', async (id:string) => {
+            declareAPI('getCharacterFirstMessage', (id:string) => {
                 const db = getDatabase()
                 const selectedChar = get(selectedCharID)
                 const char = db.characters[selectedChar]
                 return char.firstMessage
             })
 
-            declareAPI('setCharacterFirstMessage', async (id:string, data:string) => {
+            declareAPI('setCharacterFirstMessage', (id:string, data:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
@@ -658,7 +658,7 @@ export async function runScripted(code:string, arg:{
                 return ScriptingEngineState.chat?.note ?? ''
             })
 
-            declareAPI('getBackgroundEmbedding', async (id:string) => {
+            declareAPI('getBackgroundEmbedding', (id:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
@@ -668,7 +668,7 @@ export async function runScripted(code:string, arg:{
                 return char.backgroundHTML
             })
 
-            declareAPI('setBackgroundEmbedding', async (id:string, data:string) => {
+            declareAPI('setBackgroundEmbedding', (id:string, data:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
@@ -1046,7 +1046,7 @@ export async function runScripted(code:string, arg:{
                     break
                 }
                 case 'onButtonClick':{
-                    res = await ScriptingEngineState.pyodide?.python(`onButtonClick('${accessKey}', '${data}')`)
+                    res = await ScriptingEngineState.pyodide?.python(`onButtonClick('${accessKey}', '${data as string}')`)
                     break
                 }
                 case 'editRequest':
@@ -1127,16 +1127,16 @@ async function getOrCreateEngineState(
         return pendingCreation;
     }
     
-    const creationPromise = (async () => {
+    const creationPromise = (() => {
         const engineState: ScriptingEngineState = {
             mutex: new Mutex(),
             type: type,
         };
         ScriptingEngines.set(mode, engineState);
-        
+
         pendingEngineCreations.delete(mode);
-        
-        return engineState;
+
+        return Promise.resolve(engineState);
     })();
     
     pendingEngineCreations.set(mode, creationPromise);
@@ -1397,7 +1397,7 @@ class PyodideContext{
             }
         }
     }
-    async declareAPI(name:string, func:(...args:any[]) => any){
+    declareAPI(name:string, func:(...args:any[]) => any){
         this.apis[name] = func;
     }
     async init(code:string){
@@ -1447,7 +1447,7 @@ class PyodideContext{
             });
         });
     }
-    async close(){
+    close(){
         this.worker.terminate();
     }
 }

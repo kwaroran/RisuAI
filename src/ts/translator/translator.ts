@@ -557,8 +557,12 @@ async function translateLLM(text:string, arg:{to:string, from:string, regenerate
         maxTokens: db.translatorMaxResponse,
     }, 'translate')
 
-    if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
-        alertError(`${rq.result}`)
+    if(rq.type === 'fail'){
+        alertError(rq.result)
+        return text
+    }
+    if(rq.type === 'streaming' || rq.type === 'multiline'){
+        alertError('Unexpected response type')
         return text
     }
     const result = rq.result.replace(/<style-data style-index="(\d+)" ?\/?>/g, (match, p1) => {

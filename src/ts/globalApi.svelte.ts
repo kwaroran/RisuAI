@@ -334,7 +334,7 @@ export async function saveDb() {
         channel = new BroadcastChannel('risu-db')
     }
     if (channel) {
-        channel.onmessage = async (ev) => {
+        channel.onmessage = (ev) => {
             if (ev.data === sessionID) {
                 return
             }
@@ -762,7 +762,7 @@ export async function loadData() {
  * @param {string} id - The chat ID to search for in the fetch log.
  * @returns {fetchLog | null} - The fetch log entry if found, otherwise null.
  */
-export async function getFetchData(id: string) {
+export function getFetchData(id: string) {
     for (const log of fetchLog) {
         if (log.chatId === id) {
             return log;
@@ -1247,7 +1247,7 @@ export function replaceDbResources(db: Database, replacer: { [key: string]: stri
  * 
  * @returns {Promise<void>} - A promise that resolves when the database format check and update is complete.
  */
-async function checkNewFormat(): Promise<void> {
+function checkNewFormat(): void {
     let db = getDatabase();
 
     // Check data integrity
@@ -1762,14 +1762,14 @@ export class VirtualWriter {
      * 
      * @param {Uint8Array} data - The data to write.
      */
-    async write(data: Uint8Array): Promise<void> {
+    write(data: Uint8Array): void {
         this.buf.append(data)
     }
 
     /**
      * Closes the writer. (No operation for VirtualWriter)
      */
-    async close(): Promise<void> {
+    close(): void {
         // do nothing
     }
 }
@@ -2350,7 +2350,7 @@ export async function loadInternalBackup() {
         await decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
     )
 
-    await alertNormal('Loaded backup')
+    alertNormal('Loaded backup')
 
 
 

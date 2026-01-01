@@ -1874,11 +1874,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 maxTokens: 30,
             }, 'emotion', abortSignal)
 
-            if(rq.type === 'fail' || rq.type === 'streaming' || rq.type === 'multiline'){
+            if(rq.type === 'fail'){
                 if(abortSignal.aborted){
                     return true
                 }
-                throwError(`${rq.result}`)
+                throwError(rq.result)
+                return true
+            }
+            if(rq.type === 'streaming' || rq.type === 'multiline'){
+                if(abortSignal.aborted){
+                    return true
+                }
+                throwError('Unexpected response type')
                 return true
             }
             else{

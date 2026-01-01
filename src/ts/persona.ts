@@ -17,6 +17,7 @@ export async function selectUserImg() {
     const imgp = await saveImage(img)
     db.userIcon = imgp
     db.personas[db.selectedPersona] = {
+        ...db.personas[db.selectedPersona],
         name: db.username,
         icon: db.userIcon,
         personaPrompt: db.personaPrompt,
@@ -32,7 +33,6 @@ export function saveUserPersona() {
     db.personas[db.selectedPersona].icon = db.userIcon
     db.personas[db.selectedPersona].personaPrompt = db.personaPrompt
     db.personas[db.selectedPersona].note = db.userNote
-    db.personas[db.selectedPersona].largePortrait = db.personas[db.selectedPersona]?.largePortrait
     setDatabase(db)
 }
 
