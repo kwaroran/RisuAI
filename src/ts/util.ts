@@ -216,7 +216,7 @@ function readFileAsUint8Array(file: File) {
       };
   
       reader.onerror = () => {
-        reject(reader.error ?? new Error('Failed to read file'));
+        reject(new Error('Failed to read file', { cause: reader.error }));
       };
   
       reader.readAsArrayBuffer(file);
