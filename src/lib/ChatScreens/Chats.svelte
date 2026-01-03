@@ -160,8 +160,8 @@
         }
     }
 
-    let previousLength = messages.length;
-    let previousChatRoomId = getCurrentChatRoomId();
+    let previousLength = 0;
+    let previousChatRoomId: string | null = null;
 
     $effect(() => {
         console.log('Updating Chats');
