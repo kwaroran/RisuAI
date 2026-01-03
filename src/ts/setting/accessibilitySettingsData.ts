@@ -5,6 +5,7 @@
  */
 
 import type { SettingItem } from './types';
+import { language } from "src/lang";
 
 export const accessibilitySettingsItems: SettingItem[] = [
     // Header
@@ -134,5 +135,37 @@ export const accessibilitySettingsItems: SettingItem[] = [
         labelKey: 'showTranslationLoading',
         bindKey: 'showTranslationLoading',
         keywords: ['translation', 'loading', 'indicator']
+    },
+    {
+        id: 'acc.autoScrollToNewMessage',
+        type: 'check',
+        labelKey: 'autoScrollToNewMessage',
+        bindKey: 'autoScrollToNewMessage',
+        keywords: ['auto', 'scroll', 'new', 'message']
+    },
+    {
+        id: 'acc.alwaysScrollToNewMessage',
+        type: 'check',
+        labelKey: 'alwaysScrollToNewMessage',
+        bindKey: 'alwaysScrollToNewMessage',
+        condition: (ctx) => ctx.db.autoScrollToNewMessage,
+        keywords: ['always', 'scroll', 'new', 'message']
+    },
+    {
+        id: 'acc.newMessageButtonStyle',
+        type: 'select',
+        labelKey: 'newMessageButtonStyle',
+        bindKey: 'newMessageButtonStyle',
+        condition: (ctx) => ctx.db.autoScrollToNewMessage && !ctx.db.alwaysScrollToNewMessage,
+        options: {
+            selectOptions: [
+                { value: 'bottom-center', label: language.newMessageButtonBottomCenter },
+                { value: 'bottom-right', label: language.newMessageButtonBottomRight },
+                { value: 'bottom-left', label: language.newMessageButtonBottomLeft },
+                { value: 'floating-circle', label: language.newMessageButtonFloatingCircle },
+                { value: 'right-center', label: language.newMessageButtonRightCenter },
+                { value: 'top-bar', label: language.newMessageButtonTopBar }
+            ]
+        }
     },
 ];

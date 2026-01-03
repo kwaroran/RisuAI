@@ -3,10 +3,19 @@
     import { mount, onDestroy, unmount } from 'svelte';
     import Chat from './Chat.svelte';
     import { getCharImage } from 'src/ts/characters';
-    import { createSimpleCharacter } from 'src/ts/stores.svelte';
+    import { createSimpleCharacter, DBState, selectedCharID } from 'src/ts/stores.svelte';
     import { chatFoldedStateMessageIndex } from 'src/ts/globalApi.svelte';
+    import { get } from 'svelte/store';
+    
+    const getCurrentChatRoomId = () => {
+        const charId = get(selectedCharID);
+        if (charId < 0) return null;
+        const char = DBState.db.characters[charId];
+        if (!char) return null;
+        return char.chats?.[char.chatPage]?.id ?? null;
+    };
 
-    const {
+    let {
         messages,
         currentCharacter,
         onReroll,
@@ -14,7 +23,8 @@
         currentUsername,
         userIcon,
         loadPages,
-        userIconPortrait
+        userIconPortrait,
+        hasNewUnreadMessage = $bindable(false)
     }:{
         messages: Message[]
         currentCharacter: character|groupChat
@@ -24,7 +34,7 @@
         userIcon: string
         loadPages: number
         userIconPortrait?: boolean
-        
+        hasNewUnreadMessage?: boolean
     } = $props();
 
     let chatBody: HTMLDivElement;
@@ -131,10 +141,56 @@
         mountInstances.clear();
     })
 
+    function checkIfAtBottom() {
+        if (!chatBody || !chatBody.parentElement) return true;
+        const sc = chatBody.parentElement;
+        const lastEl = chatBody.firstElementChild;
+        if (!lastEl) return true;
+        const rect = lastEl.getBoundingClientRect();
+        const scRect = sc.getBoundingClientRect();
+        return rect.top <= scRect.bottom + 100;
+    }
+
+    export const scrollToLatestMessage = () => {
+        if(!chatBody) return;
+        hasNewUnreadMessage = false;
+        const element = chatBody.firstElementChild;
+        if(element){
+             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    let previousLength = 0;
+    let previousChatRoomId: string | null = null;
+
     $effect(() => {
         console.log('Updating Chats');
+        const wasAtBottom = checkIfAtBottom();
         updateChatBody()
+        
+        const currentChatRoomId = getCurrentChatRoomId();
+        const isSameChat = currentChatRoomId === previousChatRoomId;
+        
+        // Only auto-scroll if it's the same chat and new messages were added
+        if(isSameChat && messages.length > previousLength){
+            const lastMsg = messages[messages.length - 1];
+            if(lastMsg && lastMsg.role === 'char' && DBState.db.autoScrollToNewMessage){
+                if(wasAtBottom || DBState.db.alwaysScrollToNewMessage){
+                    const element = chatBody.firstElementChild;
+                    if(element){
+                        setTimeout(() => {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 700);
+                    }
+                } else {
+                    hasNewUnreadMessage = true;
+                }
+            }
+        }
+        previousLength = messages.length;
+        previousChatRoomId = currentChatRoomId;
     })
 
 </script>
+
 <div class="flex flex-col-reverse" bind:this={chatBody}></div>

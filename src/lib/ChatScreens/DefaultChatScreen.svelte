@@ -2,7 +2,7 @@
 
     import Suggestion from './Suggestion.svelte';
     import AdvancedChatEditor from './AdvancedChatEditor.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon } from "@lucide/svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon, ArrowDown } from "@lucide/svelte";
     import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen } from "../../ts/stores.svelte";
     import Chat from "./Chat.svelte";
     import { type Message } from "../../ts/storage/database.svelte";
@@ -43,9 +43,15 @@
     let doingChatInputTranslate = false
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
+    let showNewMessageButton = $state(false)
+    let chatsInstance: any = $state()
 
     let currentCharacter = $derived(DBState.db.characters[$selectedCharID])
     let currentChat = $derived(currentCharacter?.chats[currentCharacter.chatPage]?.message ?? [])
+
+    function scrollToBottom() {
+        chatsInstance?.scrollToLatestMessage();
+    }
 
     async function send(){
         return sendMain(false)
@@ -427,9 +433,59 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="w-full h-full" style={customStyle} onclick={() => {
+<div class="w-full h-full relative" style={customStyle} onclick={() => {
     openMenu = false
 }}>
+    <!-- showNewMessageButton 버튼 스타일 -->
+    
+    {#if showNewMessageButton}
+        <!-- 1. 하단 중앙 (기본값) -->
+        {#if (DBState.db.newMessageButtonStyle === 'bottom-center' || !DBState.db.newMessageButtonStyle)}
+            <button class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+                <ArrowDown size={16} />
+                <span>{language.newMessage}</span>
+            </button>
+        {/if}
+
+        <!-- 2. 오른쪽 하단 구석 -->
+        {#if DBState.db.newMessageButtonStyle === 'bottom-right'}
+            <button class="absolute bottom-20 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+                <ArrowDown size={16} />
+                <span>{language.newMessage}</span>
+            </button>
+        {/if}
+
+        <!-- 3. 왼쪽 하단 구석 -->
+        {#if DBState.db.newMessageButtonStyle === 'bottom-left'}
+            <button class="absolute bottom-20 left-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+                <ArrowDown size={16} />
+                <span>{language.newMessage}</span>
+            </button>
+        {/if}
+
+        <!-- 4. 플로팅 원형 버튼 (우하단) - 아이콘만 -->
+        {#if DBState.db.newMessageButtonStyle === 'floating-circle'}
+            <button class="absolute bottom-36 right-4 bg-blue-500 text-white w-12 h-12 rounded-full shadow-lg z-50 flex items-center justify-center hover:bg-blue-600 transition-colors" onclick={scrollToBottom} title="4. 원형 (우하단)">
+                <ArrowDown size={20} />
+            </button>
+        {/if}
+
+        <!-- 5. 우측 중앙 -->
+        {#if DBState.db.newMessageButtonStyle === 'right-center'}
+            <button class="absolute top-1/2 right-2 -translate-y-1/2 bg-blue-500 text-white px-2 py-3 rounded-l-lg shadow-lg z-50 flex flex-col items-center gap-1 hover:bg-blue-600 transition-colors" onclick={scrollToBottom}>
+                <ArrowDown size={14} />
+                <span class="text-xs writing-mode-vertical">{language.newMessage}</span>
+            </button>
+        {/if}
+
+        <!-- 6. 상단 바 스타일 -->
+        {#if DBState.db.newMessageButtonStyle === 'top-bar'}
+            <button class="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-6 py-1.5 rounded-full shadow-lg z-50 flex items-center gap-2 hover:bg-blue-600 transition-colors text-sm" onclick={scrollToBottom}>
+                <ArrowDown size={14} />
+                <span>{language.newMessage}</span>
+            </button>
+        {/if}
+    {/if}
     {#if $selectedCharID < 0}
         {#if $PlaygroundStore === 0}
             <MainMenu />
@@ -437,11 +493,18 @@
             <PlaygroundMenu />
         {/if}
     {:else}
-        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen"  onscroll={(e) => {
+        <div class="h-full w-full flex flex-col-reverse overflow-y-auto relative default-chat-screen" onscroll={(e) => {
             //@ts-expect-error scrollHeight/clientHeight/scrollTop don't exist on EventTarget, but target is HTMLElement here
             const scrolled = (e.target.scrollHeight - e.target.clientHeight + e.target.scrollTop)
             if(scrolled < 100 && DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length > loadPages){
                 loadPages += 15
+            }
+            const chatTarget = e.target as HTMLElement;
+            const chatsContainer = (DBState.db.fixedChatTextarea && chatTarget.children[1]) ? chatTarget.children[1] : chatTarget.children[0];
+            const lastEl = chatsContainer?.firstElementChild;
+            const isAtBottom = lastEl ? lastEl.getBoundingClientRect().top <= chatTarget.getBoundingClientRect().bottom + 100 : true;
+            if(isAtBottom){
+                showNewMessageButton = false;
             }
         }}>
             <div
@@ -675,6 +738,7 @@
             {/if}
             
             <Chats
+                bind:this={chatsInstance}
                 messages={currentChat}
                 loadPages={loadPages}
                 onReroll={reroll}
@@ -683,6 +747,7 @@
                 currentUsername={currentUsername}
                 userIcon={userIcon}
                 userIconPortrait={userIconPortrait}
+                bind:hasNewUnreadMessage={showNewMessageButton}
             />
 
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length <= loadPages}
