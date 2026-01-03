@@ -486,6 +486,16 @@ export const LLMModels: LLMModel[] = [
         parameters: ['temperature', 'top_p', 'frequency_penalty', 'presence_penalty', 'repetition_penalty', 'min_p', 'top_a', 'top_k', 'thinking_tokens'],
         tokenizer: LLMTokenizer.Unknown
     },
+    {
+        id: 'echo_model',
+        name: "Echo",
+        provider: LLMProvider.Echo,
+        format: LLMFormat.Echo,
+        flags: [LLMFlags.hasFullSystemPrompt],
+        recommended: false,
+        parameters: [],
+        tokenizer: LLMTokenizer.Unknown
+    },
 ]
 
 for(let model of LLMModels){

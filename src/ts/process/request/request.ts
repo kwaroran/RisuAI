@@ -635,6 +635,8 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
             return requestWebLLM(targ)
         case LLMFormat.OpenAIResponseAPI:
             return requestOpenAIResponseAPI(targ)
+        case LLMFormat.Echo:
+            return requestEcho(targ)
     }
 
     return {
@@ -1039,6 +1041,21 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
             result: `Plugin Error from ${db.currentPluginProvider}: ` + JSON.stringify(error),
             model: 'custom'
         }
+    }
+}
+
+async function requestEcho(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
+    const db = getDatabase()
+    const delay = db.echoDelay ?? 0
+    const message = db.echoMessage ?? "Echo Message"
+
+    if(delay > 0){
+        await sleep(delay * 1000)
+    }
+
+    return {
+        type: 'success',
+        result: message
     }
 }
 
