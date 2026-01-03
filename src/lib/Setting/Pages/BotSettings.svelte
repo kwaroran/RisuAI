@@ -307,7 +307,7 @@ let tokens = $state({
 
     {#if DBState.db.aiModel === 'echo_model' || DBState.db.subModel === 'echo_model'}
         <span class="text-textcolor mt-2">Echo Message</span>
-        <TextAreaInput margin="bottom" bind:value={DBState.db.echoMessage} placeholder="Message to echo..."/>
+        <TextAreaInput margin="bottom" bind:value={DBState.db.echoMessage} placeholder={"The message you want to receive as the bot's response\n(e.g., Lumi tilts her head, her white hair sliding down as her pretty green and aqua eyes sparkle…)"}/>
         <span class="text-textcolor mt-2">Echo Delay (Seconds)</span>
         <NumberInput marginBottom={true} bind:value={DBState.db.echoDelay} min={0}/>
     {/if}
