@@ -1,5 +1,6 @@
 import { type memoryVector, HypaProcesser, similarity } from "./hypamemory";
 import { isContextModel, getContextProvider } from "./contextualEmbedding";
+import { mapContextualChunkEmbeddings } from "./contextualEmbeddingCache";
 import { TaskRateLimiter } from "./taskRateLimiter";
 import {
     type EmbeddingText,
@@ -1962,25 +1963,25 @@ class HypaProcesserEx extends HypaProcesser {
         }
 
         const groupsToEmbed: SummaryChunk[][] = [];
-        const cachedVectors = new Map<string, memoryVector>();
+        const cachedVectors = new Map<SummaryChunk, memoryVector>();
 
         for (const [, group] of summaryGroups) {
             const groupTexts = group.map(c => c.text);
             let allCached = true;
-            const groupCache = new Map<string, memoryVector>();
+            const groupCache = new Map<SummaryChunk, memoryVector>();
 
             for (const chunk of group) {
                 const cached: memoryVector = await this.forage.getItem(cacheKeyFor(chunk.text, groupTexts));
                 if (cached) {
-                    groupCache.set(chunk.text, cached);
+                    groupCache.set(chunk, cached);
                 } else {
                     allCached = false;
                 }
             }
 
             if (allCached) {
-                for (const [text, vector] of groupCache) {
-                    cachedVectors.set(text, vector);
+                for (const [chunk, vector] of groupCache) {
+                    cachedVectors.set(chunk, vector);
                 }
             } else {
                 groupsToEmbed.push(group);
@@ -1997,24 +1998,25 @@ class HypaProcesserEx extends HypaProcesser {
             for (let i = 0; i < groupsToEmbed.length; i++) {
                 const group = groupsToEmbed[i];
                 const groupTexts = group.map(c => c.text);
-                const embeddings = results[i];
+                const embeddings = results[i] ?? [];
+                const groupVectors = mapContextualChunkEmbeddings(group, embeddings);
 
-                for (let j = 0; j < group.length; j++) {
-                    const chunk = group[j];
-                    const embedding = embeddings[j];
-                    const vector: memoryVector = {
-                        content: chunk.text,
-                        embedding
-                    };
+                for (const chunk of group) {
+                    const vector = groupVectors.get(chunk);
+                    if (!vector) {
+                        throw new Error(
+                            `Failed to map contextual vector for summary chunk:\n${chunk.text}`
+                        );
+                    }
 
                     await this.forage.setItem(cacheKeyFor(chunk.text, groupTexts), vector);
-                    cachedVectors.set(chunk.text, vector);
+                    cachedVectors.set(chunk, vector);
                 }
             }
         }
 
         for (const chunk of chunks) {
-            const vector = cachedVectors.get(chunk.text);
+            const vector = cachedVectors.get(chunk);
             if (!vector) {
                 throw new Error(
                     `Failed to create vector for summary chunk:\n${chunk.text}`
