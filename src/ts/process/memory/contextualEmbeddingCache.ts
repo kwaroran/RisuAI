@@ -7,6 +7,24 @@ export interface ContextualMemoryVector {
     embedding: number[] | Float32Array;
 }
 
+export const CONTEXTUAL_CHUNK_CACHE_VERSION = 2;
+
+/**
+ * Includes the chunk position because Voyage contextual embeddings may differ
+ * for repeated text at different positions inside the same context group.
+ */
+export function createContextualChunkCacheKey(
+    text: string,
+    providerCacheKeySuffix: string,
+    chunkIndex: number
+): string {
+    if (!Number.isSafeInteger(chunkIndex) || chunkIndex < 0) {
+        throw new Error(`Invalid contextual chunk index: ${chunkIndex}`);
+    }
+
+    return `${text}${providerCacheKeySuffix}|chunk-cache-v${CONTEXTUAL_CHUNK_CACHE_VERSION}|index:${chunkIndex}`;
+}
+
 /**
  * Associates contextual embeddings with the exact chunk objects that produced
  * them. Chunk identity must be preserved because identical text can receive

@@ -1,6 +1,9 @@
 import { type memoryVector, HypaProcesser, similarity } from "./hypamemory";
 import { isContextModel, getContextProvider } from "./contextualEmbedding";
-import { mapContextualChunkEmbeddings } from "./contextualEmbeddingCache";
+import {
+    createContextualChunkCacheKey,
+    mapContextualChunkEmbeddings,
+} from "./contextualEmbeddingCache";
 import { TaskRateLimiter } from "./taskRateLimiter";
 import {
     type EmbeddingText,
@@ -1951,8 +1954,12 @@ class HypaProcesserEx extends HypaProcesser {
     private async addSummaryChunksContextual(chunks: SummaryChunk[]): Promise<void> {
         const provider = getContextProvider(this.model);
 
-        const cacheKeyFor = (text: string, groupTexts: string[]) => {
-            return `${text}${provider.getCacheKeySuffix(groupTexts)}`;
+        const cacheKeyFor = (text: string, groupTexts: string[], chunkIndex: number) => {
+            return createContextualChunkCacheKey(
+                text,
+                provider.getCacheKeySuffix(groupTexts),
+                chunkIndex
+            );
         };
 
         const summaryGroups = new Map<Summary, SummaryChunk[]>();
@@ -1970,8 +1977,11 @@ class HypaProcesserEx extends HypaProcesser {
             let allCached = true;
             const groupCache = new Map<SummaryChunk, memoryVector>();
 
-            for (const chunk of group) {
-                const cached: memoryVector = await this.forage.getItem(cacheKeyFor(chunk.text, groupTexts));
+            for (let chunkIndex = 0; chunkIndex < group.length; chunkIndex++) {
+                const chunk = group[chunkIndex];
+                const cached: memoryVector = await this.forage.getItem(
+                    cacheKeyFor(chunk.text, groupTexts, chunkIndex)
+                );
                 if (cached) {
                     groupCache.set(chunk, cached);
                 } else {
@@ -2001,7 +2011,8 @@ class HypaProcesserEx extends HypaProcesser {
                 const embeddings = results[i] ?? [];
                 const groupVectors = mapContextualChunkEmbeddings(group, embeddings);
 
-                for (const chunk of group) {
+                for (let chunkIndex = 0; chunkIndex < group.length; chunkIndex++) {
+                    const chunk = group[chunkIndex];
                     const vector = groupVectors.get(chunk);
                     if (!vector) {
                         throw new Error(
@@ -2009,7 +2020,10 @@ class HypaProcesserEx extends HypaProcesser {
                         );
                     }
 
-                    await this.forage.setItem(cacheKeyFor(chunk.text, groupTexts), vector);
+                    await this.forage.setItem(
+                        cacheKeyFor(chunk.text, groupTexts, chunkIndex),
+                        vector
+                    );
                     cachedVectors.set(chunk, vector);
                 }
             }
