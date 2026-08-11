@@ -283,6 +283,7 @@ export const languageEnglish = {
             "The prompt used when merging multiple selected summaries into one via bulk edit. If blank, the default prompt is used.",
         hypaV3MemoryTokensRatio:
             "The fraction of the max context size allocated to the long-term memory block {{slot}} in the prompt.",
+        hypaV3MaxMemoryTokensRatio: "Estimated maximum value for Memory Tokens Ratio, based on the fixed prompt overhead implied by current settings (prompt template, character, persona, lorebook budget, and the recent chats HypaV3 never summarizes). Triggers and per-turn dynamic lorebook activation are not included.",
         hypaV3ExtraSummarizationRatio:
             "Lowers the threshold at which summarization stops. At 0, summarization stops as soon as tokens fall below the max context. Higher values cause more summarization before stopping.",
         hypaV3MaxChatsPerSummary:
@@ -1371,6 +1372,7 @@ export const languageEnglish = {
         supaMemoryPromptPlaceHolder: "Leave it blank to use default",
         maxMemoryTokensRatioLabel: "Max Memory Tokens Ratio (Estimated)",
         maxMemoryTokensRatioError: "Unable to calculate Max Memory Tokens Ratio",
+        maxMemoryTokensRatioNoCharacter: "Select a character to see the estimate.",
         memoryTokensRatioLabel: "Memory Tokens Ratio",
         extraSummarizationRatioLabel: "Extra Summarization Ratio",
         maxChatsPerSummaryLabel: "Max Messages Per Summary",
@@ -1383,6 +1385,19 @@ export const languageEnglish = {
         preserveOrphanedMemoryLabel: "Preserve Orphaned Memory",
         applyRegexScriptWhenRerollingLabel: "Apply Regex Script When Rerolling",
         doNotSummarizeUserMessageLabel: "Do Not Summarize User Message",
+        overheadBreakdownLabel: "Estimated Context Usage Breakdown",
+        overheadTotalLabel: "Total",
+        overheadItems: {
+            promptTemplate: "Prompt Template",
+            description: "Character Description",
+            persona: "Persona",
+            authorNote: "Author's Note",
+            lorebook: "Lorebook Budget",
+            exampleMessages: "Example Messages",
+            postExtras: "Post-prompt Instructions",
+            slack: "Safety Margin",
+            recentChats: "Max Response Size × Query Chat Count",
+        },
     },
     hypaV3Modal: {
         titleLabel: "HypaV3",

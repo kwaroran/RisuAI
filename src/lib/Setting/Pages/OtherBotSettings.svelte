@@ -16,11 +16,10 @@
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import { untrack } from "svelte";
-    import { tokenizePreset } from "src/ts/process/prompt";
-    import { getCharToken } from "src/ts/tokenizer";
     import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "@lucide/svelte";
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
+    import { estimateHypaV3MaxMemoryRatio } from "src/ts/process/promptOverhead";
 
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0);
 
@@ -59,23 +58,6 @@
         })
     });
 
-    async function getMaxMemoryRatio(): Promise<number> {
-        const promptTemplateToken = await tokenizePreset(DBState.db.promptTemplate);
-        const char = DBState.db.characters[$selectedCharID];
-        const charToken = await getCharToken(char);
-        const maxLoreToken = char.loreSettings?.tokenBudget ?? DBState.db.loreBookToken;
-        const maxResponse = DBState.db.maxResponse;
-        const requiredToken = promptTemplateToken + charToken.persistant + Math.min(charToken.dynamic, maxLoreToken) + maxResponse * 3;
-        const maxContext = DBState.db.maxContext;
-
-        if (maxContext === 0) {
-            return 0;
-        }
-
-        const maxMemoryRatio = Math.max((maxContext - requiredToken) / maxContext, 0);
-
-        return parseFloat(maxMemoryRatio.toFixed(2));
-    }
     // End HypaV3
 
     // wavespeed
@@ -1194,12 +1176,28 @@
                 <div class="mb-4">
                     <TextAreaInput size="sm" placeholder={language.hypaV3Settings.supaMemoryPromptPlaceHolder} bind:value={settings.reSummarizationPrompt} />
                 </div>
-                {#await getMaxMemoryRatio() then maxMemoryRatio}
-                <span class="text-textcolor">{language.hypaV3Settings.maxMemoryTokensRatioLabel}</span>
-                <NumberInput marginBottom disabled size="sm" value={maxMemoryRatio} />
+                {#if DBState.db.characters?.[$selectedCharID]}
+                {#await estimateHypaV3MaxMemoryRatio() then estimate}
+                <span class="text-textcolor">{language.hypaV3Settings.maxMemoryTokensRatioLabel} <Help key="hypaV3MaxMemoryTokensRatio"/></span>
+                <NumberInput disabled size="sm" value={parseFloat(estimate.maxMemoryRatio.toFixed(2))} />
+                <Accordion name={language.hypaV3Settings.overheadBreakdownLabel} styled>
+                    {@const maxContext = DBState.db.maxContext}
+                    <div class="grid min-w-0 grid-cols-2 gap-y-1 gap-x-4 text-textcolor2 text-sm">
+                        {#each estimate.items.filter((item) => item.tokens > 0) as item}
+                            <span class="min-w-0 wrap-break-word">{language.hypaV3Settings.overheadItems[item.key]}</span>
+                            <span class="min-w-0 justify-self-end text-right wrap-break-word">{item.tokens}{maxContext > 0 ? ` (${(item.tokens / maxContext * 100).toFixed(1)}%)` : ''}</span>
+                        {/each}
+                        <span class="min-w-0 font-bold wrap-break-word">{language.hypaV3Settings.overheadTotalLabel}</span>
+                        <span class="min-w-0 font-bold justify-self-end text-right wrap-break-word">{estimate.total}{maxContext > 0 ? ` (${(estimate.total / maxContext * 100).toFixed(1)}%)` : ''}</span>
+                    </div>
+                </Accordion>
+                <div class="mb-4"></div>
                 {:catch error}
                 <span class="mb-4 text-red-400">{language.hypaV3Settings.maxMemoryTokensRatioError}</span>
                 {/await}
+                {:else}
+                <span class="mb-4 text-textcolor2 text-sm">{language.hypaV3Settings.maxMemoryTokensRatioNoCharacter}</span>
+                {/if}
                 <span class="text-textcolor">{language.hypaV3Settings.memoryTokensRatioLabel} <Help key="hypaV3MemoryTokensRatio"/></span>
                 <SliderInput marginBottom min={0} max={1} step={0.01} fixed={2} bind:value={settings.memoryTokensRatio} />
                 <span class="text-textcolor">{language.hypaV3Settings.extraSummarizationRatioLabel} <Help key="hypaV3ExtraSummarizationRatio"/></span>
