@@ -62,6 +62,93 @@
     function scrollToBottom() {
         chatsInstance?.scrollToLatestMessage();
     }
+
+    async function appendPostFileResults(results: Awaited<ReturnType<typeof postChatFile>>) {
+        if(!results) return
+        for(const res of results){
+            if(res?.type === 'asset'){
+                fileInput.push(res.data)
+            }
+            if(res?.type === 'text'){
+                messageInput += `{{file::${res.name}::${res.data}}}`
+            }
+        }
+        updateInputSizeAll()
+    }
+
+    let chatFileDragDepth = $state(0)
+    const chatFileDropOverlayClass = 'z-10 pointer-events-none flex items-center justify-center rounded-md border-2 border-dashed border-textcolor bg-bgcolor/80 text-textcolor'
+
+    // Hardcoded intersection of the extensions postChatFile routes to postInlayAsset and the ones postInlayAsset accepts; replace with a shared source when the file upload system is reworked.
+    const chatDropFileExtensions = new Set([
+        'jpg',
+        'jpeg',
+        'png',
+        'webp',
+        'gif',
+        'avif',
+        'wav',
+        'mp3',
+        'ogg',
+        'flac',
+        'mp4',
+        'webm',
+    ])
+
+    function isChatDropFile(file: File) {
+        const extension = file.name.split('.').at(-1)?.toLowerCase()
+        return extension ? chatDropFileExtensions.has(extension) : false
+    }
+
+    function hasChatDropFileDrag(e: DragEvent) {
+        return Array.from(e.dataTransfer?.items ?? []).some((item) => {
+            return item.kind === 'file' && (
+                item.type.startsWith('image/') ||
+                item.type.startsWith('audio/') ||
+                item.type.startsWith('video/')
+            )
+        })
+    }
+
+    function handleChatFileDragEnter(e: DragEvent) {
+        if(!hasChatDropFileDrag(e)){
+            return
+        }
+        e.preventDefault()
+        chatFileDragDepth += 1
+    }
+
+    function handleChatFileDragOver(e: DragEvent) {
+        if(!hasChatDropFileDrag(e)){
+            return
+        }
+        e.preventDefault()
+        e.stopPropagation()
+        e.dataTransfer.dropEffect = 'copy'
+    }
+
+    function handleChatFileDragLeave(e: DragEvent) {
+        if(!hasChatDropFileDrag(e)){
+            return
+        }
+        chatFileDragDepth = Math.max(0, chatFileDragDepth - 1)
+    }
+
+    async function handleChatFileDrop(e: DragEvent) {
+        chatFileDragDepth = 0
+        const files = Array.from(e.dataTransfer?.files ?? []).filter(isChatDropFile)
+        if(files.length === 0){
+            return
+        }
+        e.preventDefault()
+        e.stopPropagation()
+        for(const file of files){
+            await appendPostFileResults(await postChatFile({
+                name: file.name,
+                data: new Uint8Array(await file.arrayBuffer())
+            }))
+        }
+    }
     $effect(() => {
         if(ScrollToMessageStore.value !== -1){
             const index = ScrollToMessageStore.value
@@ -594,110 +681,113 @@
                     </div>
                 {/if}
 
-                <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-hidden text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl grow ml-4 border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full placeholder:text-sm"
-                          bind:value={messageInput}
-                          bind:this={inputEle}
-                          onkeydown={(e) => {
-                        if(e.key.toLocaleLowerCase() === "enter" && !e.isComposing){
-                            if(DBState.db.sendWithEnter && (!e.shiftKey)){
-                                send()
-                                e.preventDefault()
-                            }else if(!DBState.db.sendWithEnter && e.shiftKey){
-                                send()
-                                e.preventDefault()
-                            }
-                        }
-                        if(e.key.toLocaleLowerCase() === "m" && (e.ctrlKey)){
-                            reroll()
-                            e.preventDefault()
-                        }
-                    }}
-                          onpaste={(e) => {
-                        const items = e.clipboardData?.items
-                        if(!items){
-                            return
-                        }
-                        let canceled = false
-
-                        for(const item of items){
-                            if(item.kind === 'file' && item.type.startsWith('image')){
-                                if(!canceled){
+                <div
+                        class="relative flex grow min-w-0 ml-4 mr-2"
+                        ondragenter={handleChatFileDragEnter}
+                        ondragover={handleChatFileDragOver}
+                        ondragleave={handleChatFileDragLeave}
+                        ondrop={handleChatFileDrop}
+                >
+                    <textarea class="peer text-input-area focus:border-textcolor transition-colors outline-hidden text-textcolor p-2 min-w-0 border border-r-0 bg-transparent rounded-md rounded-r-none input-text text-xl grow border-darkborderc resize-none overflow-y-hidden overflow-x-hidden max-w-full placeholder:text-sm"
+                              bind:value={messageInput}
+                              bind:this={inputEle}
+                              onkeydown={(e) => {
+                            if(e.key.toLocaleLowerCase() === "enter" && !e.isComposing){
+                                if(DBState.db.sendWithEnter && (!e.shiftKey)){
+                                    send()
                                     e.preventDefault()
-                                    canceled = true
-                                }
-                                const file = item.getAsFile()
-                                if(file){
-                                    const reader = new FileReader()
-                                    reader.onload = async (e) => {
-                                        const buf = e.target?.result as ArrayBuffer
-                                        const uint8 = new Uint8Array(buf)
-                                        const results = await postChatFile({
-                                            name: file.name,
-                                            data: uint8
-                                        })
-                                        if(!results) return
-                                        for(const res of results){
-                                            if(res?.type === 'asset'){
-                                                fileInput.push(res.data)
-                                            }
-                                            if(res?.type === 'text'){
-                                                messageInput += `{{file::${res.name}::${res.data}}}`
-                                            }
-                                        }
-                                        updateInputSizeAll()
-                                    }
-                                    reader.readAsArrayBuffer(file)
+                                }else if(!DBState.db.sendWithEnter && e.shiftKey){
+                                    send()
+                                    e.preventDefault()
                                 }
                             }
-                        }
-                    }}
-                          oninput={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
-                          style:height={inputHeight}
-                ></textarea>
-
-
-                {#if $doingChat || doingChatInputTranslate}
-                    <button
-                            aria-labelledby="cancel"
-                            class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-textcolor p-3 hover:bg-blue-500 hover:text-white transition-colors" onclick={abortChat}
-                            style:height={inputHeight}
-                    >
-                        <div class="loadmove chat-process-stage-{$chatProcessStage}" class:autoload={autoMode}></div>
-                    </button>
-                {:else}
-                    <button
-                            onclick={send}
-                            class="flex justify-center border-y border-darkborderc items-center text-textcolor p-3 peer-focus:border-textcolor hover:bg-blue-500 hover:text-white transition-colors button-icon-send"
-                            style:height={inputHeight}
-                    >
-                        <Send />
-                    </button>
-                {/if}
-                {#if DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
-                    <button
-                            onclick={(e) => {
-                            openMenu = !openMenu
-                            e.stopPropagation()
+                            if(e.key.toLocaleLowerCase() === "m" && (e.ctrlKey)){
+                                reroll()
+                                e.preventDefault()
+                            }
                         }}
-                            class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-textcolor p-3 rounded-r-md hover:bg-blue-500 hover:text-white transition-colors"
-                            style:height={inputHeight}
-                    >
-                        <MenuIcon />
-                    </button>
-                {:else}
-                    <div onclick={(e) => {
-                        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.push({
-                            role: 'char',
-                            data: ''
-                        })
-                        DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
-                    }}
-                         class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-textcolor p-3 rounded-r-md hover:bg-blue-500 hover:text-white transition-colors"
-                         style:height={inputHeight}
-                    >
-                        <Plus />
-                    </div>
-                {/if}
+                              onpaste={(e) => {
+                            const items = e.clipboardData?.items
+                            if(!items){
+                                return
+                            }
+                            let canceled = false
+
+                            for(const item of items){
+                                if(item.kind === 'file' && item.type.startsWith('image')){
+                                    if(!canceled){
+                                        e.preventDefault()
+                                        canceled = true
+                                    }
+                                    const file = item.getAsFile()
+                                    if(file){
+                                        const reader = new FileReader()
+                                        reader.onload = async (e) => {
+                                            const buf = e.target?.result as ArrayBuffer
+                                            const uint8 = new Uint8Array(buf)
+                                            await appendPostFileResults(await postChatFile({
+                                                name: file.name,
+                                                data: uint8
+                                            }))
+                                        }
+                                        reader.readAsArrayBuffer(file)
+                                    }
+                                }
+                            }
+                        }}
+                              oninput={()=>{updateInputSizeAll();updateInputTransateMessage(false)}}
+                              style:height={inputHeight}
+                    ></textarea>
+
+
+                    {#if $doingChat || doingChatInputTranslate}
+                        <button
+                                aria-labelledby="cancel"
+                                class="peer-focus:border-textcolor  flex justify-center border-y border-darkborderc items-center text-textcolor p-3 hover:bg-blue-500 hover:text-white transition-colors" onclick={abortChat}
+                                style:height={inputHeight}
+                        >
+                            <div class="loadmove chat-process-stage-{$chatProcessStage}" class:autoload={autoMode}></div>
+                        </button>
+                    {:else}
+                        <button
+                                onclick={send}
+                                class="flex justify-center border-y border-darkborderc items-center text-textcolor p-3 peer-focus:border-textcolor hover:bg-blue-500 hover:text-white transition-colors button-icon-send"
+                                style:height={inputHeight}
+                        >
+                            <Send />
+                        </button>
+                    {/if}
+                    {#if DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
+                        <button
+                                onclick={(e) => {
+                                openMenu = !openMenu
+                                e.stopPropagation()
+                            }}
+                                class="peer-focus:border-textcolor flex border-y border-r border-darkborderc justify-center items-center text-textcolor p-3 rounded-r-md hover:bg-blue-500 hover:text-white transition-colors"
+                                style:height={inputHeight}
+                        >
+                            <MenuIcon />
+                        </button>
+                    {:else}
+                        <div onclick={(e) => {
+                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.push({
+                                role: 'char',
+                                data: ''
+                            })
+                            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage] = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage]
+                        }}
+                             class="peer-focus:border-textcolor flex border-y border-r border-darkborderc justify-center items-center text-textcolor p-3 rounded-r-md hover:bg-blue-500 hover:text-white transition-colors"
+                             style:height={inputHeight}
+                        >
+                            <Plus />
+                        </div>
+                    {/if}
+                    {#if chatFileDragDepth > 0}
+                        <div class="absolute inset-0 {chatFileDropOverlayClass}">
+                            <Plus />
+                        </div>
+                    {/if}
+                </div>
             </div>
             {#if DBState.db.useAutoTranslateInput && DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
                 <div class="flex items-center mt-2 mb-2">
@@ -727,7 +817,13 @@
             {/if}
 
             {#if fileInput.length > 0}
-                <div class="flex items-center ml-4 flex-wrap p-2 m-2 border-darkborderc border rounded-md">
+                <div
+                        class="relative flex items-center ml-4 flex-wrap p-2 m-2 border-darkborderc border rounded-md"
+                        ondragenter={handleChatFileDragEnter}
+                        ondragover={handleChatFileDragOver}
+                        ondragleave={handleChatFileDragLeave}
+                        ondrop={handleChatFileDrop}
+                >
                     {#each fileInput as file, i}
                         {#await getInlayAsset(file) then inlayAsset}
                             <div class="relative">
@@ -756,6 +852,11 @@
                             </div>
                         {/await}
                     {/each}
+                    {#if chatFileDragDepth > 0}
+                        <div class="absolute inset-0 {chatFileDropOverlayClass}">
+                            <Plus />
+                        </div>
+                    {/if}
                 </div>
 
             {/if}
@@ -1000,17 +1101,7 @@
                     </div>
 
                     <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={async () => {
-                        const results = await postChatFile(messageInput)
-                        if(!results) return
-                        for(const res of results){
-                            if(res?.type === 'asset'){
-                                fileInput.push(res.data)
-                            }
-                            if(res?.type === 'text'){
-                                messageInput += `{{file::${res.name}::${res.data}}}`
-                            }
-                        }
-                        updateInputSizeAll()
+                        await appendPostFileResults(await postChatFile(messageInput))
                     }}>
 
                         <ImagePlusIcon />
