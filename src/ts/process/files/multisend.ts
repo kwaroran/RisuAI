@@ -232,7 +232,7 @@ export async function postChatFile(query:string|{
     const results: postFileResult[] = []
 
     for(const file of files){
-        const extention = file.name.split('.').at(-1)
+        const extention = file.name.split('.').at(-1)?.toLowerCase()
         console.log(extention)
 
         switch(extention){
