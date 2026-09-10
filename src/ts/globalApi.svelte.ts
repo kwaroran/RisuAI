@@ -45,6 +45,7 @@ import { isTauri, isNodeServer } from "./platform";
 import { isLocalNetworkUrl } from "./network/localNetwork";
 import { decodeProxyJobWsChunk, formatProxyStreamErrorMessage, parseProxyJobWsEvent } from "./network/proxyJobWs";
 import { getNodeServerProxyAuth } from "./storage/nodeStorage";
+import { OpfsStorage } from "./storage/opfsStorage";
 
 export const forageStorage = new AutoStorage()
 
@@ -485,6 +486,141 @@ export async function saveDb() {
     }
 }
 
+const dbBackupPrefix = 'database/dbbackup-'
+const dbBackupSuffix = '.bin'
+const webLocalForageDbName = 'risuai'
+const webLocalForageStoreName = 'keyvaluepairs'
+
+function parseDbBackupKey(key: string): number | null {
+    if (!key.startsWith(dbBackupPrefix) || !key.endsWith(dbBackupSuffix)) {
+        return null
+    }
+
+    const valueText = key.slice(dbBackupPrefix.length, -dbBackupSuffix.length)
+
+    if (!/^\d+$/.test(valueText)) {
+        return null
+    }
+
+    const value = Number(valueText)
+
+    return Number.isNaN(value) ? null : value
+}
+
+function openWebLocalForageDb(): Promise<IDBDatabase | null> {
+    if (typeof indexedDB === 'undefined') {
+        return Promise.resolve(null)
+    }
+
+    return new Promise((resolve) => {
+        const request = indexedDB.open(webLocalForageDbName)
+
+        request.onerror = () => {
+            resolve(null)
+        }
+
+        request.onsuccess = () => {
+            resolve(request.result)
+        }
+    })
+}
+
+async function canUseIndexedDbBackupFastPath(): Promise<boolean> {
+    if (isNodeServer) {
+        return false
+    }
+
+    await forageStorage.Init()
+
+    if (forageStorage.isAccount) {
+        return false
+    }
+
+    if (forageStorage.realStorage instanceof OpfsStorage) {
+        return false
+    }
+
+    const driver = (forageStorage.realStorage as { driver?: () => string }).driver?.()
+
+    return driver === 'asyncStorage'
+}
+
+async function getDbBackupsFromIndexedDB(): Promise<number[] | null> {
+    const db = await openWebLocalForageDb()
+
+    if (!db) {
+        return null
+    }
+
+    try {
+        if (!db.objectStoreNames.contains(webLocalForageStoreName)) {
+            return null
+        }
+
+        const backups: number[] = []
+
+        await new Promise<void>((resolve, reject) => {
+            const tx = db.transaction(webLocalForageStoreName, 'readonly')
+            const store = tx.objectStore(webLocalForageStoreName)
+            // Use U+FFFF as an upper-bound sentinel to scan only keys with this prefix.
+            const range = IDBKeyRange.bound(dbBackupPrefix, dbBackupPrefix + '\uffff')
+            const request = store.openKeyCursor(range)
+
+            request.onerror = () => reject(request.error)
+
+            request.onsuccess = () => {
+                const cursor = request.result
+
+                if (!cursor) {
+                    resolve()
+                    return
+                }
+
+                const backup = parseDbBackupKey(String(cursor.key))
+
+                if (backup !== null) {
+                    backups.push(backup)
+                }
+
+                cursor.continue()
+            }
+        })
+
+        backups.sort((a, b) => b - a)
+
+        const deleteKeys: string[] = []
+
+        while (backups.length > 20) {
+            const last = backups.pop()
+
+            if (last !== undefined) {
+                deleteKeys.push(`${dbBackupPrefix}${last}${dbBackupSuffix}`)
+            }
+        }
+
+        if (deleteKeys.length > 0) {
+            await new Promise<void>((resolve, reject) => {
+                const tx = db.transaction(webLocalForageStoreName, 'readwrite')
+                const store = tx.objectStore(webLocalForageStoreName)
+
+                for (const key of deleteKeys) {
+                    store.delete(key)
+                }
+
+                tx.oncomplete = () => resolve()
+                tx.onerror = () => reject(tx.error)
+                tx.onabort = () => reject(tx.error)
+            })
+        }
+
+        return backups
+    } catch {
+        return null
+    } finally {
+        db.close()
+    }
+}
+
 /**
  * Retrieves the database backups.
  * 
@@ -502,7 +638,7 @@ export async function getDbBackups() {
             if (key.name.startsWith("dbbackup-")) {
                 let da = key.name.substring(9)
                 da = da.substring(0, da.length - 4)
-                backups.push(parseInt(da))
+                backups.push(parseInt(da, 10))
             }
         }
         backups.sort((a, b) => b - a)
@@ -513,17 +649,28 @@ export async function getDbBackups() {
         return backups
     }
     else {
-        const keys = await forageStorage.keys()
+        if (await canUseIndexedDbBackupFastPath()) {
+            const indexedBackups = await getDbBackupsFromIndexedDB()
 
+            if (indexedBackups) {
+                return indexedBackups
+            }
+        }
+
+        const keys = await forageStorage.keys()
         const backups = keys
-            .filter(key => key.startsWith('database/dbbackup-'))
-            .map(key => parseInt(key.slice(18, -4)))
-            .sort((a, b) => b - a);
+            .map(parseDbBackupKey)
+            .filter((key): key is number => key !== null)
+            .sort((a, b) => b - a)
 
         while (backups.length > 20) {
             const last = backups.pop()
-            await forageStorage.removeItem(`database/dbbackup-${last}.bin`)
+
+            if (last !== undefined) {
+                await forageStorage.removeItem(`${dbBackupPrefix}${last}${dbBackupSuffix}`)
+            }
         }
+
         return backups
     }
 }
