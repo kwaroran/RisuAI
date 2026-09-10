@@ -1200,6 +1200,28 @@ interface ProviderOptions {
     tokenizerFunc?: (content: string) => number[] | Promise<number[]>;
 }
 
+/**
+ * Embedding index for vector similarity search.
+ * Created via {@link RisuaiPluginAPI.createEmbeddingIndex}.
+ */
+interface EmbeddingIndex {
+    /**
+     * Adds texts to the embedding index for later similarity search.
+     * Duplicate texts are automatically skipped. Embedding results are cached
+     * across all plugin instances.
+     * @param texts - Array of text strings to index
+     */
+    addText(texts: string[]): Promise<void>;
+
+    /**
+     * Searches the index for texts most similar to the query, returning scored results.
+     * The embedding model used is determined by the user's HypaMemory settings (default: 'auto').
+     * @param query - The query string to compare against indexed texts
+     * @returns Array of `[text, score]` tuples sorted by descending similarity
+     */
+    similaritySearchScored(query: string): Promise<[string, number][]>;
+}
+
 // ============================================================================
 // Risuai Global API
 // ============================================================================
@@ -2124,6 +2146,68 @@ interface RisuaiPluginAPI {
      * @param message - The chat message to send, if string is a blank message, it will trigger the send action without adding a new message.
      */
     sendChat(message: string): Promise<void>;
+
+    // ========== Embedding / Similarity Search ==========
+
+    /**
+     * Performs a one-shot similarity search: indexes the given documents,
+     * then searches for the most similar ones to the query. Stateless —
+     * documents are re-embedded on every call. For repeated queries against
+     * the same document set, use {@link createEmbeddingIndex} instead.
+     *
+     * Requires the `embedding` permission (reconfirmed every 3 days).
+     *
+     * @param query - The query string to search for
+     * @param documents - Array of document strings to index and search against
+     * @param options - Optional configuration
+     * @param options.model - Embedding model to use (default: 'auto', uses user's HypaMemory setting)
+     * @param options.customEmbeddingUrl - Custom embedding server URL (only used when model is 'custom')
+     * @returns Array of `[text, score]` tuples sorted by descending similarity, or empty array if permission denied
+     *
+     * @example
+     * ```typescript
+     * const results = await risuai.similaritySearchScored('cute cat', [
+     *   'A fluffy kitten playing with yarn',
+     *   'A large dog running in the park',
+     *   'A small cat sleeping on a windowsill'
+     * ]);
+     * // results: [['A fluffy kitten...', 0.85], ['A small cat...', 0.82], ['A large dog...', 0.45]]
+     * ```
+     */
+    similaritySearchScored(query: string, documents: string[], options?: {
+        model?: string;
+        customEmbeddingUrl?: string;
+    }): Promise<[string, number][]>;
+
+    /**
+     * Creates a stateful embedding index that persists across multiple calls.
+     * Use this when you need to add documents once and search many times.
+     *
+     * Requires the `embedding` permission (reconfirmed every 3 days).
+     *
+     * @param options - Optional configuration
+     * @param options.model - Embedding model to use (default: 'auto', uses user's HypaMemory setting)
+     * @param options.customEmbeddingUrl - Custom embedding server URL (only used when model is 'custom')
+     * @returns An {@link EmbeddingIndex} instance, or null if permission denied
+     *
+     * @example
+     * ```typescript
+     * const index = await risuai.createEmbeddingIndex();
+     * if (!index) return; // permission denied
+     *
+     * await index.addText([
+     *   'A fluffy kitten playing with yarn',
+     *   'A large dog running in the park',
+     *   'A small cat sleeping on a windowsill'
+     * ]);
+     *
+     * const results = await index.similaritySearchScored('cute cat');
+     * ```
+     */
+    createEmbeddingIndex(options?: {
+        model?: string;
+        customEmbeddingUrl?: string;
+    }): Promise<EmbeddingIndex | null>;
 }
 
 // ============================================================================

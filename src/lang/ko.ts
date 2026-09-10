@@ -1520,5 +1520,6 @@ export const languageKorean = {
     nanoGPTSelectFromList: "목록에서 선택",
     nanoGPTManualInput: "수동 입력",
     nanoGPTManualModelSelect: "수동 모델 선택",
+    embeddingConsent: "플러그인 {}이(가) 임베딩/유사도 검색 기능을 사용하려고 합니다. 외부 API 호출이 발생할 수 있습니다. 허용하시겠습니까?",
     localToggles: "로컬 토글",
 } satisfies DeepPartial<typeof import('./en').languageEnglish>
