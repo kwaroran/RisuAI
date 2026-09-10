@@ -395,13 +395,29 @@
     return false
   }
 </script>
+<div
+  class="sidebar-layout-slot h-full shrink-0 overflow-hidden"
+  class:sidebar-edit-mode={editMode}
+  class:dynamic-sidebar-slot={$DynamicGUI}
+  class:risu-sidebar-slot={!$sideBarClosing}
+  class:risu-sidebar-slot-close={$sideBarClosing}
+  class:hidden={hidden}
+  onanimationend={(event) => {
+    if (event.currentTarget !== event.target || !$sideBarClosing) {
+      return;
+    }
+    $sideBarClosing = false;
+    sideBarStore.set(false);
+  }}
+>
+<div
+  class="sidebar-motion-panel h-full flex shrink-0"
+  class:dynamic-sidebar-panel={$DynamicGUI}
+>
 {#if DBState.db.menuSideBar}
 <div
   class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-textcolor shadow-lg relative rs-sidebar"
   class:editMode
-  class:risu-sub-sidebar={$sideBarClosing}
-  class:risu-sub-sidebar-close={$sideBarClosing}
-  class:hidden={hidden}
   class:flex={!hidden}
 >
 <button
@@ -471,9 +487,6 @@
 <div
   class="h-full w-20 min-w-20 flex-col items-center bg-bgcolor text-textcolor shadow-lg relative rs-sidebar"
   class:editMode
-  class:risu-sub-sidebar={$sideBarClosing}
-  class:risu-sub-sidebar-close={$sideBarClosing}
-  class:hidden={hidden}
   class:flex={!hidden}
 >
   {#if !DBState.db.hamburgerButtonBottom}
@@ -893,27 +906,18 @@
 {/if}
 <div
   class="setting-area h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-textcolor max-h-full"
-  class:risu-sidebar={!$sideBarClosing}
   class:w-96={$sideBarSize === 0}
   class:w-110={$sideBarSize === 1}
   class:w-124={$sideBarSize === 2}
   class:w-138={$sideBarSize === 3}
-  class:risu-sidebar-close={$sideBarClosing}
   class:min-w-96={!$DynamicGUI && $sideBarSize === 0}
   class:min-w-110={!$DynamicGUI && $sideBarSize === 1}
   class:min-w-124={!$DynamicGUI && $sideBarSize === 2}
   class:min-w-138={!$DynamicGUI && $sideBarSize === 3}
   class:px-2={$DynamicGUI}
   class:px-4={!$DynamicGUI}
-  class:dynamic-sidebar={$DynamicGUI}
   class:hidden={hidden}
   class:flex={!hidden}
-  onanimationend={() => {
-    if($sideBarClosing){
-      $sideBarClosing = false
-      sideBarStore.set(false)
-    }
-  }}
 >
   <button
     class="flex w-full justify-end text-textcolor"
@@ -980,9 +984,11 @@
     {/if}
   {/if}
 </div>
+</div>
+</div>
 
 {#if $DynamicGUI}
-    <div role="button" tabindex="0" class="grow h-full min-w-12" class:hidden={hidden} onclick={() => {
+    <div role="button" tabindex="0" class="sidebar-dismiss-area h-full" class:hidden={hidden} onclick={() => {
       if($sideBarClosing){
         return
       }
@@ -1004,126 +1010,140 @@
   .editMode {
     min-width: 6rem;
   }
-  @keyframes sidebar-transition {
-    from {
-      width: 0rem;
-    }
-    to {
-      width: var(--sidebar-size);
-    }
+  .sidebar-layout-slot {
+    --sidebar-rail-size: 5rem;
+    --sidebar-natural-size: calc(var(--sidebar-size) + var(--sidebar-rail-size));
+    --sidebar-total-size: var(--sidebar-natural-size);
+    width: var(--sidebar-total-size);
+    min-width: var(--sidebar-total-size);
   }
-  @keyframes sidebar-transition-close {
-    from {
-      width: var(--sidebar-size);
-      right:0rem;
-    }
-    to {
-      width: 0rem;
-      right: 10rem;
-    }
-  }
-  @keyframes sidebar-transition-non-dynamic {
-    from {
-      width: 0rem;
-      min-width: 0rem;
-    }
-    to {
-      width: var(--sidebar-size);
-      min-width: var(--sidebar-size);
-    }
-  }
-  @keyframes sidebar-transition-close-non-dynamic {
-    from {
-      width: var(--sidebar-size);
-      min-width: var(--sidebar-size);
-      right:0rem;
-    }
-    to {
-      width: 0rem;
-      min-width: 0rem;
-      right:3rem;
-    }
-  }
-  @keyframes sub-sidebar-transition {
-    from {
-      width: 0rem;
-      min-width: 0rem;
-    }
-    to {
-      width: 5rem;
-      min-width: 5rem;
-    }
-  }
-  @keyframes sub-sidebar-transition-close {
-    from {
-      width: 5rem;
-      min-width: 5rem;
-      max-width: 5rem;
-      right:0rem;
 
-    }
-    to {
-      width: 0rem;
-      min-width: 0rem;
-      max-width: 0rem;
-      right: 10rem;
-    }
+  .sidebar-motion-panel {
+    width: var(--sidebar-total-size);
+    min-width: var(--sidebar-total-size);
+    transform: translateX(0);
   }
-  @keyframes sidebar-dark-animation{
-    from {
-      background-color: rgba(0,0,0,0) !important;
-    }
-    to {
-      background-color: rgba(0,0,0,0.5) !important;
-    }
+
+  .sidebar-layout-slot.sidebar-edit-mode {
+    --sidebar-rail-size: 6rem;
   }
-  @keyframes sidebar-dark-closing-animation{
+
+  .dynamic-sidebar-slot {
+    --sidebar-dismiss-size: 3rem;
+    --sidebar-total-size: min(
+      var(--sidebar-natural-size),
+      calc(100vw - var(--sidebar-dismiss-size))
+    );
+  }
+
+  @keyframes sidebar-slot-open {
     from {
-      background-color: rgba(0,0,0,0.5) !important;
+      width: 0;
+      min-width: 0;
     }
     to {
-      background-color: rgba(0,0,0,0) !important;
+      width: var(--sidebar-total-size);
+      min-width: var(--sidebar-total-size);
     }
   }
 
-  .risu-sidebar:not(.dynamic-sidebar) {
-    animation-name: sidebar-transition-non-dynamic;
-    animation-duration: var(--risu-animation-speed);
-  }
-  .risu-sidebar-close:not(.dynamic-sidebar) {
-    animation-name: sidebar-transition-close-non-dynamic;
-    animation-duration: var(--risu-animation-speed);
-    position: relative;
-  }
-  .risu-sidebar.dynamic-sidebar {
-    animation-name: sidebar-transition;
-    animation-duration: var(--risu-animation-speed);
-  }
-  .risu-sidebar-close.dynamic-sidebar {
-    animation-name: sidebar-transition-close;
-    animation-duration: var(--risu-animation-speed);
-    position: relative;
-    right: 3rem;
+  @keyframes sidebar-slot-close {
+    from {
+      width: var(--sidebar-total-size);
+      min-width: var(--sidebar-total-size);
+    }
+    to {
+      width: 0;
+      min-width: 0;
+    }
   }
 
+  @keyframes sidebar-panel-open {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
 
-  .risu-sub-sidebar {
-    animation-name: sub-sidebar-transition;
-    animation-duration: var(--risu-animation-speed);
+  @keyframes sidebar-panel-close {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
   }
-  .risu-sub-sidebar-close {
-    animation-name: sub-sidebar-transition-close;
-    animation-duration: var(--risu-animation-speed);
-    position: relative;
+
+  @keyframes sidebar-dim-open {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
-  .sidebar-dark-animation{
-    animation-name: sidebar-dark-transition;
-    animation-duration: var(--risu-animation-speed);
-    background-color: rgba(0,0,0,0.5)
+
+  @keyframes sidebar-dim-close {
+    from {
+      opacity: 1;
+    }
+    45%,
+    to {
+      opacity: 0;
+    }
   }
-  .sidebar-dark-close-animation{
-    animation-name: sidebar-dark-closing-transition;
-    animation-duration: var(--risu-animation-speed);
-    background-color: rgba(0,0,0,0)
+
+  .risu-sidebar-slot:not(.dynamic-sidebar-slot) {
+    animation: sidebar-slot-open var(--risu-animation-speed) ease;
+  }
+
+  .risu-sidebar-slot:not(.dynamic-sidebar-slot) .sidebar-motion-panel {
+    animation: sidebar-panel-open var(--risu-animation-speed) ease;
+  }
+
+  .risu-sidebar-slot-close:not(.dynamic-sidebar-slot) {
+    animation: sidebar-slot-close var(--risu-animation-speed) ease forwards;
+  }
+
+  .risu-sidebar-slot-close:not(.dynamic-sidebar-slot) .sidebar-motion-panel {
+    animation: sidebar-panel-close var(--risu-animation-speed) ease forwards;
+  }
+
+  .dynamic-sidebar-slot {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 1;
+    overflow: hidden;
+    transform: translateX(0);
+  }
+
+  .dynamic-sidebar-slot.risu-sidebar-slot {
+    animation: sidebar-panel-open var(--risu-animation-speed) ease;
+  }
+
+  .dynamic-sidebar-slot.risu-sidebar-slot-close {
+    animation: sidebar-panel-close var(--risu-animation-speed) ease forwards;
+  }
+
+  .sidebar-dismiss-area {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    min-width: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    touch-action: manipulation;
+    will-change: opacity;
+  }
+
+  .sidebar-dark-animation {
+    animation: sidebar-dim-open var(--risu-animation-speed) ease;
+    opacity: 1;
+  }
+
+  .sidebar-dark-close-animation {
+    animation: sidebar-dim-close var(--risu-animation-speed) ease forwards;
+    opacity: 0;
   }
 </style>
