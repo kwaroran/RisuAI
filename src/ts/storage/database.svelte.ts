@@ -624,6 +624,12 @@ export function setDatabase(data:Database){
         model: data.hypaCustomSettings?.model ?? ""     
     }
     data.doNotChangeSeperateModels ??= false
+    data.seperateModels ??= {
+        memory: '',
+        emotion: '',
+        translate: '',
+        otherAx: ''
+    }
     data.modelTools ??= []
     data.enableScrollToActiveChar ??= true
     
