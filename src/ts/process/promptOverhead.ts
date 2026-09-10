@@ -1,5 +1,6 @@
 import { getDatabase, getCurrentCharacter } from '../storage/database.svelte'
 import type { character, Chat, loreBook, Message } from '../storage/database.svelte'
+import { untrack } from 'svelte'
 import { ChatTokenizer } from '../tokenizer'
 import { risuChatParser } from './scripts'
 import { parseChatML } from '../parser/chatML'
@@ -319,7 +320,7 @@ async function estimateCharOverhead(chara: character, chat: Chat, isGroup: boole
 
     let recentChatEntryCount = 0
     if (recentChatCount !== undefined) {
-        const recentChatEntries = buildRecentChatEntries(chara, chat, isGroup, recentChatCount)
+        const recentChatEntries = untrack(() => buildRecentChatEntries(chara, chat, isGroup, recentChatCount))
         recentChatEntryCount = recentChatEntries.length
         entries.push(...recentChatEntries)
     }
