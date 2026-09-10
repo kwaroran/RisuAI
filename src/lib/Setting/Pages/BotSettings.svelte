@@ -40,12 +40,16 @@
     import SettingRenderer from "../SettingRenderer.svelte";
     import { allBasicParameterItems } from "src/ts/setting/botSettingsParamsData";
     import SeparateParametersSection from "./SeparateParametersSection.svelte";
-    import AuxModelSelectors from './Model/AuxModelSelectors.svelte'
     
     const openrouterPinnedItems: ModelGridPinnedItem[] = [
         { id: 'risu/free',       displayName: 'Free Auto',       providerName: 'Risu'       },
         { id: 'openrouter/auto', displayName: 'OpenRouter Auto', providerName: 'OpenRouter' },
     ]
+
+    type AuxModelRole = 'memory' | 'translate' | 'emotion' | 'otherAx'
+    type ModelCardRole = 'main' | 'sub' | AuxModelRole
+
+    const auxModelRoles: AuxModelRole[] = ['memory', 'translate', 'emotion', 'otherAx']
 
     // Reset model selection and display name when subscription mode toggles
     let _nanogptSubModeInitialized = false
@@ -124,8 +128,56 @@
         }
     });
 
-    let usesOllamaLocal = $derived(DBState.db.aiModel === 'ollama-hosted' || DBState.db.subModel === 'ollama-hosted')
-    let usesOllamaCloud = $derived(DBState.db.aiModel === 'ollama-cloud' || DBState.db.subModel === 'ollama-cloud')
+    function isAuxModelRole(role: ModelCardRole): role is AuxModelRole {
+        return role !== 'main' && role !== 'sub'
+    }
+
+    function modelRoleLabel(role: ModelCardRole) {
+        if (role === 'main') {
+            return (language as any).mainModel ?? language.model
+        }
+        if (role === 'memory') {
+            return language.memoryAuxModel
+        }
+        if (role === 'translate') {
+            return language.translateAuxModel
+        }
+        if (role === 'emotion') {
+            return language.emotionAuxModel
+        }
+        if (role === 'otherAx') {
+            return language.otherAuxModel
+        }
+
+        return language.submodel
+    }
+
+    function modelRoleHelp(role: ModelCardRole): 'model' | 'submodel' | '' {
+        return role === 'main' ? 'model' : role === 'sub' ? 'submodel' : ''
+    }
+
+    function modelIdForRole(role: ModelCardRole) {
+        if (role === 'main') {
+            return DBState.db.aiModel
+        }
+        if (role === 'sub') {
+            return DBState.db.subModel
+        }
+
+        return DBState.db.seperateModels[role]
+    }
+
+    function isProviderShownForRole(role: ModelCardRole, currentMatches: boolean, mainMatches: boolean) {
+        return currentMatches && (role !== 'sub' || !mainMatches)
+    }
+
+    function isModelShownForRole(role: ModelCardRole, currentModelId: string, targetModelId: string) {
+        return currentModelId === targetModelId && (role !== 'sub' || DBState.db.aiModel !== targetModelId)
+    }
+
+    function isPrefixShownForRole(role: ModelCardRole, currentModelId: string, targetPrefix: string) {
+        return currentModelId.startsWith(targetPrefix) && (role !== 'sub' || !DBState.db.aiModel.startsWith(targetPrefix))
+    }
 </script>
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
@@ -155,332 +207,442 @@
 {/if}
 
 {#if submenu === 0 || submenu === -1}
-    <span class="text-textcolor mt-4">{language.model} <Help key="model"/></span>
-    <ModelList bind:value={DBState.db.aiModel}/>
+    <div class="flex flex-col">
+        {#snippet ModelCard(role: ModelCardRole)}
+            {@const modelId = modelIdForRole(role)}
+            {@const info = isAuxModelRole(role) ? getModelInfo(modelId || DBState.db.subModel) : role === 'main' ? modelInfo : subModelInfo}
+            <Accordion styled name={modelRoleLabel(role)} help={modelRoleHelp(role)} className="gap-3">
+                        <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                            <span class="text-sm font-medium text-textcolor">{language.model}</span>
+                            <div class="min-w-0">
+                                {#if role === 'main'}
+                                    <ModelList bind:value={DBState.db.aiModel} noMargin fullWidth />
+                                {:else if role === 'sub'}
+                                    <ModelList bind:value={DBState.db.subModel} noMargin fullWidth />
+                                {:else if role === 'memory'}
+                                    <ModelList bind:value={DBState.db.seperateModels.memory} blankable noMargin fullWidth />
+                                {:else if role === 'translate'}
+                                    <ModelList bind:value={DBState.db.seperateModels.translate} blankable noMargin fullWidth />
+                                {:else if role === 'emotion'}
+                                    <ModelList bind:value={DBState.db.seperateModels.emotion} blankable noMargin fullWidth />
+                                {:else}
+                                    <ModelList bind:value={DBState.db.seperateModels.otherAx} blankable noMargin fullWidth />
+                                {/if}
+                            </div>
+                        </div>
 
-    <span class="text-textcolor mt-2">{language.submodel} <Help key="submodel"/></span>
-    <ModelList bind:value={DBState.db.subModel}/>
+                        {#if !isAuxModelRole(role) || modelId}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.GoogleCloud, modelInfo.provider === LLMProvider.GoogleCloud)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">GoogleAI API Key</span>
+                                <TextInput fullwidth size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.google.accessToken}/>
+                            </div>
+                        {/if}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.VertexAI, modelInfo.provider === LLMProvider.VertexAI)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Project ID</span>
+                                <TextInput fullwidth size={"sm"} placeholder="..." bind:value={DBState.db.google.projectId} oninput={clearVertexToken}/>
+                            </div>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Vertex Client Email</span>
+                                <TextInput fullwidth size={"sm"} placeholder="..." bind:value={DBState.db.vertexClientEmail} oninput={clearVertexToken}/>
+                            </div>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Vertex Private Key</span>
+                                <TextInput fullwidth size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey} oninput={clearVertexToken}/>
+                            </div>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Region</span>
+                                <SelectInput className="w-full" value={DBState.db.vertexRegion} onchange={(e) => {
+                                    DBState.db.vertexRegion = e.currentTarget.value
+                                    clearVertexToken()
+                                }}>
+                                    <OptionInput value={'global'}>
+                                        global
+                                    </OptionInput>
+                                    <OptionInput value={'us-central1'}>
+                                        us-central1
+                                    </OptionInput>
+                                    <OptionInput value={'us-west1'}>
+                                        us-west1
+                                    </OptionInput>
+                                </SelectInput>
+                            </div>
+                        {/if}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.NovelList, modelInfo.provider === LLMProvider.NovelList)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">NovelList {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} placeholder="..." bind:value={DBState.db.novellistAPI}/>
+                            </div>
+                        {/if}
+                        {#if isPrefixShownForRole(role, modelId, 'mancer')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Mancer {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} placeholder="..." bind:value={DBState.db.mancerHeader}/>
+                            </div>
+                        {/if}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.Anthropic || info.provider === LLMProvider.AWS, modelInfo.provider === LLMProvider.Anthropic || modelInfo.provider === LLMProvider.AWS)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Claude {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} placeholder="..." bind:value={DBState.db.claudeAPIKey}/>
+                            </div>
+                        {/if}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.Mistral, modelInfo.provider === LLMProvider.Mistral)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Mistral {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} placeholder="..." bind:value={DBState.db.mistralKey}/>
+                            </div>
+                        {/if}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.NovelAI, modelInfo.provider === LLMProvider.NovelAI)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">NovelAI Bearer Token</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.novelai.token}/>
+                            </div>
+                        {/if}
+                        {#if isModelShownForRole(role, modelId, 'reverse_proxy')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">URL <Help key="forceUrl"/></span>
+                                <TextInput fullwidth size={"sm"} bind:value={DBState.db.forceReplaceUrl} placeholder="https//..." />
+                            </div>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">{language.proxyAPIKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={DBState.db.proxyKey} />
+                            </div>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">{language.proxyRequestModel}</span>
+                                <TextInput fullwidth size={"sm"} bind:value={DBState.db.customProxyRequestModel} placeholder="Name" />
+                            </div>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">{language.format}</span>
+                                <SelectInput className="w-full" value={DBState.db.customAPIFormat.toString()} onchange={(e) => {
+                                    DBState.db.customAPIFormat = parseInt(e.currentTarget.value) as LLMFormat
+                                }}>
+                                    <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
+                                        OpenAI Compatible
+                                    </OptionInput>
+                                    <OptionInput value={LLMFormat.OpenAIResponseAPI.toString()}>
+                                        OpenAI Response API
+                                    </OptionInput>
+                                    <OptionInput value={LLMFormat.Anthropic.toString()}>
+                                        Anthropic Claude
+                                    </OptionInput>
+                                    <OptionInput value={LLMFormat.Mistral.toString()}>
+                                        Mistral
+                                    </OptionInput>
+                                    <OptionInput value={LLMFormat.GoogleCloud.toString()}>
+                                        Google Cloud
+                                    </OptionInput>
+                                    <OptionInput value={LLMFormat.Cohere.toString()}>
+                                        Cohere
+                                    </OptionInput>
+                                </SelectInput>
+                            </div>
+                        {/if}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.Cohere, modelInfo.provider === LLMProvider.Cohere)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Cohere {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.cohereAPIKey} />
+                            </div>
+                        {/if}
+                        {#if isModelShownForRole(role, modelId, 'ollama-hosted') || isModelShownForRole(role, modelId, 'ollama-cloud')}
+                            {#if modelId === 'ollama-hosted'}
+                                <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                    <span class="text-sm font-medium text-textcolor">Ollama URL</span>
+                                    <TextInput fullwidth size={"sm"} bind:value={DBState.db.ollamaURL} />
+                                </div>
+                            {/if}
 
-    {#if modelInfo.provider === LLMProvider.GoogleCloud || subModelInfo.provider === LLMProvider.GoogleCloud}
-        <span class="text-textcolor">GoogleAI API Key</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.google.accessToken}/>
-    {/if}
-    {#if modelInfo.provider === LLMProvider.VertexAI || subModelInfo.provider === LLMProvider.VertexAI}
-        <span class="text-textcolor">Project ID</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.google.projectId} oninput={clearVertexToken}/>
-        <span class="text-textcolor">Vertex Client Email</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.vertexClientEmail} oninput={clearVertexToken}/>
-        <span class="text-textcolor">Vertex Private Key</span>
-        <TextInput marginBottom={true} size={"sm"} placeholder="..." hideText={DBState.db.hideApiKey} bind:value={DBState.db.vertexPrivateKey} oninput={clearVertexToken}/>
-        <span class="text-textcolor">Region</span>
-        <SelectInput value={DBState.db.vertexRegion} onchange={(e) => {
-            DBState.db.vertexRegion = e.currentTarget.value
-            clearVertexToken()
-        }}>
-            <OptionInput value={'global'}>
-                global
-            </OptionInput>
-            <OptionInput value={'us-central1'}>
-                us-central1
-            </OptionInput>
-            <OptionInput value={'us-west1'}>
-                us-west1
-            </OptionInput>
-        </SelectInput>    
-    {/if}
-    {#if modelInfo.provider === LLMProvider.NovelList || subModelInfo.provider === LLMProvider.NovelList}
-        <span class="text-textcolor">NovelList {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.novellistAPI}/>
-    {/if}
-    {#if DBState.db.aiModel.startsWith('mancer') || DBState.db.subModel.startsWith('mancer')}
-        <span class="text-textcolor">Mancer {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.mancerHeader}/>
-    {/if}
-    {#if modelInfo.provider === LLMProvider.Anthropic || subModelInfo.provider === LLMProvider.Anthropic
-            || modelInfo.provider === LLMProvider.AWS || subModelInfo.provider === LLMProvider.AWS }
-        <span class="text-textcolor">Claude {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.claudeAPIKey}/>
-    {/if}
-    {#if modelInfo.provider === LLMProvider.Mistral || subModelInfo.provider === LLMProvider.Mistral}
-        <span class="text-textcolor">Mistral {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} size={"sm"} placeholder="..." bind:value={DBState.db.mistralKey}/>
-    {/if}
-    {#if modelInfo.provider === LLMProvider.NovelAI || subModelInfo.provider === LLMProvider.NovelAI}
-        <span class="text-textcolor">NovelAI Bearer Token</span>
-        <TextInput bind:value={DBState.db.novelai.token}/>
-    {/if}
-    {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
-        <span class="text-textcolor mt-2">URL <Help key="forceUrl"/></span>
-        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.forceReplaceUrl} placeholder="https//..." />
-        <span class="text-textcolor mt-4"> {language.proxyAPIKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} placeholder="leave it blank if it hasn't password" bind:value={DBState.db.proxyKey} />
-        <span class="text-textcolor mt-4"> {language.proxyRequestModel}</span>
-        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.customProxyRequestModel} placeholder="Name" />
-        <span class="text-textcolor mt-4"> {language.format}</span>
-        <SelectInput value={DBState.db.customAPIFormat.toString()} onchange={(e) => {
-            DBState.db.customAPIFormat = parseInt(e.currentTarget.value) as LLMFormat
-        }}>
-            <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
-                OpenAI Compatible
-            </OptionInput>
-            <OptionInput value={LLMFormat.OpenAIResponseAPI.toString()}>
-                OpenAI Response API
-            </OptionInput>
-            <OptionInput value={LLMFormat.Anthropic.toString()}>
-                Anthropic Claude
-            </OptionInput>
-            <OptionInput value={LLMFormat.Mistral.toString()}>
-                Mistral
-            </OptionInput>
-            <OptionInput value={LLMFormat.GoogleCloud.toString()}>
-                Google Cloud
-            </OptionInput>
-            <OptionInput value={LLMFormat.Cohere.toString()}>
-                Cohere
-            </OptionInput>
-        </SelectInput>
-    {/if}
-    {#if modelInfo.provider === LLMProvider.Cohere || subModelInfo.provider === LLMProvider.Cohere}
-        <span class="text-textcolor mt-4">Cohere {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.cohereAPIKey} />
-    {/if}
-    {#if usesOllamaLocal || usesOllamaCloud}
-        {#if usesOllamaLocal}
-        <span class="text-textcolor mt-4">Ollama URL</span>
-        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaURL} />
-        {/if}
+                            {#if modelId === 'ollama-cloud'}
+                                <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                    <span class="text-sm font-medium text-textcolor">Ollama {language.model}</span>
+                                    <SegmentedControl
+                                        bind:value={DBState.db.ollamaInputMode}
+                                        options={[
+                                            { value: 'list', label: (language as any).nanoGPTSelectFromList || 'Select from List' },
+                                            { value: 'manual', label: (language as any).nanoGPTManualInput || 'Manual Input' }
+                                        ]}
+                                        size="md"
+                                    />
+                                </div>
 
-        {#if usesOllamaCloud}
-        <span class="text-textcolor mt-4">Ollama {language.model}</span>
-        <SegmentedControl
-            bind:value={DBState.db.ollamaInputMode}
-            options={[
-                { value: 'list', label: (language as any).nanoGPTSelectFromList || 'Select from List' },
-                { value: 'manual', label: (language as any).nanoGPTManualInput || 'Manual Input' }
-            ]}
-            size="md"
-        />
+                                {#if DBState.db.ollamaInputMode === 'manual'}
+                                    <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                        <span class="text-sm font-medium text-textcolor">Ollama {language.model}</span>
+                                        <TextInput fullwidth size={"sm"} bind:value={DBState.db.ollamaCloudModel} placeholder="Model" oninput={() => DBState.db.ollamaCloudModelName = ''} />
+                                    </div>
+                                {:else}
+                                    {#await getOllamaModels(DBState.db.ollamaURL, 'cloud', DBState.db.ollamaApiKey)}
+                                        <ModelGrid bind:value={DBState.db.ollamaCloudModel} loading={true} />
+                                    {:then cloudModels}
+                                        <ModelGrid
+                                            bind:value={DBState.db.ollamaCloudModel}
+                                            items={cloudModels ?? []}
+                                            selectedLabelOverride={DBState.db.ollamaCloudModel ? `Cloud / ${DBState.db.ollamaCloudModelName || DBState.db.ollamaCloudModel}` : undefined}
+                                            onselect={(_id, name) => {
+                                                DBState.db.ollamaModelSource = 'cloud'
+                                                DBState.db.ollamaCloudModelName = name
+                                            }}
+                                        />
+                                    {/await}
+                                {/if}
 
-        {#if DBState.db.ollamaInputMode === 'manual'}
-            <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaCloudModel} placeholder="Model" oninput={() => DBState.db.ollamaCloudModelName = ''} />
-        {:else}
-            {#await getOllamaModels(DBState.db.ollamaURL, 'cloud', DBState.db.ollamaApiKey)}
-                <ModelGrid bind:value={DBState.db.ollamaCloudModel} loading={true} />
-            {:then cloudModels}
-                <ModelGrid
-                    bind:value={DBState.db.ollamaCloudModel}
-                    items={cloudModels ?? []}
-                    selectedLabelOverride={DBState.db.ollamaCloudModel ? `Cloud / ${DBState.db.ollamaCloudModelName || DBState.db.ollamaCloudModel}` : undefined}
-                    onselect={(_id, name) => {
-                        DBState.db.ollamaModelSource = 'cloud'
-                        DBState.db.ollamaCloudModelName = name
-                    }}
-                />
-            {/await}
-        {/if}
+                                <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                    <span class="text-sm font-medium text-textcolor">Ollama {language.apiKey}</span>
+                                    <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.ollamaApiKey} />
+                                </div>
 
-            <span class="text-textcolor mt-4">Ollama {language.apiKey}</span>
-            <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaApiKey} />
+                                <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                    <span class="text-sm font-medium text-textcolor">Ollama {language.format}</span>
+                                    <SelectInput className="w-full" value={DBState.db.ollamaRequestFormat.toString()} onchange={(e) => {
+                                        DBState.db.ollamaRequestFormat = parseInt(e.currentTarget.value) as LLMFormat
+                                    }}>
+                                        <OptionInput value={LLMFormat.Ollama.toString()}>
+                                            Ollama SDK
+                                        </OptionInput>
+                                        <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
+                                            OpenAI Compatible
+                                        </OptionInput>
+                                        <OptionInput value={LLMFormat.OpenAIResponseAPI.toString()}>
+                                            OpenAI Response API
+                                        </OptionInput>
+                                        <OptionInput value={LLMFormat.Anthropic.toString()}>
+                                            Anthropic Claude
+                                        </OptionInput>
+                                    </SelectInput>
+                                </div>
 
-            <span class="text-textcolor mt-4">Ollama {language.format}</span>
-            <SelectInput value={DBState.db.ollamaRequestFormat.toString()} onchange={(e) => {
-                DBState.db.ollamaRequestFormat = parseInt(e.currentTarget.value) as LLMFormat
-            }}>
-                <OptionInput value={LLMFormat.Ollama.toString()}>
-                    Ollama SDK
-                </OptionInput>
-                <OptionInput value={LLMFormat.OpenAICompatible.toString()}>
-                    OpenAI Compatible
-                </OptionInput>
-                <OptionInput value={LLMFormat.OpenAIResponseAPI.toString()}>
-                    OpenAI Response API
-                </OptionInput>
-                <OptionInput value={LLMFormat.Anthropic.toString()}>
-                    Anthropic Claude
-                </OptionInput>
-            </SelectInput>
+                                <div class="flex items-center justify-between gap-3 border-t border-darkborderc/60 pt-3">
+                                    <CheckInput bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`} />
+                                </div>
+                            {/if}
 
-            <div class="mt-2">
-                <CheckInput bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`} />
-            </div>
-        {/if}
+                            {#if modelId === 'ollama-hosted'}
+                                <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                    <span class="text-sm font-medium text-textcolor">Ollama Model</span>
+                                    <TextInput fullwidth size={"sm"} bind:value={DBState.db.ollamaModel} placeholder="Model" oninput={() => { DBState.db.ollamaModelSource = 'local'; DBState.db.ollamaModelName = '' }} />
+                                </div>
+                            {/if}
 
-        {#if usesOllamaLocal}
-        <span class="text-textcolor mt-4">Ollama Model</span>
-        <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaModel} placeholder="Model" oninput={() => { DBState.db.ollamaModelSource = 'local'; DBState.db.ollamaModelName = '' }} />
-        {/if}
+                            {#if modelId === 'ollama-hosted' || (modelId === 'ollama-cloud' && DBState.db.ollamaRequestFormat === LLMFormat.Ollama)}
+                                <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                    <span class="text-sm font-medium text-textcolor">Ollama Thinking</span>
+                                    <SelectInput className="w-full" bind:value={DBState.db.ollamaThinkingMode}>
+                                        <OptionInput value="auto">
+                                            Auto
+                                        </OptionInput>
+                                        <OptionInput value="off">
+                                            Off
+                                        </OptionInput>
+                                        <OptionInput value="on">
+                                            On
+                                        </OptionInput>
+                                        <OptionInput value="low">
+                                            Low
+                                        </OptionInput>
+                                        <OptionInput value="medium">
+                                            Medium
+                                        </OptionInput>
+                                        <OptionInput value="high">
+                                            High
+                                        </OptionInput>
+                                    </SelectInput>
+                                </div>
+                            {/if}
+                        {/if}
+                        {#if isModelShownForRole(role, modelId, 'nanogpt')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">NanoGPT {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.nanogptKey} />
+                            </div>
 
-        {#if usesOllamaLocal || (usesOllamaCloud && DBState.db.ollamaRequestFormat === LLMFormat.Ollama)}
-        <span class="text-textcolor mt-4">Ollama Thinking</span>
-        <SelectInput bind:value={DBState.db.ollamaThinkingMode}>
-            <OptionInput value="auto">
-                Auto
-            </OptionInput>
-            <OptionInput value="off">
-                Off
-            </OptionInput>
-            <OptionInput value="on">
-                On
-            </OptionInput>
-            <OptionInput value="low">
-                Low
-            </OptionInput>
-            <OptionInput value="medium">
-                Medium
-            </OptionInput>
-            <OptionInput value="high">
-                High
-            </OptionInput>
-        </SelectInput>
-        {/if}
-    {/if}
-    {#if DBState.db.aiModel === 'nanogpt' || DBState.db.subModel === 'nanogpt'}
-        <span class="text-textcolor mt-4">NanoGPT {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.nanogptKey} />
+                            <NanoGPTDashboard apiKey={DBState.db.nanogptKey} />
 
-        <NanoGPTDashboard apiKey={DBState.db.nanogptKey} />
+                            {#if DBState.db.nanogptSubscriptionState === 'active' || DBState.db.nanogptSubscriptionState === 'grace'}
+                                <div class="flex items-center border-t border-darkborderc/60 pt-3">
+                                    <CheckInput bind:check={DBState.db.nanogptUseSubscriptionEndpoint} name={language.nanoGPTUseSubscriptionEndpoint} />
+                                </div>
+                            {/if}
 
-        {#if DBState.db.nanogptSubscriptionState === 'active' || DBState.db.nanogptSubscriptionState === 'grace'}
-            <div class="flex items-center mt-3">
-                <CheckInput bind:check={DBState.db.nanogptUseSubscriptionEndpoint} name={language.nanoGPTUseSubscriptionEndpoint} />
-            </div>
-        {/if}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">NanoGPT {language.model}</span>
+                                <SegmentedControl
+                                    bind:value={nanogptInputMode}
+                                    options={[
+                                        { value: 'list', label: (language as any).nanoGPTSelectFromList || 'Select from List' },
+                                        { value: 'manual', label: (language as any).nanoGPTManualInput || 'Manual Input' }
+                                    ]}
+                                    size="md"
+                                />
+                            </div>
 
-        <span class="text-textcolor mt-4">NanoGPT {language.model}</span>
-        <SegmentedControl
-            bind:value={nanogptInputMode}
-            options={[
-                { value: 'list', label: (language as any).nanoGPTSelectFromList || 'Select from List' },
-                { value: 'manual', label: (language as any).nanoGPTManualInput || 'Manual Input' }
-            ]}
-            size="md"
-        />
+                            {#if nanogptInputMode === 'manual'}
+                                <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                    <span class="text-sm font-medium text-textcolor">NanoGPT {language.model}</span>
+                                    <TextInput fullwidth size={"sm"} bind:value={DBState.db.nanogptRequestModel} placeholder={(language as any).nanoGPTManualModelSelect || "Manual Model Select"} oninput={() => DBState.db.nanogptRequestModelName = ''}/>
+                                </div>
+                            {:else}
+                                {#await Promise.all([getNanoGPTModels(), getNanoGPTSubscriptionModels(DBState.db.nanogptKey)])}
+                                    <ModelGrid bind:value={DBState.db.nanogptRequestModel} loading={true} />
+                                {:then [regular, sub]}
+                                    <ModelGrid
+                                        bind:value={DBState.db.nanogptRequestModel}
+                                        items={DBState.db.nanogptUseSubscriptionEndpoint ? (sub ?? []).map(ngToGridItem) : (regular ?? []).map(ngToGridItem)}
+                                        showSubBadge={DBState.db.nanogptUseSubscriptionEndpoint}
+                                        selectedLabelOverride={DBState.db.nanogptRequestModel && !DBState.db.nanogptRequestModelName ? DBState.db.nanogptRequestModel : undefined}
+                                        onselect={(_id, name) => { DBState.db.nanogptRequestModelName = name }}
+                                    />
+                                    {#if !DBState.db.nanogptUseSubscriptionEndpoint}
+                                        <NanoGPTProviderPicker
+                                            apiKey={DBState.db.nanogptKey}
+                                            modelId={DBState.db.nanogptRequestModel}
+                                            bind:value={DBState.db.nanogptProvider}
+                                        />
+                                    {/if}
+                                {/await}
+                            {/if}
+                        {/if}
+                        {#if isModelShownForRole(role, modelId, 'openrouter')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">OpenRouter {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.openrouterKey} />
+                            </div>
 
-        {#if nanogptInputMode === 'manual'}
-            <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.nanogptRequestModel} placeholder={(language as any).nanoGPTManualModelSelect || "Manual Model Select"} oninput={() => DBState.db.nanogptRequestModelName = ''}/>
-        {:else}
-            {#await Promise.all([getNanoGPTModels(), getNanoGPTSubscriptionModels(DBState.db.nanogptKey)])}
-                <ModelGrid bind:value={DBState.db.nanogptRequestModel} loading={true} />
-            {:then [regular, sub]}
-                <ModelGrid
-                    bind:value={DBState.db.nanogptRequestModel}
-                    items={DBState.db.nanogptUseSubscriptionEndpoint ? (sub ?? []).map(ngToGridItem) : (regular ?? []).map(ngToGridItem)}
-                    showSubBadge={DBState.db.nanogptUseSubscriptionEndpoint}
-                    selectedLabelOverride={DBState.db.nanogptRequestModel && !DBState.db.nanogptRequestModelName ? DBState.db.nanogptRequestModel : undefined}
-                    onselect={(_id, name) => { DBState.db.nanogptRequestModelName = name }}
-                />
-                {#if !DBState.db.nanogptUseSubscriptionEndpoint}
-                    <NanoGPTProviderPicker
-                        apiKey={DBState.db.nanogptKey}
-                        modelId={DBState.db.nanogptRequestModel}
-                        bind:value={DBState.db.nanogptProvider}
-                    />
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-start">
+                                <span class="text-sm font-medium text-textcolor md:pt-2">OpenRouter {language.model}</span>
+                                {#await getOpenRouterModels()}
+                                    <ModelGrid bind:value={DBState.db.openrouterRequestModel} pinnedItems={openrouterPinnedItems} loading={true} />
+                                {:then m}
+                                    <ModelGrid bind:value={DBState.db.openrouterRequestModel} items={(m ?? []).map(orToGridItem)} pinnedItems={openrouterPinnedItems} />
+                                {/await}
+                            </div>
+                        {/if}
+                        {#if isModelShownForRole(role, modelId, 'openrouter') || isModelShownForRole(role, modelId, 'reverse_proxy')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">{language.tokenizer}</span>
+                                <SelectInput className="w-full" bind:value={DBState.db.customTokenizer}>
+                                    {#each tokenizerList as entry}
+                                        <OptionInput value={entry[0]}>{entry[1]}</OptionInput>
+                                    {/each}
+                                </SelectInput>
+                            </div>
+                        {/if}
+                        {#if isProviderShownForRole(role, info.provider === LLMProvider.OpenAI, modelInfo.provider === LLMProvider.OpenAI)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
+                            </div>
+                        {/if}
+
+                        {#if info.keyIdentifier && (role !== 'sub' || info.keyIdentifier !== modelInfo.keyIdentifier)}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">{info.name} {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.OaiCompAPIKeys[info.keyIdentifier]} placeholder="..."/>
+                            </div>
+                        {/if}
+
+                        <div class="flex flex-col gap-2 border-t border-darkborderc/60 pt-3">
+                            {#if modelId !== 'ollama-cloud' && info.flags.includes(LLMFlags.hasStreaming)}
+                                <Check bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`}/>
+
+                                {#if DBState.db.useStreaming && info.flags.includes(LLMFlags.geminiThinking)}
+                                    <Check bind:check={DBState.db.streamGeminiThoughts} name={`Stream Gemini Thoughts`}/>
+                                {/if}
+                            {/if}
+
+                            {#if isModelShownForRole(role, modelId, 'reverse_proxy')}
+                                <Check bind:check={DBState.db.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
+                            {/if}
+                            {#if isProviderShownForRole(role, info.provider === LLMProvider.NovelAI, modelInfo.provider === LLMProvider.NovelAI)}
+                                <Check bind:check={DBState.db.NAIadventure} name={language.textAdventureNAI}/>
+
+                                <Check bind:check={DBState.db.NAIappendName} name={language.appendNameNAI}/>
+                            {/if}
+                        </div>
+
+                        {#if isModelShownForRole(role, modelId, 'custom')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">{language.plugin}</span>
+                                <SelectInput className="w-full" bind:value={DBState.db.currentPluginProvider}>
+                                    <OptionInput value="">None</OptionInput>
+                                    {#each $customProviderStore as plugin}
+                                        <OptionInput value={plugin}>{plugin}</OptionInput>
+                                    {/each}
+                                </SelectInput>
+                            </div>
+                        {/if}
+
+                        {#if isModelShownForRole(role, modelId, 'kobold')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Kobold URL</span>
+                                <TextInput fullwidth size={"sm"} bind:value={DBState.db.koboldURL} />
+                            </div>
+                        {/if}
+
+                        {#if isModelShownForRole(role, modelId, 'echo_model')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-start">
+                                <span class="text-sm font-medium text-textcolor md:pt-2">Echo Message</span>
+                                <TextAreaInput margin="bottom" bind:value={DBState.db.echoMessage} placeholder={"The message you want to receive as the bot's response\n(e.g., Lumi tilts her head, her white hair sliding down as her pretty green and aqua eyes sparkle…)"}/>
+                            </div>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Echo Delay (Seconds)</span>
+                                <NumberInput marginBottom={true} bind:value={DBState.db.echoDelay} min={0}/>
+                            </div>
+                        {/if}
+
+                        {#if isPrefixShownForRole(role, modelId, 'horde')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Horde {language.apiKey}</span>
+                                <TextInput fullwidth hideText={DBState.db.hideApiKey} size={"sm"} bind:value={DBState.db.hordeConfig.apiKey} />
+                            </div>
+                        {/if}
+                        {#if isModelShownForRole(role, modelId, 'textgen_webui') || isModelShownForRole(role, modelId, 'mancer')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Blocking {language.providerURL}</span>
+                                <TextInput fullwidth size={"sm"} bind:value={DBState.db.textgenWebUIBlockingURL} placeholder="https://..."/>
+                            </div>
+                            <span class="text-draculared text-xs">You must use textgen webui with --public-api</span>
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Stream {language.providerURL}</span>
+                                <TextInput fullwidth size={"sm"} bind:value={DBState.db.textgenWebUIStreamURL} placeholder="wss://..."/>
+                            </div>
+                            {#if !isTauri}
+                                <span class="text-draculared text-xs">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
+                            {/if}
+                            <span class="text-draculared text-xs">Warning: For Ooba version over 1.7, use "Ooba" as model, and use url like http://127.0.0.1:5000/v1/chat/completions</span>
+                        {/if}
+                        {#if isModelShownForRole(role, modelId, 'ooba')}
+                            <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)] md:items-center">
+                                <span class="text-sm font-medium text-textcolor">Ooba {language.providerURL}</span>
+                                <TextInput fullwidth size={"sm"} bind:value={DBState.db.textgenWebUIBlockingURL} placeholder="https://..."/>
+                            </div>
+                        {/if}
+                        {#if isPrefixShownForRole(role, modelId, 'horde') || isModelShownForRole(role, modelId, 'kobold')}
+                            <div class="rounded-md border border-darkborderc/80 bg-darkbg/40 p-3">
+                                <ChatFormatSettings />
+                            </div>
+                        {/if}
+                        {/if}
+            </Accordion>
+        {/snippet}
+
+        {@render ModelCard('main')}
+        {@render ModelCard('sub')}
+
+        <div class="mt-2 rounded-md border border-darkborderc/80 bg-darkbg/35 p-3">
+            <div class="grid gap-3">
+                <Check bind:check={DBState.db.seperateModelsForAxModels} name={language.seperateModelsForAxModels}></Check>
+                {#if DBState.db.seperateModelsForAxModels}
+                    <Check bind:check={DBState.db.doNotChangeSeperateModels} name={language.doNotChangeSeperateModels}></Check>
                 {/if}
-            {/await}
-        {/if}
-    {/if}
-    {#if DBState.db.aiModel === 'openrouter' || DBState.db.subModel === 'openrouter'}
-        <span class="text-textcolor mt-4">OpenRouter {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.openrouterKey} />
+            </div>
+        </div>
 
-        <span class="text-textcolor mt-4">OpenRouter {language.model}</span>
-        {#await getOpenRouterModels()}
-            <ModelGrid bind:value={DBState.db.openrouterRequestModel} pinnedItems={openrouterPinnedItems} loading={true} />
-        {:then m}
-            <ModelGrid bind:value={DBState.db.openrouterRequestModel} items={(m ?? []).map(orToGridItem)} pinnedItems={openrouterPinnedItems} />
-        {/await}
-    {/if}
-    {#if DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'reverse_proxy'}
-        <span class="text-textcolor">{language.tokenizer}</span>
-        <SelectInput bind:value={DBState.db.customTokenizer}>
-            {#each tokenizerList as entry}
-                <OptionInput value={entry[0]}>{entry[1]}</OptionInput>
+        {#if DBState.db.seperateModelsForAxModels}
+            {#each auxModelRoles as role}
+                {@render ModelCard(role)}
             {/each}
-        </SelectInput>
-    {/if}
-    {#if modelInfo.provider === LLMProvider.OpenAI || subModelInfo.provider === LLMProvider.OpenAI}
-        <span class="text-textcolor">OpenAI {language.apiKey} <Help key="oaiapikey"/></span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.openAIKey} placeholder="sk-XXXXXXXXXXXXXXXXXXXX"/>
-    {/if}
-
-    {#if modelInfo.keyIdentifier}
-        <span class="text-textcolor">{modelInfo.name} {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.OaiCompAPIKeys[modelInfo.keyIdentifier]} placeholder="..."/>
-    {/if}
-
-    {#if subModelInfo.keyIdentifier && subModelInfo.keyIdentifier !== modelInfo.keyIdentifier}
-        <span class="text-textcolor">{subModelInfo.name} {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.OaiCompAPIKeys[subModelInfo.keyIdentifier]} placeholder="..."/>
-    {/if}
-
-    <div class="py-2 flex flex-col gap-2 mb-4">
-        {#if !usesOllamaCloud && (modelInfo.flags.includes(LLMFlags.hasStreaming) || subModelInfo.flags.includes(LLMFlags.hasStreaming))}
-            <Check bind:check={DBState.db.useStreaming} name={`Response ${language.streaming}`}/>
-            
-            {#if DBState.db.useStreaming && (modelInfo.flags.includes(LLMFlags.geminiThinking) || subModelInfo.flags.includes(LLMFlags.geminiThinking))}
-                <Check bind:check={DBState.db.streamGeminiThoughts} name={`Stream Gemini Thoughts`}/>
-            {/if}
-        {/if}
-
-        {#if DBState.db.aiModel === 'reverse_proxy' || DBState.db.subModel === 'reverse_proxy'}
-            <Check bind:check={DBState.db.reverseProxyOobaMode} name={`${language.reverseProxyOobaMode}`}/>
-        {/if}
-        {#if modelInfo.provider === LLMProvider.NovelAI || subModelInfo.provider === LLMProvider.NovelAI}
-            <Check bind:check={DBState.db.NAIadventure} name={language.textAdventureNAI}/>
-
-            <Check bind:check={DBState.db.NAIappendName} name={language.appendNameNAI}/>
         {/if}
     </div>
-
-    {#if DBState.db.aiModel === 'custom' || DBState.db.subModel === 'custom'}
-        <span class="text-textcolor mt-2">{language.plugin}</span>
-        <SelectInput className="mt-2 mb-4" bind:value={DBState.db.currentPluginProvider}>
-            <OptionInput value="">None</OptionInput>
-            {#each $customProviderStore as plugin}
-                <OptionInput value={plugin}>{plugin}</OptionInput>
-            {/each}
-        </SelectInput>
-    {/if}
-
-    {#if DBState.db.aiModel === "kobold" || DBState.db.subModel === "kobold"}
-        <span class="text-textcolor">Kobold URL</span>
-        <TextInput marginBottom={true} bind:value={DBState.db.koboldURL} />
-    {/if}
-
-    {#if DBState.db.aiModel === 'echo_model' || DBState.db.subModel === 'echo_model'}
-        <span class="text-textcolor mt-2">Echo Message</span>
-        <TextAreaInput margin="bottom" bind:value={DBState.db.echoMessage} placeholder={"The message you want to receive as the bot's response\n(e.g., Lumi tilts her head, her white hair sliding down as her pretty green and aqua eyes sparkle…)"}/>
-        <span class="text-textcolor mt-2">Echo Delay (Seconds)</span>
-        <NumberInput marginBottom={true} bind:value={DBState.db.echoDelay} min={0}/>
-    {/if}
-
-    {#if DBState.db.aiModel.startsWith("horde") || DBState.db.subModel.startsWith("horde") }
-        <span class="text-textcolor">Horde {language.apiKey}</span>
-        <TextInput hideText={DBState.db.hideApiKey} marginBottom={true} bind:value={DBState.db.hordeConfig.apiKey} />
-    {/if}
-    {#if DBState.db.aiModel === 'textgen_webui' || DBState.db.subModel === 'textgen_webui'
-        || DBState.db.aiModel === 'mancer' || DBState.db.subModel === 'mancer'}
-        <span class="text-textcolor mt-2">Blocking {language.providerURL}</span>
-        <TextInput marginBottom={true} bind:value={DBState.db.textgenWebUIBlockingURL} placeholder="https://..."/>
-        <span class="text-draculared text-xs mb-2">You must use textgen webui with --public-api</span>
-        <span class="text-textcolor mt-2">Stream {language.providerURL}</span>
-        <TextInput marginBottom={true} bind:value={DBState.db.textgenWebUIStreamURL} placeholder="wss://..."/>
-        {#if !isTauri}
-            <span class="text-draculared text-xs mb-2">You are using web version. you must use ngrok or other tunnels to use your local webui.</span>
-        {/if}
-        <span class="text-draculared text-xs mb-2">Warning: For Ooba version over 1.7, use "Ooba" as model, and use url like http://127.0.0.1:5000/v1/chat/completions</span>
-    {/if}
-    {#if DBState.db.aiModel === 'ooba' || DBState.db.subModel === 'ooba'}
-        <span class="text-textcolor mt-2">Ooba {language.providerURL}</span>
-        <TextInput marginBottom={true} bind:value={DBState.db.textgenWebUIBlockingURL} placeholder="https://..."/>
-    {/if}
-    {#if DBState.db.aiModel.startsWith("horde") || DBState.db.aiModel === 'kobold' }
-        <ChatFormatSettings />
-    {/if}
-
-    {#if DBState.db.auxModelUnderModelSettings}
-        <AuxModelSelectors />
-    {/if}
 {/if}
 
 {#if submenu === 1 || submenu === -1}

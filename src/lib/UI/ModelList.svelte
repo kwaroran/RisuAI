@@ -17,9 +17,10 @@
         blankable?: boolean
         excludesPrefix?: string
         noMargin?: boolean
+        fullWidth?: boolean
     }
 
-    let { value = $bindable(""), onChange = (v) => {}, onclick, blankable, excludesPrefix, noMargin }: Props = $props();
+    let { value = $bindable(""), onChange = (v) => {}, onclick, blankable, excludesPrefix, noMargin, fullWidth }: Props = $props();
     let openOptions = $state(false)
 
     function changeModel(name:string){
@@ -111,9 +112,10 @@
 
 <button onclick={() => {openOptions = true}}
     class={{
-        "drop-shadow-lg p-3 flex justify-center items-center ml-2 mr-2 rounded-lg bg-darkbutton border-darkborderc border": true,
+        "drop-shadow-lg p-3 flex justify-center items-center rounded-lg bg-darkbutton border-darkborderc border": true,
+        "ml-2 mr-2": !fullWidth,
         "my-4": !noMargin,
+        "w-full": fullWidth,
     }}>
         {getModelInfo(value)?.fullName || language.none}
 </button>
-
