@@ -55,6 +55,7 @@
         currentPage?: number;
         totalPages?: number;
         isComment?: boolean;
+        isStreaming?: boolean;
         disabled?: boolean | 'allBefore';
         isOptimizedStreamingMessage?: boolean;
         streamingOptimizationMode?: StreamingDisplayOptimizationMode;
@@ -80,6 +81,7 @@
         currentPage = 1,
         totalPages = 1,
         isComment = false,
+        isStreaming = false,
         disabled = false,
         isOptimizedStreamingMessage = false,
         streamingOptimizationMode = 'off',
@@ -518,6 +520,7 @@
                     {name}
                     {bodyRoot}
                     renderRevision={chatBodyRevision}
+                    {isStreaming}
                     modelShortName={
                         messageGenerationInfo ? getModelInfo(messageGenerationInfo?.model).shortName : ''
                     }
