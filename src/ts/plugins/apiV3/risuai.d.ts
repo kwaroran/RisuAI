@@ -366,6 +366,28 @@ interface Persona {
 }
 
 /**
+ * Options for getDatabase
+ */
+interface GetDatabaseOptions {
+    /** Include only specific nested fields from array/object values.
+     * Keys are top-level DB keys, values are arrays of field names to include.
+     * If both include and exclude are specified for the same key, include takes priority.
+     */
+    include?: Record<string, string[]>;
+    /** Exclude specific nested fields from array/object values to avoid costly deep copies.
+     * Keys are top-level DB keys, values are arrays of field names to exclude.
+     */
+    exclude?: Record<string, string[]>;
+}
+
+interface SetDatabaseOptions {
+    /** Only write back these top-level keys. Other keys in the object are ignored. */
+    include?: string[];
+    /** Skip writing back these top-level keys. */
+    exclude?: string[];
+}
+
+/**
  * Database subset with limited access to allowed keys only.
  * Plugins can only access these specific database properties for security.
  */
@@ -1467,6 +1489,7 @@ interface RisuaiPluginAPI {
     /**
      * Gets the database with limited access
      * @param includeOnly - Array of keys to include or 'all' for all allowed keys. defaults to 'all'.
+     * @param options - Options for filtering nested fields
      * @returns DatabaseSubset object (limited to allowed keys) or null if consent not given
      *
      * Allowed keys: characters, modules, enabledModules, moduleIntergration,
@@ -1476,28 +1499,69 @@ interface RisuaiPluginAPI {
      * customCSS, guiHTML, colorSchemeName, characterOrder, selectedPersona
      *
      * Use includeOnly to limit which keys to retrieve for better performance.
-     * 
+     * Use options.exclude to skip heavy nested fields (e.g. chats, lorebook) from being deep-copied.
+     *
+     * Note: keys returned with field filtering are partial projections, tagged internally.
+     * When written back via setDatabase/setDatabaseLite they are merged into the live data
+     * (array elements matched by id) so the omitted fields (e.g. chats) are preserved instead
+     * of overwritten. This makes cheap partial updates safe.
+     *
      * @example
      * ```typescript
+     * // Basic usage
      * const db = await risuai.getDatabase();
      * if(db) {
      *   console.log(db.characters);
      * }
+     *
+     * // Include only specific nested fields
+     * const db = await risuai.getDatabase(['characters'], {
+     *   include: { characters: ['chaId', 'name', 'chatPage', 'modules'] }
+     * });
+     *
+     * // Exclude heavy nested fields
+     * const db = await risuai.getDatabase(['characters', 'modules'], {
+     *   exclude: {
+     *     characters: ['chats', 'globalLore', 'emotionImages'],
+     *     modules: ['lorebook', 'cjs', 'regex', 'trigger', 'assets']
+     *   }
+     * });
      * ```
      */
-    getDatabase(includeOnly:string[]|'all' = 'all'): Promise<DatabaseSubset|null>;
+    getDatabase(includeOnly?:string[]|'all', options?: GetDatabaseOptions): Promise<DatabaseSubset|null>;
 
     /**
      * Sets the database (lightweight save)
      * @param db - DatabaseSubset object to save
+     * @param options - Options to control which top-level keys to write back
+     *
+     * @example
+     * ```typescript
+     * // Write back only specific keys (use when db contains filtered data)
+     * await risuai.setDatabaseLite(db, { include: ['enabledModules'] });
+     *
+     * // Write back everything except specific keys
+     * await risuai.setDatabaseLite(db, { exclude: ['characters', 'modules'] });
+     * ```
+     * Keys that were read with field filtering (partial projections) are merged into the
+     * live data instead of replacing it: omitted fields (e.g. chats) are preserved and array
+     * elements are matched by their id (chaId for characters, id otherwise). This makes
+     * read-light → edit → write-light partial updates safe and cheap. Note: a field omitted
+     * at read time cannot be deleted through this path — re-fetch the key in full to remove
+     * nested fields. The partial tag lives on the object getDatabase returned, so pass that
+     * object back (optionally with include/exclude options); a wrapper rebuilt from scratch
+     * loses the tag and is replaced wholesale.
      */
-    setDatabaseLite(db: DatabaseSubset): Promise<void>;
+    setDatabaseLite(db: DatabaseSubset, options?: SetDatabaseOptions): Promise<void>;
 
     /**
      * Sets the database (full save with sync)
      * @param db - DatabaseSubset object to save
+     * @param options - Options to control which top-level keys to write back
+     *
+     * Field-filtered (partial) keys are merged into the live data — see setDatabaseLite.
      */
-    setDatabase(db: DatabaseSubset): Promise<void>;
+    setDatabase(db: DatabaseSubset, options?: SetDatabaseOptions): Promise<void>;
 
     // ========== Color Scheme APIs ==========
 
