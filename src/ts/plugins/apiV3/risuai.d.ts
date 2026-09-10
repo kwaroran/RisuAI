@@ -1489,9 +1489,10 @@ interface RisuaiPluginAPI {
 
     /**
      * Sets the database (lightweight save)
-     * @param db - DatabaseSubset object to save
+     * The `plugins` property is ignored. Use setDatabase() to update plugins.
+     * @param db - DatabaseSubset object to save, excluding `plugins`
      */
-    setDatabaseLite(db: DatabaseSubset): Promise<void>;
+    setDatabaseLite(db: Omit<DatabaseSubset, 'plugins'>): Promise<void>;
 
     /**
      * Sets the database (full save with sync)

@@ -36,6 +36,7 @@ import {
     type AfterTTSResult,
     type TTSHookFn,
 } from "src/ts/process/ttsHooks";
+import isEqual from "lodash/isEqual";
 
 /*
     V3 API for RisuAI Plugins
@@ -740,7 +741,19 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             addPluginUnloadCallback(plugin.name, () => oldApis.removeRisuChatListener(mode, func as any));
         },
         removeRisuChatListener: oldApis.removeRisuChatListener,
-        setDatabaseLite: oldApis.setDatabaseLite,
+        setDatabaseLite: (newDb: any) => {
+            if(newDb && Object.hasOwn(newDb, 'plugins')){
+                if(import.meta.env.DEV && !isEqual(newDb.plugins, $state.snapshot(DBState.db.plugins))){
+                    console.warn(`Plugin "${plugin.name}" attempted to modify the plugin list using setDatabaseLite. The change was ignored.`);
+                }
+
+                const safeDb = {...newDb};
+                delete safeDb.plugins;
+                return oldApis.setDatabaseLite(safeDb);
+            }
+
+            return oldApis.setDatabaseLite(newDb);
+        },
         setDatabase: oldApis.setDatabase,
         loadPlugins: oldApis.loadPlugins,
         readImage: oldApis.readImage,
