@@ -768,7 +768,8 @@ export const getV2PluginAPIs = () => {
             for (const key of Object.keys(newDb)) {
                 if (key === 'plugins') {
                     console.warn('[WARN] Plugin attempted to access plugin directly. this would be blocked in future versions. Instead, use the provided APIs to manage plugins. Attempting to handle plugin installation via plugin for new plugins in the provided database object.')
-                    newDb[key] = await handlePluginInstallViaPlugin(newDb.plugins)
+                    const approvedPlugins = await handlePluginInstallViaPlugin(newDb.plugins)
+                    newDb[key] = (db.plugins ?? []).filter((plugin) => !approvedPlugins.some((approved) => approved.name === plugin.name)).concat(approvedPlugins)
                 }
                 
                 if (allowedDbKeys.includes(key)) {
