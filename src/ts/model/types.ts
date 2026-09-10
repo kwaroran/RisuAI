@@ -27,7 +27,8 @@ export const LLMFlags = {
     claudeXHighEffort: 23,
     deepSeekThinkingToggle: 24,
     noStructuredOutput: 25,
-    geminiThinkingNoMinimal: 26
+    geminiThinkingNoMinimal: 26,
+    claudeThinkingOnByDefault: 27
 } as const;
 export type LLMFlags = (typeof LLMFlags)[keyof typeof LLMFlags];
 
@@ -100,6 +101,19 @@ export const LLMTokenizer = {
     GLM5: 16
 } as const;
 export type LLMTokenizer = (typeof LLMTokenizer)[keyof typeof LLMTokenizer];
+
+export type ClaudeThinkingType = 'off' | 'budget' | 'adaptive'
+
+export function resolveClaudeThinkingType(flags: LLMFlags[], thinkingType: ClaudeThinkingType): ClaudeThinkingType {
+    if (
+        thinkingType === 'budget' &&
+        !flags.includes(LLMFlags.claudeThinking) &&
+        flags.includes(LLMFlags.claudeAdaptiveThinking)
+    ) {
+        return 'adaptive'
+    }
+    return thinkingType
+}
 
 export interface LLMModel{
     id: string

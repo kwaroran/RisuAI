@@ -3,6 +3,7 @@ import { HttpRequest } from "@smithy/protocol-http"
 import { SignatureV4 } from "@smithy/signature-v4"
 import { addFetchLog, fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { LLMFlags, LLMFormat } from "src/ts/model/modellist"
+import { resolveClaudeThinkingType } from "src/ts/model/types"
 import { registerClaudeObserver } from "src/ts/observer.svelte"
 import { getDatabase } from "src/ts/storage/database.svelte"
 import { replaceAsync, simplifySchema, sleep } from "src/ts/util"
@@ -361,10 +362,17 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
     })
 
     // Handle thinking mode: off, adaptive, or budget
-    if(db.thinkingType === 'off'){
-        delete body.thinking
+    const thinkingType = resolveClaudeThinkingType(arg.modelInfo.flags, db.thinkingType)
+
+    if(thinkingType === 'off'){
+        if(arg.modelInfo.flags.includes(LLMFlags.claudeThinkingOnByDefault)){
+            body.thinking = { type: 'disabled' }
+        }
+        else {
+            delete body.thinking
+        }
     }
-    else if(db.thinkingType === 'adaptive' && arg.modelInfo.flags.includes(LLMFlags.claudeAdaptiveThinking)){
+    else if(thinkingType === 'adaptive' && arg.modelInfo.flags.includes(LLMFlags.claudeAdaptiveThinking)){
         // Adaptive thinking mode
         delete body.thinking
         body.thinking = { type: 'adaptive', display: 'summarized' }
