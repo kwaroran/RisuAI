@@ -5,7 +5,7 @@
     import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen, ScrollToMessageStore, additionalChatMenu, additionalFloatingActionButtons, easyPanelStore, chatPanelStore } from "../../ts/stores.svelte";
     import { tick } from 'svelte';
     import Chat from "./Chat.svelte";
-    import { type Message } from "../../ts/storage/database.svelte";
+    import { type MessageVariant } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
     import { getCharImage } from "../../ts/characters";
     import { chatProcessStage, doingChat, sendChat } from "../../ts/process/index.svelte";
@@ -22,7 +22,7 @@
     import { aiLawApplies, chatFoldedState, chatFoldedStateMessageIndex, downloadFile } from 'src/ts/globalApi.svelte';
     import { runTrigger } from 'src/ts/process/triggers';
     import { v4 } from 'uuid';
-    import { PreUnreroll, Prereroll } from 'src/ts/process/prereroll';
+    import { attachVariants, collectVariants, switchVariant } from 'src/ts/process/prereroll';
     import { processMultiCommand } from 'src/ts/process/command';
     import { postChatFile } from 'src/ts/process/files/multisend';
     import { getInlayAsset } from 'src/ts/process/files/inlays';
@@ -46,9 +46,8 @@
     let openMenu = $state(false)
     let loadPages = $state(getInitialChatLoadPages(DBState.db))
     let autoMode = $state(false)
-    let rerolls:Message[][] = []
-    let rerollid = -1
-    let lastCharId = -1
+    let pendingVariants:MessageVariant[]|null = null
+    let pendingVariantsKey = ''
     let doingChatInputTranslate = false
     let toggleStickers:boolean = $state(false)
     let fileInput:string[] = $state([])
@@ -146,10 +145,6 @@
         if($doingChat){
             return
         }
-        if(lastCharId !== $selectedCharID){
-            rerolls = []
-            rerollid = -1
-        }
 
         let cha = DBState.db.characters[selectedChar].chats[DBState.db.characters[selectedChar].chatPage].message
 
@@ -208,7 +203,7 @@
         messageInput = ''
         messageInputTranslate = ''
         DBState.db.characters[selectedChar].chats[DBState.db.characters[selectedChar].chatPage].message = cha
-        rerolls = []
+        pendingVariants = null
         await sleep(10)
         updateInputSizeAll()
         await sendChatMain(continueResponse)
@@ -219,39 +214,16 @@
         if($doingChat){
             return
         }
-        if(lastCharId !== $selectedCharID){
-            rerolls = []
-            rerollid = -1
-        }
-        const genId = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.at(-1)?.generationInfo?.generationId
-        if(genId){
-            const r = Prereroll(genId)
-            if(r){
-                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1].data = r
-                return
-            }
-        }
-        if(rerollid < rerolls.length - 1){
-            if(Array.isArray(rerolls[rerollid + 1])){
-                rerollid += 1
-                let rerollData = safeStructuredClone(rerolls[rerollid])
-                let msgs = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
-                for(let i = 0; i < rerollData.length; i++){
-                    msgs[msgs.length - rerollData.length + i] = rerollData[i]
-                }
-                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msgs
-            }
+        const lastMsg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.at(-1)
+        if(lastMsg && switchVariant(lastMsg, 1)){
             return
-        }
-        if(rerolls.length === 0){
-            rerolls.push(safeStructuredClone([DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.at(-1)]))
-            rerollid = rerolls.length - 1
         }
         let cha = safeStructuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message)
         if(cha.length === 0 ){
             return
         }
         openMenu = false
+        const lastBeforePop = cha[cha.length - 1]
         const saying = cha[cha.length - 1].saying
         let sayingQu = 2
         while(cha[cha.length - 1].role !== 'user'){
@@ -266,6 +238,15 @@
                 return
             }
         }
+        const popped = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - cha.length
+        if(popped === 1){
+            pendingVariants = collectVariants(lastBeforePop)
+            pendingVariantsKey = currentChatKey()
+        }
+        else if(popped > 1){
+            pendingVariants = null
+        }
+        //popped === 0 keeps pendingVariants: retrying after a failed regeneration starts from the user message
         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = cha
         await sendChatMain()
     }
@@ -274,33 +255,17 @@
         if($doingChat){
             return
         }
-        if(lastCharId !== $selectedCharID){
-            rerolls = []
-            rerollid = -1
-        }
-        const genId = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.at(-1)?.generationInfo?.generationId
-        if(genId){
-            const r = PreUnreroll(genId)
-            if(r){
-                DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message[DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length - 1].data = r
-                return
-            }
-        }
-        if(rerollid <= 0){
-            return
-        }
-        if(Array.isArray(rerolls[rerollid - 1])){
-            rerollid -= 1
-            let rerollData = safeStructuredClone(rerolls[rerollid])
-            let msgs = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
-            for(let i = 0; i < rerollData.length; i++){
-                msgs[msgs.length - rerollData.length + i] = rerollData[i]
-            }
-            DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message = msgs
+        const lastMsg = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.at(-1)
+        if(lastMsg){
+            switchVariant(lastMsg, -1)
         }
     }
 
     let abortController:null|AbortController = null
+
+    function currentChatKey(){
+        return `${$selectedCharID}:${DBState.db.characters[$selectedCharID].chatPage}`
+    }
 
     async function sendChatMain(continued:boolean = false) {
 
@@ -312,15 +277,18 @@
                 signal:abortController.signal,
                 continue:continued
             })
-            if(previousLength < DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length){
-                rerolls.push(safeStructuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message).slice(previousLength))
-                rerollid = rerolls.length - 1
+            const message = DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message
+            if(message.length > previousLength){
+                if(message.length - previousLength === 1 && pendingVariants && pendingVariantsKey === currentChatKey()){
+                    attachVariants(message[message.length - 1], pendingVariants)
+                }
+                pendingVariants = null
             }
+            //pendingVariants is kept when nothing was generated, so a retry can still attach it
         } catch (error) {
             console.error(error)
             alertError(error)
         }
-        lastCharId = $selectedCharID
         $doingChat = false
         if(DBState.db.playMessage){
             const audio = new Audio(sendSound);

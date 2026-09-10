@@ -1859,6 +1859,15 @@ export interface Message{
     otherUser?:boolean
     disabled?:false|true|'allBefore'
     isComment?:boolean
+    variants?: MessageVariant[]
+    variantIndex?: number
+}
+
+export interface MessageVariant{
+    data: string
+    time?: number
+    saying?: string
+    generationInfo?: MessageGenerationInfo
 }
 
 export interface MessageGenerationInfo{
