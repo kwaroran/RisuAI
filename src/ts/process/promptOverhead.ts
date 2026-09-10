@@ -45,6 +45,8 @@ const defaultUtilityTemplate = [
 ] as any[]
 
 const inlayRegex = /{{(inlay|inlayed|inlayeddata)::(.+?)}}/g
+const thoughtsRegex = /<Thoughts>(.+)<\/Thoughts>/gms
+const assetPromptRegex = /\{\{asset_?prompt::(.+?)\}\}/gmsiu
 
 const defaultGroupTemplate = `<{{char}}'s Message>\n{{slot}}\n</{{char}}'s Message>`
 
@@ -71,6 +73,9 @@ function collectEnabledMessages(chat: Chat): { messages: Message[]; reset: boole
 }
 
 function buildRecentChatEntries(chara: character, chat: Chat, isGroup: boolean, count: number): TokenizeEntry[] {
+    if (!(count > 0)) {
+        return []
+    }
     const db = getDatabase()
     const sendName = !!db.promptTemplate && !!db.promptSettings?.sendName
     const { messages, reset } = collectEnabledMessages(chat)
@@ -96,6 +101,7 @@ function buildRecentChatEntries(chara: character, chat: Chat, isGroup: boolean, 
             const form = db.groupTemplate || defaultGroupTemplate
             content = risuChatParser(form, { chara: speaker.name }).replace('{{slot}}', content)
         }
+        content = content.replace(thoughtsRegex, '').replace(assetPromptRegex, '')
         entries.push({
             bucket: 'recentChats',
             role: msg.role === 'user' ? 'user' : 'assistant',
