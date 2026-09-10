@@ -354,9 +354,12 @@ export function reformater(formated:OpenAIChat[],modelInfo:LLMModel|LLMFlags[]){
 
     if(!flags.includes(LLMFlags.hasFullSystemPrompt)){
         if(flags.includes(LLMFlags.hasFirstSystemPrompt)){
-            while(formated[0].role === 'system'){
+            while(formated[0]?.role === 'system' && !systemPrompt?.cachePoint){
                 if(systemPrompt){
                     systemPrompt.content += '\n\n' + formated[0].content
+                    if(formated[0].cachePoint){
+                        systemPrompt.cachePoint = true
+                    }
                 }
                 else{
                     systemPrompt = formated[0]
@@ -382,7 +385,7 @@ export function reformater(formated:OpenAIChat[],modelInfo:LLMModel|LLMFlags[]){
                 continue
             }
 
-            if(newFormated[newFormated.length-1].role === m.role){
+            if(newFormated[newFormated.length-1].role === m.role && !newFormated[newFormated.length-1].cachePoint){
             
                 newFormated[newFormated.length-1].content += '\n' + m.content
 
