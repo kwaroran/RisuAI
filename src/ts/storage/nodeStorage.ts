@@ -2,6 +2,88 @@ import { language } from "src/lang"
 import { alertError, alertInput, waitAlert } from "../alert"
 import { base64url, getKeypairStore, saveKeypairStore } from "../util"
 
+const MAX_STORAGE_ERROR_DETAIL_LENGTH = 2000
+
+function formatStorageValueSize(byteLength:number) {
+    if(byteLength < 1024){
+        return `${byteLength} bytes`
+    }
+
+    const units = ['KiB', 'MiB', 'GiB']
+    let size = byteLength
+    let unitIndex = -1
+    do {
+        size /= 1024
+        unitIndex += 1
+    } while(size >= 1024 && unitIndex < units.length - 1)
+
+    return `${byteLength} bytes (${size.toFixed(2)} ${units[unitIndex]})`
+}
+
+function formatUnknownError(error:unknown) {
+    if(error instanceof Error){
+        return error.message
+    }
+    if(typeof error === 'string'){
+        return error
+    }
+    try {
+        return JSON.stringify(error) ?? `${error}`
+    } catch {
+        return `${error}`
+    }
+}
+
+function normalizeStorageErrorDetail(detail:string) {
+    const normalized = detail
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n\s+/g, '\n')
+        .trim()
+
+    if(normalized.length <= MAX_STORAGE_ERROR_DETAIL_LENGTH){
+        return normalized
+    }
+    return normalized.slice(0, MAX_STORAGE_ERROR_DETAIL_LENGTH) + '...'
+}
+
+async function getStorageResponseErrorDetail(response:Response) {
+    let responseText = ''
+    try {
+        responseText = await response.text()
+    } catch (error) {
+        return `Could not read the server response: ${formatUnknownError(error)}`
+    }
+
+    if(!responseText.trim()){
+        return ''
+    }
+
+    try {
+        const body = JSON.parse(responseText)
+        if(body && typeof body === 'object'){
+            const details = [body.error, body.code, body.message, body.details]
+                .filter((value, index, values) => value != null && value !== '' && values.indexOf(value) === index)
+                .map((value) => formatUnknownError(value))
+            if(details.length > 0){
+                return normalizeStorageErrorDetail(details.join(' | '))
+            }
+        }
+    } catch {}
+
+    return normalizeStorageErrorDetail(responseText)
+}
+
+function getSetItemContext(key:string, byteLength:number) {
+    return `Key: ${key}\nSize: ${formatStorageValueSize(byteLength)}`
+}
+
 
 export class NodeStorage{
 
@@ -71,21 +153,39 @@ export class NodeStorage{
 
     async setItem(key:string, value:Uint8Array) {
         await this.checkAuth()
-        const da = await fetch('/api/write', {
-            method: "POST",
-            body: value as any,
-            headers: {
-                'content-type': 'application/octet-stream',
-                'file-path': Buffer.from(key, 'utf-8').toString('hex'),
-                'risu-auth': await this.createAuth()
-            }
-        })
-        if(da.status < 200 || da.status >= 300){
-            throw "setItem Error"
+        const context = getSetItemContext(key, value.byteLength)
+        let response:Response
+        try {
+            response = await fetch('/api/write', {
+                method: "POST",
+                body: value as any,
+                headers: {
+                    'content-type': 'application/octet-stream',
+                    'file-path': Buffer.from(key, 'utf-8').toString('hex'),
+                    'risu-auth': await this.createAuth()
+                }
+            })
+        } catch (error) {
+            throw new Error(`Node storage setItem request failed.\n${context}\nCause: ${formatUnknownError(error)}`)
         }
-        const data = await da.json()
+
+        if(!response.ok){
+            const responseDetail = await getStorageResponseErrorDetail(response)
+            const httpStatus = `${response.status}${response.statusText ? ` ${response.statusText}` : ''}`
+            throw new Error(
+                `Node storage setItem failed.\n${context}\nHTTP: ${httpStatus}` +
+                (responseDetail ? `\nServer: ${responseDetail}` : '')
+            )
+        }
+
+        let data:any
+        try {
+            data = await response.json()
+        } catch (error) {
+            throw new Error(`Node storage setItem received an invalid response.\n${context}\nCause: ${formatUnknownError(error)}`)
+        }
         if(data.error){
-            throw data.error
+            throw new Error(`Node storage setItem failed.\n${context}\nServer: ${formatUnknownError(data.error)}`)
         }
     }
     async getItem(key:string):Promise<Buffer> {
