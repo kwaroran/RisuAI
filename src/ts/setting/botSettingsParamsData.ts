@@ -38,10 +38,11 @@ export const seedSetting: SettingItem = {
     type: 'number',
     labelKey: 'seed',
     bindKey: 'generationSeed',
-    condition: (ctx) => 
-        ctx.db.aiModel.startsWith('gpt') || 
-        ctx.db.aiModel === 'reverse_proxy' || 
-        ctx.db.aiModel === 'openrouter',
+    condition: (ctx) =>
+        ctx.db.aiModel.startsWith('gpt') ||
+        ctx.db.aiModel === 'reverse_proxy' ||
+        ctx.db.aiModel === 'openrouter' ||
+        ctx.db.aiModel === 'orcarouter',
     keywords: ['seed', 'random', 'deterministic'],
 };
 

@@ -358,6 +358,8 @@ export const languageEnglish = {
         ],
         setupOpenRouter:
             "To use OpenRouter, you need to get an API key. \n1. Go to https://openrouter.ai/keys\n2. Click 'Create Key'\n3. Set key name whatever you want.\n4. Copy the key in the website\n5. Go back to Risuai\n6. Paste it, and click send button.",
+        setupOrcaRouter:
+            "To use OrcaRouter, you need to get an API key. \n1. Go to https://www.orcarouter.ai\n2. Create an account and generate a key\n3. Copy the key in the website\n4. Go back to Risuai\n5. Paste it, and click send button.",
         allDone: "All Done! Please wait a moment.",
         setupLaterMessage: "Welcome {username}! Do you want me to guide you to setup or do it yourself?",
         setupMessageOption1: "Guide me to setup",

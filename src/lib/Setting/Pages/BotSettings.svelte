@@ -22,6 +22,7 @@
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import SegmentedControl from "src/lib/UI/GUI/SegmentedControl.svelte";
     import { getOpenRouterModels, toModelGridItem as orToGridItem } from "src/ts/model/openrouter";
+    import { getOrcaRouterModels, toModelGridItem as ocarToGridItem } from "src/ts/model/orcarouter";
     import { getNanoGPTModels, getNanoGPTSubscriptionModels, toModelGridItem as ngToGridItem } from "src/ts/model/nanogpt";
     import { getOllamaModels } from "src/ts/model/ollama";
     import ModelGrid from "src/lib/UI/ModelGrid.svelte";
@@ -31,6 +32,7 @@
     import OobaSettings from "./OobaSettings.svelte";
     import Accordion from "src/lib/UI/Accordion.svelte";
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
+    import OrcarouterSettings from "./OrcarouterSettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
     import PromptSettings from "./PromptSettings.svelte";
     import { openPresetList } from "src/ts/stores.svelte";
@@ -45,6 +47,11 @@
     const openrouterPinnedItems: ModelGridPinnedItem[] = [
         { id: 'risu/free',       displayName: 'Free Auto',       providerName: 'Risu'       },
         { id: 'openrouter/auto', displayName: 'OpenRouter Auto', providerName: 'OpenRouter' },
+    ]
+
+    const orcarouterPinnedItems: ModelGridPinnedItem[] = [
+        { id: 'orcarouter/auto', displayName: 'OrcaRouter Auto', providerName: 'OrcaRouter' },
+        { id: 'orcarouter/free', displayName: 'Free Auto',       providerName: 'OrcaRouter' },
     ]
 
     // Reset model selection and display name when subscription mode toggles
@@ -390,7 +397,18 @@
             <ModelGrid bind:value={DBState.db.openrouterRequestModel} items={(m ?? []).map(orToGridItem)} pinnedItems={openrouterPinnedItems} />
         {/await}
     {/if}
-    {#if DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'reverse_proxy'}
+    {#if DBState.db.aiModel === 'orcarouter' || DBState.db.subModel === 'orcarouter'}
+        <span class="text-textcolor mt-4">OrcaRouter {language.apiKey}</span>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.orcarouterKey} />
+
+        <span class="text-textcolor mt-4">OrcaRouter {language.model}</span>
+        {#await getOrcaRouterModels()}
+            <ModelGrid bind:value={DBState.db.orcarouterRequestModel} pinnedItems={orcarouterPinnedItems} loading={true} />
+        {:then m}
+            <ModelGrid bind:value={DBState.db.orcarouterRequestModel} items={(m ?? []).map(ocarToGridItem)} pinnedItems={orcarouterPinnedItems} />
+        {/await}
+    {/if}
+    {#if DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'orcarouter' || DBState.db.aiModel === 'reverse_proxy'}
         <span class="text-textcolor">{language.tokenizer}</span>
         <SelectInput bind:value={DBState.db.customTokenizer}>
             {#each tokenizerList as entry}
@@ -612,6 +630,10 @@
 
     {#if DBState.db.aiModel.startsWith('openrouter')}
         <OpenrouterSettings />
+    {/if}
+
+    {#if DBState.db.aiModel.startsWith('orcarouter')}
+        <OrcarouterSettings />
     {/if}
 
     <!-- Separate Parameters - handled by custom component -->
