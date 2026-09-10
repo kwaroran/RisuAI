@@ -198,6 +198,7 @@ export const advancedSettingsItems: SettingItem[] = [
     },
     {
         id: 'adv.remoteSave', type: 'check', labelKey: 'enableRemoteSaving', bindKey: 'enableRemoteSaving',
+        classes: 'mt-4'
     },
 
     // Dynamic Assets & Others
