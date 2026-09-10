@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer } from 'src/ts/model/types'
 import { fetchNative } from 'src/ts/globalApi.svelte'
 import { callTool } from '../../mcp/mcp'
-import { __testResponsesAPI, requestOpenAIResponseAPI } from './requests'
+import { __testResponsesAPI, requestOpenAI, requestOpenAILegacyInstruct, requestOpenAIResponseAPI } from './requests'
 
 const mocks = vi.hoisted(() => ({
     db: {
@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
         jsonSchema: '{"type":"object","properties":{"answer":{"type":"string"}},"required":["answer"],"additionalProperties":false}',
         jsonSchemaEnabled: false,
         localNetworkMode: false,
+        mistralKey: 'mistral-key',
         modelTools: [] as string[],
         newOAIHandle: true,
         nanogptKey: 'nanogpt-key',
@@ -368,6 +369,79 @@ describe('OpenAI Responses API helpers', () => {
         expect(preview.headers['X-Custom']).toBe('yes')
         expect(preview.body.metadata.tier).toBe('gold')
         expect(preview.body.extra).toEqual({ enabled: true })
+    })
+
+    it('includes OpenRouter attribution headers in Responses previews', async () => {
+        const result = await requestOpenAIResponseAPI(baseArg({
+            aiModel: 'reverse_proxy',
+            customURL: 'https://openrouter.ai/api/v1',
+            previewBody: true,
+        }))
+
+        expect(result.type).toBe('success')
+        const preview = JSON.parse(result.result as string)
+        expect(preview.headers['HTTP-Referer']).toBe('https://risuai.xyz')
+        expect(preview.headers['X-OpenRouter-Title']).toBe('Risuai')
+    })
+
+    it('preserves an explicit OpenRouter attribution opt-out in Responses previews', async () => {
+        mocks.db.additionalParams = [['header::X-Title', '{{none}}']]
+
+        const result = await requestOpenAIResponseAPI(baseArg({
+            aiModel: 'reverse_proxy',
+            customURL: 'https://openrouter.ai/api/v1',
+            previewBody: true,
+        }))
+
+        expect(result.type).toBe('success')
+        const preview = JSON.parse(result.result as string)
+        expect(preview.headers['HTTP-Referer']).toBe('https://risuai.xyz')
+        expect(preview.headers).not.toHaveProperty('X-Title')
+        expect(preview.headers).not.toHaveProperty('X-OpenRouter-Title')
+    })
+
+    it('includes OpenRouter attribution headers in Mistral previews', async () => {
+        const result = await requestOpenAI(baseArg({
+            aiModel: 'xcustom:::mistral',
+            customURL: 'https://openrouter.ai/api/v1/chat/completions',
+            previewBody: true,
+            modelInfo: {
+                ...baseArg().modelInfo,
+                flags: [],
+                format: LLMFormat.Mistral,
+                id: 'xcustom:::mistral',
+            },
+        }))
+
+        expect(result.type).toBe('success')
+        const preview = JSON.parse(result.result as string)
+        expect(preview.headers['HTTP-Referer']).toBe('https://risuai.xyz')
+        expect(preview.headers['X-OpenRouter-Title']).toBe('Risuai')
+    })
+
+    it('preserves an explicit OpenRouter attribution opt-out for Legacy Instruct', async () => {
+        mocks.db.additionalParams = [['header::X-Title', '{{none}}']]
+        mocks.globalFetch.mockResolvedValueOnce({
+            ok: true,
+            data: { choices: [{ text: 'ok' }] },
+        })
+
+        const result = await requestOpenAILegacyInstruct(baseArg({
+            aiModel: 'reverse_proxy',
+            customURL: 'https://openrouter.ai/api/v1/completions',
+        }))
+
+        expect(result).toEqual({ type: 'success', result: 'ok' })
+        expect(mocks.globalFetch).toHaveBeenCalledWith(
+            'https://openrouter.ai/api/v1/completions',
+            expect.objectContaining({
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer openai-key',
+                    'HTTP-Referer': 'https://risuai.xyz',
+                },
+            }),
+        )
     })
 
     it('does not duplicate top-level output_text when message output blocks are also present', () => {

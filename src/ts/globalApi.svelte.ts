@@ -43,6 +43,7 @@ import type { AccountStorage } from "./storage/accountStorage";
 import { getColdStorageItem, makeColdData } from "./process/coldstorage.svelte";
 import { isTauri, isNodeServer } from "./platform";
 import { isLocalNetworkUrl } from "./network/localNetwork";
+import { isOpenRouterUrl, withOpenRouterAttributionHeaders } from "./network/openRouterHeaders";
 import { decodeProxyJobWsChunk, formatProxyStreamErrorMessage, parseProxyJobWsEvent } from "./network/proxyJobWs";
 import { getNodeServerProxyAuth } from "./storage/nodeStorage";
 
@@ -680,6 +681,12 @@ export function addFetchLog(arg: {
  */
 export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promise<GlobalFetchResult> {
     try {
+        if(isOpenRouterUrl(url)){
+            const headers = withOpenRouterAttributionHeaders(url, arg.headers)
+            if(headers !== arg.headers){
+                arg = { ...arg, headers }
+            }
+        }
         const db = getDatabase();
         if (arg.abortSignal?.aborted) { return { ok: false, data: 'aborted', headers: {}, status: 400 }; }
 
@@ -1721,8 +1728,14 @@ export async function fetchNative(url: string, arg: {
     logFetch?: boolean
     requestTimeoutMs?: number
     networkRoute?: 'auto' | 'local_network'
-}): Promise<Response> {
+} = {}): Promise<Response> {
 
+    if(isOpenRouterUrl(url)){
+        const headers = withOpenRouterAttributionHeaders(url, arg.headers)
+        if(headers !== arg.headers){
+            arg = { ...arg, headers }
+        }
+    }
     const useInterceptor = !!arg.interceptor
     console.log(arg.body, 'body')
     if (arg.body === undefined && (arg.method === 'POST' || arg.method === 'PUT')) {
