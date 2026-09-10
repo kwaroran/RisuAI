@@ -15,7 +15,7 @@
 
     type LoadoutApplyOption = 'modules' | 'globalVariables' | 'preset' | 'persona';
 
-    let loadOptions: Record<LoadoutApplyOption, boolean> = $state({
+    let loadOptions: Record<LoadoutApplyOption, boolean> = $derived(DBState.db.loadoutApplyOptions ?? {
         modules: true,
         globalVariables: true,
         preset: true,
