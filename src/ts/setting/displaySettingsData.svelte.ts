@@ -297,6 +297,13 @@ export const displayOtherSettingsItems: SettingItem[] = [
     { id: 'display.hideApiKey', type: 'check', labelKey: 'hideApiKeys', bindKey: 'hideApiKey', keywords: ['api', 'key', 'hide'] },
     { id: 'display.unformatQuotes', type: 'check', labelKey: 'unformatQuotes', bindKey: 'unformatQuotes', keywords: ['quotes'] },
     { id: 'display.blockquoteStyling', type: 'check', labelKey: 'blockquoteStyling', bindKey: 'blockquoteStyling', keywords: ['blockquote', 'quote'] },
+    {
+        id: 'display.showCustomColorContrast',
+        type: 'check',
+        labelKey: 'showCustomColorContrast',
+        bindKey: 'showCustomColorContrast',
+        keywords: ['custom', 'color', 'contrast', 'wcag', 'readability'],
+    },
     { id: 'display.customQuotes', type: 'check', labelKey: 'customQuotes', bindKey: 'customQuotes', keywords: ['custom', 'quotes'] },
     {
         id: 'display.leadingDoubleQuote',
