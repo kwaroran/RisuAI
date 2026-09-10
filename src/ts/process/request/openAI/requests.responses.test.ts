@@ -3,13 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer } from 'src/ts/model/types'
 import { fetchNative } from 'src/ts/globalApi.svelte'
 import { callTool } from '../../mcp/mcp'
-import { __testResponsesAPI, requestOpenAIResponseAPI } from './requests'
+import { requestClaude } from '../anthropic'
+import { __testResponsesAPI, requestOpenAI, requestOpenAIResponseAPI } from './requests'
 
 const mocks = vi.hoisted(() => ({
     db: {
         OaiCompAPIKeys: {},
         additionalParams: [],
         autofillRequestUrl: false,
+        claude1HourCaching: false,
+        claudeBatching: false,
         customModels: [],
         gptVisionQuality: 'high',
         jsonSchema: '{"type":"object","properties":{"answer":{"type":"string"}},"required":["answer"],"additionalProperties":false}',
@@ -29,7 +32,9 @@ const mocks = vi.hoisted(() => ({
         simplifiedToolUse: false,
         strictJsonSchema: true,
         temperature: 70,
+        thinkingType: 'off',
         top_p: 0.9,
+        usePlainFetch: false,
         verbosity: 0,
     },
     fetchNative: vi.fn(),
@@ -98,6 +103,7 @@ vi.mock('src/ts/model/modellist', () => ({
         deepSeekThinkingInput: 18,
         deepSeekThinkingOutput: 19,
         deepSeekThinkingToggle: 24,
+        adaptiveThinking: 27,
     },
     LLMFormat: {
         Mistral: 4,
@@ -116,7 +122,9 @@ vi.mock('src/ts/model/openrouter', () => ({
 }))
 
 vi.mock('src/ts/util', () => ({
+    replaceAsync: async (value: string) => value,
     simplifySchema: (schema: unknown) => schema,
+    sleep: vi.fn(),
 }))
 
 vi.mock('../../files/inlays', () => ({
@@ -193,6 +201,7 @@ describe('OpenAI Responses API helpers', () => {
         mocks.db.reasoningEffort = 2
         mocks.db.simplifiedToolUse = false
         mocks.db.autofillRequestUrl = false
+        mocks.db.thinkingType = 'off'
     })
 
     it('builds a Responses request body for text, developer role, multimodal input, tools, and model parameters', async () => {
@@ -240,6 +249,169 @@ describe('OpenAI Responses API helpers', () => {
             { type: 'web_search_preview' },
         ])
         expect(sourceMessages[1]).toMatchObject({ role: 'user', content: 'Describe this.', multimodals: [{ type: 'image', base64: 'data:image/png;base64,abc' }] })
+    })
+
+    it('builds MiniMax-M3 image and video content parts for chat completions', async () => {
+        mocks.db.OaiCompAPIKeys = { minimax: 'minimax-key' }
+
+        const result = await requestOpenAI(baseArg({
+            aiModel: 'MiniMax-M3',
+            formated: [{
+                role: 'user',
+                content: 'Describe these attachments.',
+                multimodals: [
+                    { type: 'image', base64: 'data:image/png;base64,image' },
+                    { type: 'video', base64: 'data:video/mp4;base64,video' },
+                ],
+            }],
+            modelInfo: {
+                flags: [LLMFlags.hasImageInput, LLMFlags.hasVideoInput, LLMFlags.hasStreaming, LLMFlags.adaptiveThinking],
+                format: LLMFormat.OpenAICompatible,
+                id: 'MiniMax-M3',
+                name: 'MiniMax M3',
+                parameters: ['temperature', 'top_p'],
+                provider: LLMProvider.MiniMax,
+                tokenizer: LLMTokenizer.Unknown,
+                endpoint: 'https://api.minimax.io/v1/chat/completions',
+                keyIdentifier: 'minimax',
+            },
+            previewBody: true,
+        }))
+
+        expect(result.type).toBe('success')
+        const preview = JSON.parse(result.result as string)
+        expect(preview.url).toBe('https://api.minimax.io/v1/chat/completions')
+        expect(preview.headers.Authorization).toBe('Bearer minimax-key')
+        expect(preview.body.messages[0].content).toEqual([
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,image', detail: 'high' } },
+            { type: 'video_url', video_url: { url: 'data:video/mp4;base64,video', detail: 'high' } },
+            { type: 'text', text: 'Describe these attachments.' },
+        ])
+        expect(preview.body.thinking).toEqual({ type: 'disabled' })
+    })
+
+    it('preserves MiniMax-M3 thinking defaults and explicit modes for chat completions', async () => {
+        const makeRequest = async () => requestOpenAI(baseArg({
+            aiModel: 'MiniMax-M3',
+            formated: [{ role: 'user', content: 'Hello.' }],
+            modelInfo: {
+                flags: [LLMFlags.hasStreaming, LLMFlags.adaptiveThinking],
+                format: LLMFormat.OpenAICompatible,
+                id: 'MiniMax-M3',
+                name: 'MiniMax M3',
+                parameters: ['temperature', 'top_p'],
+                provider: LLMProvider.MiniMax,
+                tokenizer: LLMTokenizer.Unknown,
+                endpoint: 'https://api.minimax.io/v1/chat/completions',
+                keyIdentifier: 'minimax',
+            },
+            previewBody: true,
+        }))
+
+        mocks.db.thinkingType = 'adaptive'
+        let result = await makeRequest()
+        expect(JSON.parse(result.result as string).body.thinking).toEqual({ type: 'adaptive' })
+
+        mocks.db.thinkingType = 'off'
+        result = await makeRequest()
+        expect(JSON.parse(result.result as string).body.thinking).toEqual({ type: 'disabled' })
+
+        mocks.db.thinkingType = 'budget'
+        result = await makeRequest()
+        expect(JSON.parse(result.result as string).body.thinking).toBeUndefined()
+    })
+
+    it('routes both MiniMax models through global and CN OpenAI endpoints', async () => {
+        mocks.db.OaiCompAPIKeys = { minimax: 'minimax-key' }
+        const cases = [
+            ['MiniMax-M3', 'MiniMax-M3', 'https://api.minimax.io/v1/chat/completions'],
+            ['MiniMax-M2.7', 'MiniMax-M2.7', 'https://api.minimax.io/v1/chat/completions'],
+            ['minimax-m3-openai-cn', 'MiniMax-M3', 'https://api.minimaxi.com/v1/chat/completions'],
+            ['minimax-m2.7-openai-cn', 'MiniMax-M2.7', 'https://api.minimaxi.com/v1/chat/completions'],
+        ]
+
+        for(const [aiModel, internalID, endpoint] of cases){
+            const result = await requestOpenAI(baseArg({
+                aiModel,
+                formated: [{ role: 'user', content: 'Hello.' }],
+                modelInfo: {
+                    flags: [LLMFlags.hasStreaming],
+                    format: LLMFormat.OpenAICompatible,
+                    id: aiModel,
+                    internalID,
+                    name: internalID,
+                    parameters: ['temperature', 'top_p'],
+                    provider: LLMProvider.MiniMax,
+                    tokenizer: LLMTokenizer.Unknown,
+                    endpoint,
+                    keyIdentifier: 'minimax',
+                },
+                previewBody: true,
+            }))
+
+            expect(result.type).toBe('success')
+            const preview = JSON.parse(result.result as string)
+            expect(preview.url).toBe(endpoint)
+            expect(preview.headers.Authorization).toBe('Bearer minimax-key')
+            expect(preview.body.model).toBe(internalID)
+        }
+    })
+
+    it('routes both MiniMax models through global and CN Anthropic base URLs', async () => {
+        mocks.db.OaiCompAPIKeys = { minimax: 'minimax-key' }
+        mocks.db.thinkingType = 'adaptive'
+        const cases = [
+            ['minimax-m3-anthropic-global', 'MiniMax-M3', 'https://api.minimax.io/anthropic'],
+            ['minimax-m2.7-anthropic-global', 'MiniMax-M2.7', 'https://api.minimax.io/anthropic'],
+            ['minimax-m3-anthropic-cn', 'MiniMax-M3', 'https://api.minimaxi.com/anthropic'],
+            ['minimax-m2.7-anthropic-cn', 'MiniMax-M2.7', 'https://api.minimaxi.com/anthropic'],
+        ]
+
+        for(const [aiModel, internalID, endpoint] of cases){
+            const result = await requestClaude(baseArg({
+                aiModel,
+                formated: internalID === 'MiniMax-M3' ? [{
+                    role: 'user',
+                    content: 'Describe these attachments.',
+                    multimodals: [
+                        { type: 'image', base64: 'data:image/png;base64,image' },
+                        { type: 'video', base64: 'data:video/mp4;base64,video' },
+                    ],
+                }] : [{ role: 'user', content: 'Hello.' }],
+                modelInfo: {
+                    flags: internalID === 'MiniMax-M3'
+                        ? [LLMFlags.hasImageInput, LLMFlags.hasVideoInput, LLMFlags.hasStreaming, LLMFlags.adaptiveThinking]
+                        : [LLMFlags.hasStreaming],
+                    format: LLMFormat.Anthropic,
+                    id: aiModel,
+                    internalID,
+                    name: internalID,
+                    parameters: ['temperature', 'top_p'],
+                    provider: LLMProvider.MiniMax,
+                    tokenizer: LLMTokenizer.Unknown,
+                    endpoint,
+                    keyIdentifier: 'minimax',
+                },
+                previewBody: true,
+            }))
+
+            expect(result.type).toBe('success')
+            const preview = JSON.parse(result.result as string)
+            expect(preview.url).toBe(`${endpoint}/v1/messages`)
+            expect(preview.headers['x-api-key']).toBe('minimax-key')
+            expect(preview.body.model).toBe(internalID)
+            if(internalID === 'MiniMax-M3'){
+                expect(preview.body.thinking).toEqual({ type: 'adaptive' })
+                expect(preview.body.messages[0].content).toEqual([
+                    { type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'image' } },
+                    { type: 'video', source: { type: 'base64', media_type: 'video/mp4', data: 'video' } },
+                    { type: 'text', text: 'Describe these attachments.' },
+                ])
+            }
+            else{
+                expect(preview.body.thinking).toBeUndefined()
+            }
+        }
     })
 
     it('requests reasoning summaries for Responses reasoning models', async () => {

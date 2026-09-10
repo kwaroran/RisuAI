@@ -80,7 +80,15 @@ interface ImageContents {
     }
 }
 
-export type Contents = TextContents | ImageContents
+interface VideoContents {
+    type: 'video_url'
+    video_url: {
+        url: string
+        detail: string
+    }
+}
+
+export type Contents = TextContents | ImageContents | VideoContents
 
 export interface ToolCall {
     function: {

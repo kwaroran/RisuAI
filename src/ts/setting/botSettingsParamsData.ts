@@ -130,12 +130,16 @@ export const modelSpecificParameterItems: SettingItem[] = [
         bindKey: 'thinkingType',
         condition: (ctx) =>
             ctx.modelInfo.flags.includes(LLMFlags.claudeThinking) ||
-            ctx.modelInfo.flags.includes(LLMFlags.claudeAdaptiveThinking),
+            ctx.modelInfo.flags.includes(LLMFlags.claudeAdaptiveThinking) ||
+            ctx.modelInfo.flags.includes(LLMFlags.adaptiveThinking),
         options: {
             segmentOptions: [
                 { value: 'off', label: 'Off' },
                 { value: 'budget', label: 'Budget (Manual Tokens)', condition: (ctx) => ctx.modelInfo.flags.includes(LLMFlags.claudeThinking) },
-                { value: 'adaptive', label: 'Adaptive', condition: (ctx) => ctx.modelInfo.flags.includes(LLMFlags.claudeAdaptiveThinking) },
+                { value: 'adaptive', label: 'Adaptive', condition: (ctx) =>
+                    ctx.modelInfo.flags.includes(LLMFlags.claudeAdaptiveThinking) ||
+                    ctx.modelInfo.flags.includes(LLMFlags.adaptiveThinking)
+                },
             ]
         },
         keywords: ['thinking', 'type', 'mode', 'adaptive', 'budget'],

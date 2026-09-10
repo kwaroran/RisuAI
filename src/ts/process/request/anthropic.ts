@@ -22,8 +22,8 @@ interface Claude3TextBlock {
     }
 }
 
-interface Claude3ImageBlock {
-    type: 'image',
+interface Claude3MediaBlock {
+    type: 'image'|'video',
     source: {
         type: 'base64'
         media_type: string,
@@ -56,7 +56,7 @@ interface Claude3ToolResponseBlock {
     }
 }
 
-type Claude3ContentBlock = Claude3TextBlock|Claude3ImageBlock|Claude3ToolUseBlock|Claude3ToolResponseBlock
+type Claude3ContentBlock = Claude3TextBlock|Claude3MediaBlock|Claude3ToolUseBlock|Claude3ToolResponseBlock
 
 interface Claude3Chat {
     role: 'user'|'assistant'
@@ -68,6 +68,24 @@ interface Claude3ExtendedChat {
     content: Claude3ContentBlock[]|string
 }
 
+function toClaudeMediaBlock(modal: MultiModal): Claude3MediaBlock|undefined {
+    if(modal.type !== 'image' && modal.type !== 'video'){
+        return undefined
+    }
+
+    const dataurl = modal.base64
+    const base64 = dataurl.split(',')[1]
+    const mediaType = dataurl.split(';')[0].split(':')[1]
+    return {
+        type: modal.type,
+        source: {
+            type: 'base64',
+            media_type: mediaType,
+            data: base64
+        }
+    }
+}
+
 export async function requestClaude(arg:RequestDataArgumentExtended):Promise<requestDataResponse> {
     const formated = arg.formated
     const db = getDatabase()
@@ -77,7 +95,13 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
     let replacerURL = arg.customURL ?? ('https://api.anthropic.com/v1/messages')
     let apiKey = arg.key || ((aiModel === 'reverse_proxy') ? db.proxyKey : db.claudeAPIKey)
     const maxTokens = arg.maxTokens
-    if(aiModel === 'reverse_proxy' && db.autofillRequestUrl){
+    if(arg.modelInfo?.endpoint){
+        replacerURL = arg.modelInfo.endpoint
+    }
+    if(arg.modelInfo?.keyIdentifier){
+        apiKey = db.OaiCompAPIKeys[arg.modelInfo.keyIdentifier]
+    }
+    if((aiModel === 'reverse_proxy' && db.autofillRequestUrl) || arg.modelInfo?.endpoint){
         if(replacerURL.endsWith('v1')){
             replacerURL += '/messages'
         }
@@ -102,9 +126,12 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
         content: string,
         cache: boolean
     }, multimodals?:MultiModal[]) => {
+        const mediaBlocks = (multimodals ?? [])
+            .map(toClaudeMediaBlock)
+            .filter((block): block is Claude3MediaBlock => block !== undefined)
         if(claudeChat.length > 0 && claudeChat[claudeChat.length-1].role === chat.role){
             let content = claudeChat[claudeChat.length-1].content
-            if(multimodals && multimodals.length > 0 && !Array.isArray(content)){
+            if(mediaBlocks.length > 0 && !Array.isArray(content)){
                 content = [{    
                     type: 'text',
                     text: content
@@ -124,23 +151,8 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
                     })
                 }
 
-                if(multimodals && multimodals.length > 0){
-                    for(const modal of multimodals){
-                        if(modal.type === 'image'){
-                            const dataurl = modal.base64
-                            const base64 = dataurl.split(',')[1]
-                            const mediaType = dataurl.split(';')[0].split(':')[1]
-
-                            content.unshift({
-                                type: 'image',
-                                source: {
-                                    type: 'base64',
-                                    media_type: mediaType,
-                                    data: base64
-                                }
-                            })
-                        }
-                    }
+                if(mediaBlocks.length > 0){
+                    content.unshift(...mediaBlocks)
                 }
             }
             if(chat.cache){
@@ -167,27 +179,12 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
                     text: chat.content
                 }]
             }
-            if(multimodals && multimodals.length > 0){
+            if(mediaBlocks.length > 0){
                 formatedChat.content = [{
                     type: 'text',
                     text: chat.content
                 }]
-                for(const modal of multimodals){
-                    if(modal.type === 'image'){
-                        const dataurl = modal.base64
-                        const base64 = dataurl.split(',')[1]
-                        const mediaType = dataurl.split(';')[0].split(':')[1]
-
-                        formatedChat.content.unshift({
-                            type: 'image',
-                            source: {
-                                type: 'base64',
-                                media_type: mediaType,
-                                data: base64
-                            }
-                        })
-                    }
-                }
+                formatedChat.content.unshift(...mediaBlocks)
 
             }
             if(chat.cache){
@@ -361,7 +358,13 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
     })
 
     // Handle thinking mode: off, adaptive, or budget
-    if(db.thinkingType === 'off'){
+    if(arg.modelInfo.flags.includes(LLMFlags.adaptiveThinking)){
+        delete body.thinking
+        if(db.thinkingType === 'adaptive'){
+            body.thinking = { type: 'adaptive' }
+        }
+    }
+    else if(db.thinkingType === 'off'){
         delete body.thinking
     }
     else if(db.thinkingType === 'adaptive' && arg.modelInfo.flags.includes(LLMFlags.claudeAdaptiveThinking)){
