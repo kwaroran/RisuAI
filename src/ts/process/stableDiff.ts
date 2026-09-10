@@ -8,6 +8,7 @@ import type { OpenAIChat } from "./index.svelte"
 import { processZip } from "./processzip"
 import { keiServerURL } from "../kei/kei"
 import random from "lodash/random"
+import { buildNAICharacterPrompts, naiEmphasis, type NAICharacterPrompt, type NAIImageGenOptions } from "./naiCharacterPrompts"
 
 export async function stableDiff(currentChar:character,prompt:string){
     let db = getDatabase()
@@ -61,7 +62,9 @@ export async function stableDiff(currentChar:character,prompt:string){
     return await generateAIImage(genPrompt, currentChar, neg, '')
 }
 
-export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string):Promise<string|false>{
+export type { NAICharacterPrompt, NAIImageGenOptions }
+
+export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string, naiOptions?:NAIImageGenOptions):Promise<string|false>{
     const db = getDatabase()
     console.log(db.sdProvider)
     if(db.sdProvider === 'webui'){
@@ -121,13 +124,10 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
     }
     if(db.sdProvider === 'novelai'){
-        genPrompt = genPrompt
-            .replaceAll('\\(', "♧")
-            .replaceAll('\\)', "♤")
-            .replaceAll('(','{')
-            .replaceAll(')','}')
-            .replaceAll('♧','(')
-            .replaceAll('♤',')')
+        genPrompt = naiEmphasis(genPrompt)
+
+        // Per-character prompts (NAI v4/v4.5 multi-character prompting), supplied by modules via Lua
+        const { useCoords, posCharCaptions, negCharCaptions, characterPrompts } = buildNAICharacterPrompts(naiOptions)
 
         let reqlist:any = {}
 
@@ -159,20 +159,22 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "legacy": false,
                     //add v4
                     "autoSmea": false,
-                    "use_coords": false,
+                    "use_coords": useCoords,
+                    "characterPrompts": characterPrompts,
                     "legacy_uc": db.NAIImgConfig.legacy_uc,
                     "v4_prompt":{
                         caption:{
                             base_caption:genPrompt,
-                            char_captions: []
+                            char_captions: posCharCaptions
                         },
-                        use_coords: false,
+                        use_coords: useCoords,
+                        // novelai-python keeps use_order on even with coordinates enabled
                         use_order: true,
                     },
                     "v4_negative_prompt":{
                         caption:{
                             base_caption:neg,
-                            char_captions: []
+                            char_captions: negCharCaptions
                         },
                         legacy_uc: db.NAIImgConfig.legacy_uc,
                     },
