@@ -1,0 +1,82 @@
+name: Feature request
+description: Suggest an improvement or a new capability for Risuai
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting an improvement.
+        Please describe the problem before describing your preferred solution.
+        You may write the proposal in any language.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Chat and generation
+        - Prompting and lorebook
+        - Character cards and assets
+        - API provider or model support
+        - Plugin API
+        - User interface
+        - Data storage and synchronization
+        - Import and export
+        - Desktop or mobile application
+        - Self-hosting and Docker
+        - Performance
+        - Accessibility
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What limitation or inconvenience are you experiencing?
+      placeholder: |
+        Currently, ...
+        This makes it difficult to ...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior or API you would like Risuai to provide.
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: Give a concrete example showing how this feature would be used.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe existing workarounds or other possible approaches.
+  - type: textarea
+    id: technical
+    attributes:
+      label: Additional technical context
+      description: Add API examples, mockups, related source files, or implementation ideas when applicable.
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - I may be able to implement this
+        - I can help test this
+        - I can provide additional details
+        - I am only proposing the idea
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Submission checklist
+      options:
+        - label: I searched existing issues and could not find the same request.
+          required: true
+        - label: This request describes a general Risuai improvement rather than personal setup support.
+          required: true
