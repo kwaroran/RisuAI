@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer } from 'src/ts/model/types'
 import { fetchNative } from 'src/ts/globalApi.svelte'
 import { callTool } from '../../mcp/mcp'
-import { __testResponsesAPI, requestOpenAIResponseAPI } from './requests'
+import { __testResponsesAPI, requestOpenAI, requestOpenAIResponseAPI } from './requests'
 
 const mocks = vi.hoisted(() => ({
     db: {
@@ -98,6 +98,7 @@ vi.mock('src/ts/model/modellist', () => ({
         deepSeekThinkingInput: 18,
         deepSeekThinkingOutput: 19,
         deepSeekThinkingToggle: 24,
+        kimiK3PreservedThinking: 27,
     },
     LLMFormat: {
         Mistral: 4,
@@ -705,5 +706,112 @@ describe('OpenAI Responses API helpers', () => {
 
         const chunks = await chunksPromise
         expect(chunks.at(-1)?.['0']).toContain('stream failed')
+    })
+})
+
+describe('Kimi K3 preserved thinking', () => {
+    beforeEach(() => {
+        mocks.fetchNative.mockReset()
+        mocks.globalFetch.mockReset()
+        mocks.db.additionalParams = []
+        mocks.db.customModels = []
+        mocks.db.modelTools = []
+        mocks.db.requestRetrys = 0
+        mocks.db.simplifiedToolUse = false
+        mocks.db.autofillRequestUrl = false
+    })
+
+    it('passes every historical assistant reasoning_content without adding a thinking parameter', async () => {
+        const result = await requestOpenAI(baseArg({
+            aiModel: 'kimi-k3',
+            customURL: 'https://api.moonshot.cn/v1/chat/completions',
+            formated: [
+                { role: 'user', content: 'First question' },
+                { role: 'assistant', content: 'First answer', thoughts: ['First reasoning'] },
+                { role: 'user', content: 'Second question' },
+                { role: 'assistant', content: 'Second answer', thoughts: ['Second reasoning'] },
+                { role: 'user', content: 'Continue' },
+            ],
+            modelInfo: {
+                flags: [LLMFlags.kimiK3PreservedThinking],
+                format: LLMFormat.OpenAICompatible,
+                id: 'kimi-k3',
+                internalID: 'kimi-k3',
+                name: 'Kimi K3',
+                parameters: [],
+                provider: LLMProvider.AsIs,
+                tokenizer: LLMTokenizer.Unknown,
+            },
+            previewBody: true,
+        }))
+
+        expect(result.type).toBe('success')
+        const preview = JSON.parse(result.result as string)
+        const body = preview.body
+        expect(body.messages).toEqual([
+            { role: 'user', content: 'First question' },
+            { role: 'assistant', content: 'First answer', reasoning_content: 'First reasoning' },
+            { role: 'user', content: 'Second question' },
+            { role: 'assistant', content: 'Second answer', reasoning_content: 'Second reasoning' },
+            { role: 'user', content: 'Continue' },
+        ])
+        expect(body).not.toHaveProperty('thinking')
+    })
+
+    it('keeps streamed reasoning_content in the assistant tool-call continuation', async () => {
+        vi.mocked(callTool).mockResolvedValueOnce([{ type: 'text', text: 'tool result' }] as any)
+        vi.mocked(fetchNative)
+            .mockResolvedValueOnce({
+                status: 200,
+                headers: { get: () => 'text/event-stream' },
+                body: sseStream([
+                    'data: {"choices":[{"delta":{"reasoning_content":"Need the tool."}}]}\n\n',
+                    'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"lookup","arguments":"{\\"query\\":\\"x\\"}"}}]}}]}\n\n',
+                    'data: [DONE]\n\n',
+                ]),
+            } as any)
+            .mockResolvedValueOnce({
+                status: 200,
+                headers: { get: () => 'text/event-stream' },
+                body: sseStream([
+                    'data: {"choices":[{"delta":{"content":"Final answer"}}]}\n\n',
+                    'data: [DONE]\n\n',
+                ]),
+            } as any)
+
+        const result = await requestOpenAI(baseArg({
+            aiModel: 'kimi-k3',
+            customURL: 'https://api.moonshot.cn/v1/chat/completions',
+            formated: [{ role: 'user', content: 'Use the tool' }],
+            modelInfo: {
+                flags: [LLMFlags.kimiK3PreservedThinking],
+                format: LLMFormat.OpenAICompatible,
+                id: 'kimi-k3',
+                internalID: 'kimi-k3',
+                name: 'Kimi K3',
+                parameters: [],
+                provider: LLMProvider.AsIs,
+                tokenizer: LLMTokenizer.Unknown,
+            },
+            useStreaming: true,
+            tools: [{ name: 'lookup', description: 'Lookup data', inputSchema: { type: 'object' } }],
+        }))
+
+        expect(result.type).toBe('streaming')
+        await collectStream(result.result as ReadableStream<Record<string, string>>)
+        expect(vi.mocked(fetchNative)).toHaveBeenCalledTimes(2)
+        const followupBody = JSON.parse(vi.mocked(fetchNative).mock.calls[1][1].body as string)
+        expect(followupBody.messages).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                role: 'assistant',
+                reasoning_content: 'Need the tool.',
+                tool_calls: [expect.objectContaining({ id: 'call_1' })],
+            }),
+            expect.objectContaining({
+                role: 'tool',
+                content: 'tool result',
+                tool_call_id: 'call_1',
+            }),
+        ]))
     })
 })

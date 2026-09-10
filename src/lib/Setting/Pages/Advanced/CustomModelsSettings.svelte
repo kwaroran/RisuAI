@@ -165,6 +165,7 @@
                 {@render CustomFlagButton(index,'claudeAdaptiveThinking', 22)}
                 {@render CustomFlagButton(index,'claudeXHighEffort', 23)}
                 {@render CustomFlagButton(index,'deepSeekThinkingToggle', 24)}
+                {@render CustomFlagButton(index,'kimiK3PreservedThinking', 27)}
             </Accordion>
                 </div>
             {/if}

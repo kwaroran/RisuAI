@@ -765,6 +765,7 @@
             {@render CustomFlagButton('claudeAdaptiveThinking', 22)}
             {@render CustomFlagButton('claudeXHighEffort', 23)}
             {@render CustomFlagButton('deepSeekThinkingToggle', 24)}
+            {@render CustomFlagButton('kimiK3PreservedThinking', 27)}
 
         {/if}
     </Accordion>

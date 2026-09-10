@@ -149,7 +149,10 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             if(arg.modelInfo.flags.includes(LLMFlags.deepSeekPrefix) && i === formatedChat.length-1 && formatedChat[i].role === 'assistant'){
                 formatedChat[i].prefix = true
             }
-            if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingInput) && i === formatedChat.length-1 && formatedChat[i].thoughts && formatedChat[i].thoughts.length > 0 && formatedChat[i].role === 'assistant'){
+            const shouldPreserveReasoning =
+                arg.modelInfo.flags.includes(LLMFlags.kimiK3PreservedThinking) ||
+                (arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingInput) && i === formatedChat.length - 1)
+            if(shouldPreserveReasoning && formatedChat[i].thoughts && formatedChat[i].thoughts.length > 0 && formatedChat[i].role === 'assistant'){
                 formatedChat[i].reasoning_content = formatedChat[i].thoughts.join('\n')
             }
             delete formatedChat[i].memo
@@ -1176,10 +1179,11 @@ function wrapToolStream(
                         const messages = body.messages as OpenAIChatExtra[]
                         let assistantContent = content
                         let assistantReasoningContent = ''
-                        const shouldPassDeepSeekReasoning = arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingInput) ||
+                        const shouldPassReasoning = arg.modelInfo.flags.includes(LLMFlags.kimiK3PreservedThinking) ||
+                            arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingInput) ||
                             (arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingToggle) && db.deepseekThinkingType === 'enabled')
 
-                        if(shouldPassDeepSeekReasoning){
+                        if(shouldPassReasoning){
                             const extracted = extractThoughts(content)
                             assistantContent = extracted.content
                             assistantReasoningContent = extracted.reasoningContent
