@@ -8,6 +8,11 @@ import type { OpenAIChat } from "./index.svelte"
 import { processZip } from "./processzip"
 import { keiServerURL } from "../kei/kei"
 import random from "lodash/random"
+import {
+    applyNovelAiImg2Img,
+    buildNovelAiRequestBody,
+    novelAiModelCapabilities,
+} from "./novelaiImage"
 
 export async function stableDiff(currentChar:character,prompt:string){
     let db = getDatabase()
@@ -121,99 +126,37 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
     }
     if(db.sdProvider === 'novelai'){
-        genPrompt = genPrompt
-            .replaceAll('\\(', "♧")
-            .replaceAll('\\)', "♤")
-            .replaceAll('(','{')
-            .replaceAll(')','}')
-            .replaceAll('♧','(')
-            .replaceAll('♤',')')
-
         let reqlist:any = {}
+        const capabilities = novelAiModelCapabilities(db.NAIImgModel)
 
         const commonReq = {
-            body: {
-                "input": genPrompt,
-                "model": db.NAIImgModel,
-                "parameters": {
-                    "params_version": 3,
-                    "add_original_image": true,
-                    "cfg_rescale": db.NAIImgConfig.cfg_rescale,
-                    "controlnet_strength": 1,
-                    "dynamic_thresholding": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') || db.NAIImgModel.includes('nai-diffusion-2') ? db.NAIImgConfig.decrisp : false,
-                    "n_samples": 1,
-                    "width": db.NAIImgConfig.width,
-                    "height": db.NAIImgConfig.height,
-                    "sampler": db.NAIImgConfig.sampler,
-                    "steps": db.NAIImgConfig.steps,
-                    "scale": db.NAIImgConfig.scale,
-                    "negative_prompt": neg,
-                    "sm": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') || db.NAIImgModel.includes('nai-diffusion-2') ? db.NAIImgConfig.sm : undefined,
-                    "sm_dyn": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') ? db.NAIImgConfig.sm_dyn : undefined,
-                    "noise_schedule": db.NAIImgConfig.noise_schedule,
-                    "normalize_reference_strength_multiple":true,
-                    "ucPreset": 3,
-                    "uncond_scale": 1,
-                    "qualityToggle": false,
-                    "legacy_v3_extend": false,
-                    "legacy": false,
-                    //add v4
-                    "autoSmea": false,
-                    "use_coords": false,
-                    "legacy_uc": db.NAIImgConfig.legacy_uc,
-                    "v4_prompt":{
-                        caption:{
-                            base_caption:genPrompt,
-                            char_captions: []
-                        },
-                        use_coords: false,
-                        use_order: true,
-                    },
-                    "v4_negative_prompt":{
-                        caption:{
-                            base_caption:neg,
-                            char_captions: []
-                        },
-                        legacy_uc: db.NAIImgConfig.legacy_uc,
-                    },
-                    "reference_image_multiple" : [],
-                    "reference_strength_multiple" : [],
-                    //add reference image
-                    "image": undefined, 
-                    "strength": undefined,
-                    "noise": undefined,
-                    //add additional parameters
-                    "seed": random(0, 2**32-1),
-                    "extra_noise_seed": random(0, 2**32-1),
-                    "prefer_brownian": true,
-                    "deliberate_euler_ancestral_bug": false,
-                    "skip_cfg_above_sigma": null,
-                    //add character reference
-                    "director_reference_images": [],
-                    "director_reference_descriptions": [],
-                    "director_reference_information_extracted": [],
-                    "director_reference_strength_values": [],
-                }
-            },
+            body: buildNovelAiRequestBody({
+                prompt: genPrompt,
+                negativePrompt: neg,
+                model: db.NAIImgModel,
+                width: db.NAIImgConfig.width,
+                height: db.NAIImgConfig.height,
+                sampler: db.NAIImgConfig.sampler,
+                steps: db.NAIImgConfig.steps,
+                scale: db.NAIImgConfig.scale,
+                cfgRescale: db.NAIImgConfig.cfg_rescale,
+                noiseSchedule: db.NAIImgConfig.noise_schedule,
+                seed: random(0, 2**32-1),
+                extraNoiseSeed: random(0, 2**32-1),
+                decrisp: db.NAIImgConfig.decrisp,
+                sm: db.NAIImgConfig.sm,
+                smDyn: db.NAIImgConfig.sm_dyn,
+                legacyUc: db.NAIImgConfig.legacy_uc,
+                varietyPlus: db.NAIImgConfig.variety_plus,
+            }),
             headers:{
                 "Authorization": "Bearer " + db.NAIApiKey
             },
             rawResponse: true
         }
 
-        // Add Variety+ option 
-        if(db.NAIImgConfig.variety_plus) {
-            if(db.NAIImgModel.includes('nai-diffusion-4-full') || db.NAIImgModel.includes('nai-diffusion-4-curated')
-            || db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3')) {
-                commonReq.body.parameters.skip_cfg_above_sigma = Math.sqrt(db.NAIImgConfig.width * db.NAIImgConfig.height) * 0.01889;
-            }
-            if(db.NAIImgModel.includes('nai-diffusion-4-5-full') || db.NAIImgModel.includes('nai-diffusion-4-5-curated')) {
-                commonReq.body.parameters.skip_cfg_above_sigma = Math.sqrt(db.NAIImgConfig.width * db.NAIImgConfig.height) * 0.05766;
-            }
-        }
-
         // Add vibe reference_image_multiple if exists
-        if(db.NAIImgConfig.reference_mode === 'vibe' && db.NAIImgConfig.vibe_data) {
+        if(capabilities.vibes && db.NAIImgConfig.reference_mode === 'vibe' && db.NAIImgConfig.vibe_data) {
             const vibeData = db.NAIImgConfig.vibe_data;
             // Determine which model to use based on vibe_model_selection or fallback to current model
             const modelKey = db.NAIImgConfig.vibe_model_selection || 
@@ -252,7 +195,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             }
         }
 
-        if(db.NAIImgConfig.reference_mode === 'character' &&
+        if(capabilities.characterReferences && db.NAIImgConfig.reference_mode === 'character' &&
             (db.NAIImgModel.includes('nai-diffusion-4-5-full') || db.NAIImgModel.includes('nai-diffusion-4-5-curated'))
         ) {
             let base64img = ''
@@ -321,8 +264,6 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
 
         if(db.NAII2I){
-            let seed = random(0, 1000000000);
-
             let base64img = ''
             if(!db.NAIImgConfig.image || db.NAIImgConfig.image === ''){
                 const charimg = currentChar.image;
@@ -338,10 +279,12 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
             
             if(base64img) {
                 reqlist = commonReq;
-                reqlist.body.action = "img2img";
-                reqlist.body.parameters.image = base64img;
-                reqlist.body.parameters.strength = db.NAIImgConfig.strength || 0.7;
-                reqlist.body.parameters.noise = db.NAIImgConfig.noise || 0;
+                applyNovelAiImg2Img(reqlist.body, {
+                    imageBase64: base64img,
+                    strength: db.NAIImgConfig.strength || 0.7,
+                    noise: db.NAIImgConfig.noise || 0,
+                    extraNoiseSeed: random(0, 2**32-1),
+                })
             }
             
             console.log({img2img:reqlist});
