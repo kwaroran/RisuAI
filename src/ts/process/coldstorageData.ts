@@ -76,7 +76,7 @@ function listColdDataKeysFromCharacter(character: character | groupChat): string
     return keys
 }
 
-export function listColdDataKeysFromDb(db: Pick<Database, 'characters'> | null | undefined): string[] {
+export function listColdDataKeysFromDb(db: Pick<Database, 'characters'|'pluginCustomStorage'> | null | undefined): string[] {
     const keys = new Set<string>()
     for (const character of db?.characters ?? []) {
         if (!character) {
@@ -86,6 +86,13 @@ export function listColdDataKeysFromDb(db: Pick<Database, 'characters'> | null |
             keys.add(key)
         }
     }
+
+    const coldPluginStorageKeys = (Object.values((db?.pluginCustomStorage?._coldplugin as {[key:string]:string}) ?? {}))
+
+    for(const key of coldPluginStorageKeys){
+        keys.add(key)
+    }
+
     return Array.from(keys)
 }
 

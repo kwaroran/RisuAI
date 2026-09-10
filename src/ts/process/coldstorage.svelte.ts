@@ -311,7 +311,7 @@ async function removeColdStorageItems(keys:string[]) {
     }
 }
 
-export async function listColdDataKeys(db: Pick<Database, 'characters'> = DBState.db): Promise<string[]> {
+export async function listColdDataKeys(db: Pick<Database, 'characters'|'pluginCustomStorage'> = DBState.db): Promise<string[]> {
     return listColdDataKeysFromDb(db)
 }
 
@@ -322,7 +322,7 @@ export type ColdStorageBackupPayload = {
     encoded: Uint8Array
 }
 
-export async function collectColdStorageBackupPayloads(db: Pick<Database, 'characters'> = DBState.db): Promise<{
+export async function collectColdStorageBackupPayloads(db: Pick<Database, 'characters'|'pluginCustomStorage'> = DBState.db): Promise<{
     payloads: ColdStorageBackupPayload[]
     missingKeys: string[]
     invalidKeys: string[]
@@ -526,6 +526,52 @@ async function makeColdDataForChat(i:number, j:number, coldTime:number): Promise
     return false
 }
 
+async function migratePluginStorageKeyToColdStorage(key:string): Promise<boolean>{
+    const value = DBState.db.pluginCustomStorage?.[key]
+    if(value === undefined){
+        return false
+    }
+
+    const id = crypto.randomUUID()
+    const writeSuccess = await setColdStorageItem(id, value)
+
+    if(!writeSuccess){
+        console.error(`Cold storage write failed for plugin storage key ${key}, keeping original data`)
+        return false
+    }
+
+    const verifyData = await getColdStorageItem(id)
+    if(verifyData === null || verifyData === undefined){
+        console.error(`Cold storage verification failed for plugin storage key ${key}, keeping original data`)
+        return false
+    }
+
+    DBState.db.pluginCustomStorage._coldplugin ??= {}
+    DBState.db.pluginCustomStorage._coldplugin[key] = id
+    delete DBState.db.pluginCustomStorage[key]
+    return true
+}
+
+async function migratePluginStorageToColdStorage(): Promise<boolean>{
+    if(!DBState.db.pluginCustomStorage){
+        return false
+    }
+
+    //legacy keys stored inline before pluginStorage became coldstorage-backed
+    const legacyKeys = Object.keys(DBState.db.pluginCustomStorage).filter(key => key !== '_coldplugin')
+    let didChange = false
+
+    for(let i=0;i<legacyKeys.length;i++){
+        alertWait(`Migrating plugin storage to cold storage... ${legacyKeys.length - i} items left`)
+        const changed = await migratePluginStorageKeyToColdStorage(legacyKeys[i])
+        if(changed){
+            didChange = true
+        }
+    }
+
+    return didChange
+}
+
 export async function makeColdData(){
 
     if(!DBState.db.coldstorage){
@@ -536,6 +582,11 @@ export async function makeColdData(){
     const coldTime = currentTime - 1000 * 60 * 60 * 24 * 10 //10 days before now
     const queue:(() => Promise<boolean>)[] = []
     let didChange = false
+
+    if(await migratePluginStorageToColdStorage()){
+        didChange = true
+    }
+
     for(let i=0;i<DBState.db.characters.length;i++){
         queue.push(() => makeColdDataForCharacter(i, coldTime))
     }

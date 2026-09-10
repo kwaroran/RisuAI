@@ -13,6 +13,7 @@ import { changeColorScheme, updateColorScheme, updateTextThemeAndCSS, type Color
 import { isNodeServer, isTauri } from "src/ts/platform";
 import { get } from "svelte/store";
 import { registerMCPModule, unregisterMCPModule } from "src/ts/process/mcp/pluginmcp";
+import { getColdStorageItem, setColdStorageItem } from "src/ts/process/coldstorage.svelte";
 import { getInlayAsset } from "src/ts/process/files/inlays";
 import { getLLMCache, searchLLMCache } from "src/ts/translator/translator";
 import { hasher, risuChatParser, type CbsConditions } from "src/ts/parser/parser.svelte";
@@ -1266,13 +1267,52 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             
             return v;
         },
-        _getPluginStorage: oldApis.pluginStorage.getItem,
-        _setPluginStorage: oldApis.pluginStorage.setItem,
-        _removePluginStorage: oldApis.pluginStorage.removeItem,
-        _clearPluginStorage: oldApis.pluginStorage.clear,
-        _keyPluginStorage: oldApis.pluginStorage.key,
-        _keysPluginStorage: oldApis.pluginStorage.keys,
-        _lengthPluginStorage: oldApis.pluginStorage.length,
+        //pluginStorage is coldstorage-backed for v3: values live in cold storage,
+        //db.pluginCustomStorage._coldplugin only keeps the key -> coldstorage id map
+        _getPluginStorage: async (key: string) => {
+            const db = getDatabase()
+            const coldId = db.pluginCustomStorage?._coldplugin?.[key]
+            if(!coldId){
+                return null
+            }
+            const value = await getColdStorageItem(coldId)
+            return value ?? null
+        },
+        _setPluginStorage: async (key: string, value: any) => {
+            const db = getDatabase()
+            db.pluginCustomStorage ??= {}
+            db.pluginCustomStorage._coldplugin ??= {}
+            let coldId: string = db.pluginCustomStorage._coldplugin[key]
+            if(!coldId){
+                coldId = v4()
+                db.pluginCustomStorage._coldplugin[key] = coldId
+            }
+            await setColdStorageItem(coldId, value)
+        },
+        _removePluginStorage: async (key: string) => {
+            const db = getDatabase()
+            if(db.pluginCustomStorage?._coldplugin){
+                delete db.pluginCustomStorage._coldplugin[key]
+            }
+        },
+        _clearPluginStorage: async () => {
+            const db = getDatabase()
+            db.pluginCustomStorage ??= {}
+            db.pluginCustomStorage._coldplugin = {}
+        },
+        _keyPluginStorage: async (index: number) => {
+            const db = getDatabase()
+            const keys = Object.keys(db.pluginCustomStorage?._coldplugin ?? {})
+            return keys[index] ?? null
+        },
+        _keysPluginStorage: async () => {
+            const db = getDatabase()
+            return Object.keys(db.pluginCustomStorage?._coldplugin ?? {})
+        },
+        _lengthPluginStorage: async () => {
+            const db = getDatabase()
+            return Object.keys(db.pluginCustomStorage?._coldplugin ?? {}).length
+        },
         _getSafeLocalStorage: oldApis.safeLocalStorage.getItem,
         _setSafeLocalStorage: oldApis.safeLocalStorage.setItem,
         _removeSafeLocalStorage: oldApis.safeLocalStorage.removeItem,
