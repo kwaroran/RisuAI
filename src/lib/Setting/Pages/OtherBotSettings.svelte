@@ -963,6 +963,9 @@
     <span class="text-textcolor">fish-speech API Key</span>
     <TextInput size="sm" marginBottom bind:value={DBState.db.fishSpeechKey}/>
 
+    <span class="text-textcolor">MiniMax API Key</span>
+    <TextInput size="sm" marginBottom bind:value={DBState.db.minimaxTTSKey}/>
+
 </Accordion>
 {/if}
 

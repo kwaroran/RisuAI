@@ -15,6 +15,7 @@
     import Help from "../Others/Help.svelte";
     import { exportChar } from "src/ts/characterCards";
     import { getElevenTTSVoices, getWebSpeechTTSVoices, getVOICEVOXVoices, oaiVoices, getNovelAIVoices } from "src/ts/process/tts";
+    import { defaultMinimaxTTSConfig, minimaxTTSEmotions, minimaxTTSFormats, minimaxTTSModels, minimaxTTSRegions, minimaxTTSVoiceLimits } from "src/ts/process/ttsMinimax";
     import { getFileSrc } from "src/ts/globalApi.svelte";
     import { addGroupChar, rmCharFromGroup } from "src/ts/process/group";
     import TextInput from "../UI/GUI/TextInput.svelte";
@@ -171,6 +172,12 @@
                 enabled: false,
                 format: 'mp3',
             };
+        }
+    });
+
+    $effect.pre(() => {
+        if (DBState.db.characters[$selectedCharID].ttsMode === 'minimax' && (DBState.db.characters[$selectedCharID] as character).minimaxTTSConfig === undefined) {
+            (DBState.db.characters[$selectedCharID] as character).minimaxTTSConfig = defaultMinimaxTTSConfig();
         }
     });
 
@@ -770,6 +777,7 @@
             <OptionInput value="vits">VITS</OptionInput>
             <OptionInput value="gptsovits">GPT-SoVITS</OptionInput>
             <OptionInput value="fishspeech">fish-speech</OptionInput>
+            <OptionInput value="minimax">MiniMax</OptionInput>
         </SelectInput>
         
 
@@ -1044,6 +1052,54 @@
 
             <span class="mt-2 text-textcolor">Normalize</span>
             <Check className="mb-4 mt-2" bind:check={DBState.db.characters[$selectedCharID].fishSpeechConfig.normalize}/>
+        {:else if DBState.db.characters[$selectedCharID].ttsMode === 'minimax'}
+            <span class="text-textcolor">Endpoint</span>
+            <SelectInput className="mb-4 mt-2" bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.region}>
+                {#each minimaxTTSRegions as region}
+                    <OptionInput value={region.id}>{region.name}</OptionInput>
+                {/each}
+            </SelectInput>
+
+            <span class="text-textcolor">Model</span>
+            <SelectInput className="mb-4 mt-2" bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.model}>
+                {#each minimaxTTSModels as model}
+                    <OptionInput value={model}>{model}</OptionInput>
+                {/each}
+            </SelectInput>
+
+            <span class="text-textcolor">Voice ID</span>
+            <TextInput className="mb-4 mt-2" bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.voiceId}/>
+
+            <span class="text-textcolor">Emotion</span>
+            <SelectInput className="mb-4 mt-2" bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.emotion}>
+                <OptionInput value="">Auto</OptionInput>
+                {#each minimaxTTSEmotions as emotion}
+                    <OptionInput value={emotion}>{emotion}</OptionInput>
+                {/each}
+            </SelectInput>
+
+            <span class="text-textcolor">Speed</span>
+            <SliderInput min={minimaxTTSVoiceLimits.speed.min} max={minimaxTTSVoiceLimits.speed.max} step={0.05} fixed={2}
+                bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.speed}/>
+
+            <span class="text-textcolor">Volume</span>
+            <SliderInput min={minimaxTTSVoiceLimits.vol.min} max={minimaxTTSVoiceLimits.vol.max} step={0.1} fixed={1}
+                bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.vol}/>
+
+            <span class="text-textcolor">Pitch</span>
+            <SliderInput min={minimaxTTSVoiceLimits.pitch.min} max={minimaxTTSVoiceLimits.pitch.max} step={1}
+                bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.pitch}/>
+
+            <span class="text-textcolor">Audio Format</span>
+            <SelectInput className="mb-4 mt-2" bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.format}>
+                {#each minimaxTTSFormats as format}
+                    <OptionInput value={format}>{format}</OptionInput>
+                {/each}
+            </SelectInput>
+
+            <span class="text-textcolor">Language Boost</span>
+            <TextInput className="mb-4 mt-2" bind:value={DBState.db.characters[$selectedCharID].minimaxTTSConfig.languageBoost}
+                placeholder="Leave empty to let the model decide" />
         {/if}
         {#if DBState.db.characters[$selectedCharID].ttsMode}
             <div class="flex items-center mt-2">
