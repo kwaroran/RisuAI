@@ -5,16 +5,25 @@ export interface ResponseInputItem {
         | {
               type: 'input_text'
               text: string
+              prompt_cache_breakpoint?: {
+                  mode: 'explicit'
+              }
           }
         | {
               detail: 'high' | 'low' | 'auto'
               type: 'input_image'
               image_url: string
+              prompt_cache_breakpoint?: {
+                  mode: 'explicit'
+              }
           }
         | {
               type: 'input_file'
               file_data: string
               filename?: string
+              prompt_cache_breakpoint?: {
+                  mode: 'explicit'
+              }
           }
     )[]
     role: 'user' | 'system' | 'developer'
@@ -70,6 +79,9 @@ export type ResponseItem = ResponseInputItem | ResponseOutputItem | ResponseFunc
 interface TextContents {
     type: 'text'
     text: string
+    prompt_cache_breakpoint?: {
+        mode: 'explicit'
+    }
 }
 
 interface ImageContents {
@@ -77,6 +89,9 @@ interface ImageContents {
     image_url: {
         url: string
         detail: string
+    }
+    prompt_cache_breakpoint?: {
+        mode: 'explicit'
     }
 }
 

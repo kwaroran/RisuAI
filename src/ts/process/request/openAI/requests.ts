@@ -16,6 +16,7 @@ import type { RequestDataArgumentExtended, requestDataResponse, StreamResponseCh
 import { applyAdditionalParameters, applyParameters, getAdditionalParameters } from '../shared'
 
 import type { Contents, OpenAIChatExtra, OpenAIChatFull, ToolCall } from './types'
+import { applyGPT56ChatCachePoints } from './promptCache'
 
 import { getLocalNetworkRequestOptions, type LocalNetworkRequestOptions } from './shared'
 export { requestOpenAIResponseAPI, __testResponsesAPI } from './responses'
@@ -157,7 +158,6 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             delete formatedChat[i].attr
             delete formatedChat[i].multimodals
             delete formatedChat[i].thoughts
-            delete formatedChat[i].cachePoint
         }
         if(aiModel === 'reverse_proxy' && db.reverseProxyOobaMode && formatedChat[i].role === 'system'){
             const cont = formatedChat[i].content
@@ -387,6 +387,11 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         stream: false,
 
     })
+
+    body.messages = applyGPT56ChatCachePoints(
+        body.messages,
+        body.model
+    )
 
 
     if(Object.keys(body.logit_bias).length === 0){
