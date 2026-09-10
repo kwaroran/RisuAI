@@ -201,6 +201,8 @@ export const languageChineseTraditional = {
         "themeDescClassic": "適用於所有裝置",
         "texttheme": "設定文字顏色",
         "inputName": "最後，請輸入您的暱稱。",
+        "welcomeToRisuai": "歡迎來到 Risuai！",
+        "selectBotToStartChatting": "選擇一個機器人開始聊天",
         "welcome": "歡迎使用 Risuai！我將引導您進行設定。請問我該如何稱呼您？",
         "welcome2": "您好，{username}！在開始之前，我會問您一些問題，稍後可在設定中進行修改。\n\n首先，請選擇 AI 提供商。",
         "openRouterProvider": "OpenRouter 提供許多模型，部分免費且未經內容過濾。",

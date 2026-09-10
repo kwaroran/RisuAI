@@ -30,6 +30,7 @@
     HomeIcon,
     WrenchIcon,
     User2Icon,
+    Sparkles,
   } from "@lucide/svelte";
     import {
   addCharacter,
@@ -928,9 +929,13 @@
   </button>
   {#if sideBarMode === 0}
     {#if $selectedCharID < 0 || $settingsOpen}
-      <div>
-        <h1 class="text-xl">Welcome to RisuAI!</h1>
-        <span class="text-xs text-textcolor2">Select a bot to start chatting</span>
+      <div class="flex flex-col flex-1 items-center justify-center w-full min-h-[50vh] opacity-80 select-none text-center px-4">
+        <div class="relative flex items-center justify-center w-40 h-40 mb-8">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan-400/40 to-blue-600/40 rounded-full blur-3xl"></div>
+          <Sparkles size={100} strokeWidth={1.2} class="relative z-10 text-textcolor" />
+        </div>
+        <h1 class="text-2xl font-bold text-textcolor mb-2">{language.setup.welcomeToRisuai}</h1>
+        <span class="text-sm text-textcolor2">{language.setup.selectBotToStartChatting}</span>
       </div>
     {:else if DBState.db.characters[$selectedCharID]?.chaId === '§playground'}
       <SideChatList bind:chara={ DBState.db.characters[$selectedCharID]} />

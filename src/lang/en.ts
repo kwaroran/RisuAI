@@ -334,6 +334,8 @@ export const languageEnglish = {
         themeDescClassic: "Suitable for All devices",
         texttheme: "Select your text color",
         inputName: "Lastly, input your Nickname.",
+        welcomeToRisuai: "Welcome to Risuai!",
+        selectBotToStartChatting: "Select a bot to start chatting",
         welcome: "Welcome to Risuai! I am Airisu, I am here to guide you through the Risuai setup. First, what may I call you?",
         welcome2: "Hello {username}! Before we start, I will ask you some questions. You can change these settings later in settings.\n\nFirst select the AI provider.",
         openRouterProvider: "OpenRouter has a lot of models, some of them unfiltered and some of them free, but it is not as good as OpenAI.",

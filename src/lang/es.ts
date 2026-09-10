@@ -181,6 +181,8 @@ export const languageSpanish = {
         "themeDescClassic": "Apto para todos los dispositivos",
         "texttheme": "Selecciona el color del texto",
         "inputName": "Por último, ingresa tu apodo.",
+        "welcomeToRisuai": "¡Bienvenido a Risuai!",
+        "selectBotToStartChatting": "Selecciona un bot para empezar a chatear",
         "welcome": "¡Bienvenido a Risuai! Aquí te guiaré para configurarlo. Primero, ¿cómo puedo llamarte?",
         "welcome2": "Hola {username}! Antes de empezar, te haré algunas preguntas. Puedes cambiar estas configuraciones más tarde en la configuración.\n\nPrimero selecciona el proveedor de IA.",
         "openRouterProvider": "OpenRouter tiene muchos modelos, algunos de ellos sin filtro y algunos gratuitos, pero no es tan bueno como OpenAI.",

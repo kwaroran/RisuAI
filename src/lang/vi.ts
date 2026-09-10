@@ -181,6 +181,8 @@ export const languageVietnamese = {
         "themeDescClassic": "Thích hợp cho mọi thiết bị",
         "texttheme": "Chọn màu văn bản của bạn",
         "inputName": "Cuối cùng, nhập Biệt hiệu của bạn.",
+        "welcomeToRisuai": "Chào mừng đến với Risuai!",
+        "selectBotToStartChatting": "Chọn một bot để bắt đầu trò chuyện",
         "welcome": "Chào mừng đến với Risuai! Tôi là Airisu, tôi ở đây để hướng dẫn bạn cài đặt Risuai. Trước tiên, tôi có thể gọi bạn là gì?",
         "welcome2": "Xin chào {username}! Trước khi bắt đầu, tôi sẽ hỏi bạn một số câu hỏi. Bạn có thể thay đổi các cài đặt này sau trong phần cài đặt.\n\nĐầu tiên hãy chọn nhà cung cấp AI.",
         "openRouterProvider": "OpenRouter có rất nhiều mô hình, một số không được lọc và một số miễn phí, nhưng nó không tốt bằng OpenAI.",

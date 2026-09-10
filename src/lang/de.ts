@@ -181,6 +181,8 @@ export const languageGerman = {
         "themeDescClassic": "Geeignet für alle Geräte",
         "texttheme": "Wählen Sie Ihre Textfarbe",
         "inputName": "Geben Sie abschließend Ihren Spitznamen ein",
+        "welcomeToRisuai": "Willkommen bei Risuai!",
+        "selectBotToStartChatting": "Wähle einen Bot aus, um zu chatten",
         "welcome": "Willkommen bei Risuai! Ich bin Airisu und werde Sie durch die Einrichtung von Risuai führen. Zuerst, wie darf ich Sie nennen?",
         "welcome2": "Hallo {username}! Bevor wir beginnen, werde ich Ihnen einige Fragen stellen. Sie können diese Einstellungen später in den Einstellungen ändern.\n\nWählen Sie zunächst den KI-Anbieter aus.",
         "openRouterProvider": "OpenRouter hat viele Modelle, einige davon ungefiltert und einige davon kostenlos, aber es ist nicht so gut wie OpenAI.",
