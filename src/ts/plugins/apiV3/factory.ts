@@ -271,6 +271,8 @@ await (async function() {
     
     
     window.addEventListener('message', async (event) => {
+        if (event.source !== window.parent) return;
+
         const data = event.data;
         if (!data) return;
 
