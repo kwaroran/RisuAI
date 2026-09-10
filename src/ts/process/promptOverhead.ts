@@ -1,5 +1,5 @@
 import { getDatabase, getCurrentCharacter } from '../storage/database.svelte'
-import type { character, Chat, loreBook } from '../storage/database.svelte'
+import type { character, Chat, loreBook, Message } from '../storage/database.svelte'
 import { ChatTokenizer } from '../tokenizer'
 import { risuChatParser } from './scripts'
 import { parseChatML } from '../parser/chatML'
@@ -43,6 +43,68 @@ const defaultUtilityTemplate = [
     { type: 'postEverything' },
 ] as any[]
 
+const inlayRegex = /{{(inlay|inlayed|inlayeddata)::(.+?)}}/g
+
+const defaultGroupTemplate = `<{{char}}'s Message>\n{{slot}}\n</{{char}}'s Message>`
+
+type TokenizeEntry = {
+    bucket: Exclude<OverheadKey, 'slack'>
+    role: 'system' | 'user' | 'assistant' | 'function'
+    content: string
+    name?: string
+}
+
+function collectEnabledMessages(chat: Chat): { messages: Message[]; reset: boolean } {
+    const messages: Message[] = []
+    for (let i = chat.message.length - 1; i >= 0; i--) {
+        const msg = chat.message[i]
+        if (msg.disabled === true) {
+            continue
+        }
+        if (msg.disabled === 'allBefore') {
+            return { messages, reset: true }
+        }
+        messages.unshift(msg)
+    }
+    return { messages, reset: false }
+}
+
+function buildRecentChatEntries(chara: character, chat: Chat, isGroup: boolean, count: number): TokenizeEntry[] {
+    const db = getDatabase()
+    const sendName = !!db.promptTemplate && !!db.promptSettings?.sendName
+    const { messages, reset } = collectEnabledMessages(chat)
+    const entries: TokenizeEntry[] = []
+
+    if (!db.aiModel.startsWith('novelai') && !db.promptSettings?.trimStartNewChat) {
+        entries.push({ bucket: 'recentChats', role: 'system', content: '[Start a new chat]' })
+    }
+
+    if (!isGroup && !reset) {
+        const firstMsg = chat.fmIndex === -1 ? chara.firstMessage : chara.alternateGreetings[chat.fmIndex]
+        let content = risuChatParser(firstMsg, { chara })
+        if (sendName) {
+            content = `${chara.name}: ${content}`
+        }
+        entries.push({ bucket: 'recentChats', role: 'assistant', content })
+    }
+
+    for (const msg of messages.slice(-count)) {
+        let content = risuChatParser(msg.data, { chara, role: msg.role }).replace(inlayRegex, '')
+        const speaker = findCharacterbyId(msg.saying)
+        if ((isGroup && speaker.chaId !== chara.chaId) || (isGroup && db.groupOtherBotRole === 'assistant') || sendName) {
+            const form = db.groupTemplate || defaultGroupTemplate
+            content = risuChatParser(form, { chara: speaker.name }).replace('{{slot}}', content)
+        }
+        entries.push({
+            bucket: 'recentChats',
+            role: msg.role === 'user' ? 'user' : 'assistant',
+            content,
+        })
+    }
+
+    return entries.slice(-count)
+}
+
 function worstCaseAdditionalText(chara: character): string {
     if (!chara.additionalText) {
         return ''
@@ -54,19 +116,13 @@ function worstCaseAdditionalText(chara: character): string {
         .join('\n\n')
 }
 
-async function estimateCharOverhead(chara: character, chat: Chat, isGroup: boolean): Promise<PromptOverhead> {
+async function estimateCharOverhead(chara: character, chat: Chat, isGroup: boolean, recentChatCount?: number): Promise<PromptOverhead> {
     const db = getDatabase()
     const tokenizer = new ChatTokenizer(
         db.aiModel.startsWith('gpt') ? 5 : 3,
         db.aiModel.startsWith('gpt') ? 'noName' : 'name'
     )
-    type TokenizeEntry = {
-        bucket: Exclude<OverheadKey, 'recentChats' | 'slack'>
-        role: 'system' | 'user' | 'assistant' | 'function'
-        content: string
-        name?: string
-    }
-    const counts: Record<Exclude<OverheadKey, 'recentChats'>, number> = {
+    const counts: Record<OverheadKey, number> = {
         promptTemplate: 0,
         description: 0,
         persona: 0,
@@ -75,6 +131,7 @@ async function estimateCharOverhead(chara: character, chat: Chat, isGroup: boole
         exampleMessages: 0,
         postExtras: 0,
         slack: 50,
+        recentChats: 0,
     }
     const entries: TokenizeEntry[] = []
     const repeatedPostExtraEntries = new Set<TokenizeEntry>()
@@ -260,6 +317,14 @@ async function estimateCharOverhead(chara: character, chat: Chat, isGroup: boole
         }
     }
 
+    let recentChatEntryCount = 0
+    if (recentChatCount !== undefined) {
+        const recentChatEntries = buildRecentChatEntries(chara, chat, isGroup, recentChatCount)
+        recentChatEntryCount = recentChatEntries.length
+        entries.push(...recentChatEntries)
+    }
+    const maxResponse = db.maxResponse
+
     let repeatedPostExtrasTokens = 0
     for (const entry of entries) {
         const tokens = await tokenizer.tokenizeChat(entry)
@@ -271,6 +336,9 @@ async function estimateCharOverhead(chara: character, chat: Chat, isGroup: boole
     }
     counts.postExtras += repeatedPostExtrasTokens * postEverythingCardCount
     counts.lorebook = Math.min(counts.lorebook, loreBudget)
+    if (recentChatCount !== undefined) {
+        counts.recentChats += Math.max(recentChatCount - recentChatEntryCount, 0) * maxResponse
+    }
 
     const items = (Object.entries(counts) as [OverheadKey, number][]).map(([key, tokens]) => ({ key, tokens }))
     const total = items.reduce((sum, item) => sum + item.tokens, 0)
@@ -278,7 +346,7 @@ async function estimateCharOverhead(chara: character, chat: Chat, isGroup: boole
     return { items, total }
 }
 
-export async function estimatePromptOverhead(): Promise<PromptOverhead> {
+export async function estimatePromptOverhead(options: { recentChatCount?: number } = {}): Promise<PromptOverhead> {
     const room = getCurrentCharacter()
 
     if (room.type === 'group') {
@@ -286,7 +354,7 @@ export async function estimatePromptOverhead(): Promise<PromptOverhead> {
         let worst: PromptOverhead | null = null
         for (const memberId of room.characters) {
             const member = findCharacterbyId(memberId)
-            const estimate = await estimateCharOverhead(member, chat, true)
+            const estimate = await estimateCharOverhead(member, chat, true, options.recentChatCount)
             if (!worst || estimate.total > worst.total) {
                 worst = estimate
             }
@@ -298,23 +366,18 @@ export async function estimatePromptOverhead(): Promise<PromptOverhead> {
     }
 
     const chat = room.chats[room.chatPage]
-    return estimateCharOverhead(room, chat, false)
+    return estimateCharOverhead(room, chat, false, options.recentChatCount)
 }
 
 export async function estimateHypaV3MaxMemoryRatio(): Promise<HypaV3RatioEstimate> {
     const db = getDatabase()
     const settings = getCurrentHypaV3Preset().settings
-    const queryChatCount = settings.queryChatCount
-    const maxResponse = db.maxResponse
     const maxContext = db.maxContext
-    const overhead = await estimatePromptOverhead()
-    const recentChats = queryChatCount * maxResponse
-    const items = [...overhead.items, { key: 'recentChats' as const, tokens: recentChats }]
-    const total = overhead.total + recentChats
+    const overhead = await estimatePromptOverhead({ recentChatCount: settings.queryChatCount })
 
     if (maxContext === 0) {
-        return { items, total, maxMemoryRatio: 0 }
+        return { ...overhead, maxMemoryRatio: 0 }
     }
 
-    return { items, total, maxMemoryRatio: Math.max((maxContext - total) / maxContext, 0) }
+    return { ...overhead, maxMemoryRatio: Math.max((maxContext - overhead.total) / maxContext, 0) }
 }

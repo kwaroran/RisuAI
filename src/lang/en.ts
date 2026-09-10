@@ -283,7 +283,7 @@ export const languageEnglish = {
             "The prompt used when merging multiple selected summaries into one via bulk edit. If blank, the default prompt is used.",
         hypaV3MemoryTokensRatio:
             "The fraction of the max context size allocated to the long-term memory block {{slot}} in the prompt.",
-        hypaV3MaxMemoryTokensRatio: "Estimated maximum value for Memory Tokens Ratio, based on the fixed prompt overhead implied by current settings (prompt template, character, persona, lorebook budget, and the recent chats HypaV3 never summarizes). Triggers and per-turn dynamic lorebook activation are not included.",
+        hypaV3MaxMemoryTokensRatio: "Estimated maximum value for Memory Tokens Ratio. It subtracts the fixed prompt overhead implied by current settings (prompt template, character, persona, lorebook budget) and the recent chats HypaV3 never summarizes, measured from the selected chat; when the chat has fewer messages than Query Chat Count, each missing slot counts as Max Response Size. Regex scripts, triggers, and per-turn dynamic lorebook activation are not included.",
         hypaV3ExtraSummarizationRatio:
             "Lowers the threshold at which summarization stops. At 0, summarization stops as soon as tokens fall below the max context. Higher values cause more summarization before stopping.",
         hypaV3MaxChatsPerSummary:
@@ -1396,7 +1396,7 @@ export const languageEnglish = {
             exampleMessages: "Example Messages",
             postExtras: "Post-prompt Instructions",
             slack: "Safety Margin",
-            recentChats: "Max Response Size × Query Chat Count",
+            recentChats: "Recent Chats (Query Chat Count)",
         },
     },
     hypaV3Modal: {
