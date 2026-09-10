@@ -172,6 +172,7 @@ export const languageKorean = {
         "hypaV3MaxChatsPerSummary": "하나의 요약본을 만들 때 포함할 최대 채팅 메시지 수입니다.",
         "hypaV3QueryChatCount": "유사도 검색의 쿼리로 사용되는 최근 채팅 메시지 수입니다. 값이 높을수록 더 많은 분량의 채팅으로 유사도를 판별합니다.",
         "hypaV3SummaryChunkSeparator": "요약본을 청크 단위로 분리할 때 사용되는 구분자입니다.",
+        "hypaV3EmbeddingRegex": "임베딩되기 전 요약본 청크에 적용되는 정규식 스크립트입니다. 최종적으로 삽입되는 요약본에는 적용되지 않습니다.",
         "hypaV3RecentMemoryRatio": "메모리 토큰 중 최근 메모리에 할당할 비율입니다. 가장 최근에 만들어진 요약본부터 할당된 토큰이 다 찰 때까지 자동으로 채워집니다.",
         "hypaV3SimilarMemoryRatio": "메모리 토큰 중 유사 메모리에 할당할 비율입니다. 최근 채팅과의 유사도 점수가 높은 요약본부터 할당된 토큰이 다 찰 때까지 자동으로 채워집니다.",
         "hypaV3RandomMemoryRatio": "이미 선택된 요약본을 제외한 나머지 중에서 무작위로 채워집니다.",
@@ -1242,7 +1243,8 @@ export const languageKorean = {
         "enableSimilarityCorrectionLabel": "유사도 보정 활성화",
         "preserveOrphanedMemoryLabel": "고아 메모리 보존",
         "applyRegexScriptWhenRerollingLabel": "재생성 시 정규식 스크립트 적용",
-        "doNotSummarizeUserMessageLabel": "유저 메시지 요약하지 않기"
+        "doNotSummarizeUserMessageLabel": "유저 메시지 요약하지 않기",
+        "editEmbeddingRequestData": "임베딩 리퀘스트 데이터 수정"
     },
     "hypaV3Modal": {
         "titleLabel": "HypaV3",

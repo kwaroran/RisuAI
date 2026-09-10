@@ -318,6 +318,8 @@ export const languageEnglish = {
             "Higher values use more chat context to determine similarity.",
         hypaV3SummaryChunkSeparator:
             "Separator used to split summaries into chunks for similarity search.",
+        hypaV3EmbeddingRegex:
+            "Regex scripts applied to summary chunks before they are embedded for similarity search. The summary text finally injected into the prompt is not modified.",
         coldstorage: "Coldstorage is a feature that automatically moves old chats and character data to a seperate storage to reduce the size of the main storage and improve performance. This will reduce the transfer time, transfer traffic and improve the performance when loading chats."
     },
     setup: {
@@ -1383,6 +1385,7 @@ export const languageEnglish = {
         preserveOrphanedMemoryLabel: "Preserve Orphaned Memory",
         applyRegexScriptWhenRerollingLabel: "Apply Regex Script When Rerolling",
         doNotSummarizeUserMessageLabel: "Do Not Summarize User Message",
+        editEmbeddingRequestData: "Edit Embedding Request Data",
     },
     hypaV3Modal: {
         titleLabel: "HypaV3",

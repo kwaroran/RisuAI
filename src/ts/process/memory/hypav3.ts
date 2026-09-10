@@ -20,6 +20,7 @@ import { chatCompletion, unloadEngine } from "../webllm";
 import { hypaV3ProgressStore } from "src/ts/stores.svelte";
 import { type ChatTokenizer } from "src/ts/tokenizer";
 import { inlayTokenRegex } from "src/ts/util/inlayTokens";
+import { applyEmbeddingRegex, type EmbeddingRegex } from "./embeddingRegex";
 
 export interface HypaV3Preset {
     name: string;
@@ -48,6 +49,7 @@ export interface HypaV3Settings {
     embeddingMaxConcurrent: number;
     alwaysToggleOn: boolean;
     queryChatCount: number;
+    embeddingRegex: EmbeddingRegex[];
 }
 
 interface HypaV3Data {
@@ -617,11 +619,14 @@ async function hypaMemoryV3MainExp(
                 const splitted = splitBySeparator(summary.text, settings.summaryChunkSeparator)
                     .filter((e) => e.trim().length > 0);
 
-                return splitted.map((chunk, chunkIndex) => ({
-                    id: `${summaryIndex}-${chunkIndex}`,
-                    content: chunk.trim(),
-                    metadata: summary,
-                }));
+                return splitted
+                    .map((chunk) => applyEmbeddingRegex(chunk.trim(), settings.embeddingRegex))
+                    .filter((filtered) => filtered.trim().length > 0)
+                    .map((filtered, chunkIndex) => ({
+                        id: `${summaryIndex}-${chunkIndex}`,
+                        content: filtered,
+                        metadata: summary,
+                    }));
             }
         );
 
@@ -1336,12 +1341,14 @@ async function hypaMemoryV3Main(
             const splitted = splitBySeparator(summary.text, settings.summaryChunkSeparator)
                 .filter((e) => e.trim().length > 0);
 
-            summaryChunks.push(
-                ...splitted.map((e) => ({
-                    text: e.trim(),
+            for (const raw of splitted) {
+                const filtered = applyEmbeddingRegex(raw.trim(), settings.embeddingRegex);
+                if (filtered.trim().length === 0) continue;
+                summaryChunks.push({
+                    text: filtered,
                     summary,
-                }))
-            );
+                });
+            }
         });
 
         // Initialize embedding processor
@@ -1809,6 +1816,7 @@ export function createHypaV3Preset(
         embeddingMaxConcurrent: 1,
         alwaysToggleOn: false,
         queryChatCount: 3,
+        embeddingRegex: [],
     };
 
     if (
