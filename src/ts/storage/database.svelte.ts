@@ -737,12 +737,7 @@ export function getDatabase(options:getDatabaseOptions = {}):Database{
 }
 
 export function getCurrentCharacter(options:getDatabaseOptions = {}):character|groupChat{
-    const db = getDatabase(options)
-    if(!db.characters){
-        db.characters = []
-    }
-    const char = db.characters?.[get(selectedCharID)]
-    return char
+    return getCharacterByIndex(get(selectedCharID), options)
 }
 
 export function setCurrentCharacter(char:character|groupChat){
@@ -753,12 +748,12 @@ export function setCurrentCharacter(char:character|groupChat){
 }
 
 export function getCharacterByIndex(index:number,options:getDatabaseOptions = {}):character|groupChat{
-    const db = getDatabase(options)
-    if(!db.characters){
-        db.characters = []
+    if(!DBState.db.characters){
+        DBState.db.characters = []
     }
-    const char = db.characters?.[index]
-    return char
+    const char = DBState.db.characters[index]
+    // snapshot only the requested character instead of the whole database
+    return options.snapshot ? $state.snapshot(char) as character|groupChat : char
 }
 
 export function setCharacterByIndex(index:number,char:character|groupChat){
