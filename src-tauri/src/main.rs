@@ -21,15 +21,33 @@ use oauth2::{
     TokenUrl
 };
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::Method;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Write;
 use std::{path::Path, time::Duration};
 use std::sync::{Arc, Mutex};
+use tauri::ipc::{Channel, InvokeResponseBody};
 use tauri::path::BaseDirectory;
 use tauri::{Listener, Manager};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, State};
+use tokio_util::sync::CancellationToken;
+
+#[derive(Clone)]
+struct NativeHttpState {
+    client: reqwest::Client,
+    active_streams: Arc<Mutex<HashMap<String, CancellationToken>>>,
+}
+
+impl Default for NativeHttpState {
+    fn default() -> Self {
+        Self {
+            client: reqwest::Client::new(),
+            active_streams: Arc::new(Mutex::new(HashMap::new())),
+        }
+    }
+}
 
 #[tauri::command]
 async fn native_request(url: String, body: String, header: String, method: String) -> String {
@@ -429,140 +447,156 @@ fn run_py_server(handle: tauri::AppHandle, py_path: String) {
     return;
 }
 
-#[tauri::command]
-async fn streamed_fetch(
-    id: String,
-    url: String,
-    headers: String,
-    body: String,
-    app: AppHandle,
-    method: String,
-    timeout_secs: Option<u64>,
-) -> String {
-    //parse headers
-    let headers_json: Value = match serde_json::from_str(&headers) {
-        Ok(h) => h,
-        Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
-    };
-
-    let mut headers = HeaderMap::new();
-    if let Some(obj) = headers_json.as_object() {
-        for (key, value) in obj {
-            let header_name = match HeaderName::from_bytes(key.as_bytes()) {
-                Ok(name) => name,
-                Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
-            };
-            let header_value = match HeaderValue::from_str(value.as_str().unwrap_or("")) {
-                Ok(value) => value,
-                Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
-            };
-            headers.insert(header_name, header_value);
-        }
-    } else {
-        return format!(r#"{{"success":false,"body":"Invalid header JSON"}}"#);
-    }
-
-    let client = reqwest::Client::new();
-    let timeout_secs = timeout_secs.unwrap_or(240);
-    let builder: reqwest::RequestBuilder;
-    if method == "POST" {
-
-        let body_decoded = general_purpose::STANDARD.decode(body.as_bytes()).unwrap();
-
-        builder = client
-        .post(&url)
-        .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs))
-        .body(body_decoded)
-    }
-    else if method == "GET" {
-        builder = client
-        .get(&url)
-        .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs));
-    }
-    else if method == "PUT" {
-
-        let body_decoded = general_purpose::STANDARD.decode(body.as_bytes()).unwrap();
-
-        builder = client
-        .put(&url)
-        .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs))
-        .body(body_decoded)
-    }
-    else if method == "DELETE" {
-
-        let body_decoded = general_purpose::STANDARD.decode(body.as_bytes()).unwrap();
-
-        builder = client
-        .delete(&url)
-        .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs))
-        .body(body_decoded)
-    }
-    else {
-        return format!(r#"{{"success":false, body:"Invalid method"}}"#);
-    }
-
-
-
-    let response = builder
-        .send()
-        .await;
-
-    match response {
-        Ok(mut resp) => {
-            let headers = resp.headers();
-            let header_json = header_map_to_json(headers);
-            app.emit(
-                "streamed_fetch",
-                &format!(
-                    r#"{{"type": "headers", "body": {}, "id": "{}", "status": {}}}"#,
-                    header_json,
-                    id,
-                    resp.status().as_u16()
-                ),
-            )
-            .unwrap();
-            loop {
-                let byt = resp.chunk().await;
-                match byt {
-                    Ok(chunk) => {
-                        if chunk.is_none() {
-                            break;
-                        }
-                        let chunk = chunk.unwrap();
-                        let encoded = general_purpose::STANDARD.encode(chunk);
-                        let emited = app.emit(
-                            "streamed_fetch",
-                            &format!(
-                                r#"{{"type": "chunk", "body": "{}", "id": "{}"}}"#,
-                                encoded, id
-                            ),
-                        );
-
-                        match emited {
-                            Ok(_) => {}
-                            Err(e) => {
-                                return format!(r#"{{"success":false, body:{}}}"#, e.to_string())
-                            }
-                        }
-                    }
-                    Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
-                }
-            }
-            app.emit(
-                "streamed_fetch",
-                &format!(r#"{{"type": "end", "id": "{}"}}"#, id),
-            )
-            .unwrap();
-            return "{\"success\":true}".to_string();
-        }
-        Err(e) => return format!(r#"{{"success":false, body:{}}}"#, e.to_string()),
-    }
+enum StreamOutcome {
+    Completed,
+    Cancelled,
 }
 
+fn send_stream_event(channel: &Channel<InvokeResponseBody>, event: Value) -> Result<(), String> {
+    channel
+        .send(InvokeResponseBody::Json(event.to_string()))
+        .map_err(|error| error.to_string())
+}
+
+async fn run_streamed_fetch(
+    client: reqwest::Client,
+    url: String,
+    headers: HeaderMap,
+    body: Vec<u8>,
+    method: Method,
+    timeout_secs: u64,
+    channel: &Channel<InvokeResponseBody>,
+    cancel_token: CancellationToken,
+) -> Result<StreamOutcome, String> {
+    let mut builder = client
+        .request(method.clone(), &url)
+        .headers(headers)
+        .timeout(Duration::from_secs(timeout_secs));
+
+    if method != Method::GET && !body.is_empty() {
+        builder = builder.body(body);
+    }
+
+    let mut response = tokio::select! {
+        _ = cancel_token.cancelled() => return Ok(StreamOutcome::Cancelled),
+        response = builder.send() => response.map_err(|error| error.to_string())?,
+    };
+
+    send_stream_event(
+        channel,
+        json!({
+            "type": "headers",
+            "headers": header_map_to_json(response.headers()),
+            "status": response.status().as_u16(),
+        }),
+    )?;
+
+    loop {
+        let chunk = tokio::select! {
+            _ = cancel_token.cancelled() => return Ok(StreamOutcome::Cancelled),
+            chunk = response.chunk() => chunk.map_err(|error| error.to_string())?,
+        };
+
+        let Some(chunk) = chunk else {
+            break;
+        };
+
+        channel
+            .send(InvokeResponseBody::Raw(chunk.to_vec()))
+            .map_err(|error| error.to_string())?;
+    }
+
+    Ok(StreamOutcome::Completed)
+}
+
+#[tauri::command]
+fn streamed_fetch(
+    id: String,
+    url: String,
+    headers: HashMap<String, String>,
+    body: String,
+    method: String,
+    timeout_secs: Option<u64>,
+    channel: Channel<InvokeResponseBody>,
+    state: State<'_, NativeHttpState>,
+) -> Result<(), String> {
+    let method = Method::from_bytes(method.as_bytes()).map_err(|error| error.to_string())?;
+    let body = general_purpose::STANDARD
+        .decode(body.as_bytes())
+        .map_err(|error| error.to_string())?;
+
+    let mut request_headers = HeaderMap::new();
+    for (key, value) in headers {
+        let header_name =
+            HeaderName::from_bytes(key.as_bytes()).map_err(|error| error.to_string())?;
+        let header_value = HeaderValue::from_str(&value).map_err(|error| error.to_string())?;
+        request_headers.insert(header_name, header_value);
+    }
+
+    let cancel_token = CancellationToken::new();
+    {
+        let mut active_streams = state
+            .active_streams
+            .lock()
+            .map_err(|_| "Native stream registry lock poisoned".to_string())?;
+        if active_streams.contains_key(&id) {
+            return Err("Duplicate native stream id".to_string());
+        }
+        active_streams.insert(id.clone(), cancel_token.clone());
+    }
+
+    let task_state = state.inner().clone();
+    tauri::async_runtime::spawn(async move {
+        let result = run_streamed_fetch(
+            task_state.client.clone(),
+            url,
+            request_headers,
+            body,
+            method,
+            timeout_secs.unwrap_or(240),
+            &channel,
+            cancel_token,
+        )
+        .await;
+
+        if let Ok(mut active_streams) = task_state.active_streams.lock() {
+            active_streams.remove(&id);
+        }
+
+        match result {
+            Ok(StreamOutcome::Completed) => {
+                let _ = send_stream_event(&channel, json!({ "type": "end" }));
+            }
+            Ok(StreamOutcome::Cancelled) => {}
+            Err(message) => {
+                let _ = send_stream_event(
+                    &channel,
+                    json!({
+                        "type": "error",
+                        "message": message,
+                    }),
+                );
+            }
+        }
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+fn cancel_streamed_fetch(id: String, state: State<'_, NativeHttpState>) -> Result<(), String> {
+    let cancel_token = state
+        .active_streams
+        .lock()
+        .map_err(|_| "Native stream registry lock poisoned".to_string())?
+        .remove(&id);
+
+    if let Some(cancel_token) = cancel_token {
+        cancel_token.cancel();
+    }
+
+    Ok(())
+}
 
 fn main() {
     let mut builder = tauri::Builder::default();
@@ -578,6 +612,7 @@ fn main() {
     }
 
     builder
+        .manage(NativeHttpState::default())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
@@ -597,6 +632,7 @@ fn main() {
             run_py_server,
             install_py_dependencies,
             streamed_fetch,
+            cancel_streamed_fetch,
             oauth_login
         ])
         .run(tauri::generate_context!())
@@ -608,7 +644,7 @@ fn header_map_to_json(header_map: &HeaderMap) -> serde_json::Value {
     for (key, value) in header_map {
         map.insert(
             key.as_str().to_string(),
-            value.to_str().unwrap().to_string(),
+            String::from_utf8_lossy(value.as_bytes()).into_owned(),
         );
     }
     json!(map)
