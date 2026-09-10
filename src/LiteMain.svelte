@@ -34,7 +34,8 @@
                 {#each cards as card}
                     <LiteCardIcon card={card} onclick={async () => {
                         await downloadRisuHub(card.id, {
-                            forceRedirect: true
+                            forceRedirect: true,
+                            creator: card.creator,
                         })
                     }} />
                 {/each}

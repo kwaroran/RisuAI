@@ -6,6 +6,7 @@
     import RisuHubIcon from "./RealmHubIcon.svelte";
     import { MobileGUI, RealmInitialOpenChar } from "src/ts/stores.svelte";
     import RealmPopUp from "./RealmPopUp.svelte";
+    import RealmBlockedCreators from "./RealmBlockedCreators.svelte";
 
     let openedData:null|hubType = $state(null)
 
@@ -16,6 +17,7 @@
 
     let search = $state('')
     let menuOpen = $state(false)
+    let blockedCreatorsOpen = $state(false)
     let nsfw = $state(false)
 
     async function getHub(){
@@ -174,7 +176,15 @@
 {/if}
 
 {#if openedData}
-    <RealmPopUp bind:openedData={openedData} />
+    <RealmPopUp bind:openedData={openedData} onBlock={(creatorId) => {
+        charas = charas.filter((card) => card.creator !== creatorId)
+    }} />
+{/if}
+
+{#if blockedCreatorsOpen}
+    <RealmBlockedCreators onClose={() => {
+        blockedCreatorsOpen = false
+    }} onUnblock={getHub} />
 {/if}
 
 
@@ -193,6 +203,11 @@
                 </button>
             </h1>
             <div class=" mt-2 w-full border-t-2 border-t-bgcolor"></div>
+            <button class="w-full hover:bg-selected p-4" onclick={(e) => {
+                e.stopPropagation()
+                menuOpen = false
+                blockedCreatorsOpen = true
+            }}>{language.manageBlockedRealmCreators}</button>
             <button class="w-full hover:bg-selected p-4" onclick={(async (e) => {
                 e.stopPropagation()
                 menuOpen = false
