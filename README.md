@@ -50,7 +50,7 @@ You can get detailed information on https://github.com/kwaroran/Risuai/wiki (Wor
 
 ### Development prerequisites
 
-- Node.js 20.19+ or 22.12+
+- Node.js 22.13+
 - pnpm
 
 ### Docker Installation

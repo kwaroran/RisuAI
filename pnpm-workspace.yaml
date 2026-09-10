@@ -1,0 +1,12 @@
+sideEffectsCache: false
+ignoreScripts: false
+minimumReleaseAge: 4320
+
+allowBuilds:
+  '@swc/core': true
+  core-js: true
+  esbuild: true
+  msgpackr-extract: true
+  onnxruntime-node: true
+  protobufjs: true
+  sharp: false

@@ -1,6 +1,10 @@
 {
   "name": "hono-risuai-server",
+  "packageManager": "pnpm@11.9.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start:bun": "bun run src/bun.ts",
@@ -16,10 +20,5 @@
     "@types/node": "^20.11.17",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }

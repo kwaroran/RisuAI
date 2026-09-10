@@ -23,7 +23,7 @@ set -eu
 # export VITE_AD_SLOT="${VITE_AD_SLOT:-}"
 # export VITE_AD_SLOT_MOBILE="${VITE_AD_SLOT_MOBILE:-}"
 
-npm install -g pnpm@10.34.1
+npm install -g pnpm@11.9.0
 pnpm install
 pnpm run build
 
