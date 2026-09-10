@@ -970,9 +970,13 @@ export async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtende
 }
 
 function getTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Array, StreamResponseChunk> {
-    let dataUint:Uint8Array|Buffer = new Uint8Array([])
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let readed:{[key:string]:string} = {}
     let reasoningContent = ""
     let reasoningFromStructured = false
+    let streamDone = false
+    const toolCallsData:{[key:string]:any} = {}
     const db = getDatabase()
 
     const appendStreamingFragment = (current:string, incoming?:string) => {
@@ -985,154 +989,167 @@ function getTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Arr
         return current + incoming
     }
 
+    const buildReadableState = () => {
+        const current:{[key:string]:string} = { ...readed }
+        if(Object.keys(toolCallsData).length > 0){
+            current["__tool_calls"] = JSON.stringify(toolCallsData)
+        }
+        return current
+    }
+
+    const emit = (control:TransformStreamDefaultController<StreamResponseChunk>) => {
+        const current = buildReadableState()
+        let currentReasoningContent = reasoningContent
+
+        if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput) && !reasoningFromStructured){
+            current["0"] = (current["0"] ?? '').replace(/(.*)\<\/think\>/gms, (m, p1) => {
+                currentReasoningContent = p1
+                return ""
+            })
+
+            if(currentReasoningContent){
+                currentReasoningContent = currentReasoningContent.replace(/\<think\>/gm, '')
+            }
+        }
+
+        if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
+            let JSONreaded:{[key:string]:string} = {}
+            for(const key in current){
+                const extracted = extractJSON(current[key], arg.extractJson)
+                JSONreaded[key] = extracted
+            }
+            console.log(JSONreaded)
+            control.enqueue(JSONreaded)
+        }
+        else if(currentReasoningContent){
+            const chunk:Record<string,string> = {
+                "0": `<Thoughts>\n${currentReasoningContent}\n</Thoughts>\n${current["0"] ?? ''}`,
+            }
+            if(current["__tool_calls"]){
+                chunk["__tool_calls"] = current["__tool_calls"]
+            }
+            control.enqueue(chunk)
+        }
+        else{
+            control.enqueue(current)
+        }
+    }
+
+    const applyStreamData = (rawChunk:string) => {
+        if(rawChunk.trim() === "[DONE]"){
+            streamDone = true
+            return true
+        }
+
+        try {
+            const choices = JSON.parse(rawChunk).choices
+            for(const choice of choices){
+                const chunk = choice.delta?.content ?? choice.text
+                if(chunk){
+                    if(arg.multiGen){
+                        const ind = choice.index.toString()
+                        if(!readed[ind]){
+                            readed[ind] = ""
+                        }
+                        readed[ind] = appendStreamingFragment(readed[ind], chunk)
+                    }
+                    else{
+                        if(!readed["0"]){
+                            readed["0"] = ""
+                        }
+                        readed["0"] = appendStreamingFragment(readed["0"], chunk)
+                    }
+                }
+                if(choice?.delta?.tool_calls){
+                    for(const toolCall of choice.delta.tool_calls) {
+                        const index = toolCall.index ?? 0
+                        const toolCallId = toolCall.id
+
+                        if(!toolCallsData[index]) {
+                            toolCallsData[index] = {
+                                id: toolCallId || null,
+                                type: 'function',
+                                function: {
+                                    name: null,
+                                    arguments: ''
+                                }
+                            }
+                        }
+
+                        if(toolCall.id) {
+                            toolCallsData[index].id = toolCall.id
+                        }
+                        if(toolCall.function?.name) {
+                            toolCallsData[index].function.name = toolCall.function.name
+                        }
+                        if(toolCall.function?.arguments) {
+                            toolCallsData[index].function.arguments = appendStreamingFragment(toolCallsData[index].function.arguments, toolCall.function.arguments)
+                        }
+                    }
+                }
+                const reasoningChunk = choice?.delta?.reasoning_content ?? choice?.delta?.reasoning
+                if(reasoningChunk){
+                    reasoningFromStructured = true
+                    reasoningContent = appendStreamingFragment(reasoningContent, reasoningChunk)
+                }
+            }
+            return true
+        } catch (error) {}
+
+        return false
+    }
+
+    const processBufferedEvents = (control:TransformStreamDefaultController<StreamResponseChunk>, final = false) => {
+        const events = buffer.split(/\r\n\r\n|\n\n|\r\r/)
+        buffer = events.pop() ?? ''
+
+        if(final && buffer.trim()){
+            events.push(buffer)
+            buffer = ''
+        }
+
+        let updated = false
+        for(const rawEvent of events){
+            const dataLines = rawEvent
+                .split(/\r\n|\r|\n/)
+                .filter((line) => line.startsWith("data:"))
+                .map((line) => line.replace(/^data:\s?/, ''))
+            if(dataLines.length === 0){
+                continue
+            }
+            updated = applyStreamData(dataLines.join('\n')) || updated
+            if(streamDone){
+                emit(control)
+                return true
+            }
+        }
+
+        if(updated){
+            emit(control)
+        }
+        return updated
+    }
+
     return new TransformStream<Uint8Array, StreamResponseChunk>({
         transform(chunk, control) {
-            const combined = new Uint8Array(dataUint.length + chunk.length);
-            combined.set(dataUint, 0);
-            combined.set(chunk, dataUint.length);
-            dataUint = Buffer.from(combined);
-            let JSONreaded:{[key:string]:string} = {}
-            reasoningContent = ""
-                        try {
-                const datas = dataUint.toString().split('\n')
-                let readed:{[key:string]:string} = {}
-                for(const data of datas){
-                    if(data.startsWith("data: ")){
-                        try {
-                            const rawChunk = data.replace("data: ", "")
-                            if(rawChunk === "[DONE]"){
-                                if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput) && !reasoningFromStructured){
-                                    readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
-                                        reasoningContent = p1
-                                        return ""
-                                    })
-
-                                    if(reasoningContent){
-                                        reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
-                                    }
-                                }
-                                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                                    for(const key in readed){
-                                        const extracted = extractJSON(readed[key], arg.extractJson)
-                                        JSONreaded[key] = extracted
-                                    }
-                                    console.log(JSONreaded)
-                                    control.enqueue(JSONreaded)
-                                }
-                                else if(reasoningContent){
-                                    const chunk:Record<string,string> = {
-                                        "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"] ?? ''}`,
-                                    }
-                                    if(readed["__tool_calls"]){
-                                        chunk["__tool_calls"] = readed["__tool_calls"]
-                                    }
-                                    control.enqueue(chunk)
-                                }
-                                else{
-                                    control.enqueue(readed)
-                                }
-                                return
-                            }
-                            const choices = JSON.parse(rawChunk).choices
-                            for(const choice of choices){
-                                const chunk = choice.delta.content ?? choice.text
-                                if(chunk){
-                                    if(arg.multiGen){
-                                        const ind = choice.index.toString()
-                                        if(!readed[ind]){
-                                            readed[ind] = ""
-                                        }
-                                        readed[ind] = appendStreamingFragment(readed[ind], chunk)
-                                    }
-                                    else{
-                                        if(!readed["0"]){
-                                            readed["0"] = ""
-                                        }
-                                        readed["0"] = appendStreamingFragment(readed["0"], chunk)
-                                    }
-                                }
-                                // Check for tool calls in the delta
-                                if(choice?.delta?.tool_calls){
-                                    if(!readed["__tool_calls"]){
-                                        readed["__tool_calls"] = JSON.stringify({})
-                                    }
-                                    const toolCallsData = JSON.parse(readed["__tool_calls"])
-                                    
-                                    for(const toolCall of choice.delta.tool_calls) {
-                                        const index = toolCall.index ?? 0
-                                        const toolCallId = toolCall.id
-                                        
-                                        // Initialize tool call data if not exists
-                                        if(!toolCallsData[index]) {
-                                            toolCallsData[index] = {
-                                                id: toolCallId || null,
-                                                type: 'function',
-                                                function: {
-                                                    name: null,
-                                                    arguments: ''
-                                                }
-                                            }
-                                        }
-                                        
-                                        // Update tool call data incrementally
-                                        if(toolCall.id) {
-                                            toolCallsData[index].id = toolCall.id
-                                        }
-                                        if(toolCall.function?.name) {
-                                            toolCallsData[index].function.name = toolCall.function.name
-                                        }
-                                        if(toolCall.function?.arguments) {
-                                            toolCallsData[index].function.arguments = appendStreamingFragment(toolCallsData[index].function.arguments, toolCall.function.arguments)
-                                        }
-                                    }
-                                    
-                                    readed["__tool_calls"] = JSON.stringify(toolCallsData)
-                                }
-                                const reasoningChunk = choice?.delta?.reasoning_content ?? choice?.delta?.reasoning
-                                if(reasoningChunk){
-                                    reasoningFromStructured = true
-                                    reasoningContent = appendStreamingFragment(reasoningContent, reasoningChunk)
-                                }
-                            }
-                        } catch (error) {}
-                    }
-                }
-                
-                if(arg.modelInfo.flags.includes(LLMFlags.deepSeekThinkingOutput) && !reasoningFromStructured){
-                    readed["0"] = readed["0"].replace(/(.*)\<\/think\>/gms, (m, p1) => {
-                        reasoningContent = p1
-                        return ""
-                    })
-
-                    if(reasoningContent){
-                        reasoningContent = reasoningContent.replace(/\<think\>/gm, '')
-                    }
-                }
-                if(arg.extractJson && (db.jsonSchemaEnabled || arg.schema)){
-                    for(const key in readed){
-                        const extracted = extractJSON(readed[key], arg.extractJson)
-                        JSONreaded[key] = extracted
-                    }
-                    console.log(JSONreaded)
-                    control.enqueue(JSONreaded)
-                }
-                else if(reasoningContent){
-                    const chunk:Record<string,string> = {
-                        "0": `<Thoughts>\n${reasoningContent}\n</Thoughts>\n${readed["0"] ?? ''}`,
-                    }
-                    if(readed["__tool_calls"]){
-                        chunk["__tool_calls"] = readed["__tool_calls"]
-                    }
-                    control.enqueue(chunk)
-                }
-                else{
-                    control.enqueue(readed)
-                }
-            } catch (error) {
-                
+            if(streamDone){
+                return
             }
-        }        
+            buffer += decoder.decode(chunk, { stream: true })
+            processBufferedEvents(control)
+        },
+        flush(control) {
+            if(streamDone){
+                return
+            }
+            buffer += decoder.decode()
+            processBufferedEvents(control, true)
+        }
     })
+}
+
+export const __testOpenAIRequestsAPI = {
+    getTranStream
 }
 
 function wrapToolStream(
