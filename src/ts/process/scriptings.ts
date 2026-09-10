@@ -933,14 +933,22 @@ export async function runScripted(code:string, arg:{
                     }
                 }
 
-                const options = parseLuaOptions(optionsStr) as { streaming?: boolean }
+                const options = parseLuaOptions(optionsStr) as { mode?: string, streaming?: boolean }
+                const modes = new Set(['emotion', 'memory', 'otherAx', 'submodel', 'translate'])
+                const mode = options.mode ?? 'otherAx'
+                if (!modes.has(mode)) {
+                    return JSON.stringify({
+                        result: 'Error: Invalid axLLM mode: ' + mode,
+                        success: false
+                    })
+                }
                 const result = await requestChatData({
                     formated: promptbody,
                     bias: {},
                     useStreaming: options.streaming === true,
                     forceStreaming: options.streaming === true,
                     noMultiGen: true,
-                }, 'otherAx')
+                }, mode as 'emotion' | 'memory' | 'otherAx' | 'submodel' | 'translate')
 
                 if(result.type === 'fail'){
                     return JSON.stringify({
