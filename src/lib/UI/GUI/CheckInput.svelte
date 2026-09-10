@@ -1,8 +1,9 @@
 <script lang="ts">
+    import { CheckIcon } from '@lucide/svelte';
 
     interface Props {
         check?: boolean;
-        onChange?: (check:boolean) => any,
+        onChange?: (check:boolean) => any;
         margin?: boolean;
         name?: string;
         hiddenName?: boolean;
@@ -19,45 +20,49 @@
         name = '',
         hiddenName = false,
         reverse = false,
-        className = "",
+        className = '',
         grayText = false,
         children
     }: Props = $props();
+
+    let stateLabel = $derived(name ? `${name} ${check ? 'enabled' : 'disabled'}` : check ? 'enabled' : 'disabled');
 </script>
 
 <label 
-    class={"flex items-center gap-2 cursor-pointer" + (className ? " " + className : "") + (grayText ? " text-textcolor2" : " text-textcolor")}
+    class={"relative flex items-center gap-2 cursor-pointer select-none" + (className ? " " + className : "") + (grayText ? " text-textcolor2" : " text-textcolor")}
     class:mr-2={margin}
-    aria-describedby="{name} {check ? 'abled' : 'disabled'}"
-    aria-labelledby="{name} {check ? 'abled' : 'disabled'}"
+    aria-label={hiddenName ? stateLabel : undefined}
 >
     {#if reverse}
-        <span>{name} {@render children?.()}</span>
+        <span class="min-w-0">{name} {@render children?.()}</span>
     {/if}
-    <input 
-        class="hidden" 
-        type="checkbox" 
-        alt={name}
-        bind:checked={check}
-        onchange={() => {
-            onChange(check)
-        }}
-        aria-describedby="{name} {check ? 'abled' : 'disabled'}"
-        aria-labelledby="{name} {check ? 'abled' : 'disabled'}"
-    />
-    <span 
-        class="w-5 h-5 min-w-5 min-h-5 rounded-md border-2 border-darkborderc flex justify-center items-center {check ? 'bg-darkborderc' : 'bg-darkbutton'} transition-colors duration-200"
-        aria-hidden="true"
-        aria-describedby="{name} {check ? 'abled' : 'disabled'}"
-        aria-labelledby="{name} {check ? 'abled' : 'disabled'}"
-    >
-        {#if check}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" class="w-3 h-3" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-        {/if}
+    <span class="relative inline-flex h-6 w-[2.625rem] min-w-[2.625rem] shrink-0 items-center">
+        <input
+            class="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+            type="checkbox"
+            alt={name}
+            bind:checked={check}
+            onchange={() => {
+                onChange(check)
+            }}
+            role="switch"
+            aria-checked={check}
+            aria-label={stateLabel}
+        />
+        <span
+            class="pointer-events-none absolute inset-0 rounded-full border {check ? 'border-textcolor bg-textcolor' : 'border-darkborderc bg-darkbutton'} transition-colors duration-200 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-borderc"
+            aria-hidden="true"
+        ></span>
+        <span
+            class="pointer-events-none absolute left-0.5 flex h-5 w-5 items-center justify-center rounded-full shadow-sm transition-all duration-200 {check ? 'translate-x-4 bg-bgcolor text-textcolor' : 'translate-x-0 bg-textcolor text-bgcolor'}"
+            aria-hidden="true"
+        >
+            {#if check}
+                <CheckIcon size={14} strokeWidth={4} />
+            {/if}
+        </span>
     </span>
     {#if !hiddenName && !reverse}
-        <span>{name} {@render children?.()}</span>
+        <span class="min-w-0">{name} {@render children?.()}</span>
     {/if}
 </label>
