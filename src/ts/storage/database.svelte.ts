@@ -1344,6 +1344,9 @@ export interface character{
     type?:"character"
     name:string
     image?:string
+    imageThumbnail?:string
+    imageThumbnailVersion?:number
+    imageThumbnailSource?:string
     firstMessage:string
     desc:string
     notes:string
@@ -1510,6 +1513,9 @@ export interface loreSettings{
 export interface groupChat{ 
     type: 'group'
     image?:string
+    imageThumbnail?:string
+    imageThumbnailVersion?:number
+    imageThumbnailSource?:string
     firstMessage:string
     chats:Chat[]
     chatFolders: ChatFolder[]

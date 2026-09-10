@@ -221,6 +221,25 @@ export async function readImage(data: string) {
     }
 }
 
+export async function assetExists(data: string) {
+    if(!data){
+        return false
+    }
+    try {
+        if(isTauri){
+            if(data.startsWith('assets')){
+                return await exists(data, { baseDir: BaseDirectory.AppData })
+            }
+            return await exists(data)
+        }
+        const item = await forageStorage.getItem(data)
+        return !!item
+    }
+    catch (error) {
+        return false
+    }
+}
+
 /**
  * Saves an asset file with the given data, custom ID, and file name.
  * 
@@ -913,7 +932,12 @@ export async function getUncleanables(db: Database, uptype: 'basename' | 'pure' 
             if(cha?.coldstorage){
                 const coldData = await getColdStorageItem(cha.coldstorage!)
                 if(coldData?.character && coldData.character.chaId === cha.chaId){
-                    cha = coldData.character
+                    // Keep both sides: the live stub preserves the current profile
+                    // image/thumbnail, while the cold payload contributes the rest
+                    // of the character assets (emotion images, CC assets, ...).
+                    chars.push(cha)
+                    chars.push(coldData.character)
+                    continue
                 }
             }
             chars.push(cha)
@@ -958,6 +982,9 @@ export function getUncleanablesSync(db: Database, uptype: 'basename' | 'pure' = 
     for (let cha of chars) {
         if (cha.image) {
             addUncleanable(cha.image);
+        }
+        if (cha.imageThumbnail) {
+            addUncleanable(cha.imageThumbnail);
         }
         if (cha.emotionImages) {
             for (const em of cha.emotionImages) {
@@ -1055,6 +1082,12 @@ export function replaceDbResources(db: Database, replacer: { [key: string]: stri
     for (const cha of db.characters) {
         if (cha.image) {
             cha.image = replaceData(cha.image);
+        }
+        if (cha.imageThumbnail) {
+            cha.imageThumbnail = replaceData(cha.imageThumbnail);
+        }
+        if (cha.imageThumbnailSource) {
+            cha.imageThumbnailSource = replaceData(cha.imageThumbnailSource);
         }
         if (cha.emotionImages) {
             for (let i = 0; i < cha.emotionImages.length; i++) {

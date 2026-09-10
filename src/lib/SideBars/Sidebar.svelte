@@ -35,6 +35,9 @@
   addCharacter,
     changeChar,
     getCharImage,
+    getCharacterSidebarImage,
+    ensureCharacterSidebarImageThumbnail,
+    markCharacterImageThumbnailFailed,
   } from "../../ts/characters";
     import CharConfig from "./CharConfig.svelte";
     import { language } from "../../lang";
@@ -219,6 +222,36 @@
       }
     }
     return -1
+  }
+
+  function getSidebarImageCacheKey(charIndex: number) {
+    const char = DBState.db.characters[charIndex]
+    return `${DBState.db.hideAllImages ? 'hidden' : 'visible'}:${char?.image ?? ''}:${char?.imageThumbnail ?? ''}:${char?.imageThumbnailVersion ?? ''}:${char?.imageThumbnailSource ?? ''}`
+  }
+
+  type SidebarImageSource = () => Promise<string>
+  type SidebarImageSideEffect = () => Promise<void>
+  const sidebarImageSources = new Map<number, SidebarImageSource>()
+  const sidebarThumbnailEnsurers = new Map<number, SidebarImageSideEffect>()
+
+  function getSidebarImageSource(charIndex: number) {
+    let source = sidebarImageSources.get(charIndex)
+    if(!source){
+      source = () => getCharacterSidebarImage(charIndex)
+      sidebarImageSources.set(charIndex, source)
+    }
+    return source
+  }
+
+  function getSidebarThumbnailEnsurer(charIndex: number) {
+    let ensurer = sidebarThumbnailEnsurers.get(charIndex)
+    if(!ensurer){
+      ensurer = async () => {
+        await ensureCharacterSidebarImageThumbnail(charIndex)
+      }
+      sidebarThumbnailEnsurers.set(charIndex, ensurer)
+    }
+    return ensurer
   }
 
   function scrollToActiveCharacter() {
@@ -591,7 +624,10 @@
           >
           {#if char.type === 'normal'}
             <SidebarAvatar 
-              src={char.img ? getCharImage(char.img, "plain") : "/none.webp"} 
+              src={getSidebarImageSource(char.index)}
+              srcKey={getSidebarImageCacheKey(char.index)}
+              onVisible={getSidebarThumbnailEnsurer(char.index)}
+              onError={() => markCharacterImageThumbnailFailed(char.index)}
               size="56" 
               rounded={IconRounded} 
               name={char.name}
@@ -753,7 +789,10 @@
                   }}
                 >
                 <SidebarAvatar 
-                  src={char2.img ? getCharImage(char2.img, "plain") : "/none.webp"} 
+                  src={getSidebarImageSource(char2.index)}
+                  srcKey={getSidebarImageCacheKey(char2.index)}
+                  onVisible={getSidebarThumbnailEnsurer(char2.index)}
+                  onError={() => markCharacterImageThumbnailFailed(char2.index)}
                   size="56" 
                   rounded={IconRounded} 
                   name={char2.name}

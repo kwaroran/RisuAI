@@ -2,13 +2,13 @@ import { get, writable } from "svelte/store";
 import { saveImage, type character, type Chat, defaultSdDataFunc, type loreBook, getDatabase, getCharacterByIndex, setCharacterByIndex } from "./storage/database.svelte";
 import { alertAddCharacter, alertConfirm, alertError, alertNormal, alertSelect, alertStore, alertWait } from "./alert";
 import { language } from "../lang";
-import { checkNullish, findCharacterbyId, findCharacterIndexbyId, getUserName, selectMultipleFile, selectSingleFile } from "./util";
+import { asBuffer, checkNullish, findCharacterbyId, findCharacterIndexbyId, getUserName, selectMultipleFile, selectSingleFile } from "./util";
 import { v4 as uuidv4, v4 } from 'uuid';
 import { getImageType } from "./media";
 import { DBState, MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores.svelte";
-import { AppendableBuffer, changeChatTo, checkCharOrder, downloadFile, getFileSrc, requiresFullEncoderReload } from "./globalApi.svelte";
+import { AppendableBuffer, assetExists, changeChatTo, checkCharOrder, downloadFile, getFileSrc, readImage, requiresFullEncoderReload } from "./globalApi.svelte";
 import { updateInlayScreen } from "./process/inlayScreen";
-import { parseMarkdownSafe } from "./parser/parser.svelte";
+import { hasher, parseMarkdownSafe } from "./parser/parser.svelte";
 import { translateHTML } from "./translator/translator";
 import { doingChat } from "./process/index.svelte";
 import { importCharacter } from "./characterCards";
@@ -51,7 +51,241 @@ export function createNewGroup(){
     return DBState.db.characters.length - 1
 }
 
-export async function getCharImage(loc:string, type:'plain'|'css'|'contain'|'lgcss') {
+type CharacterImageType = 'plain'|'css'|'contain'|'lgcss'
+
+const thumbnailPromises = new Map<string, Promise<string>>()
+const characterImageThumbnailVersion = 2
+// Sources whose sidebar thumbnail failed to render. Remembered for the current
+// session so a decode/load failure cannot loop back into regeneration; picking
+// a new icon changes the key and starts a fresh attempt.
+const failedThumbnailSources = new Set<string>()
+
+type CharacterImageThumbnailHolder = {
+    chaId?: string
+    image?: string
+    imageThumbnail?: string
+    imageThumbnailVersion?: number
+    imageThumbnailSource?: string
+}
+
+type CharacterImageThumbnailSource = {
+    chaId?: string
+    image: string
+}
+
+function clearImageThumbnail(char: CharacterImageThumbnailHolder) {
+    char.imageThumbnail = ''
+    char.imageThumbnailVersion = undefined
+    char.imageThumbnailSource = undefined
+}
+
+export function clearCharacterImageThumbnail(charIndex: number) {
+    const char = DBState.db.characters[charIndex]
+    if(!char){
+        return
+    }
+    clearImageThumbnail(char)
+}
+
+export function markCharacterImageThumbnailFailed(charIndex: number) {
+    const char = DBState.db.characters[charIndex]
+    if(!char?.image){
+        return
+    }
+    clearImageThumbnail(char)
+    failedThumbnailSources.add(getThumbnailPromiseKey(charIndex, char.image, char.chaId))
+}
+
+function getThumbnailPromiseKey(charIndex: number, image: string, chaId?: string) {
+    return `${chaId || charIndex}:${image}`
+}
+
+async function createImageThumbnail(data: Uint8Array, maxSize = 192) {
+    if(typeof document === 'undefined'){
+        return null
+    }
+
+    const blob = new Blob([asBuffer(data)])
+    const url = URL.createObjectURL(blob)
+    try {
+        const image = new Image()
+        await new Promise<void>((resolve, reject) => {
+            image.onload = () => resolve()
+            image.onerror = () => reject(new Error('Unable to load image for thumbnail'))
+            image.src = url
+        })
+
+        if(!image.width || !image.height){
+            return null
+        }
+
+        const scale = Math.min(1, maxSize / Math.max(image.width, image.height))
+        const width = Math.max(1, Math.round(image.width * scale))
+        const height = Math.max(1, Math.round(image.height * scale))
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if(!ctx){
+            return null
+        }
+
+        canvas.width = width
+        canvas.height = height
+        ctx.drawImage(image, 0, 0, width, height)
+
+        const thumbBlob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((encodedBlob) => {
+                if(!encodedBlob){
+                    resolve(null)
+                    return
+                }
+                if(encodedBlob.type !== 'image/webp'){
+                    console.warn(`WebP encoding unavailable, falling back to ${encodedBlob.type}`)
+                }
+                resolve(encodedBlob)
+            }, 'image/webp', 0.8)
+        })
+
+        if(!thumbBlob){
+            return null
+        }
+
+        return new Uint8Array(await thumbBlob.arrayBuffer())
+    }
+    finally {
+        URL.revokeObjectURL(url)
+    }
+}
+
+async function saveImageThumbnail(data: Uint8Array) {
+    const thumb = await createImageThumbnail(data)
+    if(!thumb){
+        return ''
+    }
+
+    return await saveImage(thumb, await hasher(thumb), 'thumbnail.png')
+}
+
+function characterMatchesThumbnailSource(char: CharacterImageThumbnailHolder | undefined, source: CharacterImageThumbnailSource) {
+    return !!char && char.chaId === source.chaId && char.image === source.image
+}
+
+async function setCharacterImageThumbnail(charIndex: number, data: Uint8Array, source: CharacterImageThumbnailSource) {
+    let thumbnail = ''
+    try {
+        thumbnail = await saveImageThumbnail(data)
+    }
+    catch (error) {
+        console.error(error)
+    }
+
+    const char = DBState.db.characters[charIndex]
+    if(!characterMatchesThumbnailSource(char, source)){
+        return ''
+    }
+    if(thumbnail){
+        char.imageThumbnail = thumbnail
+        char.imageThumbnailVersion = characterImageThumbnailVersion
+        char.imageThumbnailSource = source.image
+    }
+    else {
+        clearImageThumbnail(char)
+    }
+    return thumbnail
+}
+
+export async function ensureCharacterSidebarImageThumbnail(charIndex: number) {
+    const char = DBState.db.characters[charIndex]
+    if(!char?.image || DBState.db.hideAllImages){
+        return ''
+    }
+    if(char.imageThumbnail){
+        if(
+            char.imageThumbnailVersion !== characterImageThumbnailVersion ||
+            char.imageThumbnailSource !== char.image
+        ){
+            clearImageThumbnail(char)
+        }
+        else if(await assetExists(char.imageThumbnail)) {
+            return char.imageThumbnail
+        }
+        else {
+            clearImageThumbnail(char)
+        }
+    }
+
+    const source = {
+        chaId: char.chaId,
+        image: char.image,
+    }
+    const key = getThumbnailPromiseKey(charIndex, source.image, source.chaId)
+    if(failedThumbnailSources.has(key)){
+        return ''
+    }
+    const pending = thumbnailPromises.get(key)
+    if(pending){
+        return await pending
+    }
+
+    const promise = (async () => {
+        try {
+            const data = await readImage(source.image)
+            if(!characterMatchesThumbnailSource(DBState.db.characters[charIndex], source)){
+                return ''
+            }
+            return await setCharacterImageThumbnail(charIndex, data, source)
+        }
+        catch (error) {
+            console.error(error)
+            return ''
+        }
+        finally {
+            thumbnailPromises.delete(key)
+        }
+    })()
+
+    thumbnailPromises.set(key, promise)
+    return await promise
+}
+
+export async function getCharacterSidebarImage(charIndex: number) {
+    const char = DBState.db.characters[charIndex]
+    if(!char?.image){
+        return '/none.webp'
+    }
+
+    if(DBState.db.hideAllImages){
+        return '/none.webp'
+    }
+
+    if(
+        char.imageThumbnail &&
+        char.imageThumbnailVersion === characterImageThumbnailVersion &&
+        char.imageThumbnailSource === char.image
+    ){
+        if(await assetExists(char.imageThumbnail)){
+            const thumbnailSrc = await getCharImage(char.imageThumbnail, 'plain')
+            if(thumbnailSrc){
+                return thumbnailSrc
+            }
+        }
+    }
+
+    const pending = thumbnailPromises.get(getThumbnailPromiseKey(charIndex, char.image, char.chaId))
+    if(pending){
+        const thumbnail = await pending
+        if(thumbnail){
+            const thumbnailSrc = await getCharImage(thumbnail, 'plain')
+            if(thumbnailSrc){
+                return thumbnailSrc
+            }
+        }
+    }
+
+    const originalSrc = await getCharImage(char.image, 'plain')
+    return originalSrc || '/none.webp'
+}
+
+export async function getCharImage(loc:string, type:CharacterImageType) {
     const db = DBState.db
     
     // Return placeholder when hideAllImages is enabled
@@ -126,9 +360,20 @@ export async function selectCharImg(charIndex:number) {
 
 
 
-    const imgp = await saveImage(img)
+    const charId = DBState.db.characters[charIndex]?.chaId
+    const image = await saveImage(img)
+    if(DBState.db.characters[charIndex]?.chaId !== charId){
+        return
+    }
+
     dumpCharImage(charIndex)
-    DBState.db.characters[charIndex].image = imgp
+    const char = DBState.db.characters[charIndex]
+    char.image = image
+    clearImageThumbnail(char)
+    await setCharacterImageThumbnail(charIndex, img, {
+        chaId: char.chaId,
+        image,
+    })
 }
 
 export function dumpCharImage(charIndex:number) {
@@ -144,6 +389,7 @@ export function dumpCharImage(charIndex:number) {
         ext: 'png'
     })
     char.image = ''
+    clearImageThumbnail(char)
     DBState.db.characters[charIndex] = char
 }
 
@@ -153,6 +399,7 @@ export function changeCharImage(charIndex:number,changeIndex:number) {
     char.ccAssets.splice(changeIndex, 1)
     dumpCharImage(charIndex)
     char.image = image
+    clearImageThumbnail(char)
     DBState.db.characters[charIndex] = char
 }
 
@@ -731,6 +978,7 @@ export async function makeGroupImage() {
         if(group.type !== 'group'){
             return
         }
+        const groupId = group.chaId
     
         const imageUrls = await Promise.all(group.characters.map((v) => {
             return getCharImage(findCharacterbyId(v).image, 'plain')
@@ -786,8 +1034,23 @@ export async function makeGroupImage() {
         // Return the image URI
     
         const uri = canvas.toDataURL()
+        const imageData = dataURLtoBuffer(uri)
         canvas.remove()
-        db.characters[charID].image = await saveImage(dataURLtoBuffer(uri));
+        const image = await saveImage(imageData);
+        const char = db.characters[charID]
+        if(char?.chaId !== groupId){
+            alertStore.set({
+                type: 'none',
+                msg: ''
+            })
+            return
+        }
+        char.image = image
+        clearImageThumbnail(char)
+        await setCharacterImageThumbnail(charID, imageData, {
+            chaId: char.chaId,
+            image,
+        })
         alertStore.set({
             type: 'none',
             msg: ''
