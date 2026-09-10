@@ -503,6 +503,75 @@ export const LLMModels: LLMModel[] = [
         endpoint: 'https://api.deepseek.com/beta/chat/completions',
         keyIdentifier: 'deepseek'
     },
+    // UnoRouter
+    {
+        id: 'deepseek-v4-flash:free',
+        name: 'DeepSeek V4 Flash (free)',
+        provider: LLMProvider.UnoRouter,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.Unknown,
+        endpoint: 'https://api.unorouter.com/v1/chat/completions',
+        keyIdentifier: 'unorouter',
+        recommended: true
+    },
+    {
+        id: 'claude-sonnet-5',
+        name: 'Claude Sonnet 5',
+        provider: LLMProvider.UnoRouter,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasImageInput, LLMFlags.hasPrefill, LLMFlags.hasStreaming],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.Unknown,
+        endpoint: 'https://api.unorouter.com/v1/chat/completions',
+        keyIdentifier: 'unorouter',
+        recommended: true
+    },
+    {
+        id: 'nemotron-3-ultra-550b-a55b:free',
+        name: 'Nemotron 3 Ultra (free)',
+        provider: LLMProvider.UnoRouter,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.Unknown,
+        endpoint: 'https://api.unorouter.com/v1/chat/completions',
+        keyIdentifier: 'unorouter'
+    },
+    {
+        id: 'glm-5.2:free',
+        name: 'GLM 5.2 (free)',
+        provider: LLMProvider.UnoRouter,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.Unknown,
+        endpoint: 'https://api.unorouter.com/v1/chat/completions',
+        keyIdentifier: 'unorouter'
+    },
+    {
+        id: 'qwen3.5-397b-a17b:free',
+        name: 'Qwen 3.5 397B (free)',
+        provider: LLMProvider.UnoRouter,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.Unknown,
+        endpoint: 'https://api.unorouter.com/v1/chat/completions',
+        keyIdentifier: 'unorouter'
+    },
+    {
+        id: 'kimi-k2.6',
+        name: 'Kimi K2.6',
+        provider: LLMProvider.UnoRouter,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasImageInput, LLMFlags.hasStreaming],
+        parameters: OpenAIParameters,
+        tokenizer: LLMTokenizer.Unknown,
+        endpoint: 'https://api.unorouter.com/v1/chat/completions',
+        keyIdentifier: 'unorouter'
+    },
     // DeepInfra
     ...makeDeepInfraModels([
         'deepseek-ai/DeepSeek-R1',
