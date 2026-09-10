@@ -782,9 +782,10 @@ export class SandboxHost {
         this.iframe.setAttribute('allowTransparency', 'true');
 
         this.iframe.sandbox.add('allow-scripts');
-        this.iframe.sandbox.add('allow-modals')
-        this.iframe.sandbox.add('allow-downloads')
-
+        this.iframe.sandbox.add('allow-modals');
+        this.iframe.sandbox.add('allow-downloads');
+        this.iframe.sandbox.add('allow-clipboard-write');
+        
         this.iframe.setAttribute('csp', this.csp);
 
         const messageHandler = async (event: MessageEvent) => {
