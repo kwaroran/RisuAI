@@ -716,6 +716,29 @@ export async function exportChar(charaID:number):Promise<string> {
     return ''
 }
 
+async function readCardExportImage(image?: string) {
+    if(image){
+        try{
+            const img = await readImage(image)
+            if(img?.length){
+                return img
+            }
+        } catch (e) {
+            console.warn('readCardExportImage: failed to read character image, falling back to none.webp', e)
+        }
+    }
+
+    const res = await fetch('/none.webp')
+    if(!res.ok){
+        throw new Error(`Failed to load fallback character image: ${res.status} ${res.statusText}`)
+    }
+    const fallbackImage = new Uint8Array(await res.arrayBuffer())
+    if(!fallbackImage.length){
+        throw new Error('Failed to load fallback character image: empty response')
+    }
+    return fallbackImage
+}
+
 
 async function importCharacterCardSpec<T extends boolean = false>(card:CharacterCardV2Risu|CharacterCardV3, img?:Uint8Array, mode:'hub'|'normal' = 'normal', assetDict:{[key:string]:string} = {}, overrideLorebook: loreBook[] = null, returnValue:T = false as T):Promise<T extends true ? character|false : boolean>{
     if(!card ||(card.spec !== 'chara_card_v2' && card.spec !== 'chara_card_v3' )){
@@ -1247,7 +1270,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
     writer?:LocalWriter|VirtualWriter,
     spec?:'v2'|'v3'
 } = {}) {
-    let img = await readImage(char.image)
+    let img = await readCardExportImage(char.image)
     const spec:'v2'|'v3' = arg.spec ?? 'v2' //backward compatibility
     try{
         char.image = ''
