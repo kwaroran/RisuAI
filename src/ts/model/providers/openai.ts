@@ -1,6 +1,74 @@
-import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer, OpenAIParameters, GPT5Parameters, GPT5NoneParameters, GPT5XHighParameters, GPT5ProParameters, type LLMModel } from '../types'
+import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer, OpenAIParameters, GPT5Parameters, GPT5NoneParameters, GPT5XHighParameters, GPT5MaxParameters, GPT5ProParameters, type LLMModel } from '../types'
 
 export const OpenAIModels: LLMModel[] = [
+    // GPT-5.6
+    {
+        id: 'gpt-5.6',
+        internalID: 'gpt-5.6',
+        name: 'GPT 5.6',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5MaxParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5.6-sol',
+        internalID: 'gpt-5.6-sol',
+        name: 'GPT 5.6 Sol',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5MaxParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base
+    },
+    {
+        id: 'gpt-5.6-terra',
+        internalID: 'gpt-5.6-terra',
+        name: 'GPT 5.6 Terra',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5MaxParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
+    {
+        id: 'gpt-5.6-luna',
+        internalID: 'gpt-5.6-luna',
+        name: 'GPT 5.6 Luna',
+        provider: LLMProvider.OpenAI,
+        format: LLMFormat.OpenAICompatible,
+        flags: [
+            LLMFlags.hasStreaming,
+            LLMFlags.OAICompletionTokens,
+            LLMFlags.hasFullSystemPrompt,
+            LLMFlags.hasImageInput,
+            LLMFlags.DeveloperRole
+        ],
+        parameters: GPT5MaxParameters,
+        tokenizer: LLMTokenizer.tiktokenO200Base,
+        recommended: true
+    },
     // GPT-5.5 (April 2026)
     {
         id: 'gpt-5.5',

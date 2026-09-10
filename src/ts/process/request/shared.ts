@@ -14,6 +14,7 @@ export type LLMParameter =
     | 'reasoning_effort_min_medium'
     | 'reasoning_effort_none'
     | 'reasoning_effort_xhigh'
+    | 'reasoning_effort_max'
     | 'thinking_tokens'
     | 'verbosity'
 
@@ -23,6 +24,7 @@ const reasoningCapabilityParameters: LLMParameter[] = [
     'reasoning_effort_min_medium',
     'reasoning_effort_none',
     'reasoning_effort_xhigh',
+    'reasoning_effort_max',
 ]
 
 export function isReasoningCapabilityParameter(parameter: LLMParameter): boolean {
@@ -148,8 +150,9 @@ export function applyParameters(
     const reasoningDisabledEffort = parameters.includes('reasoning_effort_none') ? 'none' : 'minimal'
     const reasoningMinEffort = parameters.includes('reasoning_effort_min_medium') ? 'medium' : 'low'
     const supportsXHighReasoning = parameters.includes('reasoning_effort_xhigh')
+    const supportsMaxReasoning = parameters.includes('reasoning_effort_max')
 
-    function getEffort(effort: number, disabledEffort: 'minimal' | 'none' = 'minimal', supportsXHigh = false, minEffort: 'low' | 'medium' = 'low') {
+    function getEffort(effort: number, disabledEffort: 'minimal' | 'none' = 'minimal', supportsXHigh = false, supportsMax = false, minEffort: 'low' | 'medium' = 'low') {
         switch (effort) {
             case -1: {
                 return disabledEffort
@@ -165,6 +168,9 @@ export function applyParameters(
             }
             case 3: {
                 return supportsXHigh ? 'xhigh' : 'high'
+            }
+            case 4: {
+                return supportsMax ? 'max' : supportsXHigh ? 'xhigh' : 'high'
             }
             default: {
                 return 'medium'
@@ -249,6 +255,7 @@ export function applyParameters(
                         sepParams.reasoning_effort,
                         reasoningDisabledEffort,
                         supportsXHighReasoning,
+                        supportsMaxReasoning,
                         reasoningMinEffort
                     )
                     break
@@ -311,6 +318,7 @@ export function applyParameters(
                     db.reasoningEffort,
                     reasoningDisabledEffort,
                     supportsXHighReasoning,
+                    supportsMaxReasoning,
                     reasoningMinEffort
                 )
                 break
