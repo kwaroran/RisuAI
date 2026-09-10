@@ -118,6 +118,8 @@ export const languageEnglish = {
             "\n\n Additionaly, you can use these with additional assets:" +
             "\n - `{{bg::<asset name>}}`: inject the background as asset",
         additionalText: "The text that would be added to Character Description only when AI thinks it's needed, so you can put long texts here. Separate with double newlines.",
+        sidePanelEmbedding:
+            "An independent Markdown/HTML display shown on the right side of the chat screen. When its content changes, it updates while preserving existing DOM elements as much as possible.\n\nMost state is preserved automatically. If you especially want to keep the state of a particular element, give it a unique `id` so it can be matched consistently across updates.\n\n```html\n<div id=\"status-panel\">...</div>\n```",
         charjs: "A javascript code that would run with character. for example, you can check `https://github.com/kwaroran/Risuai/blob/main/src/etc/example-char.js` CURRENTLY NOT RECOMMENDED FOR USE DUE TO SECURITY REASONS. EXPORTING WOULD NOT INCLUDE THIS.",
         romanizer:
             "Romanizer is a plugin that converts non-roman characters to roman characters to reduce tokens when using non-roman characters while requesting data. This can result different output from the original model. It is not recommended to use this plugin when using roman characters on chat.",
@@ -928,6 +930,7 @@ export const languageEnglish = {
     hub: "RisuRealm",
     tags: "Tags",
     backgroundHTML: "Background Embedding",
+    sidePanelEmbedding: "Side Panel Embedding",
     copied: "Copied",
     useChatCopy: "Use Chat Message Copy",
     useChatSticker: "Use Chat Sticker",

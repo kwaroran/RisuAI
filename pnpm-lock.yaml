@@ -152,6 +152,9 @@ importers:
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1
+      morphlex:
+        specifier: ^1.4.0
+        version: 1.4.0
       msgpackr:
         specifier: 1.10.1
         version: 1.10.1
@@ -2198,6 +2201,9 @@ packages:
 
   monaco-editor@0.55.1:
     resolution: {integrity: sha512-jz4x+TJNFHwHtwuV9vA9rMujcZRb0CEilTEwG2rRSpe/A7Jdkuj8xPKttCgOh+v/lkHy7HsZ64oj+q3xoAFl9A==}
+
+  morphlex@1.4.0:
+    resolution: {integrity: sha512-20/rnlsvvzExLmdq8o9yRz4btq7ZV8bmFaRbkgvlmWYUyFQ31nvORHyKgvCdBIx83HWzxulPAoKNq2Hq1VjYmg==}
 
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
@@ -4405,6 +4411,8 @@ snapshots:
     dependencies:
       dompurify: 3.2.7
       marked: 14.0.0
+
+  morphlex@1.4.0: {}
 
   mri@1.2.0: {}
 

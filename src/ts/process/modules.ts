@@ -7,7 +7,7 @@ import { v4 } from "uuid"
 import { convertExternalLorebook } from "./lorebook.svelte"
 import { compressImage } from '../media'
 import { decodeRPack, encodeRPack } from "../rpack/rpack_js"
-import { DBState, HideIconStore, moduleBackgroundEmbedding, ReloadGUIPointer } from "../stores.svelte"
+import { DBState, HideIconStore, moduleBackgroundEmbedding, moduleSidePanelEmbedding, ReloadGUIPointer } from "../stores.svelte"
 import {get} from "svelte/store"
 import { convertCharacterToModule, convertModuleToCharacter } from "../interchangeability"
 import { exportCharacterCard, importCharacterProcess } from "../characterCards"
@@ -27,6 +27,7 @@ export interface RisuModule{
     lowLevelAccess?: boolean
     hideIcon?: boolean
     backgroundEmbedding?:string
+    sidePanelEmbedding?:string
     assets?:[string,string,string][]
     namespace?:string
     customModuleToggle?:string
@@ -558,6 +559,7 @@ export function moduleUpdate(){
     
     let moduleHideIcon = false
     let backgroundEmbedding = ''
+    let sidePanelEmbedding = ''
     m.forEach((module) => {
         if(!module){
             return
@@ -569,11 +571,15 @@ export function moduleUpdate(){
         if(module.backgroundEmbedding){
             backgroundEmbedding += '\n' + module.backgroundEmbedding + '\n'
         }
+        if(module.sidePanelEmbedding){
+            sidePanelEmbedding += '\n' + module.sidePanelEmbedding + '\n'
+        }
     })
 
     if(backgroundEmbedding){
         moduleBackgroundEmbedding.set(backgroundEmbedding)
     }
+    moduleSidePanelEmbedding.set(sidePanelEmbedding)
     HideIconStore.set(getCurrentCharacter()?.hideChatIcon || moduleHideIcon)
 
     if(lastModuleIds !== ids){

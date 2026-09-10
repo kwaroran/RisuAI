@@ -70,6 +70,7 @@
     "mnemonist": "^0.40.3",
     "mobile-drag-drop": "3.0.0-rc.0",
     "monaco-editor": "^0.55.1",
+    "morphlex": "^1.4.0",
     "msgpackr": "1.10.1",
     "node-html-parser": "^6.1.13",
     "ollama": "^0.5.18",

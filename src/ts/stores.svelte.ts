@@ -31,6 +31,7 @@ export const ViewBoxsize = writable({ width: 12 * 16, height: 12 * 16 }); // Def
 export const settingsOpen = writable(false)
 export const botMakerMode = writable(false)
 export const moduleBackgroundEmbedding = writable('')
+export const moduleSidePanelEmbedding = writable('')
 export const openPresetList = writable(false)
 export const openPersonaList = writable(false)
 export const bookmarkListOpen = writable(false)
