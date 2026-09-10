@@ -43,6 +43,7 @@ import type { AccountStorage } from "./storage/accountStorage";
 import { getColdStorageItem, makeColdData } from "./process/coldstorage.svelte";
 import { isTauri, isNodeServer } from "./platform";
 import { isLocalNetworkUrl } from "./network/localNetwork";
+import { normalizeApiRequestTimeoutSec } from "./network/requestTimeout";
 import { decodeProxyJobWsChunk, formatProxyStreamErrorMessage, parseProxyJobWsEvent } from "./network/proxyJobWs";
 import { getNodeServerProxyAuth } from "./storage/nodeStorage";
 
@@ -553,6 +554,14 @@ const knownHostes = ["localhost", "127.0.0.1", "0.0.0.0"];
 const webLocalNetworkBlockedMessage = "웹에서는 사설망 직접 호출 불가. Tauri 또는 LAN Node self-host 사용";
 const defaultProxyJobHeartbeatSec = 15;
 
+function getApiRequestTimeoutMs(requestTimeoutMs: number | undefined, db = getDatabase()) {
+    if (requestTimeoutMs !== undefined) {
+        return requestTimeoutMs;
+    }
+
+    return normalizeApiRequestTimeoutSec(db.apiRequestTimeoutSec) * 1000;
+}
+
 function getProxy2Url() {
     return !isTauri && !isNodeServer ? `${hubURL}/proxy2` : `/proxy2`;
 }
@@ -570,17 +579,19 @@ function buildTimeoutSignal(originalSignal?: AbortSignal, timeoutMs?: number) {
     }
 
     const controller = new AbortController();
-    const onAbort = () => controller.abort();
+    const onAbort = () => controller.abort(originalSignal?.reason);
     if (originalSignal) {
         if (originalSignal.aborted) {
-            controller.abort();
+            controller.abort(originalSignal.reason);
         }
         else {
             originalSignal.addEventListener('abort', onAbort, { once: true });
         }
     }
 
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(() => controller.abort(
+        new DOMException(`Request timed out after ${timeoutMs / 1000} seconds`, 'AbortError')
+    ), timeoutMs);
 
     return {
         signal: controller.signal,
@@ -706,10 +717,9 @@ export async function globalFetch(url: string, arg: GlobalFetchArgs = {}): Promi
             }
         }
 
-        const timeoutSignal = buildTimeoutSignal(arg.abortSignal, arg.requestTimeoutMs)
-        const requestArg = timeoutSignal.signal === arg.abortSignal
-            ? arg
-            : { ...arg, abortSignal: timeoutSignal.signal }
+        const requestTimeoutMs = getApiRequestTimeoutMs(arg.requestTimeoutMs, db)
+        const timeoutSignal = buildTimeoutSignal(arg.abortSignal, requestTimeoutMs)
+        const requestArg = { ...arg, abortSignal: timeoutSignal.signal, requestTimeoutMs }
 
         try {
             if (useLocalNetworkRoute) {
@@ -1775,7 +1785,8 @@ export async function fetchNative(url: string, arg: {
             throughProxy = false
         }
     }
-    const timeoutSignal = buildTimeoutSignal(arg.signal, arg.requestTimeoutMs)
+    const requestTimeoutMs = getApiRequestTimeoutMs(arg.requestTimeoutMs, db)
+    const timeoutSignal = buildTimeoutSignal(arg.signal, requestTimeoutMs)
     const requestSignal = timeoutSignal.signal
     const shouldLogFetch = arg.logFetch ?? true
     let fetchLogIndex: number | null = null
@@ -1822,7 +1833,7 @@ export async function fetchNative(url: string, arg: {
                 headers: JSON.stringify(headers),
                 body: realBody ? Buffer.from(realBody).toString('base64') : '',
                 method: arg.method,
-                timeout_secs: arg.requestTimeoutMs ? Math.max(1, Math.ceil(arg.requestTimeoutMs / 1000)) : undefined
+                timeout_secs: requestTimeoutMs > 0 ? Math.max(1, Math.ceil(requestTimeoutMs / 1000)) : undefined
             }).then((res) => {
                 try {
                     const parsedRes = JSON.parse(res as string)
@@ -1918,7 +1929,7 @@ export async function fetchNative(url: string, arg: {
                     headers,
                     method: arg.method,
                     signal: requestSignal,
-                    requestTimeoutMs: arg.requestTimeoutMs,
+                    requestTimeoutMs,
                     chatId: arg.chatId,
                     fetchLogIndex
                 });
@@ -1934,14 +1945,14 @@ export async function fetchNative(url: string, arg: {
                 "risu-url": encodeURIComponent(url),
                 "Content-Type": "application/json",
                 "x-risu-tk": "use",
-                ...(arg.requestTimeoutMs && { "risu-timeout-ms": Math.max(1, Math.floor(arg.requestTimeoutMs)).toString() }),
+                ...(requestTimeoutMs > 0 && { "risu-timeout-ms": Math.max(1, Math.floor(requestTimeoutMs)).toString() }),
                 ...(nodeProxyAuth ? { "risu-auth": nodeProxyAuth } : {}),
                 ...(DBState?.db?.requestLocation && { "risu-location": DBState.db.requestLocation }),
             } : {
                 "risu-header": encodeURIComponent(JSON.stringify(headers)),
                 "risu-url": encodeURIComponent(url),
                 "Content-Type": "application/json",
-                ...(arg.requestTimeoutMs && { "risu-timeout-ms": Math.max(1, Math.floor(arg.requestTimeoutMs)).toString() }),
+                ...(requestTimeoutMs > 0 && { "risu-timeout-ms": Math.max(1, Math.floor(requestTimeoutMs)).toString() }),
                 ...(nodeProxyAuth ? { "risu-auth": nodeProxyAuth } : {}),
                 ...(DBState?.db?.requestLocation && { "risu-location": DBState.db.requestLocation }),
             },
