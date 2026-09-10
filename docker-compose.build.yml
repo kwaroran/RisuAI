@@ -1,0 +1,16 @@
+name: risuai
+
+services:
+  risuai:
+    container_name: risuai
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 6001:6001
+    volumes:
+      - risuai-save:/app/save
+
+volumes:
+  risuai-save:
