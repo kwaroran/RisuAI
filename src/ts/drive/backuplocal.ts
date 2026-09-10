@@ -93,7 +93,7 @@ export async function SaveLocalBackup(){
             alertWait(message)
 
             const key = asset.name
-            if(!key || !key.endsWith('.png')){
+            if(!key || asset.isDirectory){
                 continue
             }
             const data = await readFile('assets/' + asset.name, {baseDir: BaseDirectory.AppData})
@@ -119,7 +119,7 @@ export async function SaveLocalBackup(){
             }
             alertWait(message)
 
-            if(!key || !key.endsWith('.png')){
+            if(!key || !key.startsWith('assets/')){
                 continue
             }
             let data: Uint8Array | undefined;
@@ -293,14 +293,11 @@ export async function SavePartialLocalBackup(){
         const assets = await readDir('assets', {baseDir: BaseDirectory.AppData})
         let i = 0;
         for(let asset of assets){
-            if(!asset.name){
+            if(!asset.name || asset.isDirectory){
                 continue
             }
 
             const keyWithPrefix = asset.name.startsWith('assets/') ? asset.name : `assets/${asset.name}`
-            if(!keyWithPrefix.endsWith('.png')){
-                continue
-            }
             
             // Only process if this asset is in our map (profile images only)
             if(!assetMap.has(keyWithPrefix)){
@@ -342,7 +339,7 @@ export async function SavePartialLocalBackup(){
             }
             alertWait(message)
 
-            if(!key || !key.endsWith('.png')){
+            if(!key || !key.startsWith('assets/')){
                 continue
             }
             
