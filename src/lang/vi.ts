@@ -981,6 +981,7 @@ export const languageVietnamese = {
     "enable": "Bật",
     "postFile": "Đăng tập tin",
     "requestInfoInsideChat": "Hiển thị thông tin yêu cầu trong trò chuyện",
+    "stickyChatToolbar": "Giữ thanh công cụ trò chuyện và thông tin yêu cầu khi cuộn",
     "inputTokens": "Token đầu vào",
     "outputTokens": "Token đầu ra",
     "tokenWarning": "Tính toán token có thể không chính xác. Nên sử dụng nó để tham khảo.",

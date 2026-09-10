@@ -130,6 +130,13 @@ export const accessibilitySettingsItems: SettingItem[] = [
         keywords: ['request', 'info', 'chat']
     },
     {
+        id: 'acc.stickyChatToolbar',
+        type: 'check',
+        labelKey: 'stickyChatToolbar',
+        bindKey: 'stickyChatToolbar',
+        keywords: ['sticky', 'chat', 'toolbar', 'request', 'info', 'scroll']
+    },
+    {
         id: 'acc.inlayErrorResponse',
         type: 'check',
         labelKey: 'inlayErrorResponse',

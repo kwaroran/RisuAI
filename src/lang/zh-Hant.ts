@@ -981,6 +981,7 @@ export const languageChineseTraditional = {
     "enable": "啟用",
     "postFile": "上傳檔案",
     "requestInfoInsideChat": "在對話中顯示發送資料",
+    "stickyChatToolbar": "捲動時固定對話工具列與請求資訊",
     "inputTokens": "輸入 Token",
     "outputTokens": "輸出 Token",
     "tokenWarning": "Token 計算可能不精確，僅作參考。",

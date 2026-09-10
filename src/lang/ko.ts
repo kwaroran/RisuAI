@@ -1002,6 +1002,7 @@ export const languageKorean = {
     "enable": "활성화",
     "postFile": "파일 업로드",
     "requestInfoInsideChat": "채팅 내부에서 요청 정보 보이기",
+    "stickyChatToolbar": "스크롤 중 채팅 툴바와 요청 정보 고정",
     "inputTokens": "입력 토큰",
     "outputTokens": "출력 토큰",
     "tokenWarning": "토큰 계산은 정확하지 않을 수 있습니다. 참고용으로만 사용해주세요.",

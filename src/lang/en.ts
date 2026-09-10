@@ -1140,6 +1140,7 @@ export const languageEnglish = {
     enable: "Enable",
     postFile: "Post File",
     requestInfoInsideChat: "Show Request Info Inside Chat",
+    stickyChatToolbar: "Keep Chat Toolbar and Request Info Visible While Scrolling",
     inputTokens: "Input Tokens",
     outputTokens: "Output Tokens",
     tokenWarning: "Token caculation can be inaccurate. It is recommended to use it as a reference.",

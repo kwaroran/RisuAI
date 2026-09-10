@@ -981,6 +981,7 @@ export const languageGerman = {
     "enable": "Aktivieren",
     "postFile": "Datei senden",
     "requestInfoInsideChat": "Anfrageinfo im Chat anzeigen",
+    "stickyChatToolbar": "Chat-Werkzeugleiste und Anfrageinfo beim Scrollen fixieren",
     "inputTokens": "Eingabe-Tokens",
     "outputTokens": "Ausgabe-Tokens",
     "tokenWarning": "Die Token-Berechnung kann ungenau sein. Es wird empfohlen, sie als Referenz zu verwenden.",

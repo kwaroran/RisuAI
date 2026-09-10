@@ -981,6 +981,7 @@ export const languageSpanish = {
     "enable": "Habilitar",
     "postFile": "Publicar Archivo",
     "requestInfoInsideChat": "Mostrar Información de la Solicitud Dentro del Chat",
+    "stickyChatToolbar": "Mantener visibles la barra de herramientas y la información de la solicitud al desplazarse",
     "inputTokens": "Tokens de Entrada",
     "outputTokens": "Tokens de Salida",
     "tokenWarning": "El cálculo de tokens puede ser inexacto. se recomienda usarlo como referencia.",

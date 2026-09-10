@@ -1200,7 +1200,7 @@
         {:else}
             {@render senderIcon({rounded: DBState.db.roundIcons})}
             <span class="flex flex-col ml-4 w-full max-w-full min-w-0 text-black">
-                <div class="flexium items-center chat-width">
+                <div class="chat-message-title flexium items-center chat-width">
                     {#if DBState.db.characters[selIdState.selId]?.chaId === "§playground" && !blankMessage && DBState.db.characters[selIdState.selId]?.chats?.[DBState.db.characters[selIdState.selId]?.chatPage]?.message?.[idx]}
                         <span class="chat-width text-xl border-darkborderc flex items-center text-textcolor">
                             <span>{DBState.db.characters[selIdState.selId].chats[DBState.db.characters[selIdState.selId].chatPage].message[idx].role === 'char' ? 'Assistant' : 'User'}</span>
@@ -1217,9 +1217,11 @@
                             <span>{name}</span>
                         </div>
                     {/if}
-                    {@render iconButtons()}
                 </div>
-                {@render genInfo()}
+                <div class="chat-toolbar-region" class:chat-toolbar-sticky={DBState.db.stickyChatToolbar}>
+                    {@render iconButtons()}
+                    {@render genInfo()}
+                </div>
                 {@render textBox()}
             </span>
         {/if}
@@ -1233,3 +1235,32 @@
     "border-amber-500": disabled === 'allBefore',
 }}></div>
 {/if}
+
+<style>
+    .chat-message-title,
+    .chat-toolbar-region {
+        min-height: 1.75rem;
+    }
+
+    .chat-toolbar-region {
+        align-self: flex-end;
+        max-width: 100%;
+        margin-top: -1.75rem;
+    }
+
+    .chat-toolbar-sticky {
+        position: sticky;
+        top: max(2rem, calc(env(safe-area-inset-top) + 0.25rem));
+        z-index: 10;
+        isolation: isolate;
+    }
+
+    .chat-toolbar-sticky::before {
+        content: "";
+        position: absolute;
+        inset: -0.5rem -0.375rem -0.25rem;
+        z-index: -1;
+        pointer-events: none;
+        background: var(--risu-theme-bgcolor);
+    }
+</style>

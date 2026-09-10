@@ -981,6 +981,7 @@ export const languageChinese = {
     "enable": "激活",
     "postFile": "上传文件",
     "requestInfoInsideChat": "在聊天中显示请求数据",
+    "stickyChatToolbar": "滚动时固定聊天工具栏和请求信息",
     "inputTokens": "输入 Tokens",
     "outputTokens": "输出 Tokens",
     "tokenWarning": "Token 计算可能不精确，仅作参考。",
