@@ -33,8 +33,12 @@ interface BasicScriptingEngineState {
     getVar?: (key:string) => string,
 }
 
+type EditListenerMode = 'editRequest'|'editDisplay'|'editInput'|'editOutput'
+
 interface LuaScriptingEngineState extends BasicScriptingEngineState {
     engine?: LuaEngine;
+    listenerFlags?: Record<EditListenerMode, boolean>;
+    listenerFlagsDirty?: boolean;
     type: 'lua';
 }
 
@@ -45,9 +49,11 @@ interface PythonScriptingEngineState extends BasicScriptingEngineState {
 
 type ScriptingEngineState = LuaScriptingEngineState | PythonScriptingEngineState;
 
+//keyed by script code and LRU-bounded, so multiple scripts never evict each other per call.
+//`mode` only selects which global function runs on an engine.
 let ScriptingEngines = new Map<string, ScriptingEngineState>()
 let luaFactoryPromise: Promise<void> | null = null;
-let pendingEngineCreations = new Map<string, Promise<ScriptingEngineState>>();
+const ENGINE_CACHE_LIMIT = 16
 
 export async function runScripted(code:string, arg:{
     char?:character|groupChat|simpleCharacterArgument,
@@ -72,10 +78,21 @@ export async function runScripted(code:string, arg:{
     let stopSending = false
     let lowLevelAccess = arg.lowLevelAccess ?? false
 
+    const isEditMode = mode === 'editRequest' || mode === 'editDisplay' || mode === 'editInput' || mode === 'editOutput'
+    if(type === 'lua' && isEditMode){
+        const cachedState = ScriptingEngines.get(code)
+        if(cachedState?.type === 'lua' && cachedState.code === code &&
+            cachedState.listenerFlags?.[mode as EditListenerMode] === false){
+            //the script registered no listener for this mode, so running it would be a no-op
+            touchEngineState(code, cachedState)
+            return { stopSending, chat, res: undefined }
+        }
+    }
+
     if(type === 'lua'){
         await ensureLuaFactory()
     }
-    let ScriptingEngineState = await getOrCreateEngineState(mode, type);
+    const ScriptingEngineState = getOrCreateEngineState(code, type);
     
     return await ScriptingEngineState.mutex.runExclusive(async () => {
         ScriptingEngineState.chat = chat
@@ -85,7 +102,7 @@ export async function runScripted(code:string, arg:{
             let declareAPI:(name: string, func:Function) => void
 
             if(ScriptingEngineState.type === 'lua'){
-                console.log('Creating new Lua engine for mode:', mode)
+                console.log('Creating new Lua engine')
                 ScriptingEngineState.engine?.global.close()
                 ScriptingEngineState.code = code
                 ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true})
@@ -95,13 +112,18 @@ export async function runScripted(code:string, arg:{
                 }
             }
             if(ScriptingEngineState.type === 'py'){
-                console.log('Creating new Pyodide context for mode:', mode)
+                console.log('Creating new Pyodide context')
                 ScriptingEngineState.pyodide?.close()
                 ScriptingEngineState.pyodide = new PyodideContext()
                 declareAPI = (name:string, func:Function) => {
                     ScriptingEngineState.pyodide?.declareAPI(name, func as any)
                 }
             }
+            declareAPI('__notifyListenEdit', () => {
+                if(ScriptingEngineState.type === 'lua'){
+                    ScriptingEngineState.listenerFlagsDirty = true
+                }
+            })
             declareAPI('getChatVar', (id:string,key:string) => {
                 return ScriptingEngineState.getVar(key)
             })
@@ -1053,7 +1075,6 @@ export async function runScripted(code:string, arg:{
                 return ''
             })
 
-            console.log('Running Lua code:', code)
             if(ScriptingEngineState.type === 'lua'){
                 await ScriptingEngineState.engine?.doString(luaCodeWrapper(code))
             }
@@ -1129,6 +1150,11 @@ export async function runScripted(code:string, arg:{
                 }
             } catch (error) {
                 console.error(error)
+            }
+            //only re-query listener registrations when listenEdit was actually called during this run
+            if(ScriptingEngineState.listenerFlagsDirty !== false){
+                await refreshListenerFlags(ScriptingEngineState)
+                ScriptingEngineState.listenerFlagsDirty = false
             }
         }
         if(ScriptingEngineState.type === 'py'){
@@ -1213,35 +1239,71 @@ async function ensureLuaFactory() {
     }
 }
 
-async function getOrCreateEngineState(
-    mode: string, 
+function touchEngineState(code: string, state: ScriptingEngineState){
+    //re-insert to mark as most recently used
+    ScriptingEngines.delete(code)
+    ScriptingEngines.set(code, state)
+}
+
+function disposeEngineState(state: ScriptingEngineState){
+    //the mutex queue is FIFO, so this waits for any in-flight run before closing
+    state.mutex.runExclusive(async () => {
+        if(state.type === 'lua'){
+            state.engine?.global.close()
+        }
+        else{
+            state.pyodide?.close()
+        }
+    }).catch(console.error)
+}
+
+function getOrCreateEngineState(
+    code: string,
     type: 'lua'|'py'
-): Promise<ScriptingEngineState> {
-    let engineState = ScriptingEngines.get(mode);
-    if (engineState) {
-        return engineState;
+): ScriptingEngineState {
+    const existing = ScriptingEngines.get(code);
+    if (existing && existing.type === type) {
+        touchEngineState(code, existing)
+        return existing;
     }
-    
-    let pendingCreation = pendingEngineCreations.get(mode);
-    if (pendingCreation) {
-        return pendingCreation;
+    if (existing) {
+        //same code requested with a different engine type
+        ScriptingEngines.delete(code)
+        disposeEngineState(existing)
     }
-    
-    const creationPromise = (() => {
-        const engineState: ScriptingEngineState = {
-            mutex: new Mutex(),
-            type: type,
-        };
-        ScriptingEngines.set(mode, engineState);
 
-        pendingEngineCreations.delete(mode);
+    const engineState: ScriptingEngineState = {
+        mutex: new Mutex(),
+        type: type,
+    };
+    ScriptingEngines.set(code, engineState);
 
-        return Promise.resolve(engineState);
-    })();
-    
-    pendingEngineCreations.set(mode, creationPromise);
-    
-    return creationPromise;
+    while (ScriptingEngines.size > ENGINE_CACHE_LIMIT) {
+        const oldestCode = ScriptingEngines.keys().next().value
+        const oldestState = ScriptingEngines.get(oldestCode)
+        ScriptingEngines.delete(oldestCode)
+        disposeEngineState(oldestState)
+    }
+
+    return engineState;
+}
+
+async function refreshListenerFlags(state: LuaScriptingEngineState){
+    try {
+        const listenerFlags = state.engine?.global.get('__listenerFlags')
+        if(!listenerFlags){
+            return
+        }
+        const flags = Number(await listenerFlags())
+        state.listenerFlags = {
+            editRequest: (flags & 1) !== 0,
+            editDisplay: (flags & 2) !== 0,
+            editInput: (flags & 4) !== 0,
+            editOutput: (flags & 8) !== 0,
+        }
+    } catch (error) {
+        state.listenerFlags = undefined
+    }
 }
 
 function luaCodeWrapper(code:string){
@@ -1303,6 +1365,7 @@ local editInputFuncs = {}
 local editOutputFuncs = {}
 
 function listenEdit(type, func)
+    __notifyListenEdit()
     if type == 'editRequest' then
         editRequestFuncs[#editRequestFuncs + 1] = func
         return
@@ -1324,6 +1387,15 @@ function listenEdit(type, func)
     end
 
     throw('Invalid type')
+end
+
+function __listenerFlags()
+    local flags = 0
+    if #editRequestFuncs > 0 then flags = flags + 1 end
+    if #editDisplayFuncs > 0 then flags = flags + 2 end
+    if #editInputFuncs > 0 then flags = flags + 4 end
+    if #editOutputFuncs > 0 then flags = flags + 8 end
+    return flags
 end
 
 function getState(id, name)
