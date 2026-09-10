@@ -1350,7 +1350,9 @@ export const languageKorean = {
         "export": "내보내기",
         "webcam": "웹캠 토글",
         "focusInput": "입력창 포커스",
-        "scrollToActiveChar": "활성 캐릭터로 스크롤"
+        "scrollToActiveChar": "활성 캐릭터로 스크롤",
+        "popupEditor": "팝업 에디터",
+        "loadout": "로드아웃"
     },
     "screenTooSmall": "화면이 너무 작아서 인터페이스를 표시할 수 없습니다.",
     "advancedModelSettings": "고급 모델 설정",
