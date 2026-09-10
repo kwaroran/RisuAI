@@ -895,6 +895,9 @@ const imageData = await Risuai.readImage('asset-id');
 
 // Save assets
 const savedPath = await Risuai.saveAsset(assetData);
+
+// Create an inlay from image data; renders in chat via {{inlay::<id>}}
+const inlayId = await Risuai.createInlay(imageBytes, { name: 'generated.png' });
 ```
 
 #### Inlay Assets (user-attached images / audio / video)

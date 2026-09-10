@@ -25,6 +25,7 @@ import { getModelInfo } from "src/ts/model/modellist";
 import type { ModelModeExtended } from "src/ts/process/request/shared";
 import { requestChatDataMain } from "src/ts/process/request/request";
 import { getModuleLorebooks } from "src/ts/process/modules";
+import { createInlayFromData } from "src/ts/process/files/inlays";
 import {
     registerTTSPreprocessor,
     unregisterTTSPreprocessor,
@@ -856,6 +857,12 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                     p.realArg[key] = value;
                 }
             }
+        },
+        createInlay: async (data: Uint8Array | string, options?: { name?: string }) => {
+            if(typeof data !== 'string' && !(data instanceof Uint8Array)){
+                throw new Error('data must be a Uint8Array or an image data URI string')
+            }
+            return await createInlayFromData(data, options?.name)
         },
         getCharacterFromIndex: (index:number) => {
             const db = DBState.db

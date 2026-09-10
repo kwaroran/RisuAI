@@ -2010,6 +2010,30 @@ interface RisuaiPluginAPI {
      */
     saveAsset(data: any): Promise<string>;
 
+    /**
+     * Creates an inlay from image data, embeddable in chat messages via the
+     * `{{inlay::id}}` syntax. Unlike `saveAsset`, inlays live in inlay storage
+     * rather than the character card, so generating many images does not grow
+     * the card. The image is re-encoded as PNG (animated GIF/WEBP keep only the
+     * first frame) and downscaled to fit 1024x1024 total pixels, matching the
+     * built-in image generation inlays.
+     *
+     * @param data - Image bytes (JPEG, PNG, GIF, WEBP, ...) as a Uint8Array, or
+     * an image data URI string. Remote URLs are rejected — fetch them with
+     * `nativeFetch` and pass the bytes. The Uint8Array's buffer is transferred
+     * to the host and detached after the call; pass a copy if you still need it.
+     * @param options - `name` sets the display name in the inlay explorer; defaults to the id.
+     * @returns The inlay id; insert `{{inlay::<id>}}` into a message to render it.
+     * @throws Error if the data is not decodable image data, or the string is not a data URI.
+     *
+     * @example
+     * ```typescript
+     * const id = await risuai.createInlay(imageBytes, { name: 'generated.png' });
+     * // then insert `{{inlay::${id}}}` into a chat message
+     * ```
+     */
+    createInlay(data: Uint8Array | string, options?: { name?: string }): Promise<string>;
+
     // ========== Plugin Management ==========
 
     /**
