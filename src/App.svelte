@@ -122,7 +122,7 @@
     }
 
 }}>
-    {#if !import.meta.env.VITE_RISU_LEGAL_CONFIGURED}
+    {#if !(import.meta.env.VITE_RISU_LEGAL_CONFIGURED || globalThis.__RISU_LEGAL_CONFIGURED__)}
         <Legal />
     {:else if aprilFools}
 

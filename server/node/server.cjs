@@ -615,7 +615,8 @@ app.get('/', async (req, res, next) => {
         const mainIndex = await fs.readFile(path.join(process.cwd(), 'dist', 'index.html'))
         const root = htmlparser.parse(mainIndex)
         const head = root.querySelector('head')
-        head.innerHTML = `<script>globalThis.__NODE__ = true</script>` + head.innerHTML
+        const legalConfigured = process.env.VITE_RISU_LEGAL_CONFIGURED?.trim().toUpperCase() === 'TRUE';
+        head.innerHTML = `<script>globalThis.__NODE__ = true;globalThis.__RISU_LEGAL_CONFIGURED__ = ${legalConfigured}</script>` + head.innerHTML
         
         res.send(root.toString())
     } catch (error) {
