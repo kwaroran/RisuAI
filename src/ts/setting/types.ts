@@ -31,6 +31,7 @@ export type SettingType =
     | 'segmented'  // Sliding segmented control (SegmentedControl)
     | 'color'      // Color picker (ColorInput)
     | 'header'     // Section header (h2, span, warning)
+    | 'alert'      // Inline informational alert box
     | 'button'     // Action button (Button)
     | 'accordion'  // Collapsible section (Accordion)
     | 'custom';    // Custom component from registry
@@ -90,6 +91,11 @@ export interface SettingOptions {
     
     // header
     level?: 'h2' | 'span' | 'warning';
+
+    // alert
+    variant?: 'info' | 'warning' | 'error' | 'success' | 'neutral';
+    title?: string;
+    titleKey?: string;
     
     // accordion
     styled?: boolean;        // Use styled accordion
