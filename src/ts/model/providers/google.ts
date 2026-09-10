@@ -2,7 +2,17 @@ import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer, type LLMModel } from '.
 
 export const GoogleModels: LLMModel[] = [
 
-    // ===== Gemini 3.5/3.6/3.7 Series (2026) =====
+    // ===== Gemini 3.5/3.6/3.7/3.8 Series (2026) =====
+    {
+        name: "Gemini Flash 3.8",
+        id: 'gemini-3.8-flash',
+        provider: LLMProvider.GoogleCloud,
+        format: LLMFormat.GoogleCloud,
+        flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput, LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking, LLMFlags.geminiThinkingNoMinimal, LLMFlags.hasFirstSystemPrompt],
+        parameters: ['reasoning_effort'],
+        tokenizer: LLMTokenizer.GoogleCloud,
+        recommended: true
+    },
     {
         name: "Gemini Flash 3.7",
         id: 'gemini-3.7-flash',
