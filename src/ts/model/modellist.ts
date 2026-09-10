@@ -213,6 +213,16 @@ export const LLMModels: LLMModel[] = [
         recommended: true,
         tokenizer: LLMTokenizer.Unknown
     },
+    {
+        name: 'Vercel AI Gateway',
+        id: 'vercel',
+        provider: LLMProvider.Vercel,
+        format: LLMFormat.OpenAICompatible,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasImageInput, LLMFlags.hasStreaming],
+        parameters: OpenAIParameters,
+        recommended: true,
+        tokenizer: LLMTokenizer.Unknown
+    },
     // Mistral models
     {
         name: 'Mistral Small Latest',

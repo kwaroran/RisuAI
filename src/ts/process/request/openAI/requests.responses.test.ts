@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer } from 'src/ts/model/types'
 import { fetchNative } from 'src/ts/globalApi.svelte'
 import { callTool } from '../../mcp/mcp'
-import { __testResponsesAPI, requestOpenAIResponseAPI } from './requests'
+import { __testResponsesAPI, requestOpenAI, requestOpenAIResponseAPI } from './requests'
 
 const mocks = vi.hoisted(() => ({
     db: {
@@ -31,6 +31,17 @@ const mocks = vi.hoisted(() => ({
         temperature: 70,
         top_p: 0.9,
         verbosity: 0,
+        vercelAIKey: 'vercel-key',
+        vercelRequestModel: 'anthropic/claude-sonnet-4.6',
+        vercelGateway: {
+            order: ['bedrock'],
+            excluded: ['vertex'],
+            sort: 'cost',
+            serviceTier: 'priority',
+            zeroDataRetention: true,
+            disallowPromptTraining: true,
+            automaticCaching: true,
+        },
     },
     fetchNative: vi.fn(),
     globalFetch: vi.fn(),
@@ -38,6 +49,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('src/ts/storage/database.svelte', () => ({
     getDatabase: () => mocks.db,
+}))
+
+vi.mock('src/ts/model/vercel', () => ({
+    getVercelGatewayProviders: vi.fn().mockResolvedValue([
+        { name: 'anthropic', slug: 'anthropic' },
+        { name: 'bedrock', slug: 'bedrock' },
+        { name: 'vertex', slug: 'vertex' },
+    ]),
 }))
 
 vi.mock('src/ts/globalApi.svelte', () => ({
@@ -485,6 +504,58 @@ describe('OpenAI Responses API helpers', () => {
         expect(preview.body.model).toBe('nanogpt-model')
         expect(preview.headers.Authorization).toBe('Bearer nanogpt-key')
         expect(preview.headers['X-Provider']).toBe('provider-a')
+    })
+
+    it('wires Vercel Responses endpoint, model, auth, and gateway options', async () => {
+        const result = await requestOpenAIResponseAPI(baseArg({
+            aiModel: 'vercel',
+            previewBody: true,
+            modelInfo: {
+                ...baseArg().modelInfo,
+                id: 'vercel',
+                internalID: 'vercel',
+            },
+        }))
+
+        expect(result.type).toBe('success')
+        const preview = JSON.parse(result.result as string)
+        expect(preview.url).toBe('https://ai-gateway.vercel.sh/v1/responses')
+        expect(preview.body.model).toBe('anthropic/claude-sonnet-4.6')
+        expect(preview.headers.Authorization).toBe('Bearer vercel-key')
+        expect(preview.body.providerOptions.gateway).toEqual({
+            order: ['bedrock'],
+            only: ['anthropic', 'bedrock'],
+            sort: 'cost',
+            serviceTier: 'priority',
+            zeroDataRetention: true,
+            disallowPromptTraining: true,
+            caching: 'auto',
+        })
+    })
+
+    it('wires Vercel Chat Completions preview through the shared OpenAI path', async () => {
+        const result = await requestOpenAI(baseArg({
+            aiModel: 'vercel',
+            bias: {},
+            formated: [{ role: 'user', content: 'Hello' }],
+            previewBody: true,
+            useStreaming: true,
+            modelInfo: {
+                ...baseArg().modelInfo,
+                flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
+                format: LLMFormat.OpenAICompatible,
+                id: 'vercel',
+                internalID: 'vercel',
+                parameters: ['temperature', 'top_p'],
+            },
+        }))
+
+        expect(result.type).toBe('success')
+        const preview = JSON.parse(result.result as string)
+        expect(preview.url).toBe('https://ai-gateway.vercel.sh/v1/chat/completions')
+        expect(preview.body.model).toBe('anthropic/claude-sonnet-4.6')
+        expect(preview.headers.Authorization).toBe('Bearer vercel-key')
+        expect(preview.body.providerOptions.gateway.zeroDataRetention).toBe(true)
     })
 
     it('applies reverse proxy Responses endpoint autofill and additional params', async () => {

@@ -471,6 +471,9 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
         targ.customURL = db.forceReplaceUrl
         targ.key = db.proxyKey
     }
+    if(targ.aiModel === 'vercel'){
+        targ.modelInfo.format = db.vercelRequestFormat
+    }
     if(targ.aiModel.startsWith('xcustom:::')){
         const found = db.customModels.find(m => m.id === targ.aiModel)
         targ.customURL = found?.url

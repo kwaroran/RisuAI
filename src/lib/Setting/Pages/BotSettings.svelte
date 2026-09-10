@@ -24,6 +24,7 @@
     import { getOpenRouterModels, toModelGridItem as orToGridItem } from "src/ts/model/openrouter";
     import { getNanoGPTModels, getNanoGPTSubscriptionModels, toModelGridItem as ngToGridItem } from "src/ts/model/nanogpt";
     import { getOllamaModels } from "src/ts/model/ollama";
+    import { getVercelGatewayModels, toVercelModelGridItem } from "src/ts/model/vercel";
     import ModelGrid from "src/lib/UI/ModelGrid.svelte";
     import NanoGPTDashboard from "src/lib/UI/NanoGPTDashboard.svelte";
     import NanoGPTProviderPicker from "src/lib/UI/NanoGPTProviderPicker.svelte";
@@ -31,6 +32,7 @@
     import OobaSettings from "./OobaSettings.svelte";
     import Accordion from "src/lib/UI/Accordion.svelte";
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
+    import VercelGatewaySettings from "./VercelGatewaySettings.svelte";
     import ChatFormatSettings from "./ChatFormatSettings.svelte";
     import PromptSettings from "./PromptSettings.svelte";
     import { openPresetList } from "src/ts/stores.svelte";
@@ -390,6 +392,17 @@
             <ModelGrid bind:value={DBState.db.openrouterRequestModel} items={(m ?? []).map(orToGridItem)} pinnedItems={openrouterPinnedItems} />
         {/await}
     {/if}
+    {#if DBState.db.aiModel === 'vercel' || DBState.db.subModel === 'vercel'}
+        <span class="text-textcolor mt-4">Vercel AI Gateway {language.apiKey}</span>
+        <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size="sm" bind:value={DBState.db.vercelAIKey} />
+
+        <span class="text-textcolor mt-4">Vercel AI Gateway {language.model}</span>
+        {#await getVercelGatewayModels()}
+            <ModelGrid bind:value={DBState.db.vercelRequestModel} loading={true} />
+        {:then models}
+            <ModelGrid bind:value={DBState.db.vercelRequestModel} items={(models ?? []).map(toVercelModelGridItem)} />
+        {/await}
+    {/if}
     {#if DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'reverse_proxy'}
         <span class="text-textcolor">{language.tokenizer}</span>
         <SelectInput bind:value={DBState.db.customTokenizer}>
@@ -480,6 +493,10 @@
 
     {#if DBState.db.auxModelUnderModelSettings}
         <AuxModelSelectors />
+    {/if}
+
+    {#if DBState.db.aiModel === 'vercel' || DBState.db.subModel === 'vercel'}
+        <VercelGatewaySettings />
     {/if}
 {/if}
 

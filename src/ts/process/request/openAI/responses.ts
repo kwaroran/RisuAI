@@ -13,6 +13,8 @@ import { applyAdditionalParameters, applyParameters, getAdditionalParameters, is
 
 import type { OpenAIChatExtra, ResponseFunctionCallItem, ResponseInputItem, ResponseItem, ResponseOutputItem } from './types'
 import { getLocalNetworkRequestOptions, type LocalNetworkRequestOptions } from './shared'
+import { VERCEL_AI_GATEWAY_RESPONSES_ENDPOINT } from 'src/ts/model/providers/vercel'
+import { applyVercelGatewayOptions, getVercelGatewayAPIKey, getVercelGatewayRequestModel, isVercelGatewayModel } from './vercel'
 
 function responseTextContentToString(content:any):string{
     if(typeof content === 'string'){
@@ -167,6 +169,7 @@ function getResponsesRequestURL(arg:RequestDataArgumentExtended):{requestURL:str
     const aiModel = arg.aiModel
     let requestURL = aiModel === 'nanogpt'
         ? (db.nanogptUseSubscriptionEndpoint ? NANOGPT_SUBSCRIPTION_RESPONSES_ENDPOINT : NANOGPT_RESPONSES_ENDPOINT)
+        : isVercelGatewayModel(aiModel) ? VERCEL_AI_GATEWAY_RESPONSES_ENDPOINT
         : (arg.customURL ?? "https://api.openai.com/v1/responses")
     if(arg.modelInfo?.endpoint){
         requestURL = arg.modelInfo.endpoint
@@ -230,7 +233,7 @@ function buildResponsesHeaders(arg:RequestDataArgumentExtended, risuIdentify:boo
     const db = getDatabase()
     const aiModel = arg.aiModel
     const headers = {
-        "Authorization": "Bearer " + (arg.key ?? (aiModel === 'nanogpt' ? db.nanogptKey : aiModel === 'reverse_proxy' ? db.proxyKey : db.openAIKey)),
+        "Authorization": "Bearer " + (arg.key ?? getVercelGatewayAPIKey(aiModel) ?? (aiModel === 'nanogpt' ? db.nanogptKey : aiModel === 'reverse_proxy' ? db.proxyKey : db.openAIKey)),
         "Content-Type": "application/json"
     }
 
@@ -243,6 +246,10 @@ function buildResponsesHeaders(arg:RequestDataArgumentExtended, risuIdentify:boo
     if(aiModel === 'nanogpt' && db.nanogptProvider && !db.nanogptUseSubscriptionEndpoint){
         headers["X-Provider"] = db.nanogptProvider
     }
+    if(isVercelGatewayModel(aiModel)){
+        headers["X-Title"] = 'RisuAI'
+        headers["HTTP-Referer"] = 'https://risuai.xyz'
+    }
 
     return headers
 }
@@ -252,6 +259,8 @@ function getResponsesRequestModel(arg:RequestDataArgumentExtended):string{
     if(arg.aiModel === 'nanogpt'){
         return db.nanogptRequestModel || arg.modelInfo.internalID || arg.aiModel
     }
+    const vercelModel = getVercelGatewayRequestModel(arg.aiModel)
+    if(vercelModel) return vercelModel
     return arg.modelInfo.internalID || arg.aiModel || 'gpt-4.1'
 }
 
@@ -801,6 +810,15 @@ export async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):
     const db = getDatabase()
     const aiModel = arg.aiModel
     let body = await buildResponsesBody(arg)
+    try{
+        body = await applyVercelGatewayOptions(body, aiModel)
+    }
+    catch(error){
+        return {
+            type: 'fail',
+            result: error instanceof Error ? error.message : String(error),
+        }
+    }
     const { requestURL, risuIdentify } = getResponsesRequestURL(arg)
     const headers = buildResponsesHeaders(arg, risuIdentify)
 

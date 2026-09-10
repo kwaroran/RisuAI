@@ -18,6 +18,8 @@ import { applyAdditionalParameters, applyParameters, getAdditionalParameters } f
 import type { Contents, OpenAIChatExtra, OpenAIChatFull, ToolCall } from './types'
 
 import { getLocalNetworkRequestOptions, type LocalNetworkRequestOptions } from './shared'
+import { VERCEL_AI_GATEWAY_CHAT_ENDPOINT } from 'src/ts/model/providers/vercel'
+import { applyVercelGatewayOptions, getVercelGatewayAPIKey } from './vercel'
 export { requestOpenAIResponseAPI, __testResponsesAPI } from './responses'
 function isOfficialOpenAIURL(url: string): boolean {
     try {
@@ -351,6 +353,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
     } = ({
         model: aiModel === 'nanogpt' ? db.nanogptRequestModel :
             aiModel === 'openrouter' ? openrouterRequestModel :
+            aiModel === 'vercel' ? db.vercelRequestModel :
             requestModel ===  'gpt35' ? 'gpt-3.5-turbo'
             : requestModel ===  'gpt35_0613' ? 'gpt-3.5-turbo-0613'
             : requestModel ===  'gpt35_16k' ? 'gpt-3.5-turbo-16k'
@@ -511,6 +514,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
     let replacerURL = aiModel === 'nanogpt' ? (db.nanogptUseSubscriptionEndpoint ? 'https://nano-gpt.com/api/subscription/v1/chat/completions' : 'https://nano-gpt.com/api/v1/chat/completions') :
         aiModel === 'openrouter' ? "https://openrouter.ai/api/v1/chat/completions" :
+        aiModel === 'vercel' ? VERCEL_AI_GATEWAY_CHAT_ENDPOINT :
         (arg.customURL) ?? ('https://api.openai.com/v1/chat/completions')
 
     if(arg.modelInfo?.endpoint){
@@ -545,7 +549,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
     }
 
     let headers = {
-        "Authorization": "Bearer " + (arg.key ?? (aiModel === 'nanogpt' ? db.nanogptKey : aiModel === 'reverse_proxy' ?  db.proxyKey : (aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey))),
+        "Authorization": "Bearer " + (arg.key ?? getVercelGatewayAPIKey(aiModel) ?? (aiModel === 'nanogpt' ? db.nanogptKey : aiModel === 'reverse_proxy' ?  db.proxyKey : (aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey))),
         "Content-Type": "application/json"
     }
 
@@ -553,6 +557,10 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         headers["Authorization"] = "Bearer " + db.OaiCompAPIKeys[arg.modelInfo.keyIdentifier]
     }
     if(aiModel === 'openrouter'){
+        headers["X-Title"] = 'RisuAI'
+        headers["HTTP-Referer"] = 'https://risuai.xyz'
+    }
+    if(aiModel === 'vercel'){
         headers["X-Title"] = 'RisuAI'
         headers["HTTP-Referer"] = 'https://risuai.xyz'
     }
@@ -573,6 +581,15 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         body.n = db.genTime
     }
     
+    try{
+        body = await applyVercelGatewayOptions(body, aiModel)
+    }
+    catch(error){
+        return {
+            type: 'fail',
+            result: error instanceof Error ? error.message : String(error),
+        }
+    }
     body = applyAdditionalParameters(body, headers, getAdditionalParameters(aiModel))
 
     // Some aux flows are intentionally non-streaming (e.g. memory/translate).
