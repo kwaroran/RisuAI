@@ -959,6 +959,7 @@ export const languageEnglish = {
     account: "Account",
     remove: "Remove",
     able: "Able",
+    close: "Close",
     assetWidth: "Asset Images Max Width",
     animationSpeed: "Animation Speed",
     screenshot: "Screenshot",

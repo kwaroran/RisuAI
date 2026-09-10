@@ -821,6 +821,7 @@ export const languageKorean = {
     "account": "계정",
     "remove": "삭제",
     "able": "활성화됨",
+    "close": "닫기",
     "assetWidth": "에셋 넓이",
     "animationSpeed": "에니메이션 속도",
     "screenshot": "스크린샷",
