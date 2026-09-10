@@ -2,7 +2,7 @@ import { asBuffer } from 'src/ts/util';
 import { getChatVar, getGlobalChatVar, setChatVar } from "../parser/chatVar.svelte";
 import { hasher, type simpleCharacterArgument, risuChatParser } from "../parser/parser.svelte";
 import { LuaEngine, LuaFactory } from "wasmoon";
-import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type triggerscript } from "../storage/database.svelte";
+import { getCurrentCharacter, getCurrentChat, getDatabase, setDatabase, type Chat, type character, type groupChat, type Message, type triggerscript } from "../storage/database.svelte";
 import { get } from "svelte/store";
 import { DBState, ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal, alertConfirm } from "../alert";
@@ -167,7 +167,8 @@ export async function runScripted(code:string, arg:{
                 const data = {
                     role: chat.role,
                     data: chat.data,
-                    time: chat.time ?? 0
+                    time: chat.time ?? 0,
+                    chatId: chat.chatId
                 }
                 return JSON.stringify(data)
             })
@@ -190,6 +191,7 @@ export async function runScripted(code:string, arg:{
                     role: v.role,
                     data: v.data,
                     time: v.time ?? 0,
+                    chatId: v.chatId,
                 })))
             })
 
@@ -254,7 +256,8 @@ export async function runScripted(code:string, arg:{
                     return {
                         role: v.role,
                         data: v.data,
-                        time: v.time ?? 0
+                        time: v.time ?? 0,
+                        chatId: v.chatId
                     }
                 }))
                 return data
@@ -280,12 +283,24 @@ export async function runScripted(code:string, arg:{
                     return
                 }
                 const realValue = JSON.parse(value)
+                const byChatId = new Map<string, Message>()
+                for(const message of ScriptingEngineState.chat.message){
+                    if(message.chatId){
+                        byChatId.set(message.chatId, message)
+                    }
+                }
 
                 ScriptingEngineState.chat.message = realValue.map((v) => {
-                    return {
-                        role: v.role,
-                        data: v.data
+                    const role:'user'|'char' = v.role === 'user' ? 'user' : 'char'
+                    const data = v.data ?? ''
+                    const original = byChatId.get(v.chatId)
+                    if(!original){
+                        return { role, data }
                     }
+                    byChatId.delete(v.chatId)
+                    original.role = role
+                    original.data = data
+                    return original
                 })
             })
 
