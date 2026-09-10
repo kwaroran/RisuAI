@@ -947,6 +947,7 @@ export const languageEnglish = {
     logout: "Logout",
     loadDataFromAccount: "Load Data from Account",
     saveCurrentDataToAccount: "Save Current Data to Account",
+    cancelAccountSync: "Cancel Account Sync",
     chatAssumed: "",
     proxyAPIKey: "Key/Password",
     proxyRequestModel: "Request Model",

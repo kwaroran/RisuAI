@@ -809,6 +809,7 @@ export const languageKorean = {
     "logout": "로그아웃",
     "loadDataFromAccount": "계정에서 데이터 불러오기",
     "saveCurrentDataToAccount": "계정에 데이터 현재 덮어쓰기",
+    "cancelAccountSync": "계정 연동 취소하기",
     "chatAssumed": "",
     "proxyAPIKey": "키/패스워드",
     "proxyRequestModel": "요청 모델",
