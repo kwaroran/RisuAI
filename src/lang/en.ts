@@ -788,6 +788,7 @@ export const languageEnglish = {
     noPluginSelected: "Model selected as plugin, but no plugin selected.",
     text: "Text",
     UISize: "Chat Text Size",
+    chatLimitSize: "Chat Width Size",
     newVersion: "Update found, do you want to install?",
     remindLaterQuestion: "When should I remind you?",
     remindIgnore: "Ignore",

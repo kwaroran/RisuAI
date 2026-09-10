@@ -11,6 +11,7 @@
     import BackgroundDom from "./BackgroundDom.svelte";
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
+  import { getMaxWidth } from "src/ts/chatWidth";
     let openChatList = $state(false)
     let openModuleList = $state(false)
 
@@ -69,7 +70,7 @@
     <div class="grow h-full min-w-0 relative justify-center flex">
         <SideBarArrow />
         <BackgroundDom />
-        <div style={bgImg} class="h-full w-full" class:max-w-6xl={DBState.db.classicMaxWidth}>
+        <div style={bgImg} class="h-full w-full" style:max-width={$selectedCharID >= 0 ? getMaxWidth() : undefined}>
             {#if $selectedCharID >= 0}
                 {#if DBState.db.characters[$selectedCharID].viewScreen !== 'none' && (DBState.db.characters[$selectedCharID].type === 'group' || (!DBState.db.characters[$selectedCharID].inlayViewScreen))}
                     <ResizeBox />

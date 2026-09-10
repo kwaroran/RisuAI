@@ -10,6 +10,7 @@ import { updateAnimationSpeed } from '../gui/animation';
 import { guiSizeText, updateGuisize } from '../gui/guisize';
 import { updateTextThemeAndCSS } from '../gui/colorscheme';
 import { CustomGUISettingMenuStore } from '../stores.svelte';
+import { CHAT_WIDTH_PRESET_INFO, ChatWidthPreset } from '../chatWidth';
 
 export const displayThemeSettingsItems: SettingItem[] = [
     {
@@ -140,6 +141,19 @@ export const displayThemeSettingsItems: SettingItem[] = [
 ];
 
 export const displaySizeSettingsItems: SettingItem[] = [
+    {
+        id: 'display.chatLimitSize',
+        type: 'slider',
+        labelKey: 'chatLimitSize',
+        bindKey: 'chatLimitSize',
+        options: {
+            min: -1,
+            max: 2,
+            step: 1,
+            customText: (value) => CHAT_WIDTH_PRESET_INFO[value as ChatWidthPreset]?.label ?? CHAT_WIDTH_PRESET_INFO[ChatWidthPreset.Unlimited].label
+        },
+        keywords: ['chat', 'size', 'limit'],
+    },
     {
         id: 'display.zoomsize',
         type: 'slider',

@@ -650,6 +650,7 @@ export const languageKorean = {
     "noPluginSelected": "플러그인이 선택되었지만, 플러그인이 없습니다.",
     "text": "텍스트",
     "UISize": "채팅 텍스트 크기",
+    "chatLimitSize": "채팅 넓이 크기",
     "newVersion": "업데이트가 발견되었습니다. 설치하시겠습니까?",
     "remindLaterQuestion": "며칠 뒤에 다시 알려드릴까요?",
     "remindIgnore": "무시",

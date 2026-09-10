@@ -370,6 +370,7 @@ export function setDatabase(data:Database){
         note: data.userNote,
         largePortrait: false
     }]
+    // Legacy option no longer in use
     data.classicMaxWidth ??= false
     data.ooba ??= safeStructuredClone(defaultOoba)
     data.ainconfig ??= safeStructuredClone(defaultAIN)
@@ -383,6 +384,7 @@ export function setDatabase(data:Database){
     data.nanogptUseSubscriptionEndpoint ??= false
     data.NAIsettings ??= safeStructuredClone(prebuiltNAIpresets)
     data.assetWidth ??= -1
+    data.chatLimitSize ??= ChatWidthPreset.Unlimited
     data.animationSpeed ??= 0.4
     data.colorScheme ??= safeStructuredClone(defaultColorScheme)
     data.colorSchemeName ??= 'default'
@@ -930,6 +932,7 @@ export interface Database{
         useSync?:boolean
         kei?:boolean
     },
+    // Legacy option no longer in use
     classicMaxWidth: boolean,
     useChatSticker:boolean,
     useAdditionalAssetsPreview:boolean,
@@ -955,6 +958,7 @@ export interface Database{
     personas:RisuPersona[]
     personaNote:boolean
     assetWidth:number
+    chatLimitSize: ChatWidthPreset
     animationSpeed:number
     botSettingAtStart:false
     NAIsettings:NAISettings
@@ -2289,6 +2293,7 @@ import type { SerializableHypaV3Data } from '../process/memory/hypav3';
 import { defaultHotkeys, type Hotkey } from '../defaulthotkeys';
 import type { OpenAIChat } from '../process/index.svelte';
 import type { Loadout } from '../loadout';
+import { ChatWidthPreset } from '../chatWidth';
 
 export async function downloadPreset(id:number, type:'json'|'risupreset'|'return' = 'json'){
     saveCurrentPreset()
