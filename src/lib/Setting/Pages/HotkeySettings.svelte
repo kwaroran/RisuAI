@@ -1,8 +1,11 @@
 <script lang="ts">
     import { language } from "src/lang";
+    import { getHotkeyModifierLabels } from "src/ts/hotkeyModifiers";
     import { DBState } from "src/ts/stores.svelte";
 
-    
+    let modifierLabels = $derived(getHotkeyModifierLabels({
+        useLegacyMacOSCtrlHotkeys: DBState.db.useLegacyMacOSCtrlHotkeys ?? false
+    }));
 </script>
 
 {#if window.innerWidth < 768}
@@ -30,8 +33,10 @@
                             onclick={() => {
                                 hotkey.ctrl = !hotkey.ctrl;
                             }}
+                            title={modifierLabels.ctrlName}
+                            aria-label={modifierLabels.ctrlName}
                         >
-                            Ctrl
+                            {modifierLabels.ctrl}
                         </button>
                     </td>
                     <td>
@@ -52,8 +57,10 @@
                             onclick={() => {
                                 hotkey.alt = !hotkey.alt;
                             }}
+                            title={modifierLabels.altName}
+                            aria-label={modifierLabels.altName}
                         >
-                            Alt
+                            {modifierLabels.alt}
                         </button>
                     </td>
                     <td>

@@ -7,13 +7,17 @@ import { updateTextThemeAndCSS } from "./gui/colorscheme"
 import { defaultHotkeys } from "./defaulthotkeys"
 import { doingChat, previewBody, sendChat } from "./process/index.svelte"
 import { RISU_SIDEBAR_DRAG_TYPE } from "./dragTypes"
+import { hasAnyHotkeyModifier, hotkeyModifiersMatch, isPrimaryHotkeyModifierPressed, type HotkeyModifierOptions } from "./hotkeyModifiers"
 
 export function initHotkey(){
     document.addEventListener('keydown', async (ev) => {
+        const database = getDatabase()
+        const hotkeyModifierOptions: HotkeyModifierOptions = {
+            useLegacyMacOSCtrlHotkeys: database?.useLegacyMacOSCtrlHotkeys ?? false
+        }
+
         if(
-            !ev.ctrlKey &&
-            !ev.altKey &&
-            !ev.shiftKey &&
+            !hasAnyHotkeyModifier(ev, hotkeyModifierOptions) &&
             (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) ||
             document.activeElement.getAttribute('contenteditable'))
         ){
@@ -21,15 +25,13 @@ export function initHotkey(){
         }
 
 
-        const database = getDatabase()
-
         const hotKeys = database?.hotkeys ?? defaultHotkeys
 
         let hotkeyRan = false
         for(const hotkey of hotKeys){
             let hotKeyRanThisTime = true
 
-            if(!hotkeyMatches(hotkey, ev)){
+            if(!hotkeyMatches(hotkey, ev, hotkeyModifierOptions)){
                 continue
             }
             switch(hotkey.action){
@@ -180,7 +182,7 @@ export function initHotkey(){
         }
 
 
-        if(ev.ctrlKey){
+        if(isPrimaryHotkeyModifierPressed(ev, hotkeyModifierOptions)){
             switch (ev.key){
                 case "1":{
                     changeToPreset(0)
@@ -286,13 +288,17 @@ export function initHotkey(){
     const SCROLL_COOLDOWN = 500
     
     document.addEventListener('dragover', (ev) => {
-        if (ev.ctrlKey && !ev.shiftKey && !ev.altKey) {
+        const db = getDatabase()
+        const hotkeyModifierOptions: HotkeyModifierOptions = {
+            useLegacyMacOSCtrlHotkeys: db?.useLegacyMacOSCtrlHotkeys ?? false
+        }
+
+        if (hotkeyModifiersMatch({ ctrl: true, shift: false, alt: false }, ev, hotkeyModifierOptions)) {
             const types = ev.dataTransfer?.types || []
             const isCharacterDrag = types.includes(RISU_SIDEBAR_DRAG_TYPE)
             
             if (isCharacterDrag) {
-                const db = getDatabase()
-                if(db.enableScrollToActiveChar !== false){
+                if(db?.enableScrollToActiveChar !== false){
                     const now = Date.now()
                     if (now - lastScrollTime > SCROLL_COOLDOWN) {
                         lastScrollTime = now
@@ -323,7 +329,7 @@ async function quickMenu(){
     }
 }
 
-export function hotkeyMatches(hotkey: typeof DBState.db.hotkeys[number], ev: KeyboardEvent): boolean {
+export function hotkeyMatches(hotkey: typeof DBState.db.hotkeys[number], ev: KeyboardEvent, modifierOptions: HotkeyModifierOptions = {}): boolean {
     if(!hotkey){
         return false
     }
@@ -332,9 +338,7 @@ export function hotkeyMatches(hotkey: typeof DBState.db.hotkeys[number], ev: Key
     hotkey.alt = hotkey.alt ?? false
     hotkey.shift = hotkey.shift ?? false
 
-    if(hotkey.ctrl !== ev.ctrlKey) return false
-    if(hotkey.alt !== ev.altKey) return false
-    if(hotkey.shift !== ev.shiftKey) return false
+    if(!hotkeyModifiersMatch(hotkey, ev, modifierOptions)) return false
     if(hotkey.key.toLowerCase() !== ev.key.toLowerCase()) return false
     if(!hotkey.ctrl && !hotkey.alt && !hotkey.shift){
         if(['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return false

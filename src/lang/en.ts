@@ -204,9 +204,10 @@ export const languageEnglish = {
             "Namespace is a unique identifier for the module. It is used to prevent conflicts between modules, and for interaction of presets, other modules and etc. If you are not sure what to put, leave it blank.",
         moduleIntergration:
             "You can enable modules by putting the module namespace in the module intergartion sections. if you want to enable multiple modules, you can seperate them by comma. for example, `module1,module2,module3`. This is for advanced users, who wants to vary the use of modules by presets.",
-        customCSS: "Custom CSS for styling. you can also disable/enable it by pressing (Ctrl + .) if something goes wrong.",
+        customCSS: "Custom CSS for styling. You can also disable/enable it with the primary modifier + . if something goes wrong. The primary modifier is Command on macOS and Ctrl elsewhere.",
         betaMobileGUI: "If enabled, it will use beta mobile GUI on small (less than 800px) screens. Requires refresh.",
-        enableScrollToActiveChar: "If enabled, pressing the hotkey or holding Ctrl while dragging a character will scroll to the currently active character. Folders will be opened automatically if closed.",
+        enableScrollToActiveChar: "If enabled, pressing the hotkey or holding the primary modifier while dragging a character will scroll to the currently active character. The primary modifier is Command on macOS and Ctrl elsewhere. Folders will be opened automatically if closed.",
+        useLegacyMacOSCtrlHotkeys: "If enabled, stored Ctrl hotkeys use the Control key instead of Command on macOS. Leave this off for standard macOS shortcuts.",
         unrecommended: "This is a unrecommended setting. It is not recommended to use this setting.",
         jsonSchema:
             "This is a JSON Schema that will be sent to the AI model if AI model supports JSON Schema.\n\nHowever, since JSON Schema is hard to learn, In Risuai, you can use subset of TypeScript interface instead of JSON Schema. Risuai will convert it in runtime." +
@@ -845,7 +846,7 @@ export const languageEnglish = {
     textColor: "Text Color",
     classicRisu: "Classic Risu",
     highcontrast: "High-Contrast",
-    quickPreset: "You can quickly change preset by Ctrl + (Index of Preset)",
+    quickPreset: "You can quickly change preset with the primary modifier + (Index of Preset). The primary modifier is Command on macOS and Ctrl elsewhere.",
     requestretrys: "Request Retrys when Fail",
     utilityBot: "Utility Bot",
     ShowLog: "Show Request Logs",
@@ -908,6 +909,7 @@ export const languageEnglish = {
     globalRegexScript: "Global Regex",
     accessibility: "Accessibility",
     sendWithEnter: "Send with Enter Key",
+    useLegacyMacOSCtrlHotkeys: "Use legacy Ctrl hotkeys on macOS",
     fixedChatTextarea: "Fixed at the bottom of the chat window(When unchecked, Shift + Enter changes to send a message.)",
     clickToEdit: "Click Text to Edit",
     enableBlockPartialEdit: "Enable Block Partial Edit (Hover to edit individual blocks)",

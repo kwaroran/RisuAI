@@ -6,6 +6,7 @@
 
 import type { SettingItem } from './types';
 import { language } from "src/lang";
+import { isMacOS } from '../platform';
 
 export const accessibilitySettingsItems: SettingItem[] = [
     // Header
@@ -44,6 +45,15 @@ export const accessibilitySettingsItems: SettingItem[] = [
         labelKey: 'sendWithEnter',
         bindKey: 'sendWithEnter',
         keywords: ['send', 'enter', 'keyboard', 'submit']
+    },
+    {
+        id: 'acc.useLegacyMacOSCtrlHotkeys',
+        type: 'check',
+        labelKey: 'useLegacyMacOSCtrlHotkeys',
+        bindKey: 'useLegacyMacOSCtrlHotkeys',
+        helpKey: 'useLegacyMacOSCtrlHotkeys',
+        condition: () => isMacOS(),
+        keywords: ['macos', 'command', 'ctrl', 'control', 'hotkey', 'keyboard']
     },
     {
         id: 'acc.fixedChatTextarea',
