@@ -11,6 +11,7 @@ interface RpcMessage {
     type: MsgType;
     reqId?: string;
     id?: string;
+    ids?: string[];
     method?: string;
     args?: any[];
     result?: any;
@@ -40,7 +41,22 @@ await (async function() {
     const pendingRequests = new Map();
     const callbackRegistry = new Map();
     const callbackIdByFunction = new WeakMap();
-    const proxyRefRegistry = new Map();
+    const proxyRefRegistry = new WeakMap();
+    const releaseBuffer = [];
+    const flushReleases = () => {
+        if (releaseBuffer.length === 0) return;
+        const ids = releaseBuffer.splice(0);
+        try {
+            send({ type: 'RELEASE_INSTANCE', ids: ids });
+        } catch (_) {
+            // Frame is tearing down; host clears its registry anyway
+        }
+    };
+    const releaseRegistry = new FinalizationRegistry((id) => {
+        // Schedule one flush per burst: first push arms the microtask.
+        if (releaseBuffer.length === 0) queueMicrotask(flushReleases);
+        releaseBuffer.push(id);
+    });
     const abortControllers = new Map();
 
     function serializeArg(arg) {
@@ -89,15 +105,25 @@ await (async function() {
                     if (prop === 'release') {
                         return () => send({ type: 'RELEASE_INSTANCE', id: val.id });
                     }
-                    return (...args) => sendRequest('CALL_INSTANCE', {
-                        id: val.id,
-                        method: prop,
-                        args: args
-                    });
+                    return (...args) => {
+                        // Extracted methods must pin their owning proxy:
+                        // without this reference the proxy could be
+                        // collected (and auto-released) while this
+                        // function is still callable.
+                        void proxy;
+                        return sendRequest('CALL_INSTANCE', {
+                            id: val.id,
+                            method: prop,
+                            args: args
+                        });
+                    };
                 }
             });
             // Store the mapping so we can serialize it back
             proxyRefRegistry.set(proxy, val.id);
+            // Held value must be the id string, never the proxy itself:
+            // the registry holds it strongly until cleanup fires.
+            releaseRegistry.register(proxy, val.id);
             return proxy;
         }
         if (val && typeof val === 'object' && val.__type === 'CALLBACK_STREAMS') {
@@ -333,7 +359,7 @@ await (async function() {
                         if (a.aborted) { controller.abort(); }
                         return controller.signal;
                     }
-                    return a;
+                    return deserializeResult(a);
                 });
                 const result = await fn(...deserializedArgs);
                 response.result = result;
@@ -438,6 +464,7 @@ export class SandboxHost {
     private csp = `connect-src 'none'; script-src 'nonce-${this.nonce}' 'wasm-unsafe-eval'; frame-src 'none'; object-src 'none'; style-src * 'unsafe-inline'; default-src 'none'; img-src * data: blob:; font-src * data: blob:; media-src * data: blob:; base-uri 'none';`;
 
     private instanceRegistry = new Map<string, any>();
+    private refIdCounter = 0;
     private abortControllers = new Map<string, AbortController>();
     private messageHandlerRef: ((event: MessageEvent) => void) | null = null;
     private callbackWrapperCache = new Map<string, Function>();
@@ -516,7 +543,7 @@ export class SandboxHost {
             if (Array.isArray(val)) return val;
 
 
-            const id = 'ref_' + Math.random().toString(36).substring(2);
+            const id = 'ref_' + (++this.refIdCounter);
             this.instanceRegistry.set(id, val);
             return { __type: 'REMOTE_REF', id } as RemoteRef;
         }
@@ -584,7 +611,7 @@ export class SandboxHost {
                                 }
                                 return ref;
                             }
-                            return arg;
+                            return this.serialize(arg);
                         });
 
                         const message = {
@@ -606,6 +633,7 @@ export class SandboxHost {
                 if (instance) {
                     return instance;
                 }
+                throw new Error("Instance not found or released");
             }
             if (arg && typeof arg === 'object' && arg.constructor === Object) {
                 let out: any = null;
@@ -819,7 +847,8 @@ export class SandboxHost {
 
 
             if (data.type === 'RELEASE_INSTANCE') {
-                this.instanceRegistry.delete(data.id!);
+                if (data.id) this.instanceRegistry.delete(data.id!);
+                if (Array.isArray(data.ids)) for (const id of data.ids) this.instanceRegistry.delete(id);
                 return;
             }
 
