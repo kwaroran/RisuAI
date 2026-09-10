@@ -38,14 +38,26 @@ export class AutoStorage{
     }
 
     async checkAccountSync(){
-        let db = getDatabase({ snapshot: true })
         if(this.isAccount){
             return true
         }
-        if(localStorage.getItem('dosync') === 'avoid'){
+
+        const syncMode = localStorage.getItem('dosync')
+        if(syncMode === 'avoid'){
             return false
         }
-        if((localStorage.getItem('dosync') === 'sync' || db?.account?.useSync) && (localStorage.getItem('accountst') !== 'able')){
+
+        const accountState = localStorage.getItem('accountst')
+        if(accountState === 'able'){
+            localStorage.setItem('accountst', 'able')
+            this.realStorage = new AccountStorage()
+            this.isAccount = true
+            return false
+        }
+
+        const shouldSync = syncMode === 'sync' || getDatabase().account?.useSync
+        if(shouldSync){
+            const db = getDatabase({ snapshot: true })
             const keys = (await this.realStorage.keys()).filter((key) => {
                 return key !== 'database/database.bin'
                     && !key.startsWith('coldstorage/')
@@ -153,11 +165,6 @@ export class AutoStorage{
             this.isAccount = true
             await localforage.clear()
             return true
-        }
-        else if(localStorage.getItem('accountst') === 'able'){
-            localStorage.setItem('accountst', 'able')
-            this.realStorage = new AccountStorage()
-            this.isAccount = true
         }
         return false
     }
