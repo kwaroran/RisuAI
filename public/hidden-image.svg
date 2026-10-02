@@ -1,0 +1,25 @@
+<!--
+  Placeholder for chat images while "Hide All Images" is on. Gray with alpha
+  so it sits on both dark and light themes.
+  No size and no viewBox, so it fills whatever box it is drawn into, portrait
+  or landscape, while the icon keeps its size at the center.
+-->
+<svg xmlns="http://www.w3.org/2000/svg">
+  <style>
+    rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px)}
+    .i{transform:translate(-20px,-20px) scale(1.6667)}
+    @media (max-width:120px),(max-height:90px){.i{transform:translate(-10px,-10px) scale(.8333)}}
+    @media (max-width:36px),(max-height:28px){.i{display:none}}
+  </style>
+  <rect width="100%" height="100%" rx="10" fill="#808080" fill-opacity="0.12" stroke="#808080" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="8 6"/>
+  <svg x="50%" y="50%" overflow="visible">
+    <g class="i" fill="none" stroke="#808080" stroke-opacity="0.7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="2" y1="2" x2="22" y2="22"/>
+      <path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/>
+      <line x1="13.5" y1="13.5" x2="6" y2="21"/>
+      <line x1="18" y1="12" x2="21" y2="15"/>
+      <path d="M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59"/>
+      <path d="M21 15V5a2 2 0 0 0-2-2H9"/>
+    </g>
+  </svg>
+</svg>
