@@ -1,8 +1,84 @@
 import css, { type CssAtRuleAST } from '@adobe/css-tools'
 
-/** Shown in place of chat images while hideAllImages is on. */
+/**
+ * Shown in place of chat images while hideAllImages is on. Parsing emits this
+ * path, and applyHiddenImageTheme swaps it for a copy drawn in the current
+ * color scheme at render time. The file itself is a neutral fallback.
+ */
 export const hiddenImageSrc = '/hidden-image.svg'
 const hiddenImageCssUrl = `url("${hiddenImageSrc}")`
+
+export type HiddenImageColors = {
+    darkbg?: string
+    darkBorderc?: string
+    textcolor2?: string
+}
+
+// default color scheme, used when the database has none yet
+const fallbackColors: Required<HiddenImageColors> = {
+    darkbg: '#21222c',
+    darkBorderc: '#4b5563',
+    textcolor2: '#64748b',
+}
+
+// Custom schemes are free text, so only plain color values reach the SVG
+const safeColorRegex = /^(#[0-9a-f]{3,8}|[a-z]+|(rgb|hsl)a?\([\d\s.,%/]+\))$/i
+
+function pickColor(value:unknown, fallback:string){
+    return typeof value === 'string' && safeColorRegex.test(value.trim()) ? value.trim() : fallback
+}
+
+// lucide image-off
+const hiddenImageIcon = '<line x1="2" y1="2" x2="22" y2="22"/>'
+    + '<path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/>'
+    + '<line x1="13.5" y1="13.5" x2="6" y2="21"/>'
+    + '<line x1="18" y1="12" x2="21" y2="15"/>'
+    + '<path d="M3.59 3.59A1.99 1.99 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59"/>'
+    + '<path d="M21 15V5a2 2 0 0 0-2-2H9"/>'
+
+export function renderHiddenImageSvg(colors?:HiddenImageColors){
+    const bg = pickColor(colors?.darkbg, fallbackColors.darkbg)
+    const border = pickColor(colors?.darkBorderc, fallbackColors.darkBorderc)
+    const icon = pickColor(colors?.textcolor2, fallbackColors.textcolor2)
+    // No size and no viewBox: the browser lays the SVG out at whatever box it is
+    // drawn into instead of scaling it, so the frame fills portrait and landscape
+    // boxes alike while the icon keeps its size at the center. Media queries
+    // inside an SVG image match that box, which shrinks the icon in small ones.
+    return '<svg xmlns="http://www.w3.org/2000/svg">'
+        + '<style>'
+        + 'rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px)}'
+        + '.i{transform:translate(-20px,-20px) scale(1.6667)}'
+        + '@media (max-width:120px),(max-height:90px){.i{transform:translate(-10px,-10px) scale(.8333)}}'
+        + '@media (max-width:36px),(max-height:28px){.i{display:none}}'
+        + '</style>'
+        + `<rect width="100%" height="100%" rx="10" fill="${bg}" fill-opacity="0.7" stroke="${border}" stroke-width="2" stroke-dasharray="8 6"/>`
+        + '<svg x="50%" y="50%" overflow="visible">'
+        + `<g class="i" fill="none" stroke="${icon}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${hiddenImageIcon}</g>`
+        + '</svg>'
+        + '</svg>'
+}
+
+let cachedSvg = ''
+let cachedDataUri = ''
+
+export function hiddenImageDataUri(colors?:HiddenImageColors){
+    const svg = renderHiddenImageSvg(colors)
+    if(svg !== cachedSvg){
+        cachedSvg = svg
+        // encodeURIComponent leaves no quotes, '<' or '&', so the result is
+        // safe to drop into attributes and <style> text of serialized HTML
+        cachedDataUri = 'data:image/svg+xml,' + encodeURIComponent(svg)
+    }
+    return cachedDataUri
+}
+
+/** Swaps the placeholder path in rendered HTML for one drawn in `colors`. */
+export function applyHiddenImageTheme(html:string, colors?:HiddenImageColors){
+    if(!html.includes(hiddenImageSrc)){
+        return html
+    }
+    return html.replaceAll(hiddenImageSrc, hiddenImageDataUri(colors))
+}
 
 // 1x1 transparent gif used as a spacer, not real content
 const transparentGifPrefix = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP'

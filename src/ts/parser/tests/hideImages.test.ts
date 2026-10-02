@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { writable } from 'svelte/store'
-import { ParseMarkdown } from '../parser.svelte'
-import { hiddenImageSrc, hideCssImageUrls, hideStyleSheetImages } from '../hideImages'
+import { ParseMarkdown, trimMarkdown } from '../parser.svelte'
+import { applyHiddenImageTheme, hiddenImageDataUri, hiddenImageSrc, hideCssImageUrls, hideStyleSheetImages, renderHiddenImageSvg } from '../hideImages'
 
 //#region module mocks
 
@@ -85,7 +85,7 @@ describe('ParseMarkdown with hideAllImages', () => {
     it('replaces img sources and drops srcset', async () => {
         const body = await render(`<img src="${leaked}" srcset="${leaked} 2x">`)
         const img = body.querySelector('img')
-        expect(img.getAttribute('src')).toBe(hiddenImageSrc)
+        expect(img.getAttribute('src')).toBe(hiddenImageDataUri())
         expect(img.hasAttribute('srcset')).toBe(false)
         expect(img.hasAttribute('data-risu-hidden-image')).toBe(true)
     })
@@ -98,12 +98,12 @@ describe('ParseMarkdown with hideAllImages', () => {
     it('replaces inline style urls', async () => {
         const body = await render(`<div style="background: #000 url('${leaked}') no-repeat;"></div>`)
         expect(body.innerHTML).not.toContain(leaked)
-        expect(body.querySelector('div').getAttribute('style')).toContain(hiddenImageSrc)
+        expect(body.querySelector('div').getAttribute('style')).toContain(hiddenImageDataUri())
     })
 
     it('replaces urls in <style> blocks', async () => {
         const body = await render(`<style>.card { background-image: url("${leaked}"); }</style><div class="card"></div>`)
-        expect(body.querySelector('style').textContent).toContain(hiddenImageSrc)
+        expect(body.querySelector('style').textContent).toContain(hiddenImageDataUri())
         expect(body.innerHTML).not.toContain(leaked)
     })
 
@@ -115,5 +115,47 @@ describe('ParseMarkdown with hideAllImages', () => {
     it('replaces svg images and video posters', async () => {
         const body = await render(`<svg><image href="${leaked}" width="10" height="10"></image></svg><video poster="${leaked}"></video>`)
         expect(body.innerHTML).not.toContain(leaked)
+    })
+})
+
+describe('hidden image theming', () => {
+    it('preserves caller-specific sanitizer attributes while applying the theme', () => {
+        const out = trimMarkdown(
+            `<button risu-change-var-name="route" risu-change-var-value="a">A</button><img src="${leaked}">`,
+            {
+                ADD_TAGS: [],
+                ADD_ATTR: ['risu-change-var-name', 'risu-change-var-value'],
+            },
+        )
+        const body = parse(out)
+        const button = body.querySelector('button')
+        expect(button.getAttribute('risu-change-var-name')).toBe('route')
+        expect(button.getAttribute('risu-change-var-value')).toBe('a')
+        expect(body.querySelector('img').getAttribute('src')).toBe(hiddenImageDataUri())
+    })
+
+    it('draws the placeholder in the given scheme colors', () => {
+        const svg = renderHiddenImageSvg({ darkbg: '#123456', darkBorderc: 'rgb(1, 2, 3)', textcolor2: 'red' })
+        expect(svg).toContain('fill="#123456"')
+        expect(svg).toContain('stroke="rgb(1, 2, 3)"')
+        expect(svg).toContain('stroke="red"')
+    })
+
+    it('falls back on values that are not plain colors', () => {
+        const svg = renderHiddenImageSvg({ darkbg: '"/><script>alert(1)</script>' })
+        expect(svg).not.toContain('script')
+        expect(svg).toContain('fill="#21222c"')
+    })
+
+    it('swaps every placeholder path in attributes and style text', () => {
+        const html = `<img src="${hiddenImageSrc}"><div style="background:url(&quot;${hiddenImageSrc}&quot;)"></div><style>.a{background:url("${hiddenImageSrc}")}</style>`
+        const out = applyHiddenImageTheme(html, { darkbg: '#abcdef' })
+        expect(out).not.toContain(hiddenImageSrc)
+        const body = parse(out)
+        const src = body.querySelector('img').getAttribute('src')
+        expect(src.startsWith('data:image/svg+xml,')).toBe(true)
+        expect(decodeURIComponent(src)).toContain('#abcdef')
+        expect(body.querySelector('div').getAttribute('style')).toContain(src)
+        expect(body.querySelector('style').textContent).toContain(src)
     })
 })

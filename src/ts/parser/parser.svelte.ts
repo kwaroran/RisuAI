@@ -20,7 +20,7 @@ import katex from 'katex'
 import { getModelInfo } from '../model/modellist';
 import { registerCBS, type matcherArg, type RegisterCallback } from '../cbs';
 import cssSelectorParser from 'postcss-selector-parser'
-import { hiddenImageSrc, hideCssImageUrls, hideStyleRuleImages, hideStyleSheetImages, isSpacerImage } from './hideImages'
+import { applyHiddenImageTheme, hiddenImageSrc, hideCssImageUrls, hideStyleRuleImages, hideStyleSheetImages, isSpacerImage } from './hideImages'
 
 const markdownItOptions = {
     html: true,
@@ -858,7 +858,7 @@ export function trimMarkdown(data:string, purifyConfig:typeof trimPurifyConfig =
     // risu-style is in ADD_TAGS, so cards, model output and user scripts can
     // author one directly. Only its position in the parsed tree is relied on.
     if(!data.includes('<risu-style')){
-        return DOMPurify.sanitize(data, purifyConfig)
+        return applyHiddenImageTheme(DOMPurify.sanitize(data, purifyConfig), DBState.db?.colorScheme)
     }
 
     // Decoded CSS must never be handed back to the HTML sanitizer as <style>
@@ -893,7 +893,7 @@ export function trimMarkdown(data:string, purifyConfig:typeof trimPurifyConfig =
         el.replaceWith(style)
     }
 
-    return root.innerHTML
+    return applyHiddenImageTheme(root.innerHTML, DBState.db?.colorScheme)
 }
 
 const metaCodes = [

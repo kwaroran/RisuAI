@@ -1,6 +1,7 @@
 <!--
-  Placeholder for chat images while "Hide All Images" is on. Gray with alpha
-  so it sits on both dark and light themes.
+  Placeholder for chat images while "Hide All Images" is on. The chat renders
+  a copy drawn in the current color scheme (see src/ts/parser/hideImages.ts);
+  this file is the neutral fallback for anything that misses that swap.
   No size and no viewBox, so it fills whatever box it is drawn into, portrait
   or landscape, while the icon keeps its size at the center.
 -->
