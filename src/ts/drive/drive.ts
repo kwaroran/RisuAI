@@ -8,7 +8,7 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
 import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
-import { collectColdStorageBackupPayloads, confirmIncompleteColdStorageOperation, getColdStorageBackupName, isColdStorageBackupData, listColdDataKeys, setColdStorageItem } from "../process/coldstorage.svelte";
+import { collectColdStorageBackupPayloads, confirmIncompleteColdStorageOperation, getColdStorageBackupName, isValidColdStorageItem, listColdDataKeys, listPluginStorageColdKeys, setColdStorageItem } from "../process/coldstorage.svelte";
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'reftoken'){
     const CLIENT_ID = '580075990041-l26k2d3c0nemmqiu3d3aag01npfrkn76.apps.googleusercontent.com';
@@ -177,7 +177,14 @@ async function backupDrive(ACCESS_TOKEN:string) {
             type: "wait",
             msg: `Uploading Cold Storage... (${i + 1} / ${coldStoragePayloads.payloads.length})`
         })
-        if(fileNames.includes(payload.backupName)){
+        const existingFiles = files.filter((file) => file.name === payload.backupName)
+        if(existingFiles.length > 0){
+            //character/chat cold data never changes under the same key, but pluginStorage values do
+            if(payload.pluginStorage){
+                for(const file of existingFiles){
+                    await updateFileContent(ACCESS_TOKEN, file.id, payload.encoded)
+                }
+            }
             continue
         }
         await createFileInFolder(ACCESS_TOKEN, payload.backupName, payload.encoded)
@@ -395,6 +402,7 @@ async function restoreColdStorageFromDrive(
     mode:'backup'|'sync'
 ) {
     const coldKeys = await listColdDataKeys(db)
+    const pluginStorageColdKeys = new Set(listPluginStorageColdKeys(db))
     const failures:string[] = []
     for(let i=0;i<coldKeys.length;i++){
         const key = coldKeys[i]
@@ -415,7 +423,7 @@ async function restoreColdStorageFromDrive(
         })
         try {
             const jsonData = JSON.parse(new TextDecoder().decode(await getFileData(ACCESS_TOKEN, file.id)))
-            if(isColdStorageBackupData(jsonData)){
+            if(isValidColdStorageItem(jsonData, pluginStorageColdKeys.has(key))){
                 if(!await setColdStorageItem(key, jsonData)){
                     failures.push(key)
                 }
@@ -509,6 +517,29 @@ function getBasename(data:string){
     const splited = data.replace(baseNameRegex, '/').split('/')
     const lasts = splited[splited.length-1]
     return lasts
+}
+
+async function updateFileContent(accessToken:string, fileId:string, content:Uint8Array, mimeType = 'application/octet-stream') {
+    const response = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": mimeType,
+        },
+        body: new Blob([content as any], { type: mimeType }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (response.ok) {
+      return result;
+    } else {
+      console.error("Error updating file:", result);
+      throw new Error(result.error.message);
+    }
 }
 
 async function getFileData(ACCESS_TOKEN:string,fileId:string) {

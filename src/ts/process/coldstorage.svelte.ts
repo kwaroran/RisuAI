@@ -15,13 +15,15 @@ import { fetchProtectedResource } from "../sionyw"
 import { alertClear, alertConfirm, alertError, alertWait } from "../alert"
 import { language } from "src/lang"
 import type { Database, character } from "../storage/database.svelte"
-import { coldStorageHeader, getColdStorageAffectedCharacters, getColdStorageBackupName, isColdStorageBackupData, listColdDataKeysFromDb } from "./coldstorageData"
+import { coldStorageHeader, getColdStorageAffectedCharacters, getColdStorageBackupName, isValidColdStorageItem, listColdDataKeysFromDb, listPluginStorageColdKeys } from "./coldstorageData"
 
 export {
     coldStorageHeader,
     getColdStorageBackupKey,
     getColdStorageBackupName,
     isColdStorageBackupData,
+    isValidColdStorageItem,
+    listPluginStorageColdKeys,
     replaceColdStoragePayloadResources,
     listColdDataKeysFromDb
 } from "./coldstorageData"
@@ -50,9 +52,15 @@ export async function getColdStorageItem(key:string, opts:{
         })
 
         if(d.status === 200){
-            const buf = await d.arrayBuffer()
-            const text = new TextDecoder().decode(await decompress(new Uint8Array(buf)))
-            return JSON.parse(text)
+            try {
+                const buf = await d.arrayBuffer()
+                const text = new TextDecoder().decode(await decompress(new Uint8Array(buf)))
+                return JSON.parse(text)
+            } catch (error) {
+                //same as the local backends: unreadable data reads as null instead of throwing
+                console.error('Failed to decode account cold storage item:', key, error)
+                return null
+            }
         }
         return await getColdStorageItem(key, {
             accountFallback: true
@@ -106,7 +114,8 @@ export async function getColdStorageItem(key:string, opts:{
 
 async function compressColdStorageValue(value:any):Promise<Uint8Array | null> {
     try {
-        const json = JSON.stringify(value)
+        //JSON.stringify(undefined) is undefined, which would be stored as an empty, unparseable payload
+        const json = JSON.stringify(value) ?? 'null'
         return await (new Promise<Uint8Array>((resolve, reject) => {
             fflateCompress(new TextEncoder().encode(json), (err, result) => {
                 if (err) {
@@ -261,7 +270,7 @@ export async function cleanColdStorage(){
     alertClear()
 }
 
-async function removeColdStorageItems(keys:string[]) {
+export async function removeColdStorageItems(keys:string[]) {
     
     if(forageStorage.isAccount){
         try {
@@ -320,6 +329,8 @@ export type ColdStorageBackupPayload = {
     backupName: string
     value: unknown
     encoded: Uint8Array
+    /** pluginStorage items are mutable under the same key, unlike character/chat cold data */
+    pluginStorage: boolean
 }
 
 export async function collectColdStorageBackupPayloads(db: Pick<Database, 'characters'|'pluginCustomStorage'> = DBState.db): Promise<{
@@ -328,19 +339,26 @@ export async function collectColdStorageBackupPayloads(db: Pick<Database, 'chara
     invalidKeys: string[]
 }> {
     const coldKeys = await listColdDataKeys(db)
+    const pluginStorageKeys = new Set(listPluginStorageColdKeys(db))
     const payloads: ColdStorageBackupPayload[] = []
     const missingKeys: string[] = []
     const invalidKeys: string[] = []
 
     for (const key of coldKeys) {
         try {
-            const value = await getColdStorageItem(key)
-            if (!value) {
+            const isPluginStorage = pluginStorageKeys.has(key)
+            let value = await getColdStorageItem(key)
+
+            if (isPluginStorage) {
+                //null/falsy are valid pluginStorage values (a missing item also reads as null, which is equivalent)
+                value ??= null
+            }
+            else if (!value) {
                 missingKeys.push(key)
                 continue
             }
 
-            if (!isColdStorageBackupData(value)) {
+            if (!isValidColdStorageItem(value, isPluginStorage)) {
                 invalidKeys.push(key)
                 continue
             }
@@ -349,7 +367,8 @@ export async function collectColdStorageBackupPayloads(db: Pick<Database, 'chara
                 key,
                 backupName: getColdStorageBackupName(key),
                 value,
-                encoded: new TextEncoder().encode(JSON.stringify(value))
+                encoded: new TextEncoder().encode(JSON.stringify(value)),
+                pluginStorage: isPluginStorage
             })
         } catch (error) {
             console.error(`Failed to read cold storage item ${key}:`, error)
@@ -532,6 +551,12 @@ async function migratePluginStorageKeyToColdStorage(key:string): Promise<boolean
         return false
     }
 
+    //null reads back as null anyway, and would fail verification below on every startup
+    if(value === null){
+        delete DBState.db.pluginCustomStorage[key]
+        return true
+    }
+
     const id = crypto.randomUUID()
     const writeSuccess = await setColdStorageItem(id, value)
 
@@ -569,23 +594,32 @@ async function migratePluginStorageToColdStorage(): Promise<boolean>{
         }
     }
 
+    if(legacyKeys.length > 0){
+        alertClear()
+    }
+
     return didChange
 }
 
 export async function makeColdData(){
+    let didChange = false
+
+    //pluginStorage is always coldstorage-backed, so migrate it even when the coldstorage setting is off
+    //(coldstorage defaults to off for users with plugins, who are exactly the ones with pluginStorage data)
+    if(await migratePluginStorageToColdStorage()){
+        didChange = true
+    }
 
     if(!DBState.db.coldstorage){
+        if(didChange){
+            requiresFullEncoderReload.state = true
+        }
         return
     }
 
     const currentTime = Date.now()
     const coldTime = currentTime - 1000 * 60 * 60 * 24 * 10 //10 days before now
     const queue:(() => Promise<boolean>)[] = []
-    let didChange = false
-
-    if(await migratePluginStorageToColdStorage()){
-        didChange = true
-    }
 
     for(let i=0;i<DBState.db.characters.length;i++){
         queue.push(() => makeColdDataForCharacter(i, coldTime))

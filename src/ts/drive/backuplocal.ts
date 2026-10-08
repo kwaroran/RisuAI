@@ -9,7 +9,7 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { decryptBuffer, encryptBuffer, sleep } from "../util";
 import { hubURL } from "../characterCards";
 import { language } from "src/lang";
-import { collectColdStorageBackupPayloads, confirmIncompleteColdStorageOperation, getColdStorageBackupKey, getColdStorageItem, isColdStorageBackupData, listColdDataKeys, setColdStorageItem } from "../process/coldstorage.svelte";
+import { collectColdStorageBackupPayloads, confirmIncompleteColdStorageOperation, getColdStorageBackupKey, getColdStorageItem, isColdStorageBackupData, isValidColdStorageItem, listColdDataKeys, listPluginStorageColdKeys, setColdStorageItem } from "../process/coldstorage.svelte";
 import { DBState } from "../stores.svelte";
 
 function getBasename(data:string){
@@ -427,6 +427,9 @@ export function LoadLocalBackup(){
             let remainingBuffer = new Uint8Array();
             let pendingDatabase: Uint8Array | null = null;
             const restoredColdStorageKeys = new Set<string>();
+            //items that don't look like character/chat data may be pluginStorage values,
+            //which can only be identified once the database (written last) is decoded
+            const pendingPluginColdStorage = new Map<string, unknown>();
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -499,7 +502,7 @@ export function LoadLocalBackup(){
                                         console.error(`Failed to restore cold storage item ${coldStorageKey}`)
                                     }
                                 } else {
-                                    console.warn(`Skipping invalid cold storage backup item ${name}`)
+                                    pendingPluginColdStorage.set(coldStorageKey, jsonData)
                                 }
                             } catch (e) {
                                 console.error(`Failed to parse cold storage item ${coldStorageKey}:`, e)
@@ -542,13 +545,26 @@ export function LoadLocalBackup(){
                 }
             }
             const dbData = await decodeRisuSave(db);
+            const pluginStorageColdKeys = new Set(listPluginStorageColdKeys(dbData))
+            for(const [key, value] of pendingPluginColdStorage){
+                if(!pluginStorageColdKeys.has(key)){
+                    console.warn(`Skipping invalid cold storage backup item ${key}`)
+                    continue
+                }
+                if(await setColdStorageItem(key, value)){
+                    restoredColdStorageKeys.add(key)
+                } else {
+                    console.error(`Failed to restore cold storage item ${key}`)
+                }
+            }
             const missingColdStorageKeys:string[] = []
             for(const key of await listColdDataKeys(dbData)){
                 if(restoredColdStorageKeys.has(key)){
                     continue
                 }
+                const isPluginStorage = pluginStorageColdKeys.has(key)
                 const existingColdStorage = await getColdStorageItem(key)
-                if(!isColdStorageBackupData(existingColdStorage)){
+                if(!isValidColdStorageItem(isPluginStorage ? (existingColdStorage ?? undefined) : existingColdStorage, isPluginStorage)){
                     missingColdStorageKeys.push(key)
                 }
             }

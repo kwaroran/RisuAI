@@ -22,6 +22,27 @@ export function isColdStorageBackupData(data: unknown): boolean {
         && ('character' in data || 'message' in data)
 }
 
+/**
+ * pluginStorage values can be any JSON value (including primitives and null), unlike character/chat cold data.
+ */
+export function isValidColdStorageItem(data: unknown, isPluginStorage: boolean): boolean {
+    if (isPluginStorage) {
+        return data !== undefined
+    }
+    return isColdStorageBackupData(data)
+}
+
+/**
+ * Cold storage ids used by plugin storage (db.pluginCustomStorage._coldplugin values)
+ */
+export function listPluginStorageColdKeys(db: Pick<Database, 'pluginCustomStorage'> | null | undefined): string[] {
+    const coldPlugin = db?.pluginCustomStorage?._coldplugin
+    if (!coldPlugin || typeof coldPlugin !== 'object') {
+        return []
+    }
+    return Object.values(coldPlugin).filter((key): key is string => typeof key === 'string')
+}
+
 function replaceData(data: string | undefined, replacer: { [key: string]: string }) {
     if (!data) {
         return data
@@ -87,9 +108,7 @@ export function listColdDataKeysFromDb(db: Pick<Database, 'characters'|'pluginCu
         }
     }
 
-    const coldPluginStorageKeys = (Object.values((db?.pluginCustomStorage?._coldplugin as {[key:string]:string}) ?? {}))
-
-    for(const key of coldPluginStorageKeys){
+    for(const key of listPluginStorageColdKeys(db)){
         keys.add(key)
     }
 
