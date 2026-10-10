@@ -102,20 +102,6 @@ export const LLMModels: LLMModel[] = [
         tokenizer: LLMTokenizer.Claude
     },
     {
-        name: 'Claude 4 Opus (20250514) v1',
-        id: 'anthropic.claude-opus-4-20250514-v1:0',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [
-            LLMFlags.hasPrefill,
-            LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt,
-            LLMFlags.claudeThinking
-        ],
-        parameters: [...ClaudeParameters, 'thinking_tokens'],
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
         name: 'Claude 4 Sonnet (20250514) v1',
         id: 'anthropic.claude-sonnet-4-20250514-v1:0',
         provider: LLMProvider.AWS,
@@ -127,60 +113,6 @@ export const LLMModels: LLMModel[] = [
             LLMFlags.claudeThinking
         ],
         parameters: [...ClaudeParameters, 'thinking_tokens'],
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
-        name: 'Claude 3.7 Sonnet (20250219) v1',
-        id: 'anthropic.claude-3-7-sonnet-20250219-v1:0',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [
-            LLMFlags.hasPrefill,
-            LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt,
-            LLMFlags.claudeThinking
-        ],
-        parameters: [...ClaudeParameters, 'thinking_tokens'],
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
-        name: 'Claude 3.5 Sonnet (20241022) v2',
-        id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [LLMFlags.hasPrefill, LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
-        parameters: ClaudeParameters,
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
-        name: 'Claude 3.5 Sonnet (20240620) v1',
-        id: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [LLMFlags.hasPrefill, LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
-        parameters: ClaudeParameters,
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
-        name: 'Claude 3 Opus (20240229) v1',
-        id: 'anthropic.claude-3-opus-20240229-v1:0',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [LLMFlags.hasPrefill, LLMFlags.hasImageInput, LLMFlags.hasFirstSystemPrompt],
-        parameters: ClaudeParameters,
-        tokenizer: LLMTokenizer.Claude
-    },
-    {
-        name: 'Claude 3 Sonnet (20240229) v1',
-        id: 'anthropic.claude-3-sonnet-20240229-v1:0',
-        provider: LLMProvider.AWS,
-        format: LLMFormat.AWSBedrockClaude,
-        flags: [
-            LLMFlags.hasPrefill,
-            LLMFlags.hasImageInput,
-            LLMFlags.hasFirstSystemPrompt
-        ],
-        parameters: ClaudeParameters,
         tokenizer: LLMTokenizer.Claude
     },
     // Other providers
@@ -382,18 +314,6 @@ export const LLMModels: LLMModel[] = [
     },
     // NovelAI
     {
-        name: "Clio",
-        id: 'novelai',
-        provider: LLMProvider.NovelAI,
-        format: LLMFormat.NovelAI,
-        flags: [LLMFlags.hasFullSystemPrompt],
-        recommended: true,
-        parameters: [
-            'temperature', 'top_k', 'top_p', 'presence_penalty', 'frequency_penalty'
-        ],
-        tokenizer: LLMTokenizer.NovelAI
-    },
-    {
         name: "Kayra",
         id: 'novelai_kayra',
         provider: LLMProvider.NovelAI,
@@ -480,28 +400,6 @@ export const LLMModels: LLMModel[] = [
         endpoint: 'https://api.deepseek.com/beta/chat/completions',
         keyIdentifier: 'deepseek',
         recommended: true
-    },
-    {
-        id: 'deepseek-reasoner',
-        name: 'Deepseek Reasoner',
-        provider: LLMProvider.DeepSeek,
-        format: LLMFormat.OpenAICompatible,
-        flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole, LLMFlags.mustStartWithUserInput, LLMFlags.hasPrefill, LLMFlags.deepSeekPrefix, LLMFlags.deepSeekThinkingInput, LLMFlags.deepSeekThinkingOutput, LLMFlags.hasStreaming],
-        parameters: [],
-        tokenizer: LLMTokenizer.DeepSeek,
-        endpoint: 'https://api.deepseek.com/beta/chat/completions',
-        keyIdentifier: 'deepseek'
-    },
-    {
-        id: 'deepseek-chat',
-        name: 'Deepseek Chat',
-        provider: LLMProvider.DeepSeek,
-        format: LLMFormat.OpenAICompatible,
-        flags: [LLMFlags.hasFirstSystemPrompt, LLMFlags.requiresAlternateRole, LLMFlags.mustStartWithUserInput, LLMFlags.hasPrefill, LLMFlags.deepSeekPrefix, LLMFlags.hasStreaming],
-        parameters: ['frequency_penalty', 'presence_penalty', 'temperature', 'top_p'],
-        tokenizer: LLMTokenizer.DeepSeek,
-        endpoint: 'https://api.deepseek.com/beta/chat/completions',
-        keyIdentifier: 'deepseek'
     },
     // DeepInfra
     ...makeDeepInfraModels([
