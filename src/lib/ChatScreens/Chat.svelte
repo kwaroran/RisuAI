@@ -532,7 +532,8 @@
                     bind:translating={translating}
                     bind:retranslate={retranslate}
                     {renderRawStreaming}
-                    {rawStreamingText} />
+                    {rawStreamingText}
+                    chatId={idx >= 0 ? DBState.db.characters?.[selIdState.selId]?.chats?.[DBState.db.characters?.[selIdState.selId]?.chatPage]?.message?.[idx]?.chatId : undefined} />
             {/key}
         </span>
         {#if idx >= 0 && !editMode && !editTranslationMode && !isOptimizedStreamingMessage && partialEditEnabled && (DBState.db.enableBlockPartialEdit || DBState.db.enableDragPartialEdit)}

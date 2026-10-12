@@ -1817,6 +1817,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             result = inlayResult.text
             emoChanged = result2.emoChanged
             if(i === 0 && arg.continue){
+                // Keep the continued message's id, like the streaming path does
+                const continuedChatId = DBState.db.characters[selectedChar].chats[selectedChat].message[msgIndex]?.chatId
                 DBState.db.characters[selectedChar].chats[selectedChat].message[msgIndex] = {
                     role: 'char',
                     data: result,
@@ -1824,7 +1826,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     time: Date.now(),
                     generationInfo,
                     promptInfo,
-                    chatId: generationId,
+                    chatId: continuedChatId ?? generationId,
                 }       
                 if(inlayResult.promise){
                     const p = await inlayResult.promise

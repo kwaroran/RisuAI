@@ -1,3 +1,20 @@
+<script lang="ts" module>
+    // Last parsed HTML per message chatId. A ChatBody created for an already rendered message
+    // (remount on content change, edit, continue, reloadChat, reloadDisplay...) shows it until its
+    // own first parse resolves, instead of rendering empty: the collapsed message would break
+    // scroll anchoring and snap the chat to the bottom.
+    const renderedHtmlCache = new Map<string, string>()
+    const renderedHtmlCacheLimit = 100
+
+    function rememberRenderedHtml(chatId: string, html: string){
+        renderedHtmlCache.delete(chatId)
+        renderedHtmlCache.set(chatId, html)
+        if(renderedHtmlCache.size > renderedHtmlCacheLimit){
+            renderedHtmlCache.delete(renderedHtmlCache.keys().next().value)
+        }
+    }
+</script>
+
 <script lang="ts">
     import isEqual from "lodash/isEqual"
     import { DBState } from 'src/ts/stores.svelte'
@@ -8,6 +25,7 @@
     import { getModuleAssets } from "src/ts/process/modules";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
     import { getFileSrc } from "src/ts/globalApi.svelte";
+    import { untrack } from "svelte";
 
     interface Props {
         character?: simpleCharacterArgument|string|null
@@ -24,6 +42,7 @@
         modelShortName: string
         renderRawStreaming?: boolean
         rawStreamingText?: string
+        chatId?: string
     }
 
     let {
@@ -40,10 +59,13 @@
         modelShortName = '',
         renderRawStreaming = false,
         rawStreamingText = '',
+        chatId = '',
     }: Props =  $props()
 
     // svelte-ignore non_reactive_update
-    let lastParsed = ''
+    let lastParsed = untrack(() => (chatId && renderedHtmlCache.get(chatId)) || '')
+    // Showing HTML inherited from a previous instance; nothing parsed by this instance yet
+    let showingInherited = lastParsed !== ''
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
     let lastRenderedRevision: number | null = null
@@ -72,8 +94,9 @@
         // track 'translated' and 'retranslate' state
         translated;
         retranslate;
-        const preservePendingContent = lastRenderedRevision !== null && requestedRevision !== lastRenderedRevision
+        const preservePendingContent = showingInherited || (lastRenderedRevision !== null && requestedRevision !== lastRenderedRevision)
         let lastParsedQueue = ''
+        let keptPrevious = false
         let mode = 'notrim' as const
         try {
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
@@ -106,7 +129,10 @@
                     // State change of `translated` triggers markParsing again,
                     // causing redundant translation attempts
                     if (lastTranslated !== translateText) {
-                        return;
+                        // Keep what is already shown until then, instead of rendering an empty body
+                        keptPrevious = true
+                        lastParsedQueue = lastParsed
+                        return lastParsed;
                     }
                 } catch (error) {
                     console.error(error)
@@ -176,6 +202,12 @@
         finally{
             //since trimMarkdown is fast, we don't need to cache it
             lastParsed = lastParsedQueue
+            if(!keptPrevious){
+                showingInherited = false
+                if(chatId && lastParsedQueue){
+                    rememberRenderedHtml(chatId, lastParsedQueue)
+                }
+            }
             lastRenderedRevision = requestedRevision
             leavingRawStreaming = false
         }

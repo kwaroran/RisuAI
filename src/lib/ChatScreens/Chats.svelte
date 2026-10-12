@@ -243,14 +243,17 @@
     $effect(() => {
         console.log('Updating Chats');
         void $ReloadChatPointer; // Make $effect track ReloadChatPointer changes
-        const wasAtBottom = checkIfAtBottom();
-        updateChatBody()
-        
         const currentChatRoomId = getCurrentChatRoomId();
         const isSameChat = currentChatRoomId === previousChatRoomId;
-        
+        const messagesAdded = isSameChat && messages.length > previousLength;
+        // Read layout only when it is needed: a message re-rendered in this same update may still be
+        // empty (its {#await} renders a microtask later), and forcing a layout now collapses it,
+        // which snaps the chat scroll to the bottom.
+        const wasAtBottom = messagesAdded ? checkIfAtBottom() : true;
+        updateChatBody()
+
         // Only auto-scroll if it's the same chat and new messages were added
-        if(isSameChat && messages.length > previousLength){
+        if(messagesAdded){
             const lastMsg = messages[messages.length - 1];
             if(lastMsg && lastMsg.role === 'char' && DBState.db.autoScrollToNewMessage){
                 if(wasAtBottom || DBState.db.alwaysScrollToNewMessage){
