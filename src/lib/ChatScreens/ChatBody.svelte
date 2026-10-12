@@ -62,8 +62,11 @@
         renderCacheKey = '',
     }: Props =  $props()
 
+    // Fixed for this instance: the parent's key follows "the idx-th message of the current chat", so a
+    // slow parse finishing after a chat switch or a deletion would otherwise store under another message.
+    const cacheKey = untrack(() => renderCacheKey)
     // svelte-ignore non_reactive_update
-    let lastParsed = untrack(() => (renderCacheKey && renderedHtmlCache.get(renderCacheKey)) || '')
+    let lastParsed = (cacheKey && renderedHtmlCache.get(cacheKey)) || ''
     // Showing HTML inherited from a previous instance; nothing parsed by this instance yet
     let showingInherited = lastParsed !== ''
     let lastCharArg:string|simpleCharacterArgument = null
@@ -204,8 +207,8 @@
             lastParsed = lastParsedQueue
             if(!keptPrevious){
                 showingInherited = false
-                if(renderCacheKey && lastParsedQueue){
-                    rememberRenderedHtml(renderCacheKey, lastParsedQueue)
+                if(cacheKey && lastParsedQueue){
+                    rememberRenderedHtml(cacheKey, lastParsedQueue)
                 }
             }
             lastRenderedRevision = requestedRevision
