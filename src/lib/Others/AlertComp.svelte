@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { tick } from "svelte";
     import { alertGenerationInfoStore } from "../../ts/alert";
     
     import { DBState } from 'src/ts/stores.svelte';
@@ -59,7 +60,8 @@
         return lines.join('\n')
     });
 
-    let btn
+    let alertPanel: HTMLElement | undefined = $state()
+    let focusBeforeAlert: HTMLElement | null = null
     let input = $state('')
     let cardExportType = $state('realm')
     let cardExportType2 = $state('')
@@ -122,9 +124,6 @@
         translatedStackTrace = '';
         stackTraceTranslationFailed = false;
         isTranslating = false;
-        if(btn){
-            btn.focus()
-        }
         if($alertStore.type !== 'input'){
             input = ''
         }
@@ -166,6 +165,40 @@
         }
     }
 
+    // Move keyboard focus onto the alert panel so keys no longer reach whatever was
+    // focused behind the overlay, and restore it on close. The panel itself gets focus
+    // (not a button) so a stray Enter never confirms or picks anything; users reach
+    // the buttons with Tab or the mouse. Input alerts focus the text field instead.
+    let focusedAlertType = ''
+    $effect(() => {
+        const type = $alertStore.type
+        const panel = alertPanel
+        if(!panel || type === 'none'){
+            focusedAlertType = ''
+            if(type === 'none' && focusBeforeAlert){
+                const target = focusBeforeAlert
+                focusBeforeAlert = null
+                if(target.isConnected){
+                    target.focus()
+                }
+            }
+            return
+        }
+        if(!focusBeforeAlert && document.activeElement instanceof HTMLElement && !panel.contains(document.activeElement)){
+            focusBeforeAlert = document.activeElement
+        }
+        // The store is also set without changing the type (e.g. progress updates);
+        // don't pull focus back from a control the user already moved to.
+        if(type === focusedAlertType && panel.contains(document.activeElement)){
+            return
+        }
+        focusedAlertType = type
+        tick().then(() => {
+            const target = type === 'input' ? panel.querySelector<HTMLElement>('#alert-input') : null
+            ;(target ?? panel).focus()
+        })
+    })
+
     const beautifyJSON = (data:string) =>{
         try {
             return JSON.stringify(JSON.parse(data), null, 2)
@@ -188,7 +221,7 @@
 
 {#if $alertStore.type !== 'none' &&  $alertStore.type !== 'toast' &&  $alertStore.type !== 'cardexport' && $alertStore.type !== 'branches' && $alertStore.type !== 'selectModule' && $alertStore.type !== 'pukmakkurit' && $alertStore.type !== 'requestlogs'}
     <div class="absolute w-full h-full z-50 bg-black/50 flex justify-center items-center" class:vis={ $alertStore.type === 'wait2'}>
-        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto">
+        <div class="bg-darkbg p-4 break-any rounded-md flex flex-col max-w-3xl  max-h-full overflow-y-auto focus:outline-hidden" bind:this={alertPanel} tabindex="-1">
             {#if $alertStore.type === 'error'}
                 <h2 class="text-red-700 mt-0 mb-2 w-40 max-w-full">Error</h2>
             {:else if $alertStore.type === 'ask'}

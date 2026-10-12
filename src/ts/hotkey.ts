@@ -1,7 +1,7 @@
 import { get } from "svelte/store"
 import { alertMd, alertSelect, alertToast, alertWait, doingAlert, alertRequestLogs } from "./alert"
 import { changeToPreset as changeToPreset2, getDatabase  } from "./storage/database.svelte"
-import { alertStore, DBState, loadoutModalStore, MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, OpenRealmStore, PlaygroundStore, QuickSettings, SafeModeStore, selectedCharID, settingsOpen } from "./stores.svelte"
+import { DBState, loadoutModalStore, MobileGUIStack, MobileSideBar, openPersonaList, openPresetList, OpenRealmStore, PlaygroundStore, QuickSettings, SafeModeStore, selectedCharID, settingsOpen } from "./stores.svelte"
 import { language } from "src/lang"
 import { updateTextThemeAndCSS } from "./gui/colorscheme"
 import { defaultHotkeys } from "./defaulthotkeys"
@@ -246,15 +246,6 @@ export function initHotkey(){
                 settingsOpen.set(false)
             }
             ev.preventDefault()
-        }
-        if(ev.key === 'Enter'){
-            const alertType = get(alertStore).type 
-            if(alertType === 'ask' || alertType === 'normal' || alertType === 'error'){
-                alertStore.set({
-                    type: 'none',
-                    msg: 'yes'
-                })
-            }
         }
     })
 
