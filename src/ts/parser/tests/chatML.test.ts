@@ -129,9 +129,7 @@ test('extracts thoughts', () => {
   )
 })
 
-// FIXME: /<Thoughts>(.+)<\/Thoughts>/gms
-//        => Matches with the whole bulk of <Thoughts>Thought 1</Thoughts> Middle <Thoughts>Thought 2</Thoughts>
-test.skip('extracts multiple thoughts', () => {
+test('extracts multiple thoughts', () => {
   const input = `<|im_start|>assistant<|im_sep|>Start <Thoughts>Thought 1</Thoughts> Middle <Thoughts>Thought 2</Thoughts> End<|im_end|>`
   const result = parseChatML(input)
 
