@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { tick } from "svelte";
+    import { onDestroy, tick } from "svelte";
     import { alertGenerationInfoStore } from "../../ts/alert";
     
     import { DBState } from 'src/ts/stores.svelte';
@@ -170,17 +170,23 @@
     // (not a button) so a stray Enter never confirms or picks anything; users reach
     // the buttons with Tab or the mouse. Input alerts focus the text field instead.
     let focusedAlertType = ''
+    const restoreFocus = () => {
+        const target = focusBeforeAlert
+        focusBeforeAlert = null
+        if(target?.isConnected){
+            target.focus()
+        }
+    }
+    // App.svelte unmounts this component once the type becomes 'none', so the
+    // effect below never sees that state; restore focus on destroy instead.
+    onDestroy(restoreFocus)
     $effect(() => {
         const type = $alertStore.type
         const panel = alertPanel
         if(!panel || type === 'none'){
             focusedAlertType = ''
-            if(type === 'none' && focusBeforeAlert){
-                const target = focusBeforeAlert
-                focusBeforeAlert = null
-                if(target.isConnected){
-                    target.focus()
-                }
+            if(type === 'none'){
+                restoreFocus()
             }
             return
         }
