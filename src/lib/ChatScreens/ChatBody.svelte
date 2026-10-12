@@ -1,14 +1,14 @@
 <script lang="ts" module>
-    // Last parsed HTML per message chatId. A ChatBody created for an already rendered message
-    // (remount on content change, edit, continue, reloadChat, reloadDisplay...) shows it until its
-    // own first parse resolves, instead of rendering empty: the collapsed message would break
-    // scroll anchoring and snap the chat to the bottom.
+    // Last parsed HTML per message (keyed by character, chat room and message chatId). A ChatBody
+    // created for an already rendered message (remount on content change, edit, continue, reloadChat,
+    // reloadDisplay...) shows it until its own first parse resolves, instead of rendering empty: the
+    // collapsed message would break scroll anchoring and snap the chat to the bottom.
     const renderedHtmlCache = new Map<string, string>()
     const renderedHtmlCacheLimit = 100
 
-    function rememberRenderedHtml(chatId: string, html: string){
-        renderedHtmlCache.delete(chatId)
-        renderedHtmlCache.set(chatId, html)
+    function rememberRenderedHtml(key: string, html: string){
+        renderedHtmlCache.delete(key)
+        renderedHtmlCache.set(key, html)
         if(renderedHtmlCache.size > renderedHtmlCacheLimit){
             renderedHtmlCache.delete(renderedHtmlCache.keys().next().value)
         }
@@ -42,7 +42,7 @@
         modelShortName: string
         renderRawStreaming?: boolean
         rawStreamingText?: string
-        chatId?: string
+        renderCacheKey?: string
     }
 
     let {
@@ -59,11 +59,11 @@
         modelShortName = '',
         renderRawStreaming = false,
         rawStreamingText = '',
-        chatId = '',
+        renderCacheKey = '',
     }: Props =  $props()
 
     // svelte-ignore non_reactive_update
-    let lastParsed = untrack(() => (chatId && renderedHtmlCache.get(chatId)) || '')
+    let lastParsed = untrack(() => (renderCacheKey && renderedHtmlCache.get(renderCacheKey)) || '')
     // Showing HTML inherited from a previous instance; nothing parsed by this instance yet
     let showingInherited = lastParsed !== ''
     let lastCharArg:string|simpleCharacterArgument = null
@@ -204,8 +204,8 @@
             lastParsed = lastParsedQueue
             if(!keptPrevious){
                 showingInherited = false
-                if(chatId && lastParsedQueue){
-                    rememberRenderedHtml(chatId, lastParsedQueue)
+                if(renderCacheKey && lastParsedQueue){
+                    rememberRenderedHtml(renderCacheKey, lastParsedQueue)
                 }
             }
             lastRenderedRevision = requestedRevision

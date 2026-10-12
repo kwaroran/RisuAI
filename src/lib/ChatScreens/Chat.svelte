@@ -274,6 +274,17 @@
     let blankMessage = $derived((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1 || isComment)
     let displayMessage = $derived(isOptimizedStreamingMessage ? rawStreamingText : message)
     let renderRawStreaming = $derived(isOptimizedStreamingMessage && streamingOptimizationMode === 'strong')
+    // Key for ChatBody's rendered-HTML cache. Branched / copied chats keep the same message chatId,
+    // so the key also names the character and the chat room.
+    let renderCacheKey = $derived.by(() => {
+        if(idx < 0){
+            return ''
+        }
+        const char = DBState.db.characters?.[selIdState.selId]
+        const chat = char?.chats?.[char.chatPage]
+        const messageId = chat?.message?.[idx]?.chatId
+        return messageId ? `${char.chaId}:${chat.id}:${messageId}` : ''
+    })
 
     function updateDisplayedMessage(){
         if(renderRawStreaming){
@@ -533,7 +544,7 @@
                     bind:retranslate={retranslate}
                     {renderRawStreaming}
                     {rawStreamingText}
-                    chatId={idx >= 0 ? DBState.db.characters?.[selIdState.selId]?.chats?.[DBState.db.characters?.[selIdState.selId]?.chatPage]?.message?.[idx]?.chatId : undefined} />
+                    {renderCacheKey} />
             {/key}
         </span>
         {#if idx >= 0 && !editMode && !editTranslationMode && !isOptimizedStreamingMessage && partialEditEnabled && (DBState.db.enableBlockPartialEdit || DBState.db.enableDragPartialEdit)}
