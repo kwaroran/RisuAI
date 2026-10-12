@@ -47,6 +47,8 @@
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
     let lastRenderedRevision: number | null = null
+    // svelte-ignore non_reactive_update
+    let leavingRawStreaming = false
 
     function getCbsCondition(){
         try{
@@ -175,6 +177,7 @@
             //since trimMarkdown is fast, we don't need to cache it
             lastParsed = lastParsedQueue
             lastRenderedRevision = requestedRevision
+            leavingRawStreaming = false
         }
     }
 
@@ -259,6 +262,7 @@
 
     $effect(() => {
         if(shouldRenderRawStreaming){
+            leavingRawStreaming = true
             return
         }
         markParsingResult
@@ -271,7 +275,13 @@
     <span class="whitespace-pre-wrap">{rawStreamingText}</span>
 {:else}
     {#await markParsingResult}
-        {@html addMetadataToElement(trimMarkdown(lastParsed), modelShortName)}
+        {#if lastParsed === '' && leavingRawStreaming}
+            <!-- Leaving 'strong' raw streaming: nothing was parsed yet, keep the raw text so the
+                 message does not collapse to zero height (which snaps the chat scroll to the bottom) -->
+            <span class="whitespace-pre-wrap">{rawStreamingText}</span>
+        {:else}
+            {@html addMetadataToElement(trimMarkdown(lastParsed), modelShortName)}
+        {/if}
     {:then md}
         {@html addMetadataToElement(trimMarkdown(md), modelShortName)}
     {/await}

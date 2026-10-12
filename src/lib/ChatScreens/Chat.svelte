@@ -97,10 +97,16 @@
         isOptimizedStreamingMessage: boolean
         streamingOptimizationMode: StreamingDisplayOptimizationMode
         rawStreamingText: string
+        message?: string
     }){
         isOptimizedStreamingMessage = state.isOptimizedStreamingMessage
         streamingOptimizationMode = state.streamingOptimizationMode
         rawStreamingText = state.rawStreamingText
+        if(state.message !== undefined){
+            // Same outcome as the remount this replaces: an edit opened mid-stream is discarded
+            editMode = false
+            message = state.message
+        }
     }
 
     async function rm(e:MouseEvent, rec?:boolean){
