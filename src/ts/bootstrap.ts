@@ -145,6 +145,8 @@ export async function loadData() {
                                 await decodeRisuSave(backupData)
                             )
                             backupLoaded = true
+                            // Backups are newest first; stop at the newest one that loads
+                            break
                         } catch (error) { }
                     }
                     if (!backupLoaded) {
@@ -176,6 +178,7 @@ export async function loadData() {
                                     await decodeRisuSave(backupData)
                                 )
                                 backupLoaded = true
+                                break
                             } catch (error) { }
                         }
                         if (!backupLoaded) {
