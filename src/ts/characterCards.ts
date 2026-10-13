@@ -19,6 +19,7 @@ import { exportModuleLegacy, readModule, type RisuModule } from "./process/modul
 import { readFile } from "@tauri-apps/plugin-fs"
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { AccountStorage } from "./storage/accountStorage"
+import { filterBlockedRealmCards, isRealmCreatorBlocked } from "./realmBlocking"
 
 
 const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz';
@@ -388,17 +389,38 @@ export async function importCharacterProcess<T extends boolean = false>(f:{
     
 }
 
+async function fetchRealmInfo(realmPath: string): Promise<hubType> {
+    const res = await fetch(`${hubURL}/hub/info/${realmPath}`)
+    if(res.status !== 200){
+        throw new Error(await res.text())
+    }
+
+    return await res.json()
+}
+
+function canAccessRealmCreator(creator?: string): boolean {
+    if(isRealmCreatorBlocked(DBState.db.blockedRealmCreators ?? [], creator)){
+        alertNormal(language.realmCreatorBlocked)
+        return false
+    }
+
+    return true
+}
+
 export const getRealmInfo = async (realmPath:string) => {
     const url = new URL(location.href);
     url.searchParams.delete('realm');
     window.history.pushState(null, '', url.toString());
 
-    const res = await fetch(`${hubURL}/hub/info/${realmPath}`)
-    if(res.status !== 200){
-        alertError(await res.text())
-        return
+    try {
+        const realmInfo = await fetchRealmInfo(realmPath)
+        if(!canAccessRealmCreator(realmInfo.creator)){
+            return
+        }
+        showRealmInfoStore.set(realmInfo)
+    } catch (error) {
+        alertError(error)
     }
-    showRealmInfoStore.set(await res.json())
 }
 
 export const showRealmInfoStore:Writable<null|hubType> = writable(null)
@@ -1791,11 +1813,11 @@ export async function getRisuHub(arg:{
             return []
         }
         const jso = await da.json()
-        if(Array.isArray(jso)){
-            return jso
+        const cards:hubType[] = Array.isArray(jso) ? jso : jso.cards
+        if(!Array.isArray(jso)){
+            hubAdditionalHTML = jso.additionalHTML || hubAdditionalHTML
         }
-        hubAdditionalHTML = jso.additionalHTML || hubAdditionalHTML
-        return jso.cards
+        return filterBlockedRealmCards(cards, DBState.db.blockedRealmCreators ?? [])
     } catch (error) {
         return[]
     }
@@ -1803,8 +1825,23 @@ export async function getRisuHub(arg:{
 
 export async function downloadRisuHub(id:string, arg:{
     forceRedirect?: boolean
+    creator?: string
 } = {}) {
     try {
+        let creator = arg.creator
+        if(!creator){
+            try {
+                const realmInfo = await fetchRealmInfo(id)
+                creator = realmInfo.creator
+            } catch (error) {
+                alertError(error)
+                return
+            }
+        }
+        if(!canAccessRealmCreator(creator)){
+            return
+        }
+
         if(!arg.forceRedirect){
             if(!(await alertTOS())){
                 return

@@ -278,7 +278,7 @@ export const languageChineseTraditional = {
             "- **Playground**：在 Playground 測試 Embedding",
         "keepSessionAlive":
             "維持分頁活動狀態，避免工作階段因閒置而失效。可能需要重新整理才會生效。\n\n" +
-            "- **透過音訊**：定期播放無聲音訊以維持工作階段。此方式在大多數瀏覽器中相容性最佳，也通常最有效。\n",
+            "- **透過音訊**：循環播放人耳聽不到的低頻音以維持工作階段。此方式在大多數瀏覽器中相容性最佳，也通常最有效。在 Android 上啟用時會顯示媒體通知，其他音樂 App 也可能會暫停。\n",
         "reSummarizationPrompt":
             "使用批次編輯將多個已選摘要合併成一個摘要時所用的提示詞。留空則使用預設提示詞",
         "hypaV3MemoryTokensRatio":
@@ -1014,6 +1014,14 @@ export const languageChineseTraditional = {
     "ifRandom": "隨機值",
     "ifValue": "指定值",
     "hideRealm": "隱藏 RisuRealm",
+    "blockRealmCreator": "封鎖創作者",
+    "blockRealmCreatorConfirm": "要封鎖 {{creator}} 在 RisuRealm 上的所有內容嗎？",
+    "realmCreatorBlocked": "此內容來自已封鎖的 RisuRealm 創作者，無法使用。",
+    "realmCreatorBlockedSuccess": "已封鎖創作者。",
+    "manageBlockedRealmCreators": "管理已封鎖的創作者",
+    "blockedRealmCreators": "已封鎖的 RisuRealm 創作者",
+    "noBlockedRealmCreators": "沒有已封鎖的 RisuRealm 創作者。",
+    "unblockRealmCreator": "解除封鎖",
     "hideAllImages": "隱藏所有圖片",
     "popularityLevel": "{} 人氣",
     "colorScheme": "配色方案",
