@@ -753,7 +753,10 @@ export const getV2PluginAPIs = () => {
             const db = getDatabase();
             db.pluginCustomStorage ??= {}
             for (const key of Object.keys(newDb)) {
-                if (allowedDbKeys.includes(key)) {
+                if (key === 'pluginCustomStorage') {
+                    db.pluginCustomStorage = keepPluginStorageInternals(db.pluginCustomStorage, newDb[key]);
+                }
+                else if (allowedDbKeys.includes(key)) {
                     (db as any)[key] = newDb[key];
                 }
                 else{
@@ -771,7 +774,10 @@ export const getV2PluginAPIs = () => {
                     newDb[key] = await handlePluginInstallViaPlugin(newDb.plugins)
                 }
                 
-                if (allowedDbKeys.includes(key)) {
+                if (key === 'pluginCustomStorage') {
+                    db.pluginCustomStorage = keepPluginStorageInternals(db.pluginCustomStorage, newDb[key]);
+                }
+                else if (allowedDbKeys.includes(key)) {
                     (db as any)[key] = newDb[key];
                 }
                 else{
@@ -812,6 +818,23 @@ export const getV2PluginAPIs = () => {
         },
 
     }
+}
+
+/**
+ * Plugin storage internals (index pointer, legacy per-key map) are managed by the plugin storage store.
+ * Keep them when a plugin writes back a (possibly stale) pluginCustomStorage object.
+ */
+function keepPluginStorageInternals(current: {[key:string]:any} | undefined, incoming: any) {
+    const next = (incoming && typeof incoming === 'object') ? { ...incoming } : {}
+    for (const key of ['_coldpluginIndex', '_coldplugin']) {
+        if (current && Object.prototype.hasOwnProperty.call(current, key)) {
+            next[key] = current[key]
+        }
+        else {
+            delete next[key]
+        }
+    }
+    return next
 }
 
 export async function loadV2Plugin(plugins: RisuPlugin[]) {

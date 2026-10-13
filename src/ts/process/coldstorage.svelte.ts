@@ -16,6 +16,7 @@ import { alertClear, alertConfirm, alertError, alertWait } from "../alert"
 import { language } from "src/lang"
 import type { Database, character } from "../storage/database.svelte"
 import { coldStorageHeader, getColdStorageAffectedCharacters, getColdStorageBackupName, isValidColdStorageItem, listColdDataKeysFromDb, listPluginStorageColdKeys } from "./coldstorageData"
+import { PluginStorageStore } from "./pluginStorageStore"
 
 export {
     coldStorageHeader,
@@ -157,8 +158,6 @@ export async function setAccountColdStorageItem(key:string, value:any):Promise<b
 }
 
 export async function setColdStorageItem(key:string, value:any):Promise<boolean> {
-    console.log("setting cold storage item", key, value)
-
     if(forageStorage.isAccount){
         return await setAccountColdStorageItem(key, value)
     }
@@ -251,7 +250,7 @@ export async function listColdStorageItems():Promise<{items:string[]}> {
 }
 
 export async function cleanColdStorage(){
-    const actualUsedKeys = await listColdDataKeys()
+    const actualUsedKeys = [...await listColdDataKeys(), ...pluginStorage.protectedIds()]
     const allKeys = (await listColdStorageItems()).items
     const unusedKeys = allKeys.filter(k => !actualUsedKeys.includes(k))
     console.log('Cleaning cold storage, actual used keys:', actualUsedKeys, 'all keys:', allKeys, 'unused keys:', unusedKeys)
@@ -321,7 +320,12 @@ export async function removeColdStorageItems(keys:string[]) {
 }
 
 export async function listColdDataKeys(db: Pick<Database, 'characters'|'pluginCustomStorage'> = DBState.db): Promise<string[]> {
-    return listColdDataKeysFromDb(db)
+    const keys = new Set(listColdDataKeysFromDb(db))
+    //large plugin storage values are only listed inside the plugin storage index item
+    for(const key of await pluginStorage.referencedIds(db?.pluginCustomStorage)){
+        keys.add(key)
+    }
+    return Array.from(keys)
 }
 
 export type ColdStorageBackupPayload = {
@@ -329,8 +333,6 @@ export type ColdStorageBackupPayload = {
     backupName: string
     value: unknown
     encoded: Uint8Array
-    /** pluginStorage items are mutable under the same key, unlike character/chat cold data */
-    pluginStorage: boolean
 }
 
 export async function collectColdStorageBackupPayloads(db: Pick<Database, 'characters'|'pluginCustomStorage'> = DBState.db): Promise<{
@@ -338,8 +340,16 @@ export async function collectColdStorageBackupPayloads(db: Pick<Database, 'chara
     missingKeys: string[]
     invalidKeys: string[]
 }> {
+    if (db === DBState.db) {
+        //make sure the database pointer refers to an index containing the latest plugin storage changes
+        await pluginStorage.flush().catch((error) => {
+            console.error('Failed to save plugin storage before backup:', error)
+        })
+    }
     const coldKeys = await listColdDataKeys(db)
-    const pluginStorageKeys = new Set(listPluginStorageColdKeys(db))
+    //legacy per-key plugin storage items may legitimately hold null/falsy values
+    const legacyPluginStorageKeys = new Set(listPluginStorageColdKeys(db))
+    const pluginStorageKeys = new Set([...legacyPluginStorageKeys, ...await pluginStorage.referencedIds(db?.pluginCustomStorage)])
     const payloads: ColdStorageBackupPayload[] = []
     const missingKeys: string[] = []
     const invalidKeys: string[] = []
@@ -349,11 +359,10 @@ export async function collectColdStorageBackupPayloads(db: Pick<Database, 'chara
             const isPluginStorage = pluginStorageKeys.has(key)
             let value = await getColdStorageItem(key)
 
-            if (isPluginStorage) {
-                //null/falsy are valid pluginStorage values (a missing item also reads as null, which is equivalent)
+            if (legacyPluginStorageKeys.has(key)) {
                 value ??= null
             }
-            else if (!value) {
+            else if (value === null || value === undefined || (!isPluginStorage && !value)) {
                 missingKeys.push(key)
                 continue
             }
@@ -368,7 +377,6 @@ export async function collectColdStorageBackupPayloads(db: Pick<Database, 'chara
                 backupName: getColdStorageBackupName(key),
                 value,
                 encoded: new TextEncoder().encode(JSON.stringify(value)),
-                pluginStorage: isPluginStorage
             })
         } catch (error) {
             console.error(`Failed to read cold storage item ${key}:`, error)
@@ -545,75 +553,18 @@ async function makeColdDataForChat(i:number, j:number, coldTime:number): Promise
     return false
 }
 
-async function migratePluginStorageKeyToColdStorage(key:string): Promise<boolean>{
-    const value = DBState.db.pluginCustomStorage?.[key]
-    if(value === undefined){
-        return false
-    }
-
-    //null reads back as null anyway, and would fail verification below on every startup
-    if(value === null){
-        delete DBState.db.pluginCustomStorage[key]
-        return true
-    }
-
-    const id = crypto.randomUUID()
-    const writeSuccess = await setColdStorageItem(id, value)
-
-    if(!writeSuccess){
-        console.error(`Cold storage write failed for plugin storage key ${key}, keeping original data`)
-        return false
-    }
-
-    const verifyData = await getColdStorageItem(id)
-    if(verifyData === null || verifyData === undefined){
-        console.error(`Cold storage verification failed for plugin storage key ${key}, keeping original data`)
-        return false
-    }
-
-    DBState.db.pluginCustomStorage._coldplugin ??= {}
-    DBState.db.pluginCustomStorage._coldplugin[key] = id
-    delete DBState.db.pluginCustomStorage[key]
-    return true
-}
-
-async function migratePluginStorageToColdStorage(): Promise<boolean>{
-    if(!DBState.db.pluginCustomStorage){
-        return false
-    }
-
-    //legacy keys stored inline before pluginStorage became coldstorage-backed
-    const legacyKeys = Object.keys(DBState.db.pluginCustomStorage).filter(key => key !== '_coldplugin')
-    let didChange = false
-
-    for(let i=0;i<legacyKeys.length;i++){
-        alertWait(`Migrating plugin storage to cold storage... ${legacyKeys.length - i} items left`)
-        const changed = await migratePluginStorageKeyToColdStorage(legacyKeys[i])
-        if(changed){
-            didChange = true
-        }
-    }
-
-    if(legacyKeys.length > 0){
-        alertClear()
-    }
-
-    return didChange
-}
-
 export async function makeColdData(){
     let didChange = false
 
-    //pluginStorage is always coldstorage-backed, so migrate it even when the coldstorage setting is off
+    //pluginStorage is always coldstorage-backed, so load (and migrate) it even when the coldstorage setting is off
     //(coldstorage defaults to off for users with plugins, who are exactly the ones with pluginStorage data)
-    if(await migratePluginStorageToColdStorage()){
-        didChange = true
-    }
+    //runs in the background: it may need a network round-trip (account) and must not block startup.
+    //plugin storage calls wait for it themselves.
+    pluginStorage.load().catch((error) => {
+        console.error('Failed to load plugin storage:', error)
+    })
 
     if(!DBState.db.coldstorage){
-        if(didChange){
-            requiresFullEncoderReload.state = true
-        }
         return
     }
 
@@ -696,4 +647,36 @@ export async function preLoadChat(characterIndex:number, chatIndex:number){
         }
     }
 
+}
+
+export const pluginStorage = new PluginStorageStore(
+    {
+        get: (id) => getColdStorageItem(id),
+        set: (id, value) => setColdStorageItem(id, value),
+        remove: (ids) => removeColdStorageItems(ids),
+        newId: () => crypto.randomUUID(),
+        now: () => Date.now(),
+    },
+    () => DBState.db?.pluginCustomStorage,
+    () => {
+        DBState.db.pluginCustomStorage ??= {}
+        return DBState.db.pluginCustomStorage
+    },
+    {
+        //loaded in the background, so no blocking progress alerts
+        onLegacyMigrated: () => {
+            requiresFullEncoderReload.state = true
+        },
+    }
+)
+
+if(typeof document !== 'undefined'){
+    //best effort: write pending plugin storage changes before the page may be closed
+    document.addEventListener('visibilitychange', () => {
+        if(document.visibilityState === 'hidden'){
+            pluginStorage.flush().catch((error) => {
+                console.error('Failed to save plugin storage:', error)
+            })
+        }
+    })
 }

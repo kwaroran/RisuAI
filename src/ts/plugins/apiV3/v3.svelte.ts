@@ -14,7 +14,7 @@ import { changeColorScheme, updateColorScheme, updateTextThemeAndCSS, type Color
 import { isNodeServer, isTauri } from "src/ts/platform";
 import { get } from "svelte/store";
 import { registerMCPModule, unregisterMCPModule } from "src/ts/process/mcp/pluginmcp";
-import { getColdStorageItem, removeColdStorageItems, setColdStorageItem } from "src/ts/process/coldstorage.svelte";
+import { pluginStorage } from "src/ts/process/coldstorage.svelte";
 import { getInlayAsset } from "src/ts/process/files/inlays";
 import { getLLMCache, searchLLMCache } from "src/ts/translator/translator";
 import { hasher, risuChatParser, type CbsConditions } from "src/ts/parser/parser.svelte";
@@ -58,43 +58,6 @@ import {
 */
 
 const pluginChannel = new Map<string, Function>();
-
-function hasInlinePluginStorageKey(storage: {[key: string]: any} | undefined, key: string) {
-    return !!storage && key !== '_coldplugin' && Object.prototype.hasOwnProperty.call(storage, key)
-}
-
-//pluginStorage operations are serialized per key, so they complete in the order plugins issue them
-//(read-after-write, last-write-wins), like the old in-memory pluginStorage
-const pluginStorageQueues = new Map<string, Promise<void>>()
-//cold storage id -> JSON of the value, so reads don't hit (possibly remote) cold storage every time
-const pluginStorageCache = new Map<string, string>()
-
-function queuePluginStorageOp<T>(key: string, op: () => Promise<T>): Promise<T> {
-    const prev = pluginStorageQueues.get(key) ?? Promise.resolve()
-    const result = prev.then(op)
-    const tail = result.then(() => {}, () => {})
-    pluginStorageQueues.set(key, tail)
-    tail.then(() => {
-        if(pluginStorageQueues.get(key) === tail){
-            pluginStorageQueues.delete(key)
-        }
-    })
-    return result
-}
-
-//cold-mapped keys plus legacy inline keys that have not been migrated yet
-function listPluginStorageKeys(storage: {[key: string]: any} | undefined): string[] {
-    if(!storage){
-        return []
-    }
-    const keys = new Set(Object.keys(storage._coldplugin ?? {}))
-    for(const key of Object.keys(storage)){
-        if(key !== '_coldplugin'){
-            keys.add(key)
-        }
-    }
-    return Array.from(keys)
-}
 const documentEventListeners: Array<{type: string, listener: EventListenerOrEventListenerObject, options: any}> = [];
 
 class SafeElement {
@@ -1308,88 +1271,17 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             
             return v;
         },
-        //pluginStorage is coldstorage-backed for v3: values live in cold storage,
-        //db.pluginCustomStorage._coldplugin only keeps the key -> coldstorage id map.
-        //Legacy values still stored inline in pluginCustomStorage (not migrated yet) are read through as a fallback.
-        _getPluginStorage: (key: string) => queuePluginStorageOp(key, async () => {
-            const db = getDatabase()
-            const coldId = db.pluginCustomStorage?._coldplugin?.[key]
-            if(!coldId){
-                if(hasInlinePluginStorageKey(db.pluginCustomStorage, key)){
-                    return $state.snapshot(db.pluginCustomStorage[key]) ?? null
-                }
-                return null
-            }
-            const cached = pluginStorageCache.get(coldId)
-            if(cached !== undefined){
-                return JSON.parse(cached)
-            }
-            const value = await getColdStorageItem(coldId)
-            if(value === null || value === undefined){
-                return null
-            }
-            pluginStorageCache.set(coldId, JSON.stringify(value))
-            return value
-        }),
-        _setPluginStorage: (key: string, value: any) => queuePluginStorageOp(key, async () => {
-            //values are persisted as JSON; undefined (and functions) become null, BigInt etc. throw here
-            const json = JSON.stringify(value) ?? 'null'
-            const db = getDatabase()
-            db.pluginCustomStorage ??= {}
-            db.pluginCustomStorage._coldplugin ??= {}
-            let coldId: string = db.pluginCustomStorage._coldplugin[key]
-            const isNew = !coldId
-            if(isNew){
-                coldId = v4()
-                db.pluginCustomStorage._coldplugin[key] = coldId
-            }
-            pluginStorageCache.delete(coldId)
-            const success = await setColdStorageItem(coldId, JSON.parse(json))
-            if(!success){
-                if(isNew && db.pluginCustomStorage._coldplugin?.[key] === coldId){
-                    delete db.pluginCustomStorage._coldplugin[key]
-                }
-                throw new Error(`Failed to write plugin storage item "${key}"`)
-            }
-            pluginStorageCache.set(coldId, json)
-            if(hasInlinePluginStorageKey(db.pluginCustomStorage, key)){
-                delete db.pluginCustomStorage[key]
-            }
-        }),
-        _removePluginStorage: (key: string) => queuePluginStorageOp(key, async () => {
-            const db = getDatabase()
-            if(hasInlinePluginStorageKey(db.pluginCustomStorage, key)){
-                delete db.pluginCustomStorage[key]
-            }
-            const coldId = db.pluginCustomStorage?._coldplugin?.[key]
-            if(coldId){
-                delete db.pluginCustomStorage._coldplugin[key]
-                pluginStorageCache.delete(coldId)
-                await removeColdStorageItems([coldId])
-            }
-        }),
-        _clearPluginStorage: async () => {
-            await Promise.all(pluginStorageQueues.values())
-            const db = getDatabase()
-            const coldIds = Object.values(db.pluginCustomStorage?._coldplugin ?? {}) as string[]
-            db.pluginCustomStorage = { _coldplugin: {} }
-            pluginStorageCache.clear()
-            if(coldIds.length > 0){
-                await removeColdStorageItems(coldIds)
-            }
-        },
+        //pluginStorage is coldstorage-backed (see process/pluginStorageStore.ts)
+        _getPluginStorage: (key: string) => pluginStorage.getItem(key),
+        _setPluginStorage: (key: string, value: any) => pluginStorage.setItem(key, value),
+        _removePluginStorage: (key: string) => pluginStorage.removeItem(key),
+        _clearPluginStorage: () => pluginStorage.clear(),
         _keyPluginStorage: async (index: number) => {
-            const db = getDatabase()
-            const keys = listPluginStorageKeys(db.pluginCustomStorage)
-            return keys[index] ?? null
+            return (await pluginStorage.keys())[index] ?? null
         },
-        _keysPluginStorage: async () => {
-            const db = getDatabase()
-            return listPluginStorageKeys(db.pluginCustomStorage)
-        },
+        _keysPluginStorage: () => pluginStorage.keys(),
         _lengthPluginStorage: async () => {
-            const db = getDatabase()
-            return listPluginStorageKeys(db.pluginCustomStorage).length
+            return (await pluginStorage.keys()).length
         },
         _getSafeLocalStorage: oldApis.safeLocalStorage.getItem,
         _setSafeLocalStorage: oldApis.safeLocalStorage.setItem,

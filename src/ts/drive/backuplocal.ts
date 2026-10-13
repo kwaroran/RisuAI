@@ -9,7 +9,8 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { decryptBuffer, encryptBuffer, sleep } from "../util";
 import { hubURL } from "../characterCards";
 import { language } from "src/lang";
-import { collectColdStorageBackupPayloads, confirmIncompleteColdStorageOperation, getColdStorageBackupKey, getColdStorageItem, isColdStorageBackupData, isValidColdStorageItem, listColdDataKeys, listPluginStorageColdKeys, setColdStorageItem } from "../process/coldstorage.svelte";
+import { collectColdStorageBackupPayloads, confirmIncompleteColdStorageOperation, getColdStorageBackupKey, getColdStorageItem, isColdStorageBackupData, isValidColdStorageItem, listColdDataKeys, listPluginStorageColdKeys, pluginStorage, setColdStorageItem } from "../process/coldstorage.svelte";
+import { getPluginStorageIndexPointer } from "../process/coldstorageData";
 import { DBState } from "../stores.svelte";
 
 function getBasename(data:string){
@@ -545,17 +546,34 @@ export function LoadLocalBackup(){
                 }
             }
             const dbData = await decodeRisuSave(db);
-            const pluginStorageColdKeys = new Set(listPluginStorageColdKeys(dbData))
-            for(const [key, value] of pendingPluginColdStorage){
-                if(!pluginStorageColdKeys.has(key)){
-                    console.warn(`Skipping invalid cold storage backup item ${key}`)
-                    continue
+            const restorePendingPluginItem = async (key: string) => {
+                if(!pendingPluginColdStorage.has(key)){
+                    return
                 }
+                const value = pendingPluginColdStorage.get(key)
+                pendingPluginColdStorage.delete(key)
                 if(await setColdStorageItem(key, value)){
                     restoredColdStorageKeys.add(key)
                 } else {
                     console.error(`Failed to restore cold storage item ${key}`)
                 }
+            }
+            //the plugin storage index has to be restored first: it lists the large plugin storage items
+            const pluginStorageIndex = getPluginStorageIndexPointer(dbData)
+            if(pluginStorageIndex){
+                await restorePendingPluginItem(pluginStorageIndex)
+            }
+            const legacyPluginStorageKeys = new Set(listPluginStorageColdKeys(dbData))
+            const pluginStorageColdKeys = new Set([
+                ...legacyPluginStorageKeys,
+                ...await pluginStorage.referencedIds(dbData.pluginCustomStorage)
+            ])
+            for(const key of Array.from(pendingPluginColdStorage.keys())){
+                if(!pluginStorageColdKeys.has(key)){
+                    console.warn(`Skipping invalid cold storage backup item ${key}`)
+                    continue
+                }
+                await restorePendingPluginItem(key)
             }
             const missingColdStorageKeys:string[] = []
             for(const key of await listColdDataKeys(dbData)){
@@ -563,8 +581,14 @@ export function LoadLocalBackup(){
                     continue
                 }
                 const isPluginStorage = pluginStorageColdKeys.has(key)
-                const existingColdStorage = await getColdStorageItem(key)
-                if(!isValidColdStorageItem(isPluginStorage ? (existingColdStorage ?? undefined) : existingColdStorage, isPluginStorage)){
+                let existingColdStorage = await getColdStorageItem(key)
+                if(legacyPluginStorageKeys.has(key)){
+                    //legacy per-key items may hold null
+                    existingColdStorage ??= null
+                } else {
+                    existingColdStorage ??= undefined
+                }
+                if(!isValidColdStorageItem(existingColdStorage, isPluginStorage)){
                     missingColdStorageKeys.push(key)
                 }
             }
