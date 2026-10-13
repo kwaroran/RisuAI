@@ -1357,7 +1357,7 @@ export const languageVietnamese = {
     "claude1HourCaching": "Lưu trữ đệm Claude 1 giờ",
     "folderNameInput": "Vui lòng nhập tên thư mục mới",
     "folderRemoveLengthError": "Để xóa thư mục, nó phải không chứa bất kỳ mục nào.",
-    "personaNote": "Ghi chú Persona",
+    "personaNotePlaceholder": "Nhập mã định danh duy nhất cho persona này. Ví dụ: \"Persona thợ săn\"",
     "mcpAccessPrompt": "{{tool}} đang cố gắng \"{{action}}\". Bạn có muốn cho phép điều này không?",
     "rememberToolUsage": "Ghi nhớ việc sử dụng công cụ",
     "simplifiedToolUse": "Sử dụng công cụ đơn giản hóa",

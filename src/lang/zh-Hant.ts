@@ -1524,7 +1524,7 @@ export const languageChineseTraditional = {
     "claude1HourCaching": "Claude 1 小時快取",
     "folderNameInput": "請輸入新的資料夾名稱",
     "folderRemoveLengthError": "要移除資料夾，資料夾內不能包含任何項目",
-    "personaNote": "使用者人設備註",
+    "personaNotePlaceholder": "在此輸入用來區分此使用者人設的唯一識別。例如：「獵人人設」",
     "mcpAccessPrompt": '{{tool}} 正嘗試執行「{{action}}」。要允許嗎？',
     "rememberToolUsage": "記住工具使用權限",
     "simplifiedToolUse": "簡化工具使用",

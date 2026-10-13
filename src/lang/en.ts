@@ -1526,7 +1526,7 @@ export const languageEnglish = {
     claude1HourCaching: "Claude 1 Hour Caching",
     folderNameInput: "Please input the new folder name",
     folderRemoveLengthError: "To remove a folder, it must not contain any entries.",
-    personaNote: "Persona Note",
+    personaNotePlaceholder: "Put a unique identifier for this persona here. Example: \"Hunter persona\"",
     mcpAccessPrompt: '{{tool}} is trying to "{{action}}". Do you want to allow this?',
     rememberToolUsage: "Remember tool usage",
     simplifiedToolUse: "Simplified tool usage",
