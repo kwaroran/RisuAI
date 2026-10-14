@@ -5,7 +5,9 @@ import {
     getColdStorageBackupKey,
     getColdStorageBackupName,
     isColdStorageBackupData,
+    isValidColdStorageItem,
     listColdDataKeysFromDb,
+    listPluginStorageColdKeys,
     replaceColdStoragePayloadResources,
 } from './coldstorageData'
 
@@ -113,6 +115,31 @@ describe('coldstorageData', () => {
         expect(isColdStorageBackupData([])).toBe(true)
         expect(isColdStorageBackupData({ nope: true })).toBe(false)
         expect(isColdStorageBackupData(null)).toBe(false)
+    })
+
+    it('accepts any JSON value for pluginStorage items but keeps character validation otherwise', () => {
+        for (const value of [0, '', false, null, 'text', 42, { theme: 'dark' }, [1, 2]]) {
+            expect(isValidColdStorageItem(value, true)).toBe(true)
+        }
+        expect(isValidColdStorageItem(undefined, true)).toBe(false)
+        expect(isValidColdStorageItem('text', false)).toBe(false)
+        expect(isValidColdStorageItem({ character: {} }, false)).toBe(true)
+    })
+
+    it('lists pluginStorage cold keys and includes them in database cold keys', () => {
+        const pluginKey = '44444444-4444-4444-4444-444444444444'
+        const db = {
+            characters: [],
+            pluginCustomStorage: {
+                legacyInline: 'value',
+                _coldplugin: { prefs: pluginKey, broken: 123 },
+            },
+        } as any
+
+        expect(listPluginStorageColdKeys(db)).toEqual([pluginKey])
+        expect(listColdDataKeysFromDb(db)).toEqual([pluginKey])
+        expect(listPluginStorageColdKeys({ pluginCustomStorage: { _coldplugin: 'corrupt' } } as any)).toEqual([])
+        expect(listPluginStorageColdKeys(null)).toEqual([])
     })
 
     it('rewrites character cold storage asset references without mutating the original payload', () => {
