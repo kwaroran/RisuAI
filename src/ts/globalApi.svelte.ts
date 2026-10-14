@@ -12,6 +12,8 @@ import {
 import { fetch as TauriHTTPFetch } from '@tauri-apps/plugin-http';
 import { open } from '@tauri-apps/plugin-shell';
 import streamSaver from 'streamsaver';
+import { language } from 'src/lang';
+import { v4 as uuidv4 } from 'uuid';
 import { alertError, alertNormal, alertNormalWait, alertSelect } from "./alert";
 import { hubURL } from "./characterCards";
 import { syncDrive } from "./drive/drive";
@@ -25,10 +27,9 @@ import { AutoStorage } from "./storage/autoStorage";
 import { appSubVer, appVer, getCurrentCharacter, getDatabase, setDatabase, type Database, type character, type groupChat } from "./storage/database.svelte";
 import { getNodeServerProxyAuth } from "./storage/nodeStorage";
 import { RisuSaveEncoder, decodeRisuSave, type toSaveType } from "./storage/risuSave";
+import { saveKV } from './storage/saveKV';
 import { DBState, ReloadGUIPointer, bodyIntercepterStore, selIdState, selectedCharID } from "./stores.svelte";
 import { sleep } from './util';
-import { v4 as uuidv4 } from 'uuid';
-import { language } from 'src/lang';
 
 export const forageStorage = new AutoStorage()
 
@@ -306,7 +307,8 @@ export async function saveDb() {
 
     let encoder = new RisuSaveEncoder()
     await encoder.init(getDatabase(), {
-        compression: forageStorage.isAccount
+        compression: forageStorage.isAccount,
+        kv: saveKV
     })
 
     $effect.root(() => {
@@ -389,20 +391,23 @@ export async function saveDb() {
     let lastDbData = new Uint8Array(0)
     await sleep(1000)
     while (true) {
-        if (!changed) {
+        //SaveKV is not reactive: it reports its own changes
+        if (!changed && !saveKV.hasDirty()) {
             await sleep(500)
             continue
         }
 
         saving.state = true
         changed = false
+        let kvDirty: string[] = []
         try {
 
             if (requiresFullEncoderReload.state) {
                 encoder = new RisuSaveEncoder()
                 await encoder.init(getDatabase(), {
                     compression: forageStorage.isAccount,
-                    skipRemoteSavingOnCharacters: false
+                    skipRemoteSavingOnCharacters: false,
+                    kv: saveKV
                 })
                 requiresFullEncoderReload.state = false
             }
@@ -426,9 +431,12 @@ export async function saveDb() {
                 continue
             }
 
+            kvDirty = saveKV.takeDirty()
+            toSave.kv = kvDirty
             await encoder.set(db, toSave)
             const encoded = encoder.encode()
             if (!encoded) {
+                saveKV.markDirty(kvDirty)
                 await sleep(1000)
                 continue
             }
@@ -454,6 +462,8 @@ export async function saveDb() {
             await saveDbKei()
             await sleep(500)
         } catch (error) {
+            //the KV blocks were not written; encode them again on the next attempt
+            saveKV.markDirty(kvDirty)
             savetrys += 1
             if (savetrys > 4) {
                 alertError(error)
@@ -2028,9 +2038,9 @@ export async function loadInternalBackup() {
         await readFile('database/' + selectedBackup, { baseDir: BaseDirectory.AppData })
     ) : (await forageStorage.getItem(selectedBackup))
 
-    setDatabase(
-        await decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
-    )
+    const decoded = await decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
+    setDatabase(decoded.database)
+    saveKV.load(decoded.kv)
 
     alertNormal('Loaded backup')
 
