@@ -3,7 +3,8 @@ import localforage from "localforage";
 import { alertError, alertNormal, alertStore, alertWait, alertMd, alertConfirm } from "../alert";
 import { LocalWriter, forageStorage, requiresFullEncoderReload } from "../globalApi.svelte";
 import { isTauri } from "src/ts/platform"
-import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
+import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
+import { saveKV } from "../storage/saveKV";
 import { getDatabase, setDatabaseLite } from "../storage/database.svelte";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { decryptBuffer, encryptBuffer, sleep } from "../util";
@@ -160,9 +161,9 @@ export async function SaveLocalBackup(){
     }
 
     const dbWithoutAccount = { ...db, account: undefined }
-    let dbData = encodeRisuSaveLegacy(dbWithoutAccount, 'compression')
+    let dbData = await encodeRisuSave(dbWithoutAccount, { compression: true, kv: saveKV })
 
-    if(forageStorage.isAccount && location.origin.endsWith('risuai.xyz')){
+    if(location.origin.endsWith('risuai.xyz')){
         const time = Date.now()
         const key = (await (await fetch(`https://sv.risuai.xyz/cryptokey?key=${time}`)).json()).key
         const encrypted = await encryptBuffer(dbData, key)
@@ -380,7 +381,7 @@ export async function SavePartialLocalBackup(){
     }
 
     const dbWithoutAccount = { ...db, account: undefined }
-    const dbData = encodeRisuSaveLegacy(dbWithoutAccount, 'compression')
+    const dbData = await encodeRisuSave(dbWithoutAccount, { compression: true, kv: saveKV })
 
     alertWait(`Saving partial local backup... (Saving database)`) 
 
@@ -545,7 +546,7 @@ export function LoadLocalBackup(){
                     alertError('Failed to decrypt database backup, will attempt to load it without decryption.')
                 }
             }
-            const dbData = await decodeRisuSave(db);
+            const { database: dbData, kv: kvData } = await decodeRisuSave(db);
             const restorePendingPluginItem = async (key: string) => {
                 if(!pendingPluginColdStorage.has(key)){
                     return
@@ -597,6 +598,7 @@ export function LoadLocalBackup(){
             }
 
             setDatabaseLite(dbData);
+            saveKV.load(kvData);
             requiresFullEncoderReload.state = true;
             if (isTauri) {
                 await writeFile('database/database.bin', db, { baseDir: BaseDirectory.AppData });

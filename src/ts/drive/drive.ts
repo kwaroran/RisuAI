@@ -7,7 +7,8 @@ import { language } from "../../lang";
 import { relaunch } from '@tauri-apps/plugin-process';
 import { sleep } from "../util";
 import { hubURL } from "../characterCards";
-import { decodeRisuSave, encodeRisuSaveLegacy } from "../storage/risuSave";
+import { decodeRisuSave, encodeRisuSave } from "../storage/risuSave";
+import { saveKV, saveKVSourceFromData, type SaveKVData } from "../storage/saveKV";
 import { collectColdStorageBackupPayloads, confirmIncompleteColdStorageOperation, getColdStorageBackupName, isValidColdStorageItem, listColdDataKeysFromDb, listPluginStorageColdKeys, pluginStorage, setColdStorageItem } from "../process/coldstorage.svelte";
 
 export async function checkDriver(type:'save'|'load'|'loadtauri'|'savetauri'|'reftoken'){
@@ -184,7 +185,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
         await createFileInFolder(ACCESS_TOKEN, payload.backupName, payload.encoded)
     }
 
-    const dbData = encodeRisuSaveLegacy(getDatabase(), 'compression')
+    const dbData = await encodeRisuSave(getDatabase(), { compression: true, kv: saveKV })
 
     alertStore.set({
         type: "wait",
@@ -285,7 +286,7 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
                 msg: "Sync Data..."
             })
         }
-        async function getDbFromList(){
+        async function getDbFromList(): Promise<{ database: Database, kv: SaveKVData }>{
             let selectables:string[] = []
             for(let i=0;i<dbs.length;i++){
                 selectables.push(`Backup saved in ${(new Date(dbs[i][1] * 1000)).toLocaleString()}`)
@@ -295,11 +296,13 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
             }
             const selectedIndex = (await alertSelect([language.loadLatest, language.loadOthers]) === '0') ? 0 : parseInt(await alertSelect(selectables))
             const selectedDb = dbs[selectedIndex][0]
-            const decompressedDb:Database = await decodeRisuSave(await getFileData(ACCESS_TOKEN, selectedDb.id))
-            return decompressedDb
+            return await decodeRisuSave(await getFileData(ACCESS_TOKEN, selectedDb.id))
         }
     
-        const db:Database = mode === 'backup' ? await getDbFromList() : JSON.parse(Buffer.from(await getFileData(ACCESS_TOKEN, dbs[0][0].id)).toString('utf-8'))
+        //sync data is plain JSON and carries no SaveKV data
+        const { database: db, kv }: { database: Database, kv: SaveKVData } = mode === 'backup'
+            ? await getDbFromList()
+            : { database: JSON.parse(Buffer.from(await getFileData(ACCESS_TOKEN, dbs[0][0].id)).toString('utf-8')), kv: {} }
         const coldStorageRestoreFailures = await restoreColdStorageFromDrive(ACCESS_TOKEN, files, db, mode)
         if(coldStorageRestoreFailures.length > 0){
             if(mode === 'sync'){
@@ -361,7 +364,8 @@ async function loadDrive(ACCESS_TOKEN:string, mode: 'backup'|'sync'):Promise<voi
             }
         }
         db.didFirstSetup = true
-        const dbData = encodeRisuSaveLegacy(db, 'compression')
+        //a restored backup brings its own SaveKV data; sync data has none, so this device's data is kept
+        const dbData = await encodeRisuSave(db, { compression: true, kv: mode === 'sync' ? saveKV : saveKVSourceFromData(kv) })
 
         if(isTauri){
             await writeFile('database/database.bin', dbData, {baseDir: BaseDirectory.AppData})
