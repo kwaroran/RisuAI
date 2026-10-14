@@ -161,8 +161,11 @@
         } catch (error) {
             //retry
             if(tries > 2){
-
-                alertError(`Error while parsing chat message: ${translated}, ${error.message}, ${error.stack}`)
+                const wrapped = new Error(`Error while parsing chat message: ${error?.message ?? error}`)
+                if(error instanceof Error){
+                    wrapped.stack = error.stack
+                }
+                alertError(wrapped)
                 return data
             }
             const retried = await markParsing(data, charArg, chatID, requestedRevision, (tries ?? 0) + 1)
