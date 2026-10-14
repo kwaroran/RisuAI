@@ -1139,6 +1139,8 @@ interface SafeLocalStorage {
     removeItem(key: string): Promise<void>;
     clear(): Promise<void>;
     key(index: number): Promise<string | null>;
+    /** Gets all keys (only keys stored through safeLocalStorage) */
+    keys(): Promise<string[]>;
     length(): Promise<number>;
 }
 

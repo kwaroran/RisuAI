@@ -634,14 +634,14 @@ export async function registerModelDynamic(){
 
                 const id = model.name.startsWith('models/') ? model.name.replace('models/', '') : model.name
                 const exists = LLMModels.find(m => m.id === id || m.internalID === id)
-
+                
                 if(!exists){
                     LLMModels.push({
                         id: 'dynamic_google_' + id,
                         name: model.displayName || id,
                         shortName: model.displayName || id,
                         fullName: model.displayName || id,
-                        internalID: model.name,
+                        internalID: id,
                         provider: LLMProvider.GoogleCloud,
                         format: LLMFormat.GoogleCloud,
                         flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput, LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
