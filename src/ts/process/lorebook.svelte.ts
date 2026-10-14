@@ -143,28 +143,33 @@ export async function loadLoreBookV3Prompt(){
             }))    
 
         if(arg.regex){
+            const regexes: { regex: RegExp, source: string }[] = []
+            for(const regexString of arg.keys){
+                const parsed = regexString.match(/^\/([\s\S]*)\/([dgimsuvy]*)$/)
+                if(!parsed){
+                    return false
+                }
+                const [, pattern, flags] = parsed
+
+                try {
+                    regexes.push({
+                        regex: new RegExp(pattern, flags),
+                        source: regexString
+                    })
+                } catch (error) {
+                    return false
+                }
+            }
             for(const mText of mList){
-                for(const regexString of arg.keys){
-                    if(!regexString.startsWith('/')){
-                        return false
-                    }
-                    const regexFlag = regexString.split('/').pop()
-                    if(regexFlag){
-                        arg.keys[0] = regexString.replace('/'+regexFlag,'')
-                        try {
-                            const regex = new RegExp(arg.keys[0],regexFlag)
-                            const d = regex.test(mText.data)
-                            if(d){
-                                matchLog.push({
-                                    prompt: mText.prompt,
-                                    source: mText.source,
-                                    activated: regexString
-                                })
-                                return true
-                            }
-                        } catch (error) {
-                            return false
-                        }
+                for(const {regex, source} of regexes){
+                    regex.lastIndex = 0
+                    if(regex.test(mText.data)){
+                        matchLog.push({
+                            prompt: mText.prompt,
+                            source: mText.source,
+                            activated: source
+                        })
+                        return true
                     }
                 }
             }

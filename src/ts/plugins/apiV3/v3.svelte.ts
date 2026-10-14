@@ -14,7 +14,7 @@ import { changeColorScheme, updateColorScheme, updateTextThemeAndCSS, type Color
 import { isNodeServer, isTauri } from "src/ts/platform";
 import { get } from "svelte/store";
 import { registerMCPModule, unregisterMCPModule } from "src/ts/process/mcp/pluginmcp";
-import { getColdStorageItem, setColdStorageItem } from "src/ts/process/coldstorage.svelte";
+import { pluginStorage } from "src/ts/process/coldstorage.svelte";
 import { getInlayAsset } from "src/ts/process/files/inlays";
 import { getLLMCache, searchLLMCache } from "src/ts/translator/translator";
 import { hasher, risuChatParser, type CbsConditions } from "src/ts/parser/parser.svelte";
@@ -1271,58 +1271,28 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             
             return v;
         },
-        //pluginStorage is coldstorage-backed for v3: values live in cold storage,
-        //db.pluginCustomStorage._coldplugin only keeps the key -> coldstorage id map
-        _getPluginStorage: async (key: string) => {
-            const db = getDatabase()
-            const coldId = db.pluginCustomStorage?._coldplugin?.[key]
-            if(!coldId){
-                return null
-            }
-            const value = await getColdStorageItem(coldId)
-            return value ?? null
-        },
-        _setPluginStorage: async (key: string, value: any) => {
-            const db = getDatabase()
-            db.pluginCustomStorage ??= {}
-            db.pluginCustomStorage._coldplugin ??= {}
-            let coldId: string = db.pluginCustomStorage._coldplugin[key]
-            if(!coldId){
-                coldId = v4()
-                db.pluginCustomStorage._coldplugin[key] = coldId
-            }
-            await setColdStorageItem(coldId, value)
-        },
-        _removePluginStorage: async (key: string) => {
-            const db = getDatabase()
-            if(db.pluginCustomStorage?._coldplugin){
-                delete db.pluginCustomStorage._coldplugin[key]
-            }
-        },
-        _clearPluginStorage: async () => {
-            const db = getDatabase()
-            db.pluginCustomStorage ??= {}
-            db.pluginCustomStorage._coldplugin = {}
-        },
+        //pluginStorage is coldstorage-backed (see process/pluginStorageStore.ts)
+        _getPluginStorage: (key: string) => pluginStorage.getItem(key),
+        _setPluginStorage: (key: string, value: any) => pluginStorage.setItem(key, value),
+        _removePluginStorage: (key: string) => pluginStorage.removeItem(key),
+        _clearPluginStorage: () => pluginStorage.clear(),
         _keyPluginStorage: async (index: number) => {
-            const db = getDatabase()
-            const keys = Object.keys(db.pluginCustomStorage?._coldplugin ?? {})
-            return keys[index] ?? null
+            return (await pluginStorage.keys())[index] ?? null
         },
-        _keysPluginStorage: async () => {
-            const db = getDatabase()
-            return Object.keys(db.pluginCustomStorage?._coldplugin ?? {})
-        },
+        _keysPluginStorage: () => pluginStorage.keys(),
         _lengthPluginStorage: async () => {
-            const db = getDatabase()
-            return Object.keys(db.pluginCustomStorage?._coldplugin ?? {}).length
+            return (await pluginStorage.keys()).length
         },
         _getSafeLocalStorage: oldApis.safeLocalStorage.getItem,
         _setSafeLocalStorage: oldApis.safeLocalStorage.setItem,
         _removeSafeLocalStorage: oldApis.safeLocalStorage.removeItem,
-        _clearSafeLocalStorage: oldApis.safeLocalStorage.clear,
-        _keySafeLocalStorage: oldApis.safeLocalStorage.key,
+        //bound calls: SafeLocalStorage.key/clear use `this`
+        _clearSafeLocalStorage: () => oldApis.safeLocalStorage.clear(),
+        _keySafeLocalStorage: (index: number) => oldApis.safeLocalStorage.key(index),
         _keysSafeLocalStorage: oldApis.safeLocalStorage.keys,
+        _lengthSafeLocalStorage: () => {
+            return oldApis.safeLocalStorage.length
+        },
         searchTranslationCache: async (partialKey: string) => {
             return searchLLMCache(partialKey)
         },
@@ -1347,6 +1317,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                     'clear': '_clearSafeLocalStorage',
                     'key': '_keySafeLocalStorage',
                     'keys': '_keysSafeLocalStorage',
+                    'length': '_lengthSafeLocalStorage',
                 }
             }
         },
