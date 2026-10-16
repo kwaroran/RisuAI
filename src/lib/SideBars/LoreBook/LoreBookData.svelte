@@ -164,9 +164,6 @@
             if (shouldRemove) {
                 const secondConfirm = await alertConfirm(language.removeConfirm + (value.comment || 'Unnamed Folder'));
                 if (secondConfirm) {
-                    if (!open) {
-                        onClose();
-                    }
                     deactivateLocally(value);
                     onRemove();
                 }
@@ -182,9 +179,6 @@
         <button class="valuer" onclick={async () => {
             const d = await alertConfirm(language.removeConfirm + getParentLoreName(value))
             if(d){
-                if(!open){
-                    onClose()
-                }
                 onRemove()
             }
         }}>
