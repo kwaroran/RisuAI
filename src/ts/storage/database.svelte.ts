@@ -20,13 +20,10 @@ import {
     DEFAULT_CHAT_LOAD_INITIAL_PAGES,
     normalizeChatLoadPages,
 } from '../chatLoadPages';
-import { setDatabaseLite } from './databaseState.svelte';
-
-export { onDatabaseUpdate, setDatabaseLite } from './databaseState.svelte';
 
 //APP_VERSION_POINT is to locate the app version in the database file for version bumping
-export let appVer = "2026.6.214" //<APP_VERSION_POINT>
-export let webAppSubVer = ''
+export let appVer = "2026.8.250" //<APP_VERSION_POINT>
+export let appSubVer = ''
 
 export type StreamingDisplayOptimizationMode = 'off'|'balanced'|'strong'
 
@@ -389,6 +386,7 @@ export function setDatabase(data:Database){
     data.animationSpeed ??= 0.4
     data.colorScheme ??= safeStructuredClone(defaultColorScheme)
     data.colorSchemeName ??= 'default'
+    data.customColorScheme ??= safeStructuredClone(data.colorSchemeName === 'custom' ? data.colorScheme : defaultColorScheme)
     data.NAIsettings.starter ??= ""
     data.hypaModel ??= 'MiniLM'
     data.mancerHeader ??= ''
@@ -609,6 +607,7 @@ export function setDatabase(data:Database){
     data.showDeprecatedTriggerV2 ??= false
     data.returnCSSError ??= true
     data.realmDirectOpen ??= false
+    data.blockedRealmCreators ??= []
     data.checkCorruption ??= false
     data.toggleConfirmRecommendedPreset ??= false
     data.useExperimentalGoogleTranslator ??= false
@@ -708,6 +707,12 @@ export function setDatabase(data:Database){
     data.enableRisuaiProTools ??= data.plugins.length > 0
     data.keepSessionAlive ??= 'off'
     data.loadouts ??= []
+    data.loadoutApplyOptions ??= {
+        modules: true,
+        globalVariables: true,
+        preset: true,
+        persona: true
+    }
     data.longPressToPopupEditor ??= false
     data.customSidebarItems ??= []
     data.moveInsteadOfCopyOnCMPConvert ??= false
@@ -723,6 +728,10 @@ export function setDatabase(data:Database){
     setDatabaseLite(data)
 }
 
+export function setDatabaseLite(data:Database){
+    DBState.db = data
+}
+
 interface getDatabaseOptions{
     snapshot?:boolean
 }
@@ -735,12 +744,7 @@ export function getDatabase(options:getDatabaseOptions = {}):Database{
 }
 
 export function getCurrentCharacter(options:getDatabaseOptions = {}):character|groupChat{
-    const db = getDatabase(options)
-    if(!db.characters){
-        db.characters = []
-    }
-    const char = db.characters?.[get(selectedCharID)]
-    return char
+    return getCharacterByIndex(get(selectedCharID), options)
 }
 
 export function setCurrentCharacter(char:character|groupChat){
@@ -751,12 +755,12 @@ export function setCurrentCharacter(char:character|groupChat){
 }
 
 export function getCharacterByIndex(index:number,options:getDatabaseOptions = {}):character|groupChat{
-    const db = getDatabase(options)
-    if(!db.characters){
-        db.characters = []
+    if(!DBState.db.characters){
+        DBState.db.characters = []
     }
-    const char = db.characters?.[index]
-    return char
+    const char = DBState.db.characters[index]
+    // snapshot only the requested character instead of the whole database
+    return options.snapshot ? $state.snapshot(char) as character|groupChat : char
 }
 
 export function setCharacterByIndex(index:number,char:character|groupChat){
@@ -768,7 +772,7 @@ export function setCharacterByIndex(index:number,char:character|groupChat){
 
 export function getCurrentChat(){
     const char = getCurrentCharacter()
-    return char?.chats[char.chatPage]
+    return char?.chats?.[char.chatPage]
 }
 
 export function setCurrentChat(chat:Chat){
@@ -795,6 +799,11 @@ export interface RisuPersona {
     id?:string
     note?:string
     embeddedModule?:RisuModule
+}
+
+export type BlockedRealmCreator = {
+    id: string
+    name: string
 }
 
 export interface Database{
@@ -951,14 +960,15 @@ export interface Database{
     openrouterFallback:boolean
     selectedPersona:number
     personas:RisuPersona[]
-    personaNote:boolean
     assetWidth:number
     animationSpeed:number
     botSettingAtStart:false
     NAIsettings:NAISettings
     hideRealm:boolean
+    blockedRealmCreators:BlockedRealmCreator[]
     colorScheme:ColorScheme
     colorSchemeName:string
+    customColorScheme:ColorScheme
     promptTemplate?:PromptItem[]
     forceProxyAsOpenAI?:boolean
     hypaModel:HypaModel
@@ -1267,6 +1277,12 @@ export interface Database{
     keepSessionAlive: 'off' | 'pip' | 'sound'
     longPressToPopupEditor?: boolean
     loadouts: Loadout[]
+    loadoutApplyOptions: {
+        modules: boolean
+        globalVariables: boolean
+        preset: boolean
+        persona: boolean
+    }
     disableAprilFools?:boolean
     customSidebarItems: CustomSideBarItem[]
     lastLoadedLoadoutName: string
@@ -1479,6 +1495,7 @@ export interface character{
         ext: string
     }>
     defaultVariables?:string
+    onboarding?:CharacterOnboarding
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
     lastInteraction?:number
@@ -1489,6 +1506,7 @@ export interface character{
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
     modules?:string[]
+    moduleNamespace?:string
     coldstorage?:string
     coldStoragedChats?:string[]
     customModuleToggle?:string
@@ -1832,6 +1850,37 @@ export interface Chat{
     lastDate?:number
     bookmarks?: string[];
     bookmarkNames?: { [chatId: string]: string };
+    useLocallySetGlobalVariables?: boolean
+    GLGlobalVariables?: { [key: string]: string }
+    onboardingDone?: boolean
+}
+
+export interface OnboardingOption{
+    label:string
+    value:string
+}
+
+export interface OnboardingQuestion{
+    id:string
+    title:string
+    description?:string
+    type:'single'|'multiple'|'text'
+    varName:string
+    required?:boolean
+    options:OnboardingOption[]
+    placeholder?:string
+}
+
+/** A creator-defined set of choices shown before a chat starts. Each answer is written to a chat variable. */
+export interface CharacterOnboarding{
+    enabled:boolean
+    mode:'form'|'html'
+    title?:string
+    description?:string
+    questions:OnboardingQuestion[]
+    html?:string
+    /** Also shows a floating button on the chat screen that opens the onboarding. */
+    floatingButton?:boolean
 }
 
 export interface ChatFolder{

@@ -269,6 +269,22 @@ type ScriptMode = 'display' | 'output' | 'input' | 'process';
 type ReplacerType = 'beforeRequest' | 'afterRequest';
 
 /**
+ * Argument passed to chat lifecycle listeners
+ */
+type ChatOutputListenerArg = {
+    /** Current character */
+    char: any;
+    /** Current chat */
+    chat: any;
+    /** Index of the character in the database. Use with `setCharacterToIndex`. */
+    characterIndex: number;
+    /** Index of the chat within the character. Use with `setChatToIndex`. */
+    chatIndex: number;
+    /** Current index of the generated message in `chat.message`, or -1 if it is no longer present */
+    messageIndex: number;
+};
+
+/**
  * Risuai Plugin definition
  */
 interface RisuPlugin {
@@ -1123,6 +1139,8 @@ interface SafeLocalStorage {
     removeItem(key: string): Promise<void>;
     clear(): Promise<void>;
     key(index: number): Promise<string | null>;
+    /** Gets all keys (only keys stored through safeLocalStorage) */
+    keys(): Promise<string[]>;
     length(): Promise<number>;
 }
 
@@ -1323,6 +1341,46 @@ interface RisuaiPluginAPI {
      * @returns Chat object or null if not found
      */
     getChatFromIndex(characterIndex: number, chatIndex: number): Promise<any|null>;
+
+    /**
+     * Parses Risu CBS macros using the currently selected character and active chat.
+     * Set processRegex to also run the editprocess script pipeline after CBS parsing.
+     * The editprocess pipeline can invoke plugin script handlers and action scripts,
+     * which may modify the active chat.
+     * @param text - Text containing CBS macros
+     * @param options - Parser context options
+     * @returns Parsed text
+     *
+     * @example
+     * ```typescript
+     * const text = await risuai.parseRisuChat('Hello, {{user}}', {
+     *   role: 'user',
+     *   processRegex: true,
+     * });
+     * ```
+     */
+    parseRisuChat(text: string, options?: {
+        /** Existing message index used by chat-aware CBS macros. Defaults to -1. */
+        messageIndex?: number;
+        /** Message role used by role-aware CBS macros. */
+        role?: string;
+        /**
+         * Run the editprocess script pipeline after CBS parsing.
+         * This can invoke plugin handlers and action scripts that modify the active chat.
+         */
+        processRegex?: boolean;
+        /** Enable chat variable writes from CBS macros. */
+        runVar?: boolean;
+        /** Remove unresolved variable macros. */
+        rmVar?: boolean;
+        /** Use tokenizer-accurate parsing behavior where supported. */
+        tokenizeAccurate?: boolean;
+        /** Additional CBS condition flags. */
+        cbsConditions?: {
+            firstmsg?: boolean;
+            chatRole?: string;
+        };
+    }): Promise<string>;
     
 
     /**
@@ -1433,9 +1491,10 @@ interface RisuaiPluginAPI {
 
     /**
      * Sets the database (lightweight save)
-     * @param db - DatabaseSubset object to save
+     * The `plugins` property is ignored. Use setDatabase() to update plugins.
+     * @param db - DatabaseSubset object to save, excluding `plugins`
      */
-    setDatabaseLite(db: DatabaseSubset): Promise<void>;
+    setDatabaseLite(db: Omit<DatabaseSubset, 'plugins'>): Promise<void>;
 
     /**
      * Sets the database (full save with sync)
@@ -1817,6 +1876,63 @@ interface RisuaiPluginAPI {
     removeRisuReplacer(
         type: ReplacerType,
         func: Function
+    ): Promise<void>;
+
+    // ========== Chat Listeners ==========
+
+    /**
+     * Adds a listener that fires after a model output has been processed and
+     * committed to the chat.
+     *
+     * The listener runs once per output event after streaming completes, after the
+     * existing Lua `output` trigger has finished, and after host-side output
+     * transformations such as inlay screen processing have been written to the chat.
+     * Listeners are awaited sequentially and receive the same event snapshot. A slow
+     * listener delays the remaining chat flow. To run background work without
+     * blocking, fire off an async function without awaiting it inside the listener.
+     *
+     * The listener receives plain snapshots of `char` and the committed chat,
+     * matching the convention of `getCharacterFromIndex` / `getChatFromIndex`.
+     * Mutations to those snapshots do not propagate back to the host. To persist
+     * changes from background work, use `characterIndex`, `chatIndex`, and
+     * `messageIndex` with APIs such as `setChatToIndex`. If you need to merge with
+     * changes saved by another listener, read the latest chat with `getChatFromIndex`
+     * before saving.
+     *
+     * The `characterIndex` and `chatIndex` are captured when the listener fires,
+     * so background work can locate the original chat even if the user navigates
+     * elsewhere. `messageIndex` is resolved against the provided chat snapshot and
+     * points to the model output message when it is still present. It may be -1 if a
+     * Lua output trigger or host-side output processing removed that message.
+     *
+     * Modes:
+     * - 'output': fires after an AI message is appended to or updated in the chat
+     *
+     * @param mode - Listener mode
+     * @param func - Listener function. Receives the current character, chat, and generated message index.
+     *
+     * @example
+     * ```typescript
+     * await risuai.addRisuChatListener('output', async ({ chat, messageIndex }) => {
+     *   const message = chat.message[messageIndex];
+     *   if (!message) return;
+     *   console.log('Model said:', message.data);
+     * });
+     * ```
+     */
+    addRisuChatListener(
+        mode: 'output',
+        func: (arg: ChatOutputListenerArg) => void | Promise<void>
+    ): Promise<void>;
+
+    /**
+     * Removes a chat listener.
+     * @param mode - Listener mode
+     * @param func - Listener function to remove
+     */
+    removeRisuChatListener(
+        mode: 'output',
+        func: (arg: ChatOutputListenerArg) => void | Promise<void>
     ): Promise<void>;
 
     // ========== Body Interceptors ==========

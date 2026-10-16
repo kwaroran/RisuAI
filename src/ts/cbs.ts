@@ -2,6 +2,7 @@ import type { Database, character, loreBook } from './storage/database.svelte';
 import type { CbsConditions } from './parser/parser.svelte';
 import type { RisuModule } from './process/modules';
 import type { LLMModel } from './model/modellist';
+import { LLMFlags, LLMFormat } from './model/types';
 import { get } from 'svelte/store';
 import { CurrentTriggerIdStore } from './stores.svelte';
 
@@ -1358,6 +1359,10 @@ export function registerCBS(arg:CBSRegisterArg) {
         name: 'prefillsupported',
         callback: (str, matcherArg, args, vars) => {
             const db = getDatabase()
+            const modelInfo = getModelInfo(db.aiModel)
+            if(modelInfo.format === LLMFormat.Anthropic || modelInfo.format === LLMFormat.AnthropicLegacy){
+                return modelInfo.flags.includes(LLMFlags.hasPrefill) ? '1' : '0'
+            }
             return db.aiModel.startsWith('claude') ? '1' : '0'
         },
         alias: ['prefill_supported', 'prefill'],

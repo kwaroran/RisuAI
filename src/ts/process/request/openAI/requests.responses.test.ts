@@ -190,6 +190,7 @@ describe('OpenAI Responses API helpers', () => {
         mocks.db.nanogptProvider = ''
         mocks.db.nanogptRequestModel = 'nanogpt-model'
         mocks.db.nanogptUseSubscriptionEndpoint = false
+        mocks.db.reasoningEffort = 2
         mocks.db.simplifiedToolUse = false
         mocks.db.autofillRequestUrl = false
     })
@@ -245,6 +246,45 @@ describe('OpenAI Responses API helpers', () => {
         const body = await __testResponsesAPI.buildResponsesBody(baseArg())
 
         expect(body.reasoning).toEqual({ effort: 'high', summary: 'auto' })
+    })
+
+    it('maps Responses reasoning effort none when the model supports it', async () => {
+        mocks.db.reasoningEffort = -1
+
+        const body = await __testResponsesAPI.buildResponsesBody(baseArg({
+            modelInfo: {
+                ...baseArg().modelInfo,
+                parameters: ['reasoning_effort', 'reasoning_effort_none'],
+            },
+        }))
+
+        expect(body.reasoning).toEqual({ effort: 'none', summary: 'auto' })
+    })
+
+    it('maps Responses reasoning low to medium for min-medium models', async () => {
+        mocks.db.reasoningEffort = 0
+
+        const body = await __testResponsesAPI.buildResponsesBody(baseArg({
+            modelInfo: {
+                ...baseArg().modelInfo,
+                parameters: ['reasoning_effort', 'reasoning_effort_min_medium'],
+            },
+        }))
+
+        expect(body.reasoning).toEqual({ effort: 'medium', summary: 'auto' })
+    })
+
+    it('maps Responses reasoning effort xhigh when the model supports it', async () => {
+        mocks.db.reasoningEffort = 3
+
+        const body = await __testResponsesAPI.buildResponsesBody(baseArg({
+            modelInfo: {
+                ...baseArg().modelInfo,
+                parameters: ['reasoning_effort', 'reasoning_effort_xhigh'],
+            },
+        }))
+
+        expect(body.reasoning).toEqual({ effort: 'xhigh', summary: 'auto' })
     })
 
     it('does not request reasoning summaries for Responses non-reasoning models', async () => {

@@ -7,7 +7,8 @@ import {
     ProviderNames,
     OpenAIParameters,
     ClaudeParameters,
-    type LLMModel
+    type LLMModel,
+    GPT5XHighParameters
 } from './types'
 import { OpenAIModels } from './providers/openai'
 import { AnthropicModels } from './providers/anthropic'
@@ -633,14 +634,14 @@ export async function registerModelDynamic(){
 
                 const id = model.name.startsWith('models/') ? model.name.replace('models/', '') : model.name
                 const exists = LLMModels.find(m => m.id === id || m.internalID === id)
-
+                
                 if(!exists){
                     LLMModels.push({
                         id: 'dynamic_google_' + id,
                         name: model.displayName || id,
                         shortName: model.displayName || id,
                         fullName: model.displayName || id,
-                        internalID: model.name,
+                        internalID: id,
                         provider: LLMProvider.GoogleCloud,
                         format: LLMFormat.GoogleCloud,
                         flags: [LLMFlags.hasImageInput, LLMFlags.poolSupported, LLMFlags.hasAudioInput, LLMFlags.hasVideoInput, LLMFlags.hasStreaming, LLMFlags.requiresAlternateRole, LLMFlags.geminiThinking],
@@ -700,6 +701,70 @@ export async function registerModelDynamic(){
         }
     } catch (error) {
         console.error('Error fetching Anthropic models', error)
+    }
+
+
+    try {
+        if(DBState.db.openAIKey){
+            const res = await fetchNative(`https://api.openai.com/v1/models`, {
+                method: 'GET',
+                headers: {
+                    "Authorization": 'Bearer ' + DBState.db.openAIKey
+                }
+            })
+            const json = await res.json()
+            console.log(json)
+            if(!json.data){
+                throw "Invaild Openai Model Response"
+            }
+            let i = 0;
+            for(const model of json.data){
+                const exists = LLMModels.find(m => m.id === model.id || m.internalID === model.id)
+
+                if(exists){
+                    continue
+                }
+
+                if(!model.id.startsWith('gpt-')){
+                    continue
+                }
+                i++;
+
+                const a:LLMModel = {
+                    id: model.id,
+                    internalID: model.id,
+                    name: model.id,
+                    shortName: model.id,
+                    fullName: model.id,
+                    provider: LLMProvider.OpenAI,
+                    format: LLMFormat.OpenAICompatible,
+                    flags: [
+                        LLMFlags.hasStreaming,
+                        LLMFlags.OAICompletionTokens,
+                        LLMFlags.hasFullSystemPrompt,
+                        LLMFlags.hasImageInput,
+                        LLMFlags.DeveloperRole
+                    ],
+                    parameters: GPT5XHighParameters,
+                    tokenizer: LLMTokenizer.tiktokenO200Base,
+                    recommended: i<8
+                }
+
+                LLMModels.push(a,{
+                    ...a,
+                    format: LLMFormat.OpenAIResponseAPI,
+                    flags: [...a.flags, LLMFlags.hasPrefill],
+                    id: `${a.id}-response-api`,
+                    name: `${a.name} (Response API)`,
+                    fullName: `${a.fullName ?? a.name} (Response API)`,
+                    recommended: false
+                })
+
+                
+            }
+        }
+    } catch (error){
+
     }
 
 }

@@ -2,6 +2,7 @@
     import { changeChar, getCharImage, removeChar } from "../../ts/characters";
     import { type Database } from "../../ts/storage/database.svelte";
     import { DBState } from 'src/ts/stores.svelte';
+    import { findCharacterIndexbyId } from "../../ts/util";
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { ArrowLeft, User, Users, SquareMousePointer, TrashIcon, Undo2Icon } from "@lucide/svelte";
     import { selectedCharID } from "../../ts/stores.svelte";
@@ -26,6 +27,7 @@
             type:string,
             name:string
             desc:string
+            chaId:string
         }[] = []
 
         for(let i=0;i<db.characters.length;i++){
@@ -42,7 +44,8 @@
                     index: i,
                     type: c.type,
                     name: c.name,
-                    desc: c.creatorNotes ?? 'No description'
+                    desc: c.creatorNotes ?? 'No description',
+                    chaId: c.chaId
                 })
             }
         }
@@ -118,7 +121,7 @@
                                 <SquareMousePointer />
                             </button>
                             <button class="hover:text-textcolor text-textcolor2" onclick={() => {
-                                removeChar(char.index, char.name)
+                                removeChar(char.chaId, char.name)
                             }}>
                                 <TrashIcon />
                             </button>
@@ -136,13 +139,16 @@
                         <span class="text-textcolor2">{parseMultilangString(char.desc)['en'] || parseMultilangString(char.desc)['xx'] || 'No description'}</span>
                         <div class="flex gap-2 justify-end">
                             <button class="hover:text-textcolor text-textcolor2" onclick={() => {
-                                DBState.db.characters[char.index].trashTime = undefined
-                                checkCharOrder()
+                                const restoreIdx = findCharacterIndexbyId(char.chaId)
+                                if (restoreIdx !== -1) {
+                                    DBState.db.characters[restoreIdx].trashTime = undefined
+                                    checkCharOrder()
+                                }
                             }}>
                                 <Undo2Icon />
                             </button>
                             <button class="hover:text-textcolor text-textcolor2" onclick={() => {
-                                removeChar(char.index, char.name, 'permanent')
+                                removeChar(char.chaId, char.name, 'permanent')
                             }}>
                                 <TrashIcon />
                             </button>

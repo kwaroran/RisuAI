@@ -33,6 +33,7 @@ import { getModelInfo, LLMFlags } from "../model/modellist";
 import { hypaMemoryV3 } from "./memory/hypav3";
 import { getModuleAssets, getModuleToggles } from "./modules";
 import { readImage } from "../globalApi.svelte";
+import { pluginV2 } from "../plugins/plugins.svelte";
 
 export interface OpenAIChat{
     role: 'system'|'user'|'assistant'|'function'
@@ -44,6 +45,37 @@ export interface OpenAIChat{
     multimodals?: MultiModal[]
     thoughts?: string[]
     cachePoint?: boolean
+}
+
+function findMessageIndexByChatId(chat: Chat, chatId?: string){
+    if(!chatId){
+        return -1
+    }
+
+    return chat.message.findIndex((message) => message.chatId === chatId)
+}
+
+async function runChatOutputListeners(char: any, chat: any, characterIndex: number, chatIndex: number, messageIndex: number){
+    if(pluginV2.chatOutput.size === 0){
+        return
+    }
+
+    const charSnapshot = $state.snapshot(char)
+    const chatSnapshot = $state.snapshot(chat)
+    for(const listener of pluginV2.chatOutput){
+        try {
+            await listener({
+                char: charSnapshot,
+                chat: chatSnapshot,
+                characterIndex,
+                chatIndex,
+                messageIndex,
+            })
+        }
+        catch(e) {
+            console.error(e)
+        }
+    }
 }
 
 export interface MultiModal{
@@ -1574,7 +1606,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         let prefix = ''
         if(arg.continue){
             msgIndex -= 1
-            prefix = DBState.db.characters[selectedChar].chats[selectedChat].message[msgIndex].data
+            const outputMessage = DBState.db.characters[selectedChar].chats[selectedChat].message[msgIndex]
+            prefix = outputMessage.data
         }
         else{
             DBState.db.characters[selectedChar].chats[selectedChat].message.push({
@@ -1587,6 +1620,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 chatId: generationId,
             })
         }
+        const outputMessageId = DBState.db.characters[selectedChar].chats[selectedChat].message[msgIndex]?.chatId
         const performanceMode: StreamingDisplayOptimizationMode = DBState.db.streamingDisplayOptimizationMode ?? 'off'
         DBState.db.characters[selectedChar].chats[selectedChat].isStreaming = true
         DBState.db.characters[selectedChar].chats[selectedChat].activeStreamingDisplayOptimizationMode = performanceMode
@@ -1745,14 +1779,27 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         if(triggerResult && triggerResult.sendAIprompt){
             resendChat = true
         }
-        const inlayr = runInlayScreen(currentChar, currentChat.message[msgIndex].data)
-        currentChat.message[msgIndex].data = inlayr.text
         DBState.db.characters[selectedChar].chats[selectedChat] = currentChat
-        if(inlayr.promise){
-            const t = await inlayr.promise
-            currentChat.message[msgIndex].data = t
+        currentChat = DBState.db.characters[selectedChar].chats[selectedChat]
+        const inlayMessageIndex = findMessageIndexByChatId(currentChat, outputMessageId)
+        const outputMessage = currentChat.message[inlayMessageIndex]
+        if(outputMessage){
+            const inlayr = runInlayScreen(currentChar, outputMessage.data)
+            outputMessage.data = inlayr.text
             DBState.db.characters[selectedChar].chats[selectedChat] = currentChat
+            if(inlayr.promise){
+                const t = await inlayr.promise
+                currentChat = DBState.db.characters[selectedChar].chats[selectedChat]
+                const asyncInlayMessageIndex = findMessageIndexByChatId(currentChat, outputMessageId)
+                if(asyncInlayMessageIndex !== -1){
+                    currentChat.message[asyncInlayMessageIndex].data = t
+                    DBState.db.characters[selectedChar].chats[selectedChat] = currentChat
+                }
+            }
         }
+        currentChat = DBState.db.characters[selectedChar].chats[selectedChat]
+        const listenerMessageIndex = findMessageIndexByChatId(currentChat, outputMessageId)
+        await runChatOutputListeners(currentChar, currentChat, selectedChar, selectedChat, listenerMessageIndex)
         if(DBState.db.ttsAutoSpeech){
             await sayTTS(currentChar, result)
         }
@@ -1762,6 +1809,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     : (req.type === 'multiline') ? req.result
                     : []
         let mrerolls:string[] = []
+        let outputMessageIndex = -1
+        let outputMessageId: string | undefined
         for(let i=0;i<msgs.length;i++){
             let msg = msgs[i]
             let mess = msg[1]
@@ -1793,6 +1842,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     const p = await inlayResult.promise
                     DBState.db.characters[selectedChar].chats[selectedChat].message[msgIndex].data = p
                 }
+                outputMessageIndex = msgIndex
+                outputMessageId = DBState.db.characters[selectedChar].chats[selectedChat].message[msgIndex]?.chatId
             }
             else if(i===0){
                 DBState.db.characters[selectedChar].chats[selectedChat].message.push({
@@ -1810,6 +1861,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     DBState.db.characters[selectedChar].chats[selectedChat].message[ind].data = p
                 }
                 mrerolls.push(result)
+                outputMessageIndex = ind
+                outputMessageId = DBState.db.characters[selectedChar].chats[selectedChat].message[ind]?.chatId
             }
             else{
                 mrerolls.push(result)
@@ -1833,6 +1886,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
         if(triggerResult && triggerResult.sendAIprompt){
             resendChat = true
+        }
+        currentChat = DBState.db.characters[selectedChar].chats[selectedChat]
+        if(outputMessageId){
+            outputMessageIndex = findMessageIndexByChatId(currentChat, outputMessageId)
+            await runChatOutputListeners(currentChar, currentChat, selectedChar, selectedChat, outputMessageIndex)
         }
     }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { BookIcon, FlagIcon, ImageIcon, PaperclipIcon, SmileIcon, TrashIcon } from "@lucide/svelte";
+    import { BanIcon, BookIcon, FlagIcon, ImageIcon, PaperclipIcon, SmileIcon, TrashIcon } from "@lucide/svelte";
     import { language } from "src/lang";
     import { alertConfirm, alertInput, alertNormal } from "src/ts/alert";
     import { hubURL, type hubType, downloadRisuHub, getRealmInfo } from "src/ts/characterCards";
@@ -8,12 +8,14 @@
     import RealmLicense from "./RealmLicense.svelte";
     import MultiLangDisplay from "../GUI/MultiLangDisplay.svelte";
     import { tooltip } from "src/ts/gui/tooltip";
+    import { addBlockedRealmCreator } from "src/ts/realmBlocking";
 
     interface Props {
         openedData: hubType;
+        onBlock?: (creatorId: string) => void;
     }
 
-    let { openedData = $bindable() }: Props = $props();
+    let { openedData = $bindable(), onBlock = () => {} }: Props = $props();
 
 </script>
 
@@ -78,6 +80,29 @@
         </div>
 
         <div class="flex flex-row-reverse gap-2">
+            {#if openedData.creator && (DBState.db.account?.token?.split('-') ?? [])[1] !== openedData.creator}
+                <button class="text-textcolor2 hover:text-red-500" use:tooltip={language.blockRealmCreator} onclick={async (e) => {
+                    e.stopPropagation()
+                    const creatorId = openedData.creator
+                    if(!creatorId){
+                        return
+                    }
+                    const creatorName = openedData.authorname ?? openedData.creatorName ?? creatorId
+                    const conf = await alertConfirm(language.blockRealmCreatorConfirm.replace('{{creator}}', creatorName))
+                    if(!conf){
+                        return
+                    }
+                    DBState.db.blockedRealmCreators = addBlockedRealmCreator(
+                        DBState.db.blockedRealmCreators,
+                        { id: creatorId, name: creatorName },
+                    )
+                    onBlock(creatorId)
+                    openedData = null
+                    alertNormal(language.realmCreatorBlockedSuccess)
+                }}>
+                    <BanIcon />
+                </button>
+            {/if}
             <button class="text-textcolor2 hover:text-red-500" onclick={(async (e) => {
                 e.stopPropagation()
                 const conf = await alertConfirm('Report this character?')
@@ -121,7 +146,7 @@
                 <PaperclipIcon />
             </button>
             <button class="bg-selected hover:ring-3 grow p-2 font-bold rounded-md mr-2" onclick={() => {
-                downloadRisuHub(openedData.id)
+                downloadRisuHub(openedData.id, { creator: openedData.creator })
                 openedData = null
             }}>
                 Chat

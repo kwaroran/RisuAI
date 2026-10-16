@@ -2,11 +2,12 @@
     import { onMount, onDestroy } from 'svelte';
     import * as monaco from 'monaco-editor';
     import { registerCBSMonaco } from 'src/ts/gui/codearea/cbsMonaco';
-    import jsonWorkerUrl from 'monaco-editor/esm/vs/language/json/json.worker?url';
-    import cssWorkerUrl from 'monaco-editor/esm/vs/language/css/css.worker?url';
-    import htmlWorkerUrl from 'monaco-editor/esm/vs/language/html/html.worker?url';
-    import tsWorkerUrl from 'monaco-editor/esm/vs/language/typescript/ts.worker?url';
-    import editorWorkerUrl from 'monaco-editor/esm/vs/editor/editor.worker?url';
+    import { registerLuaMonaco } from 'src/ts/gui/codearea/luaMonaco';
+    import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+    import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+    import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+    import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+    import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
 
     // Set up workers once globally
     if (!('MonacoEnvironment' in self)) {
@@ -14,20 +15,20 @@
             getWorker(_: string, label: string) {
                 switch (label) {
                     case 'json':
-                        return new Worker(jsonWorkerUrl, { type: 'module' });
+                        return new JsonWorker();
                     case 'css':
                     case 'scss':
                     case 'less':
-                        return new Worker(cssWorkerUrl, { type: 'module' });
+                        return new CssWorker();
                     case 'html':
                     case 'handlebars':
                     case 'razor':
-                        return new Worker(htmlWorkerUrl, { type: 'module' });
+                        return new HtmlWorker();
                     case 'typescript':
                     case 'javascript':
-                        return new Worker(tsWorkerUrl, { type: 'module' });
+                        return new TypeScriptWorker();
                     default:
-                        return new Worker(editorWorkerUrl, { type: 'module' });
+                        return new EditorWorker();
                 }
             }
         };
@@ -35,6 +36,7 @@
 
 
     registerCBSMonaco()
+    registerLuaMonaco()
 
     interface Props {
         value: string;

@@ -14,7 +14,7 @@ import { appDataDir, join } from "@tauri-apps/api/path";
 import { get } from "svelte/store";
 import { open } from '@tauri-apps/plugin-shell'
 import streamSaver from 'streamsaver';
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase, appVer, getCurrentCharacter, onDatabaseUpdate, type character, type groupChat } from "./storage/database.svelte";
+import { setDatabase, type Database, defaultSdDataFunc, getDatabase, appVer, getCurrentCharacter, type character, type groupChat, appSubVer } from "./storage/database.svelte";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { checkRisuUpdate } from "./update";
 import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState, selIdState, ReloadGUIPointer, bodyIntercepterStore } from "./stores.svelte";
@@ -25,7 +25,8 @@ import { hasher } from "./parser/parser.svelte";
 import { characterURLImport, hubURL } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSaveLegacy, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
+import { decodeRisuSave, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
+import { saveKV } from "./storage/saveKV";
 import { AutoStorage } from "./storage/autoStorage";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
@@ -312,34 +313,21 @@ export async function saveDb() {
         }
     }
 
-    const createChangeTracker = (): toSaveType => ({
+    const changeTracker: toSaveType = {
         character: [],
+        chat: [],
         botPreset: false,
         modules: false,
         loadouts: false,
         plugins: false,
         pluginCustomStorage: false
-    })
-    const cloneChangeTracker = (tracker: toSaveType): toSaveType => ({
-        ...tracker,
-        character: [...tracker.character]
-    })
-    const mergeChangeTrackers = (target: toSaveType, source: toSaveType) => {
-        for (const characterId of source.character) {
-            if (!target.character.includes(characterId)) {
-                target.character.push(characterId)
-            }
-        }
-        target.botPreset ||= source.botPreset
-        target.modules ||= source.modules
-        target.loadouts ||= source.loadouts
-        target.plugins ||= source.plugins
-        target.pluginCustomStorage ||= source.pluginCustomStorage
     }
-    let changeTracker = createChangeTracker()
-    let savetrys = 0
 
     let encoder = new RisuSaveEncoder()
+    await encoder.init(getDatabase(), {
+        compression: forageStorage.isAccount,
+        kv: saveKV
+    })
 
     $effect.root(() => {
 
@@ -348,7 +336,7 @@ export async function saveDb() {
         const debounceTime = 500; // 500 milliseconds
         let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
-        const unsubscribeSel = selectedCharID.subscribe((v) => {
+        selectedCharID.subscribe((v) => {
             selIdState = v
         })
 
@@ -361,137 +349,114 @@ export async function saveDb() {
             }, debounceTime);
         }
 
-        const unsubscribeDb = onDatabaseUpdate((info) => {
-            if (info.path.length === 0) {
-                requiresFullEncoderReload.state = true
-                savetrys = 0
-                saveTimeoutExecute()
-                return
-            }
-
-            const rootKey = info.path[0]
-
-            if (rootKey === 'botPresets' || rootKey === 'botPresetsId') {
-                changeTracker.botPreset = true
-                saveTimeoutExecute()
-                return
-            }
-
-            if (rootKey === 'modules') {
-                changeTracker.modules = true
-                saveTimeoutExecute()
-                return
-            }
-
-            if (rootKey === 'loadouts' || rootKey === 'plugins' || rootKey === 'pluginCustomStorage') {
-                changeTracker[rootKey] = true
-                saveTimeoutExecute()
-                return
-            }
-
-            if (rootKey === 'characters') {
-                const affectedCharacters: Database['characters'] = []
-
-                if (info.path.length === 1) {
-                    const oldCharacters = info.oldValue as Database['characters'] | undefined
-                    const newCharacters = info.value as Database['characters'] | undefined
-                    affectedCharacters.push(...(oldCharacters ?? []), ...(newCharacters ?? []))
+        $effect(() => {
+            DBState.db.botPresetsId
+            DBState.db.botPresets.length
+            changeTracker.botPreset = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
+            $state.snapshot(DBState.db.modules)
+            changeTracker.modules = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
+            $state.snapshot(DBState.db.loadouts)
+            changeTracker.loadouts = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
+            $state.snapshot(DBState.db.plugins)
+            changeTracker.plugins = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
+            $state.snapshot(DBState.db.pluginCustomStorage)
+            changeTracker.pluginCustomStorage = true
+            saveTimeoutExecute()
+        })
+        $effect(() => {
+            for (const key in DBState.db) {
+                if (
+                    key !== 'characters' && key !== 'botPresets' && key !== 'modules' &&
+                    key !== 'loadouts' && key !== 'plugins' && key !== 'pluginCustomStorage'
+                ) {
+                    $state.snapshot(DBState.db[key])
                 }
-                else if (typeof info.path[1] === 'number') {
-                    if (info.path.length === 2) {
-                        const oldChar = info.oldValue as Database['characters'][number] | undefined
-                        if (oldChar) {
-                            affectedCharacters.push(oldChar)
-                        }
-                    }
-                    const char = DBState.db.characters[info.path[1]]
-                    if (char) {
-                        affectedCharacters.push(char)
+            }
+            if (DBState?.db?.characters?.[selIdState]) {
+                for (const key in DBState.db.characters[selIdState]) {
+                    if (key !== 'chats') {
+                        $state.snapshot(DBState.db.characters[selIdState][key])
                     }
                 }
-
-                for (const char of affectedCharacters) {
-                    if (!changeTracker.character.includes(char.chaId)) {
-                        changeTracker.character.unshift(char.chaId)
-                    }
+                $state.snapshot(DBState.db.characters[selIdState].chats)
+                if (changeTracker.character[0] !== DBState.db.characters[selIdState]?.chaId) {
+                    changeTracker.character.unshift(DBState.db.characters[selIdState]?.chaId)
                 }
-                saveTimeoutExecute()
-                return
-            }
-
-            const char = DBState.db.characters[selIdState]
-            if (char && !changeTracker.character.includes(char.chaId)) {
-                changeTracker.character.unshift(char.chaId)
+                if (
+                    changeTracker.chat[0]?.[0] !== DBState.db.characters[selIdState]?.chaId ||
+                    changeTracker.chat[0]?.[1] !== DBState.db.characters[selIdState]?.chats[DBState.db.characters[selIdState]?.chatPage].id
+                ) {
+                    changeTracker.chat.unshift([DBState.db.characters[selIdState]?.chaId, DBState.db.characters[selIdState]?.chats[DBState.db.characters[selIdState]?.chatPage].id])
+                }
             }
             saveTimeoutExecute()
         })
-        // Persist bootstrap mutations emitted before the database listener existed.
-        saveTimeoutExecute()
-
-        return () => {
-            unsubscribeSel()
-            unsubscribeDb()
-        }
     })
 
-    try {
-        await encoder.init(getDatabase(), {
-            compression: forageStorage.isAccount
-        })
-    } catch (error) {
-        requiresFullEncoderReload.state = true
-        changed = true
-        console.error(error)
-    }
-
+    let savetrys = 0
     let lastDbData = new Uint8Array(0)
     await sleep(1000)
     while (true) {
-        if (!changed) {
+        //SaveKV is not reactive: it reports its own changes
+        if (!changed && !saveKV.hasDirty()) {
             await sleep(500)
-            continue
-        }
-
-        if (gotChannel) {
-            // Data is saved in another tab.
-            await sleep(1000)
             continue
         }
 
         saving.state = true
         changed = false
-        const pendingSave = cloneChangeTracker(changeTracker)
-        changeTracker = createChangeTracker()
-        const toSave = cloneChangeTracker(pendingSave)
+        let kvDirty: string[] = []
         try {
-            const db = getDatabase()
 
             if (requiresFullEncoderReload.state) {
-                requiresFullEncoderReload.state = false
                 encoder = new RisuSaveEncoder()
-                try {
-                    await encoder.init(db, {
-                        compression: forageStorage.isAccount,
-                        skipRemoteSavingOnCharacters: false
-                    })
-                } catch (error) {
-                    requiresFullEncoderReload.state = true
-                    throw error
-                }
+                await encoder.init(getDatabase(), {
+                    compression: forageStorage.isAccount,
+                    skipRemoteSavingOnCharacters: false,
+                    kv: saveKV
+                })
+                requiresFullEncoderReload.state = false
             }
 
+            let toSave = safeStructuredClone(changeTracker)
+            changeTracker.character = changeTracker.character.length === 0 ? [] : [changeTracker.character[0]]
+            changeTracker.chat = changeTracker.chat.length === 0 ? [] : [changeTracker.chat[0]]
+            changeTracker.botPreset = false
+            changeTracker.modules = false
+            if (gotChannel) {
+                //Data is saved in other tab
+                await sleep(1000)
+                continue
+            }
             if (channel) {
                 channel.postMessage(sessionID)
             }
-
+            let db = getDatabase()
             if (!db.characters) {
-                throw new Error('Database has no character list')
+                await sleep(1000)
+                continue
             }
 
+            kvDirty = saveKV.takeDirty()
+            toSave.kv = kvDirty
             await encoder.set(db, toSave)
             const encoded = encoder.encode()
             if (!encoded) {
-                throw new Error('Database encoding failed')
+                saveKV.markDirty(kvDirty)
+                await sleep(1000)
+                continue
             }
             const dbData = new Uint8Array(encoded)
             if (isTauri) {
@@ -515,15 +480,14 @@ export async function saveDb() {
             await saveDbKei()
             await sleep(500)
         } catch (error) {
-            mergeChangeTrackers(changeTracker, pendingSave)
+            //the KV blocks were not written; encode them again on the next attempt
+            saveKV.markDirty(kvDirty)
             savetrys += 1
             if (savetrys > 4) {
                 alertError(error)
             }
             else {
                 console.error(error)
-                await sleep(1000)
-                changed = true
             }
         }
 
@@ -1124,28 +1088,28 @@ export function replaceDbResources(db: Database, replacer: { [key: string]: stri
  */
 export function checkCharOrder() {
     DBState.db.characterOrder = DBState.db.characterOrder ?? []
-    let ordered = []
+    const ordered = new Set<string>()
     for (let i = 0; i < DBState.db.characterOrder.length; i++) {
         const folder = DBState.db.characterOrder[i]
         if (typeof (folder) !== 'string' && folder) {
             for (const f of folder.data) {
-                ordered.push(f)
+                ordered.add(f)
             }
         }
         if (typeof (folder) === 'string') {
-            ordered.push(folder)
+            ordered.add(folder)
         }
     }
 
-    let charIdList: string[] = []
+    const charIdSet = new Set<string>()
 
     for (let i = 0; i < DBState.db.characters.length; i++) {
         const char = DBState.db.characters[i]
         const charId = char.chaId
         if (!char.trashTime) {
-            charIdList.push(charId)
+            charIdSet.add(charId)
         }
-        if (!ordered.includes(charId)) {
+        if (!ordered.has(charId)) {
             if (charId !== '§temp' && charId !== '§playground' && !char.trashTime) {
                 DBState.db.characterOrder.push(charId)
             }
@@ -1168,7 +1132,7 @@ export function checkCharOrder() {
             }
             for (let i2 = 0; i2 < data.data.length; i2++) {
                 const data2 = data.data[i2]
-                if (!charIdList.includes(data2)) {
+                if (!charIdSet.has(data2)) {
                     data.data.splice(i2, 1)
                     i2--;
                 }
@@ -1176,7 +1140,7 @@ export function checkCharOrder() {
             DBState.db.characterOrder[i] = data
         }
         else {
-            if (!charIdList.includes(data)) {
+            if (!charIdSet.has(data)) {
                 DBState.db.characterOrder.splice(i, 1)
                 i--;
             }
@@ -2120,9 +2084,9 @@ export async function loadInternalBackup() {
         await readFile('database/' + selectedBackup, { baseDir: BaseDirectory.AppData })
     ) : (await forageStorage.getItem(selectedBackup))
 
-    setDatabase(
-        await decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
-    )
+    const decoded = await decodeRisuSave(Buffer.from(data) as unknown as Uint8Array)
+    setDatabase(decoded.database)
+    saveKV.load(decoded.kv)
 
     alertNormal('Loaded backup')
 
@@ -2227,8 +2191,11 @@ export function getLanguageCodes() {
 
 export function getVersionString(): string {
     let versionString = appVer
-    if (window.location.hostname === 'nightly.risuai.xyz') {
-        versionString = 'Nightly Build'
+    if(appSubVer) {
+        versionString += '-' + appSubVer
+    }
+    if (import.meta.env.VITE_RISU_NIGHTLY_BUILD === 'TRUE') {
+        versionString = 'Nightly Build ' + import.meta.env.VITE_RISU_BUILD_TIME
     }
     if (window.location.hostname === 'stable.risuai.xyz') {
         versionString += ' (Stable)';
