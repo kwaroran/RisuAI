@@ -581,14 +581,11 @@
             {#if DBState.db.newImageHandlingBeta}
             <CheckInput bind:check={DBState.db.characters[$selectedCharID].prebuiltAssetCommand} name={language.insertAssetPrompt}/>
 
-            {#if DBState.db.characters[$selectedCharID].prebuiltAssetCommand}
-
             <span class="text-textcolor mt-2">{language.assetStyle}</span>
             <SelectInput className="mb-2" bind:value={DBState.db.characters[$selectedCharID].prebuiltAssetStyle}>
                 <OptionInput value="">{language.static}</OptionInput>
                 <OptionInput value="dynamic">{language.dynamic}</OptionInput>
             </SelectInput>
-            {/if}
             {/if}
             <div class="w-full max-w-full border border-selected rounded-md p-2 mt-2">
                 <table class="contain w-full max-w-full tabler mt-2">

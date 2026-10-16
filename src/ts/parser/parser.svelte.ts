@@ -113,7 +113,7 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
     if (['IMG', 'SOURCE', 'VIDEO', 'AUDIO', 'STYLE'].includes(node.nodeName) && data.attrName === 'src') {
-        if (data.attrValue.startsWith('blob:')) {
+        if (data.attrValue.startsWith('blob:') || data.attrValue.startsWith('asset:')) {
             data.forceKeepAttr = true;
         }
     }
@@ -763,26 +763,58 @@ export async function ParseMarkdown(
     return trimMarkdown(data)
 }
 
+const trimPurifyConfig = {
+    ADD_TAGS: ["iframe", "style", "risu-style", "x-em", 'annotation', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt'],
+    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
+}
+
 export function trimMarkdown(data:string){
-    let sant = DOMPurify.sanitize(data, {
-        ADD_TAGS: ["iframe", "style", "risu-style", "x-em", 'annotation', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt'],
-        ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
-    })
 
-    const decoded = decodeStyle(sant)
-
-    if(decoded !== sant){
-        sant = DOMPurify.sanitize(decoded, {
-            ADD_TAGS: ["iframe", "style", "risu-style", "x-em", 'annotation', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt'],
-            ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
-            FORCE_BODY: true
-        })
+    if(!data){
+        return ''
     }
-    else{
-        sant = decoded
+    
+    // Without a <risu-style> there is nothing to decode, so the plain string
+    // result is already final. Note the tag itself is not trusted input:
+    // risu-style is in ADD_TAGS, so cards, model output and user scripts can
+    // author one directly. Only its position in the parsed tree is relied on.
+    if(!data.includes('<risu-style')){
+        return DOMPurify.sanitize(data, trimPurifyConfig)
     }
 
-    return sant
+    // Decoded CSS must never be handed back to the HTML sanitizer as <style>
+    // text: DOMPurify drops style nodes whose CSS contains '<' (SAFE_FOR_XML),
+    // which silently deletes svg data-uris and markup-like content strings.
+    // Take the DOM out of the sanitize we already run and swap the elements in
+    // place instead, so the CSS never re-enters the HTML parser at all.
+    // RETURN_DOM hands back the sanitized <body>, typed as Node. It is null only
+    // for empty input, which the guard above already excludes.
+    const root = DOMPurify.sanitize(data, {
+        ...trimPurifyConfig,
+        RETURN_DOM: true,
+    }) as HTMLElement | null
+    if(!root){
+        return ''
+    }
+
+    // Only real <risu-style> elements are decoded. A <risu-style> that survived
+    // inside an attribute value is not an element, so it is left as inert text
+    // and a <style> tag can never be restored into an attribute context.
+    for(const el of Array.from(root.querySelectorAll('risu-style'))){
+        const decoded = decodeStyleContent(el.textContent ?? '')
+        if(decoded.css === undefined){
+            el.replaceWith(root.ownerDocument.createTextNode(decoded.fallback ?? ''))
+            continue
+        }
+        const style = root.ownerDocument.createElement('style')
+        // <style> is RAWTEXT, so '</style' is the only sequence that can end the
+        // block early and leak the rest of the CSS as markup once this string is
+        // parsed again ('\/' is still '/' inside CSS).
+        style.textContent = decoded.css.replaceAll(/<\/(?=style)/gi, '<\\/')
+        el.replaceWith(style)
+    }
+
+    return root.innerHTML
 }
 
 const metaCodes = [
@@ -890,7 +922,6 @@ function encodeStyle(txt:string){
         return "<risu-style>" + Buffer.from(c1).toString('hex') + "</risu-style>"
     })
 }
-const styleDecodeRegex = /\<risu-style\>(.+?)\<\/risu-style\>/gms
 
 function decodeStyleRule(rule:CssAtRuleAST){
     if(rule.type === 'rule'){
@@ -927,31 +958,36 @@ function decodeStyleRule(rule:CssAtRuleAST){
     return rule
 }
 
-function decodeStyle(text:string){
-    return text.replaceAll(styleDecodeRegex, (full, txt:string) => {
-        try {
-            let text = Buffer.from(txt, 'hex').toString('utf-8')
-            text = risuChatParser(text)
-            const ast = css.parse(text)
-            const rules = ast?.stylesheet?.rules
-            if(rules){
-                for(let i=0;i<rules.length;i++){
-                    rules[i] = decodeStyleRule(rules[i])
-                }
-                ast.stylesheet.rules = rules
+/**
+ * Decodes one <risu-style> body into scoped CSS. Returns the CSS on its own so
+ * the caller can put it into a real <style> element instead of a markup string.
+ * On a CSS parse error the style is dropped and `fallback` holds the text that
+ * takes its place.
+ */
+function decodeStyleContent(hexText:string):{css?:string, fallback?:string}{
+    try {
+        let text = Buffer.from(hexText, 'hex').toString('utf-8')
+        text = risuChatParser(text)
+        const ast = css.parse(text)
+        const rules = ast?.stylesheet?.rules
+        if(rules){
+            for(let i=0;i<rules.length;i++){
+                rules[i] = decodeStyleRule(rules[i])
             }
-            return `<style>${css.stringify(ast, {
+            ast.stylesheet.rules = rules
+        }
+        return {
+            css: css.stringify(ast, {
                 indent: '',
                 compress: true,
-            })}</style>`
-
-        } catch (error) {
-            if(DBState.db.returnCSSError){
-                return `CSS ERROR: ${error}`
-            }
-            return ""
+            })
         }
-    })
+    } catch (error) {
+        if(DBState.db.returnCSSError){
+            return { fallback: `CSS ERROR: ${error}` }
+        }
+        return { fallback: "" }
+    }
 }
 
 export async function hasher(data:Uint8Array){

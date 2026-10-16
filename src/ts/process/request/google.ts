@@ -37,7 +37,7 @@ interface GeminiPart{
 }
 
 interface GeminiChat {
-    role: "user"|"model"|"function"
+    role?: "user"|"model"
     parts:|GeminiPart[]
 }
 
@@ -223,7 +223,6 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
 
                             // Insert functionResponse
                             reformatedChat.splice(insertIndex, 0, {
-                                role: 'function',
                                 parts: [{
                                     functionResponse: {
                                         name: segment.call.call.name,
@@ -412,9 +411,9 @@ export async function requestGoogleCloudVertex(arg:RequestDataArgumentExtended):
     console.log(arg.modelInfo);
 
     const isVertexGlobalOnlyModel = (modelId: string) => {
-        // Gemini 3 preview models and the 3.5/3.6 Flash family are not served from the regions
+        // Gemini 3 preview models and the 3.5/3.6/3.7/3.8 Flash family are not served from the regions
         // selectable in settings (us-central1, us-west1); route them through the global endpoint.
-        return /^gemini-3-.*-preview$/.test(modelId) || /^gemini-3\.[56]-flash/.test(modelId)
+        return /^gemini-3-.*-preview$/.test(modelId) || /^gemini-3\.[5678]-flash/.test(modelId)
     }
 
     async function generateToken(email:string,key:string){
@@ -900,7 +899,6 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
         
         // Add the user response part to the request content (function responses)
         chat.push({
-            role: 'function',
             parts: functionParts
         })
 
@@ -1211,7 +1209,6 @@ function wrapToolStream(
                         }
                         // Add the user response part to the request content (function responses)
                         chat.push({
-                            role: 'function',
                             parts: parts
                         })
 

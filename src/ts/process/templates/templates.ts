@@ -243,7 +243,7 @@ export const prebuiltPresets = {
       "globalNote",
       "authorNote"
     ],
-    "aiModel": "claude-3-5-sonnet-20240620",
+    "aiModel": "claude-sonnet-4-6",
     "subModel": "gemini-3-flash-preview",
     "currentPluginProvider": "",
     "textgenWebUIStreamURL": "",
@@ -298,7 +298,7 @@ export const prebuiltPresets = {
       "stoptokens": "",
       "top_k": 140
     },
-    "proxyRequestModel": "claude-3-5-sonnet-20240620",
+    "proxyRequestModel": "claude-sonnet-4-6",
     "openrouterRequestModel": "anthropic/claude-2",
     "NAISettings": {
       "topK": 12,
@@ -385,7 +385,7 @@ export const prebuiltPresets = {
     "NAIadventure": false,
     "NAIappendName": true,
     "autoSuggestPrompt": "",
-    "customProxyRequestModel": "claude-3-5-sonnet-20240620",
+    "customProxyRequestModel": "claude-sonnet-4-6",
     "reverseProxyOobaArgs": {
       "mode": "instruct"
     },

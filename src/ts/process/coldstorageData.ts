@@ -22,6 +22,28 @@ export function isColdStorageBackupData(data: unknown): boolean {
         && ('character' in data || 'message' in data)
 }
 
+/**
+ * pluginStorage values can be any JSON value (including primitives and null), unlike character/chat cold data.
+ */
+export function isValidColdStorageItem(data: unknown, isPluginStorage: boolean): boolean {
+    if (isPluginStorage) {
+        return data !== undefined
+    }
+    return isColdStorageBackupData(data)
+}
+
+/**
+ * Cold storage ids of the legacy per-key plugin storage layout (db.pluginCustomStorage._coldplugin values).
+ * These are migrated into the plugin storage index on load.
+ */
+export function listPluginStorageColdKeys(db: Pick<Database, 'pluginCustomStorage'> | null | undefined): string[] {
+    const coldPlugin = db?.pluginCustomStorage?._coldplugin
+    if (!coldPlugin || typeof coldPlugin !== 'object') {
+        return []
+    }
+    return Object.values(coldPlugin).filter((key): key is string => typeof key === 'string')
+}
+
 function replaceData(data: string | undefined, replacer: { [key: string]: string }) {
     if (!data) {
         return data
@@ -76,7 +98,12 @@ function listColdDataKeysFromCharacter(character: character | groupChat): string
     return keys
 }
 
-export function listColdDataKeysFromDb(db: Pick<Database, 'characters'> | null | undefined): string[] {
+export function getPluginStorageIndexPointer(db: Pick<Database, 'pluginCustomStorage'> | null | undefined): string | null {
+    const pointer = db?.pluginCustomStorage?._coldpluginIndex
+    return typeof pointer === 'string' ? pointer : null
+}
+
+export function listColdDataKeysFromDb(db: Pick<Database, 'characters'|'pluginCustomStorage'> | null | undefined): string[] {
     const keys = new Set<string>()
     for (const character of db?.characters ?? []) {
         if (!character) {
@@ -86,6 +113,17 @@ export function listColdDataKeysFromDb(db: Pick<Database, 'characters'> | null |
             keys.add(key)
         }
     }
+
+    for(const key of listPluginStorageColdKeys(db)){
+        keys.add(key)
+    }
+
+    //plugin storage index item; the large values it references are listed by listColdDataKeys (async)
+    const pluginStorageIndex = getPluginStorageIndexPointer(db)
+    if(pluginStorageIndex){
+        keys.add(pluginStorageIndex)
+    }
+
     return Array.from(keys)
 }
 

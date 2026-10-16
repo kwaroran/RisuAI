@@ -12,20 +12,22 @@ export function convertModuleToCharacter(m: RisuModule): character {
 
     char.name = m.name
     char.creatorNotes = m.description
-    char.globalLore = m.lorebook || []
+    char.globalLore = safeStructuredClone(m.lorebook || [])
     char.customscript = m.regex || []
     char.triggerscript = m.trigger || []
     char.lowLevelAccess = m.lowLevelAccess || false
     char.hideChatIcon = m.hideIcon || false
     char.backgroundHTML = m.backgroundEmbedding || ""
     char.additionalAssets = m.assets || []
+    char.moduleNamespace = m.namespace
     char.customModuleToggle = m.customModuleToggle || ""
     char.image = m.icon || ""
 
     for(let i = 0; i < char.globalLore.length; i++){
         const lore = safeStructuredClone(char.globalLore[i])
-        if(lore.content.startsWith('@@indicator phi')){
-            char.postHistoryInstructions = lore.content.replace('@@indicator phi', '').trim()
+        if(lore.content.startsWith('@@indicator replace_global_note') || lore.content.startsWith('@@indicator phi')){
+            // Backward compat: pre-rename modules stored global notes under the '@@indicator phi' marker
+            char.replaceGlobalNote = lore.content.replace(/^@@indicator\s+(?:replace_global_note|phi)/, '').trim()
             char.globalLore.splice(i, 1)
             i--
         }
@@ -61,6 +63,7 @@ export function convertCharacterToModule(c: character): RisuModule {
         hideIcon: c.hideChatIcon,
         backgroundEmbedding: c.backgroundHTML,
         assets: c.additionalAssets,
+        namespace: c.moduleNamespace,
         customModuleToggle: c.customModuleToggle,
         id: v4(),
         icon: c.image
@@ -100,13 +103,13 @@ export function convertCharacterToModule(c: character): RisuModule {
         })
     }
 
-    if(c.postHistoryInstructions){
+    if(c.replaceGlobalNote){
         mod.lorebook.push({
             key: "",
             secondkey: "",
             insertorder: 0,
-            comment: "From PHI",
-            content: `@@indicator phi\n\n${c.postHistoryInstructions}`,
+            comment: "From Global Note Replacement",
+            content: `@@indicator replace_global_note\n\n${c.replaceGlobalNote}`,
             mode: 'constant',
             alwaysActive: true,
             selective: false

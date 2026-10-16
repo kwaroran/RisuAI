@@ -65,7 +65,7 @@
                     value = e.currentTarget.value
                     onInput()
                 }
-                onchange()
+                onchange(e)
             }}
             onkeydown={async (e) => {
                 if(
@@ -122,7 +122,7 @@
             autoComplete()
         }}
         onchange={(e) => {
-            onchange()
+            onchange(e)
         }}
         bind:this={inputDom}
         translate="no"
@@ -158,7 +158,7 @@
         className?: string;
         optimaizedInput?: boolean;
         highlight?: boolean;
-        onchange?: () => void;
+        onchange?: (e: { currentTarget: HTMLTextAreaElement|HTMLDivElement }) => void;
         popupLanguage?: string;
     }
 

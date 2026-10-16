@@ -6,7 +6,8 @@ import { OpfsStorage } from "./opfsStorage"
 import { alertError, alertInput, alertSelect, alertStore } from "../alert"
 import { getDatabase, type Database } from "./database.svelte"
 import { AccountStorage } from "./accountStorage"
-import { decodeRisuSave, encodeRisuSaveLegacy } from "./risuSave";
+import { decodeRisuSave, encodeRisuSave } from "./risuSave";
+import { saveKV } from "./saveKV";
 import { language } from "src/lang"
 
 export class AutoStorage{
@@ -62,7 +63,7 @@ export class AutoStorage{
                 return false
             }
             if(a){
-                const sel = await alertSelect([language.loadDataFromAccount, language.saveCurrentDataToAccount])
+                const sel = await alertSelect([language.loadDataFromAccount, language.saveCurrentDataToAccount, language.cancelAccountSync])
                 if(sel === "0"){
                     this.realStorage = accountStorage
                     alertStore.set({
@@ -73,6 +74,13 @@ export class AutoStorage{
                     localStorage.setItem('fallbackRisuToken',JSON.stringify(db.account))
                     this.isAccount = true
                     return true
+                }
+                else if(sel === "2"){
+                    localStorage.setItem('dosync', 'avoid')
+                    if(db?.account){
+                        db.account.useSync = false
+                    }
+                    return false
                 }
             }
 
@@ -130,10 +138,10 @@ export class AutoStorage{
             }
 
             const dba = replaceDbResources(db, replaced)
-            const comp = encodeRisuSaveLegacy(dba, 'compression')
+            const comp = await encodeRisuSave(dba, { compression: true, kv: saveKV })
             //try decoding
             try {
-                const z:Database = await decodeRisuSave(comp)
+                const z:Database = (await decodeRisuSave(comp)).database
                 if(!z.formatversion){
                     throw new Error('Encoded account database is invalid.')
                 }

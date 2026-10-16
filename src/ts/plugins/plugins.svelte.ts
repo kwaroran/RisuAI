@@ -343,25 +343,12 @@ export async function importPlugin(code:string|null = null, argu:{
         let apiInternalVersion: 2|'2.1'|'3.0' = '2.1'
 
         if(apiVersion === '2.1'){
-            const safety = await checkCodeSafety(jsFile)
-            if(!safety.isSafe){
-                pluginAlertModalStore.errors = safety.errors
-                pluginAlertModalStore.open = true
-                
-                //I can use event but lazy
-                while(pluginAlertModalStore.open){
-                    await sleep(100)
-                }
-
-                if(pluginAlertModalStore.errors.length > 0){
-                    return
-                }
-            }
-            apiInternalVersion = '2.1'
+            showError('Your plugin specifies API version 2.1, which is outdated and no longer supported. Please update your plugin to use at least API version 3.0.')
+            return
         }
         else if(apiVersion === '2.0'){
             //Only block installing
-            showError('Your code does not include //@api or specifies API version 2.0, which is outdated. Please update your plugin to use at least API version 2.1.')
+            showError('Your code does not include //@api or specifies API version 2.0, which is outdated. Please update your plugin to use at least API version 3.0.')
             return
         }
         else if(apiVersion === '3.0'){
@@ -766,13 +753,17 @@ export const getV2PluginAPIs = () => {
             const db = getDatabase();
             db.pluginCustomStorage ??= {}
             for (const key of Object.keys(newDb)) {
-                if (allowedDbKeys.includes(key)) {
+                if (key === 'pluginCustomStorage') {
+                    db.pluginCustomStorage = keepPluginStorageInternals(db.pluginCustomStorage, newDb[key]);
+                }
+                else if (allowedDbKeys.includes(key)) {
                     (db as any)[key] = newDb[key];
                 }
                 else{
                     db.pluginCustomStorage[key] = newDb[key];
                 }
             }
+            DBState.db = db;
         },
         setDatabase: async (newDb: any) => {
             const db = getDatabase();
@@ -783,7 +774,10 @@ export const getV2PluginAPIs = () => {
                     newDb[key] = await handlePluginInstallViaPlugin(newDb.plugins)
                 }
                 
-                if (allowedDbKeys.includes(key)) {
+                if (key === 'pluginCustomStorage') {
+                    db.pluginCustomStorage = keepPluginStorageInternals(db.pluginCustomStorage, newDb[key]);
+                }
+                else if (allowedDbKeys.includes(key)) {
                     (db as any)[key] = newDb[key];
                 }
                 else{
@@ -824,6 +818,23 @@ export const getV2PluginAPIs = () => {
         },
 
     }
+}
+
+/**
+ * Plugin storage internals (index pointer, legacy per-key map) are managed by the plugin storage store.
+ * Keep them when a plugin writes back a (possibly stale) pluginCustomStorage object.
+ */
+function keepPluginStorageInternals(current: {[key:string]:any} | undefined, incoming: any) {
+    const next = (incoming && typeof incoming === 'object') ? { ...incoming } : {}
+    for (const key of ['_coldpluginIndex', '_coldplugin']) {
+        if (current && Object.prototype.hasOwnProperty.call(current, key)) {
+            next[key] = current[key]
+        }
+        else {
+            delete next[key]
+        }
+    }
+    return next
 }
 
 export async function loadV2Plugin(plugins: RisuPlugin[]) {

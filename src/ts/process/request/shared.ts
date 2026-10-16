@@ -25,7 +25,7 @@ const reasoningCapabilityParameters: LLMParameter[] = [
     'reasoning_effort_xhigh',
 ]
 
-function isReasoningCapabilityParameter(parameter: LLMParameter): boolean {
+export function isReasoningCapabilityParameter(parameter: LLMParameter): boolean {
     return reasoningCapabilityParameters.includes(parameter)
 }
 

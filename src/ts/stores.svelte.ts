@@ -6,9 +6,6 @@ import { moduleUpdate } from "./process/modules";
 import { resetScriptCache } from "./process/scripts";
 import type { hubType } from "./characterCards";
 import type { PluginSafetyErrors } from "./plugins/pluginSafety";
-import { DBState } from "./storage/databaseState.svelte";
-
-export { DBState } from "./storage/databaseState.svelte";
 
 function updateSize(){
     SizeStore.set({
@@ -105,6 +102,10 @@ export function createSimpleCharacter(char:character|groupChat){
 
 updateSize()
 window.addEventListener("resize", updateSize);
+export const DBState = $state({
+    db: {} as any as Database
+});
+
 export const LoadingStatusState = $state({
     text: '',
 })

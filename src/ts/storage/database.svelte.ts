@@ -20,13 +20,10 @@ import {
     DEFAULT_CHAT_LOAD_INITIAL_PAGES,
     normalizeChatLoadPages,
 } from '../chatLoadPages';
-import { setDatabaseLite } from './databaseState.svelte';
-
-export { onDatabaseUpdate, setDatabaseLite } from './databaseState.svelte';
 
 //APP_VERSION_POINT is to locate the app version in the database file for version bumping
-export let appVer = "2026.6.215" //<APP_VERSION_POINT>
-export let webAppSubVer = ''
+export let appVer = "2026.8.250" //<APP_VERSION_POINT>
+export let appSubVer = ''
 
 export type StreamingDisplayOptimizationMode = 'off'|'balanced'|'strong'
 
@@ -610,6 +607,7 @@ export function setDatabase(data:Database){
     data.showDeprecatedTriggerV2 ??= false
     data.returnCSSError ??= true
     data.realmDirectOpen ??= false
+    data.blockedRealmCreators ??= []
     data.checkCorruption ??= false
     data.toggleConfirmRecommendedPreset ??= false
     data.useExperimentalGoogleTranslator ??= false
@@ -709,6 +707,12 @@ export function setDatabase(data:Database){
     data.enableRisuaiProTools ??= data.plugins.length > 0
     data.keepSessionAlive ??= 'off'
     data.loadouts ??= []
+    data.loadoutApplyOptions ??= {
+        modules: true,
+        globalVariables: true,
+        preset: true,
+        persona: true
+    }
     data.longPressToPopupEditor ??= false
     data.customSidebarItems ??= []
     data.moveInsteadOfCopyOnCMPConvert ??= false
@@ -722,6 +726,10 @@ export function setDatabase(data:Database){
     }
     changeLanguage(data.language)
     setDatabaseLite(data)
+}
+
+export function setDatabaseLite(data:Database){
+    DBState.db = data
 }
 
 interface getDatabaseOptions{
@@ -769,7 +777,7 @@ export function setCharacterByIndex(index:number,char:character|groupChat){
 
 export function getCurrentChat(){
     const char = getCurrentCharacter()
-    return char?.chats[char.chatPage]
+    return char?.chats?.[char.chatPage]
 }
 
 export function setCurrentChat(chat:Chat){
@@ -796,6 +804,11 @@ export interface RisuPersona {
     id?:string
     note?:string
     embeddedModule?:RisuModule
+}
+
+export type BlockedRealmCreator = {
+    id: string
+    name: string
 }
 
 export interface Database{
@@ -952,12 +965,12 @@ export interface Database{
     openrouterFallback:boolean
     selectedPersona:number
     personas:RisuPersona[]
-    personaNote:boolean
     assetWidth:number
     animationSpeed:number
     botSettingAtStart:false
     NAIsettings:NAISettings
     hideRealm:boolean
+    blockedRealmCreators:BlockedRealmCreator[]
     colorScheme:ColorScheme
     colorSchemeName:string
     customColorScheme:ColorScheme
@@ -1269,6 +1282,12 @@ export interface Database{
     keepSessionAlive: 'off' | 'pip' | 'sound'
     longPressToPopupEditor?: boolean
     loadouts: Loadout[]
+    loadoutApplyOptions: {
+        modules: boolean
+        globalVariables: boolean
+        preset: boolean
+        persona: boolean
+    }
     disableAprilFools?:boolean
     customSidebarItems: CustomSideBarItem[]
     lastLoadedLoadoutName: string
@@ -1491,6 +1510,7 @@ export interface character{
     prebuiltAssetStyle?:string
     prebuiltAssetExclude?:string[]
     modules?:string[]
+    moduleNamespace?:string
     coldstorage?:string
     coldStoragedChats?:string[]
     customModuleToggle?:string
@@ -1834,6 +1854,8 @@ export interface Chat{
     lastDate?:number
     bookmarks?: string[];
     bookmarkNames?: { [chatId: string]: string };
+    useLocallySetGlobalVariables?: boolean
+    GLGlobalVariables?: { [key: string]: string }
 }
 
 export interface ChatFolder{

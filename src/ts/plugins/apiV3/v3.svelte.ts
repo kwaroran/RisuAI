@@ -1,5 +1,6 @@
 import { allowedDbKeys, customProviderStore, getV2PluginAPIs, handlePluginInstallViaPlugin, pluginV2, type PluginV2ProviderArgument, type PluginV2ProviderOptions, type RisuPlugin } from "../plugins.svelte";
 import { SandboxHost } from "./factory";
+import { createPluginScriptHashGetter, getPluginPermissionKey, PluginPermissionSessionCache, runWithPluginPermission, type PluginPermission } from "./pluginPermissionCache";
 import { getDatabase } from "src/ts/storage/database.svelte";
 import { SafeLocalPluginStorage, tagWhitelist } from "../pluginSafeClass";
 import DOMPurify from 'dompurify';
@@ -13,12 +14,14 @@ import { changeColorScheme, updateColorScheme, updateTextThemeAndCSS, type Color
 import { isNodeServer, isTauri } from "src/ts/platform";
 import { get } from "svelte/store";
 import { registerMCPModule, unregisterMCPModule } from "src/ts/process/mcp/pluginmcp";
+import { pluginStorage } from "src/ts/process/coldstorage.svelte";
 import { getInlayAsset } from "src/ts/process/files/inlays";
 import { getLLMCache, searchLLMCache } from "src/ts/translator/translator";
-import { hasher } from "src/ts/parser/parser.svelte";
+import { hasher, risuChatParser, type CbsConditions } from "src/ts/parser/parser.svelte";
 import localforage from "localforage";
 import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer, type LLMModel } from "src/ts/model/types";
 import { sendChat as processSendChat, doingChat } from "src/ts/process/index.svelte";
+import { processScriptFull } from "src/ts/process/scripts";
 import { getModelInfo } from "src/ts/model/modellist";
 import type { ModelModeExtended } from "src/ts/process/request/shared";
 import { requestChatDataMain } from "src/ts/process/request/request";
@@ -551,8 +554,7 @@ const unloadV3Plugin = async (pluginName: string) => {
     }
 }
 
-const permissionGivenPlugins: Set<string> = new Set();
-const permissionDeniedPlugins: Set<string> = new Set();
+const permissionSessionCache = new PluginPermissionSessionCache();
 const permissionForage = localforage.createInstance({
     name: 'plugin_permissions',
     storeName: 'plugin_permissions'
@@ -564,15 +566,13 @@ type PluginV3ProviderOptions = PluginV2ProviderOptions & {
 
 export const customV3ProviderMetaStore:LLMModel[] = []
 
-const getPluginPermission = async (pluginName: string, permissionDesc: 'fetchLogs'|'db'|'mainDom'|'replacer'|'provider'|'sendChat', reconfirm: boolean|'periodically' = false) => {
-    if(permissionGivenPlugins.has(pluginName)){
-        return true;
-    }
-    if(permissionDeniedPlugins.has(pluginName)){
-        return false;
+const getPluginPermission = async (pluginName: string, scriptHash: string, permissionDesc: PluginPermission, reconfirm: boolean|'periodically' = false) => {
+    const cachedPermission = permissionSessionCache.get(scriptHash, permissionDesc)
+    if(cachedPermission !== undefined){
+        return cachedPermission;
     }
 
-    let pluginHash = ''
+    const permissionKey = getPluginPermissionKey(scriptHash, permissionDesc)
 
     let requiresReconfirm = false;
 
@@ -587,14 +587,8 @@ const getPluginPermission = async (pluginName: string, permissionDesc: 'fetchLog
         requiresReconfirm = true;
     }
 
-    pluginHash = await hasher(
-        new TextEncoder().encode(
-            DBState.db.plugins.find(p => p.name === pluginName)?.script
-        )
-    ) + `_${permissionDesc}`;
-
-    if(!requiresReconfirm &&await permissionForage.getItem(pluginHash)){
-        permissionGivenPlugins.add(pluginName);
+    if(!requiresReconfirm && await permissionForage.getItem(permissionKey)){
+        permissionSessionCache.set(scriptHash, permissionDesc, true)
         return true;
     }   
     
@@ -606,20 +600,21 @@ const getPluginPermission = async (pluginName: string, permissionDesc: 'fetchLog
         : permissionDesc === 'replacer' ? language.replacerPermissionConsent.replace("{}", pluginName)
         : permissionDesc === 'provider' ? language.providerPermissionConsent.replace("{}", pluginName)
         : permissionDesc === 'sendChat' ? language.sendChatConsent.replace("{}", pluginName)
+        : permissionDesc === 'inlay' ? language.inlayPermissionConsent.replace("{}", pluginName)
         : `Error`
     if(alertTitle === 'Error'){
         return false;
     }
     const conf = await alertConfirm(alertTitle)
-    if(conf && pluginHash){
-        permissionGivenPlugins.add(pluginName);
-        await permissionForage.setItem(pluginHash, true);
+    if(conf && permissionKey){
+        permissionSessionCache.set(scriptHash, permissionDesc, true)
+        await permissionForage.setItem(permissionKey, true);
         if(reconfirm === 'periodically'){
             await permissionForage.setItem(pluginName + '_' + permissionDesc + '_lastGrantTime', Date.now());
         }
         return true;
     }
-    permissionDeniedPlugins.add(pluginName);
+    permissionSessionCache.set(scriptHash, permissionDesc, false)
     return false;
 }
 
@@ -638,6 +633,10 @@ const authorizationHeaders = [
 const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
 
     const oldApis = getV2PluginAPIs();
+    const getPluginScriptHash = createPluginScriptHashGetter(plugin.script, hasher)
+    const getPermission = async (permissionDesc: PluginPermission, reconfirm: boolean|'periodically' = false) => {
+        return getPluginPermission(plugin.name, await getPluginScriptHash(), permissionDesc, reconfirm)
+    }
     return {
 
         //Old APIs from v2.1
@@ -680,12 +679,20 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             console.warn(`[WARN] addProvider is a powerful API that can potentially be unsafe if used incorrectly. addProvider's functionality might be limited or changed in future updates to ensure security. please use other APIs if possible.`);
             let provs = get(customProviderStore)
             provs.push(name)
-            pluginV2.providers.set(name, async (arg, abortSignal) => {
-               await getPluginPermission(plugin.name, 'provider', 'periodically');
-               //mode is overridden to v3, due to vulnerabilities using mode.
-               //Alternative to mode will be added in future
-               arg.mode = 'v3'
-               return await func(arg, abortSignal);
+            pluginV2.providers.set(name, (arg, abortSignal) => {
+                return runWithPluginPermission(
+                    () => getPermission('provider', 'periodically'),
+                    async () => {
+                        //mode is overridden to v3, due to vulnerabilities using mode.
+                        //Alternative to mode will be added in future
+                        arg.mode = 'v3'
+                        return func(arg, abortSignal);
+                    },
+                    {
+                        success: false,
+                        content: language.providerPermissionDenied,
+                    },
+                )
             }),
             pluginV2.providerOptions.set(name, options ?? {})
             customProviderStore.set(provs)
@@ -720,7 +727,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         removeRisuScriptHandler: oldApis.removeRisuScriptHandler,
         addRisuReplacer: async (name:string,func:Function) => {
             //permission check for replacer
-            const conf = await getPluginPermission(plugin.name, 'replacer', 'periodically');
+            const conf = await getPermission('replacer', 'periodically');
             if(!conf){
                 return;
             }
@@ -728,6 +735,11 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         removeRisuReplacer: oldApis.removeRisuReplacer,
         addRisuChatListener: async (mode:'output', func:Function) => {
+            //permission check, lets use same as replacer
+            const conf = await getPermission('replacer', 'periodically');
+            if(!conf){
+                return;
+            }
             oldApis.addRisuChatListener(mode, func as any);
             addPluginUnloadCallback(plugin.name, () => oldApis.removeRisuChatListener(mode, func as any));
         },
@@ -737,12 +749,16 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         loadPlugins: oldApis.loadPlugins,
         readImage: oldApis.readImage,
         readInlay: async (id: string) => {
+            const conf = await getPermission('inlay', 'periodically');
+            if(!conf){
+                return null;
+            }
             return await getInlayAsset(id);
         },
         saveAsset: oldApis.saveAsset,
         //Same functionality, but new implementation
         getDatabase: async (includeOnly:string[]|'all' = 'all') => {
-            const conf = await getPluginPermission(plugin.name, 'db', 'periodically');
+            const conf = await getPermission('db', 'periodically');
             if(!conf){
                 return null;
             }
@@ -874,6 +890,49 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             }
             return null;
         },
+        parseRisuChat: async (text:string, options?:{
+            messageIndex?: number
+            role?: string
+            processRegex?: boolean
+            runVar?: boolean
+            rmVar?: boolean
+            tokenizeAccurate?: boolean
+            cbsConditions?: CbsConditions
+        }) => {
+            const db = DBState.db
+            const char = db.characters[get(selectedCharID)];
+            if(!char){
+                throw new Error('No character selected');
+            }
+            const chat = char.chats?.[char.chatPage];
+            if(!chat){
+                throw new Error('No active chat found');
+            }
+            const chatID = options?.messageIndex ?? -1;
+            if(!Number.isInteger(chatID) || chatID < -1 || chatID >= chat.message.length){
+                throw new Error(`Invalid messageIndex: ${chatID}`);
+            }
+            const role = options?.role;
+            const cbsConditions:CbsConditions = {
+                ...(role ? { chatRole: role } : {}),
+                ...(options?.cbsConditions ?? {}),
+            };
+            const parsed = risuChatParser(text ?? '', {
+                chara: char,
+                chatID,
+                role,
+                runVar: options?.runVar,
+                rmVar: options?.rmVar,
+                tokenizeAccurate: options?.tokenizeAccurate,
+                cbsConditions,
+            });
+
+            if(!options?.processRegex){
+                return parsed;
+            }
+
+            return (await processScriptFull(char, parsed, 'editprocess', chatID, cbsConditions)).data;
+        },
         setChatToIndex: (characterIndex:number, chatIndex:number, chat:any) => {
             const db = DBState.db
             const charIds = Object.keys(db.characters);
@@ -941,7 +1000,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             iframe.style.display = "none";
         },
         getRootDocument: async () => {
-            const conf = await getPluginPermission(plugin.name, 'mainDom');
+            const conf = await getPermission('mainDom');
             if(!conf){
                 return null;
             }
@@ -986,7 +1045,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         registerBodyIntercepter: async (callback: (body: any, type: string) => any) => {
 
-            if(await getPluginPermission(plugin.name, 'replacer') === false){
+            if(await getPermission('replacer') === false){
                 return null;
             }
             
@@ -1153,7 +1212,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         getFetchLogs: async () => {
             const unsafeFetchLog = getFetchLogs()
-            const conf = await getPluginPermission(plugin.name, 'fetchLogs');
+            const conf = await getPermission('fetchLogs');
             if(!conf){
                 return null;
             }
@@ -1196,7 +1255,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
         },
         checkCharOrder: checkCharOrder,
         requestPluginPermission: (permission:string) => {
-            return getPluginPermission(plugin.name, permission as any);
+            return getPermission(permission as any);
         },
         //Internal use APIs
         _getOldKeys: () => {
@@ -1212,19 +1271,28 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             
             return v;
         },
-        _getPluginStorage: oldApis.pluginStorage.getItem,
-        _setPluginStorage: oldApis.pluginStorage.setItem,
-        _removePluginStorage: oldApis.pluginStorage.removeItem,
-        _clearPluginStorage: oldApis.pluginStorage.clear,
-        _keyPluginStorage: oldApis.pluginStorage.key,
-        _keysPluginStorage: oldApis.pluginStorage.keys,
-        _lengthPluginStorage: oldApis.pluginStorage.length,
+        //pluginStorage is coldstorage-backed (see process/pluginStorageStore.ts)
+        _getPluginStorage: (key: string) => pluginStorage.getItem(key),
+        _setPluginStorage: (key: string, value: any) => pluginStorage.setItem(key, value),
+        _removePluginStorage: (key: string) => pluginStorage.removeItem(key),
+        _clearPluginStorage: () => pluginStorage.clear(),
+        _keyPluginStorage: async (index: number) => {
+            return (await pluginStorage.keys())[index] ?? null
+        },
+        _keysPluginStorage: () => pluginStorage.keys(),
+        _lengthPluginStorage: async () => {
+            return (await pluginStorage.keys()).length
+        },
         _getSafeLocalStorage: oldApis.safeLocalStorage.getItem,
         _setSafeLocalStorage: oldApis.safeLocalStorage.setItem,
         _removeSafeLocalStorage: oldApis.safeLocalStorage.removeItem,
-        _clearSafeLocalStorage: oldApis.safeLocalStorage.clear,
-        _keySafeLocalStorage: oldApis.safeLocalStorage.key,
+        //bound calls: SafeLocalStorage.key/clear use `this`
+        _clearSafeLocalStorage: () => oldApis.safeLocalStorage.clear(),
+        _keySafeLocalStorage: (index: number) => oldApis.safeLocalStorage.key(index),
         _keysSafeLocalStorage: oldApis.safeLocalStorage.keys,
+        _lengthSafeLocalStorage: () => {
+            return oldApis.safeLocalStorage.length
+        },
         searchTranslationCache: async (partialKey: string) => {
             return searchLLMCache(partialKey)
         },
@@ -1249,6 +1317,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                     'clear': '_clearSafeLocalStorage',
                     'key': '_keySafeLocalStorage',
                     'keys': '_keysSafeLocalStorage',
+                    'length': '_lengthSafeLocalStorage',
                 }
             }
         },
@@ -1274,7 +1343,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             }, options.mode)
         },
         sendChat: async (message: string) => {
-            const conf = await getPluginPermission(plugin.name, 'sendChat');
+            const conf = await getPermission('sendChat');
             if(!conf){
                 return false;
             }
