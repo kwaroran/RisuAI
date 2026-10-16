@@ -1,5 +1,6 @@
 import { globalFetch } from '../globalApi.svelte'
-import type { ModelGridItem } from './modelGrid'
+import { getDatabase } from '../storage/database.svelte'
+import type { ModelGridItem, ModelGridSource } from './modelGrid'
 
 export type OllamaModelSource = 'local' | 'cloud'
 
@@ -65,4 +66,16 @@ export function toModelGridItem(model: OllamaTagModel, source: OllamaModelSource
         sortPrice: source === 'cloud' ? 1 : 0,
         prices: [],
     }
+}
+
+export const ollamaCloudModelSource: ModelGridSource = {
+    label: 'Ollama Cloud',
+    cacheKey: () => getDatabase().ollamaApiKey,
+    fetchItems: () => getOllamaModels('', 'cloud', getDatabase().ollamaApiKey),
+    modelKey: 'ollamaCloudModel',
+    nameKey: 'ollamaCloudModelName',
+    inputModeKey: 'ollamaInputMode',
+    onModelChange: () => {
+        getDatabase().ollamaModelSource = 'cloud'
+    },
 }

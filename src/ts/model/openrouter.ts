@@ -1,5 +1,5 @@
 import { getDatabase } from "../storage/database.svelte"
-import { buildPriceRows, type ModelGridItem } from "./modelGrid"
+import { buildPriceRows, type ModelGridItem, type ModelGridSource } from "./modelGrid"
 
 /** Per-1M-token price entry. undefined means the field is not available for this model. */
 export type PriceEntry = number | undefined
@@ -121,6 +121,19 @@ export function toModelGridItem(m: OpenRouterModelInfo): ModelGridItem {
             ['Reasoning', m.internalReasoningPrice1M],
         ]),
     }
+}
+
+export const openRouterModelSource: ModelGridSource = {
+    label: 'OpenRouter',
+    cacheKey: () => getDatabase().openrouterKey,
+    fetchItems: async () => (await getOpenRouterModels()).map(toModelGridItem),
+    modelKey: 'openrouterRequestModel',
+    nameKey: 'openrouterRequestModelName',
+    inputModeKey: 'openrouterInputMode',
+    pinnedItems: [
+        { id: 'risu/free',       displayName: 'Free Auto',       providerName: 'Risu'       },
+        { id: 'openrouter/auto', displayName: 'OpenRouter Auto', providerName: 'OpenRouter' },
+    ],
 }
 
 export async function getFreeOpenRouterModels(){

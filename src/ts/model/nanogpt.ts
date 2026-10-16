@@ -7,7 +7,7 @@ import {
     NANOGPT_SUBSCRIPTION_MODELS_ENDPOINT,
     NANOGPT_MODEL_PROVIDERS_ENDPOINT,
 } from "./providers/nanogpt"
-import { buildPriceRows, type ModelGridItem } from "./modelGrid"
+import { buildPriceRows, type ModelGridItem, type ModelGridSource } from "./modelGrid"
 
 export type NanoGPTModelInfo = {
     id: string
@@ -204,6 +204,25 @@ export function toModelGridItem(m: NanoGPTModelInfo): ModelGridItem {
             ['Out', m.completionPrice1M],
         ]),
     }
+}
+
+export const nanoGPTModelSource: ModelGridSource = {
+    label: 'NanoGPT',
+    cacheKey: () => {
+        const db = getDatabase()
+        return `${db.nanogptKey}|${db.nanogptUseSubscriptionEndpoint}`
+    },
+    fetchItems: async () => {
+        const db = getDatabase()
+        const models = db.nanogptUseSubscriptionEndpoint
+            ? await getNanoGPTSubscriptionModels(db.nanogptKey)
+            : await getNanoGPTModels()
+        return models.map(toModelGridItem)
+    },
+    modelKey: 'nanogptRequestModel',
+    nameKey: 'nanogptRequestModelName',
+    inputModeKey: 'nanogptInputMode',
+    showSubBadge: () => getDatabase().nanogptUseSubscriptionEndpoint,
 }
 
 function parsePrice(raw: any): number | undefined {
