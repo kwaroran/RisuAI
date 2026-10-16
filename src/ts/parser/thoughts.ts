@@ -39,11 +39,12 @@ function matchThoughtBlock(data: string, openIdx: number): { end: number; conten
 /**
  * Replaces every <Thoughts>...</Thoughts> block in `data` via `replacer(content)`.
  * Handles nested tags, multiple sequential blocks, and leaves unclosed blocks as-is.
- * Linear in `data` length (indexOf-based, no regex backtracking).
+ * indexOf-based, no regex backtracking. Linear for balanced input; an
+ * unbalanced block rescans to the end before falling back.
  *
  * With `opts.stripTrailingNewlines`, the newlines immediately following each
- * closing tag are consumed along with the block, matching the legacy regex
- * behavior (trailing newlines after the closing tag) some callers relied on.
+ * closing tag are consumed along with the block (as the old `\n*` in the
+ * OpenAI tool-stream regex did), so removed blocks leave no blank lines.
  */
 export function replaceThoughtBlocks(data: string, replacer: (content: string) => string, opts: { stripTrailingNewlines?: boolean } = {}): string {
     let out = ''
