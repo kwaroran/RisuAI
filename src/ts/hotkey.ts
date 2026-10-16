@@ -14,8 +14,7 @@ export function initHotkey(){
             !ev.ctrlKey &&
             !ev.altKey &&
             !ev.shiftKey &&
-            (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) ||
-            document.activeElement.getAttribute('contenteditable'))
+            isTypingTarget(document.activeElement)
         ){
             return
         }
@@ -337,9 +336,25 @@ export function hotkeyMatches(hotkey: typeof DBState.db.hotkeys[number], ev: Key
     if(hotkey.shift !== ev.shiftKey) return false
     if(hotkey.key.toLowerCase() !== ev.key.toLowerCase()) return false
     if(!hotkey.ctrl && !hotkey.alt && !hotkey.shift){
-        if(['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return false
+        return !isTypingTarget(document.activeElement)
     }
     return true
+}
+
+/**
+ * Whether `el` accepts text input.
+ */
+function isTypingTarget(el: Element | null): boolean {
+    if(!el){
+        return false
+    }
+    if(['INPUT', 'TEXTAREA'].includes(el.tagName)){
+        return true
+    }
+    if(el instanceof HTMLElement && el.isContentEditable){
+        return true
+    }
+    return 'editContext' in el && el.editContext != null
 }
 
 function clickQuery(query:string){
