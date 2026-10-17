@@ -393,15 +393,17 @@ export async function runScripted(code:string, arg:{
                 if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
-                const orientation = options?.orientation
-                if(orientation !== undefined && orientation !== 'landscape' && orientation !== 'portrait'){
-                    return 'Error: Image orientation must be landscape or portrait, received ' + orientation
-                }
 
-                const gen = await generateAIImage(value, char as character, negValue, 'inlay', options)
-                if(!gen){
+                let gen: string | false
+                try {
+                    gen = await generateAIImage(value, char as character, negValue, 'inlay', options)
+                } catch (error) {
+                    return 'Error: ' + (error instanceof Error ? error.message : String(error))
+                }
+                if (!gen) {
                     return 'Error: Image generation failed'
                 }
+
                 const imgHTML = new Image()
                 imgHTML.src = gen
                 const inlay = await writeInlayImage(imgHTML)

@@ -63,10 +63,18 @@ export async function stableDiff(currentChar:character,prompt:string){
 
 export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string, options?:ImageGenerationOptions):Promise<string|false>{
     const db = getDatabase()
-    console.log(db.sdProvider)
+
+    const orientation = options?.orientation
+    if (orientation !== undefined && orientation !== 'landscape' && orientation !== 'portrait') {
+        throw new Error('Image orientation must be landscape or portrait, received ' + orientation)
+    }
+
+    const charactersError = validateNAICharacters(options?.characters, db.sdProvider, db.NAIImgModel)
+    if (charactersError){
+        throw new Error(charactersError)
+    }
+
     if(db.sdProvider === 'webui'){
-
-
         const uri = new URL(db.webUiUrl)
         uri.pathname = '/sdapi/v1/txt2img'
         try {
@@ -133,6 +141,8 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
 
         let reqlist:any = {}
 
+        const charCaptions = toNAICharCaptions(db.NAIImgModel, options?.characters)
+
         const commonReq = {
             body: {
                 "input": genPrompt,
@@ -142,7 +152,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "add_original_image": true,
                     "cfg_rescale": db.NAIImgConfig.cfg_rescale,
                     "controlnet_strength": 1,
-                    "dynamic_thresholding": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') || db.NAIImgModel.includes('nai-diffusion-2') ? db.NAIImgConfig.decrisp : false,
+                    "dynamic_thresholding": isLegacyNAIModel(db.NAIImgModel) ? db.NAIImgConfig.decrisp : false,
                     "n_samples": 1,
                     "width": dimensions.width,
                     "height": dimensions.height,
@@ -150,7 +160,7 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "steps": db.NAIImgConfig.steps,
                     "scale": db.NAIImgConfig.scale,
                     "negative_prompt": neg,
-                    "sm": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') || db.NAIImgModel.includes('nai-diffusion-2') ? db.NAIImgConfig.sm : undefined,
+                    "sm": isLegacyNAIModel(db.NAIImgModel) ? db.NAIImgConfig.sm : undefined,
                     "sm_dyn": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') ? db.NAIImgConfig.sm_dyn : undefined,
                     "noise_schedule": db.NAIImgConfig.noise_schedule,
                     "normalize_reference_strength_multiple":true,
@@ -161,20 +171,20 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "legacy": false,
                     //add v4
                     "autoSmea": false,
-                    "use_coords": false,
+                    "use_coords": charCaptions.useCoords,
                     "legacy_uc": db.NAIImgConfig.legacy_uc,
                     "v4_prompt":{
                         caption:{
                             base_caption:genPrompt,
-                            char_captions: []
+                            char_captions: charCaptions.positive
                         },
-                        use_coords: false,
+                        use_coords: charCaptions.useCoords,
                         use_order: true,
                     },
                     "v4_negative_prompt":{
                         caption:{
                             base_caption:neg,
-                            char_captions: []
+                            char_captions: charCaptions.negative
                         },
                         legacy_uc: db.NAIImgConfig.legacy_uc,
                     },
@@ -951,8 +961,104 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
 
 export type ImageOrientation = 'landscape' | 'portrait'
 
+export interface ImageGenerationCharacter {
+    negative?: string
+    /**
+     * Each axis is clamped to 0 to 1.
+     */
+    position?: { x: number, y: number }
+    positive: string
+}
+
 export interface ImageGenerationOptions {
+    characters?: ImageGenerationCharacter[]
     orientation?: ImageOrientation
+}
+
+/**
+ * Matches NovelAI models before V4.
+ */
+export function isLegacyNAIModel(model: string) {
+    return model.includes('nai-diffusion-2') || model.includes('nai-diffusion-3') || model.includes('nai-diffusion-furry-3')
+}
+
+/**
+ * Returns an error message when `characters` is malformed or the configured image provider cannot use it.
+ */
+export function validateNAICharacters(characters: unknown, provider: string, model: string) {
+    if (characters === undefined) {
+        return
+    }
+    if (!Array.isArray(characters)) {
+        return 'Image characters must be an array'
+    }
+    for (const character of characters) {
+        if (typeof character !== 'object' || character === null || typeof character.positive !== 'string') {
+            return 'Each image character must have a positive prompt string'
+        }
+        if (character.negative !== undefined && typeof character.negative !== 'string') {
+            return 'Image character negative prompt must be a string'
+        }
+        if (character.position !== undefined && !isPosition(character.position)) {
+            return 'Image character position must have numeric x and y'
+        }
+    }
+    if (characters.length === 0) {
+        return
+    }
+    if (provider !== 'novelai') {
+        return 'Image characters require NovelAI'
+    }
+    if (isLegacyNAIModel(model)) {
+        return 'Image characters require NovelAI V4 or later'
+    }
+}
+
+function isPosition(position: unknown) {
+    if (typeof position !== 'object' || position === null) {
+        return false
+    }
+    const { x, y } = position as Record<string, unknown>
+    return typeof x === 'number' && typeof y === 'number' && !Number.isNaN(x) && !Number.isNaN(y)
+}
+
+function clampUnit(value: number) {
+    return Math.min(Math.max(value, 0), 1)
+}
+
+const NAI_V4_COORDINATES = [0.1, 0.3, 0.5, 0.7, 0.9]
+
+function snapNAIV4Coordinate(value: number) {
+    const index = Math.min(Math.max(Math.round((value - 0.1) / 0.2), 0), NAI_V4_COORDINATES.length - 1)
+    return NAI_V4_COORDINATES[index]
+}
+
+/**
+ * Converts characters into NovelAI character captions.
+ * V4 and V4.5 snap positions to the nearest grid value.
+ */
+export function toNAICharCaptions(model: string, characters: ImageGenerationCharacter[] = []) {
+    const snap = model.includes('nai-diffusion-4')
+    const centers = characters.map((character) => {
+        const position = character.position ?? { x: 0.5, y: 0.5 }
+        const x = clampUnit(position.x)
+        const y = clampUnit(position.y)
+        if (snap) {
+            return [{ x: snapNAIV4Coordinate(x), y: snapNAIV4Coordinate(y) }]
+        }
+        return [{ x, y }]
+    })
+    return {
+        negative: characters.map((character, index) => ({
+            centers: centers[index],
+            char_caption: character.negative ?? '',
+        })),
+        positive: characters.map((character, index) => ({
+            centers: centers[index],
+            char_caption: character.positive,
+        })),
+        useCoords: characters.some((character) => character.position !== undefined),
+    }
 }
 
 /**
