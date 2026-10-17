@@ -400,19 +400,25 @@ const rects = await element.getClientRects();
 
 #### Event Listeners
 
-Event listeners have security restrictions and return unique IDs:
+Event listeners have security restrictions and return unique IDs. Listeners receive events that reach the element via normal DOM propagation, while non-bubbling events such as scroll fire only on the element itself:
 
 ```javascript
 // Add event listener - returns ID for later removal
 const listenerId = await element.addEventListener('click', async (event) => {
   console.log('Element clicked!');
-
-  // Do something with the event
-  const target = event.target;
 }, { capture: false });
 
 // Remove event listener using the ID
 await element.removeEventListener('click', listenerId);
+```
+
+To listen document-wide, use the `SafeDocument` from `getRootDocument()`:
+
+```javascript
+const rootDoc = await Risuai.getRootDocument();
+const id = await rootDoc.addEventListener('keydown', async (event) => {
+  console.log('Key pressed anywhere!');
+});
 ```
 
 **Allowed Events (Unlimited):**

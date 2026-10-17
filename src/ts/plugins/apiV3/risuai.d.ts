@@ -808,6 +808,7 @@ interface SafeElement {
      * - Keyboard: keydown, keyup, keypress
      *
      * listener function receives trimmed event object with common properties only.
+     * listeners receive events that reach the element via normal DOM propagation; for document-wide listening, use the SafeDocument from getRootDocument().
      * 
      * @example
      * ```typescript
@@ -827,9 +828,9 @@ interface SafeElement {
 
     /**
      * Removes an event listener using its ID
-     * @param type - Event type
+     * @param type - Event type (for compatibility; removal is resolved by ID)
      * @param id - Listener ID returned by addEventListener
-     * @param options - Event listener options
+     * @param options - Event listener options (for compatibility)
      */
     removeEventListener(
         type: string,
