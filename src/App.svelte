@@ -191,7 +191,9 @@
 
                 </div>
             {/if}
-            <ChatScreen />
+            <FileDropZone target="auto">
+                <ChatScreen />
+            </FileDropZone>
         {/if}
     {/if}
     {#if $alertStore.type !== 'none'}

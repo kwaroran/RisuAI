@@ -5,18 +5,20 @@
     import { TriangleAlert } from '@lucide/svelte';
 
     import { DBState, hotReloading } from "src/ts/stores.svelte";
-    import { checkPluginUpdate, createBlankPlugin, importPlugin, loadPlugins, updatePlugin } from "src/ts/plugins/plugins.svelte";
+    import { checkPluginUpdate, importPlugin, loadPlugins, updatePlugin } from "src/ts/plugins/plugins.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
     import NumberInput from "src/lib/UI/GUI/NumberInput.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
+    import FileDropZone from "src/lib/Others/FileDropZone.svelte";
     import { hotReloadPluginFiles } from "src/ts/plugins/apiV3/developMode";
 
     let showParams = $state([])
 </script>
 
+<FileDropZone target="plugin">
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.plugin}</h2>
 
 <span class="text-draculared text-xs mb-4">{language.pluginWarn}</span>
@@ -275,3 +277,4 @@
         <CodeXmlIcon />
     </button>
 </div>
+</FileDropZone>

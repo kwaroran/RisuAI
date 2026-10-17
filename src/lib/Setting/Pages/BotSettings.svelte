@@ -17,6 +17,7 @@
     import SliderInput from "src/lib/UI/GUI/SliderInput.svelte";
     import TextAreaInput from "src/lib/UI/GUI/TextAreaInput.svelte";
     import Button from "src/lib/UI/GUI/Button.svelte";
+    import FileDropZone from "src/lib/Others/FileDropZone.svelte";
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
@@ -135,6 +136,8 @@
     let usesOllamaLocal = $derived(DBState.db.aiModel === 'ollama-hosted' || DBState.db.subModel === 'ollama-hosted')
     let usesOllamaCloud = $derived(DBState.db.aiModel === 'ollama-cloud' || DBState.db.subModel === 'ollama-cloud')
 </script>
+
+<FileDropZone target="auto">
 <h2 class="mb-2 text-2xl font-bold mt-2">{language.chatBot}</h2>
 
 {#if submenu !== -1}
@@ -863,3 +866,4 @@
 {#if submenu === -1}
     <Button onclick={() => {$openPresetList = true}} className="mt-4">{language.presets}</Button>
 {/if}
+</FileDropZone>
