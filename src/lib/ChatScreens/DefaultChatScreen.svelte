@@ -675,16 +675,19 @@
                     </button>
                 {/if}
                 {#if DBState.db.characters[$selectedCharID]?.chaId !== '§playground'}
-                    <button
+                        <button
                             onclick={(e) => {
-                            openMenu = !openMenu
-                            e.stopPropagation()
-                        }}
+                                openMenu = !openMenu
+                                e.stopPropagation()
+                            }}
                             class="peer-focus:border-textcolor mr-2 flex border-y border-r border-darkborderc justify-center items-center text-textcolor p-3 rounded-r-md hover:bg-blue-500 hover:text-white transition-colors"
                             style:height={inputHeight}
-                    >
-                        <MenuIcon />
-                    </button>
+                        >
+                            <MenuIcon />
+                        </button>
+                        {#if openMenu}
+                            {@render chatMenu()}
+                        {/if}
                 {:else}
                     <div onclick={(e) => {
                         DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.push({
@@ -909,8 +912,8 @@
 
             {/if}
 
-            {#if openMenu}
-                <div class="{DBState.db.fixedChatTextarea ? 'fixed' : 'absolute'} right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor rounded-md" onclick={(e) => {
+            {#snippet chatMenu()}
+                <div class="absolute right-2 bottom-16 p-5 bg-darkbg flex flex-col gap-3 text-textcolor rounded-md" onclick={(e) => {
                     e.stopPropagation()
                 }}>
                     {#if DBState.db.characters[$selectedCharID].type === 'group'}
@@ -1070,7 +1073,7 @@
                     {/if}
                 </div>
 
-            {/if}
+            {/snippet}
         </div>
 
     {/if}
