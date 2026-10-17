@@ -64,7 +64,7 @@
                     {#if !previewing}
                         <select
                             bind:value={languageMode}
-                            class="bg-bgcolor border-none rounded px-2 py-1 text-sm"
+                            class="risu-select bg-bgcolor border-none rounded px-2 py-1 text-sm"
                         >
                             <option value="markdown">Markdown</option>
                             <option value="cbs" disabled>CBS</option>

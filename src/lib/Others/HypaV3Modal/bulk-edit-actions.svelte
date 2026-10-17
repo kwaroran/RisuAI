@@ -93,7 +93,7 @@
       <div class="flex items-center gap-2">
         <!-- Category Selection -->
         <select
-          class="px-3 py-2 rounded-sm border border-zinc-600 bg-zinc-900 text-zinc-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+          class="risu-select px-3 py-2 rounded-sm border border-zinc-600 bg-zinc-900 text-zinc-200 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           value={bulkEditState.selectedCategory}
           onchange={handleCategoryChange}
         >

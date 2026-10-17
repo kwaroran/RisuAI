@@ -744,12 +744,7 @@ export function getDatabase(options:getDatabaseOptions = {}):Database{
 }
 
 export function getCurrentCharacter(options:getDatabaseOptions = {}):character|groupChat{
-    const db = getDatabase(options)
-    if(!db.characters){
-        db.characters = []
-    }
-    const char = db.characters?.[get(selectedCharID)]
-    return char
+    return getCharacterByIndex(get(selectedCharID), options)
 }
 
 export function setCurrentCharacter(char:character|groupChat){
@@ -760,12 +755,12 @@ export function setCurrentCharacter(char:character|groupChat){
 }
 
 export function getCharacterByIndex(index:number,options:getDatabaseOptions = {}):character|groupChat{
-    const db = getDatabase(options)
-    if(!db.characters){
-        db.characters = []
+    if(!DBState.db.characters){
+        DBState.db.characters = []
     }
-    const char = db.characters?.[index]
-    return char
+    const char = DBState.db.characters[index]
+    // snapshot only the requested character instead of the whole database
+    return options.snapshot ? $state.snapshot(char) as character|groupChat : char
 }
 
 export function setCharacterByIndex(index:number,char:character|groupChat){
@@ -1500,6 +1495,7 @@ export interface character{
         ext: string
     }>
     defaultVariables?:string
+    onboarding?:CharacterOnboarding
     lowLevelAccess?:boolean
     hideChatIcon?:boolean
     lastInteraction?:number
@@ -1856,6 +1852,35 @@ export interface Chat{
     bookmarkNames?: { [chatId: string]: string };
     useLocallySetGlobalVariables?: boolean
     GLGlobalVariables?: { [key: string]: string }
+    onboardingDone?: boolean
+}
+
+export interface OnboardingOption{
+    label:string
+    value:string
+}
+
+export interface OnboardingQuestion{
+    id:string
+    title:string
+    description?:string
+    type:'single'|'multiple'|'text'
+    varName:string
+    required?:boolean
+    options:OnboardingOption[]
+    placeholder?:string
+}
+
+/** A creator-defined set of choices shown before a chat starts. Each answer is written to a chat variable. */
+export interface CharacterOnboarding{
+    enabled:boolean
+    mode:'form'|'html'
+    title?:string
+    description?:string
+    questions:OnboardingQuestion[]
+    html?:string
+    /** Also shows a floating button on the chat screen that opens the onboarding. */
+    floatingButton?:boolean
 }
 
 export interface ChatFolder{
