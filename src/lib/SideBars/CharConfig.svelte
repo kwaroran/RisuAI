@@ -34,6 +34,7 @@
     import SliderInput from "../UI/GUI/SliderInput.svelte";
     import Toggles from "./Toggles.svelte";
     import { convertCharacterToModule } from "src/ts/interchangeability";
+    import OnboardingEditor from "./OnboardingEditor.svelte";
 
     let iconRemoveMode = $state(false)
     let viewSubMenu = $state(0)
@@ -710,6 +711,8 @@
 
         <span class="text-textcolor mt-4">{language.triggerScript} <Help key="triggerScript"/></span>
         <TriggerList bind:value={(DBState.db.characters[$selectedCharID] as character).triggerscript} lowLevelAble={DBState.db.characters[$selectedCharID].lowLevelAccess} />
+
+        <OnboardingEditor />
 
 
         {#if DBState.db.characters[$selectedCharID].virtualscript || DBState.db.showUnrecommended}
