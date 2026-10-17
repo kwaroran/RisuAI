@@ -61,7 +61,7 @@ export async function stableDiff(currentChar:character,prompt:string){
     return await generateAIImage(genPrompt, currentChar, neg, '')
 }
 
-export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string):Promise<string|false>{
+export async function generateAIImage(genPrompt:string, currentChar:character, neg:string, returnSdData:string, options?:ImageGenerationOptions):Promise<string|false>{
     const db = getDatabase()
     console.log(db.sdProvider)
     if(db.sdProvider === 'webui'){
@@ -121,6 +121,8 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
     }
     if(db.sdProvider === 'novelai'){
+        const dimensions = applyImageOrientation(db.NAIImgConfig.width, db.NAIImgConfig.height, options?.orientation)
+
         genPrompt = genPrompt
             .replaceAll('\\(', "♧")
             .replaceAll('\\)', "♤")
@@ -142,8 +144,8 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
                     "controlnet_strength": 1,
                     "dynamic_thresholding": db.NAIImgModel.includes('nai-diffusion-3') || db.NAIImgModel.includes('nai-diffusion-furry-3') || db.NAIImgModel.includes('nai-diffusion-2') ? db.NAIImgConfig.decrisp : false,
                     "n_samples": 1,
-                    "width": db.NAIImgConfig.width,
-                    "height": db.NAIImgConfig.height,
+                    "width": dimensions.width,
+                    "height": dimensions.height,
                     "sampler": db.NAIImgConfig.sampler,
                     "steps": db.NAIImgConfig.steps,
                     "scale": db.NAIImgConfig.scale,
@@ -945,4 +947,34 @@ export async function generateAIImage(genPrompt:string, currentChar:character, n
         }
     }
     return ''
+}
+
+export type ImageOrientation = 'landscape' | 'portrait'
+
+export interface ImageGenerationOptions {
+    orientation?: ImageOrientation
+}
+
+/**
+ * Places the longer edge on the width for landscape and on the height for portrait.
+ */
+export function applyImageOrientation(width: number, height: number, orientation?: ImageOrientation) {
+    if (!orientation) {
+        return { height, width }
+    }
+
+    const longerEdge = Math.max(height, width)
+    const shorterEdge = Math.min(height, width)
+
+    if (orientation === 'landscape') {
+        return {
+            height: shorterEdge,
+            width: longerEdge,
+        }
+    }
+
+    return {
+        height: longerEdge,
+        width: shorterEdge,
+    }
 }
