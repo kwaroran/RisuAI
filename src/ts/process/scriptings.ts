@@ -7,7 +7,7 @@ import { get } from "svelte/store";
 import { DBState, ReloadChatPointer, ReloadGUIPointer, selectedCharID } from "../stores.svelte";
 import { alertSelect, alertError, alertInput, alertNormal, alertConfirm } from "../alert";
 import { HypaProcesser } from "./memory/hypamemory";
-import { generateAIImage } from "./stableDiff";
+import { generateAIImage, type ImageGenerationOptions } from "./stableDiff";
 import { writeInlayImage, getInlayAsset } from "./files/inlays";
 import type { OpenAIChat, MultiModal } from "./index.svelte";
 import { requestChatData, type StreamResponseChunk } from "./request/request";
@@ -389,11 +389,16 @@ export async function runScripted(code:string, arg:{
                 }
             })
 
-            declareAPI('generateImage', async (id:string, value:string, negValue:string = '') => {
+            declareAPI('generateImage', async (id:string, value:string, negValue:string = '', options?:ImageGenerationOptions) => {
                 if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
-                const gen = await generateAIImage(value, char as character, negValue, 'inlay')
+                const orientation = options?.orientation
+                if(orientation !== undefined && orientation !== 'landscape' && orientation !== 'portrait'){
+                    return 'Error: Image orientation must be landscape or portrait, received ' + orientation
+                }
+
+                const gen = await generateAIImage(value, char as character, negValue, 'inlay', options)
                 if(!gen){
                     return 'Error: Image generation failed'
                 }
@@ -1119,8 +1124,15 @@ export async function runScripted(code:string, arg:{
                     case 'editOutput':{
                         const func = luaEngine.global.get('callListenMain')
                         if(func){
-                            res = await func(mode, accessKey, JSON.stringify(data), JSON.stringify(meta))
-                            res = JSON.parse(res)
+                            // editDisplay takes a raw string, and must output a raw string
+                            const directString = mode === 'editDisplay'
+                            const value = directString ? data : JSON.stringify(data)
+                            const serializedMeta = JSON.stringify(meta)
+
+                            res = await func(mode, accessKey, value, serializedMeta)
+                            if (!directString) {
+                                res = JSON.parse(res)
+                            }
                         }
                         break
                     }
@@ -1379,29 +1391,39 @@ function async(callback)
     end
 end
 
-callListenMain = async(function(type, id, value, meta)
-    local realValue = json.decode(value)
+callListenMain = async(function(eventType, id, value, meta)
+    local realValue = value
     local realMeta = json.decode(meta)
 
-    if type == 'editRequest' then
+    if eventType == 'editDisplay' then
+        local realValue = value
+        for _, func in ipairs(editDisplayFuncs) do
+            local output = func(id, realValue, realMeta)
+            local outputType = type(output)
+            if outputType == 'string' then
+                realValue = output
+            else
+                print('Error: Lua editDisplay must return a string, received ' .. outputType)
+            end
+        end
+        return realValue
+    end
+
+    realValue = json.decode(value)
+
+    if eventType == 'editRequest' then
         for _, func in ipairs(editRequestFuncs) do
             realValue = func(id, realValue, realMeta)
         end
     end
 
-    if type == 'editDisplay' then
-        for _, func in ipairs(editDisplayFuncs) do
-            realValue = func(id, realValue, realMeta)
-        end
-    end
-
-    if type == 'editInput' then
+    if eventType == 'editInput' then
         for _, func in ipairs(editInputFuncs) do
             realValue = func(id, realValue, realMeta)
         end
     end
 
-    if type == 'editOutput' then
+    if eventType == 'editOutput' then
         for _, func in ipairs(editOutputFuncs) do
             realValue = func(id, realValue, realMeta)
         end
