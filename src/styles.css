@@ -545,3 +545,32 @@ body {
 annotation {
   display: none;
 }
+
+/*
+  WebKit (Safari, iOS browsers) draws native <select> with a fixed-height
+  menulist that ignores our padding, so the selected text gets clipped.
+  Drop the native appearance and draw the chevron ourselves in currentColor
+  so it follows the active color scheme.
+*/
+.risu-select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.125rem) 50%,
+    calc(100% - 0.8125rem) 50%;
+  background-size: 0.3125rem 0.3125rem;
+  background-repeat: no-repeat;
+}
+
+/* Forced-colors mode strips background images, which would leave no arrow. */
+@media (forced-colors: active) {
+  .risu-select {
+    -webkit-appearance: auto;
+    appearance: auto;
+    background-image: none;
+  }
+}

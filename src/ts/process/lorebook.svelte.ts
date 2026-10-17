@@ -254,8 +254,6 @@ export async function loadLoreBookV3Prompt(){
     let activatedIndexes:number[] = []
     let disabledUIPrompts:string[] = []
     let matchTimes = 0
-    let keepActivateAfterMatch = false
-    let dontActivateAfterMatch = false
     while(matching){
         matching = false
         for(let i=0;i<fullLore.length;i++){
@@ -286,6 +284,8 @@ export async function loadLoreBookV3Prompt(){
             }[] = []
             let fullWordMatching = fullWordMatchingSetting
             let dontSearchWhenRecursive = false
+            let keepActivateAfterMatch = false
+            let dontActivateAfterMatch = false
             
             if(fullLore[i].mode === 'child'){
                 activated = false

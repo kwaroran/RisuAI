@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore, loadedStore, alertStore, LoadingStatusState, bookmarkListOpen, popupStore, easyPanelStore, popUpEditorStore, loadoutModalStore, irisStore, customSideBarConfigDialogStore } from './ts/stores.svelte';
+    import { DynamicGUI, settingsOpen, sideBarStore, ShowRealmFrameStore, openPresetList, openPersonaList, MobileGUI, CustomGUISettingMenuStore, loadedStore, alertStore, LoadingStatusState, bookmarkListOpen, popupStore, easyPanelStore, popUpEditorStore, loadoutModalStore, onboardingModalStore, irisStore, customSideBarConfigDialogStore } from './ts/stores.svelte';
     import Sidebar from './lib/SideBars/Sidebar.svelte';
     import { DBState } from './ts/stores.svelte';
     import ChatScreen from './lib/ChatScreens/ChatScreen.svelte';
@@ -33,6 +33,7 @@
     import { createKeepAliveAudio } from './ts/keepAliveAudio';
     import PopupEditor from './lib/Others/PopupEditor.svelte';
     import LoadoutModal from './lib/Others/LoadoutModal.svelte';
+    import OnboardingModal from './lib/Others/OnboardingModal.svelte';
     import IrisModal from './lib/Others/IrisModal.svelte';
     import Legal from './lib/Others/Legal.svelte';
     import CustomSidebarConfig from './lib/Others/CustomSidebarConfig.svelte';
@@ -284,6 +285,9 @@
     {/if}
     {#if loadoutModalStore.open}
         <LoadoutModal />
+    {/if}
+    {#if onboardingModalStore.open}
+        <OnboardingModal />
     {/if}
     {#if irisStore.open}
         <IrisModal />
