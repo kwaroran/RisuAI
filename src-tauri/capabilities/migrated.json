@@ -29,6 +29,7 @@
     },
     "core:window:allow-maximize",
     "core:window:allow-set-fullscreen",
+    "core:window:allow-start-dragging",
     "shell:allow-open",
     "dialog:allow-open",
     "dialog:allow-save",

@@ -168,6 +168,7 @@ body {
   --FontColorQuote1: #8c8d93;
   --FontColorQuote2: #8c8d93;
   --risu-animation-speed: 0.2s;
+  --risu-titlebar-height: 0px;
   --risu-theme-bgcolor: #282a36;
   --risu-theme-darkbg: #21222c;
   --risu-theme-borderc: #6272a4;
