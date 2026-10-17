@@ -2,7 +2,6 @@
     import { language } from "src/lang";
     import { hubURL } from "src/ts/characterCards";
     import { loadRisuAccountBackup, loadRisuAccountData, saveRisuAccountData } from "src/ts/drive/accounter";
-    
     import { DBState } from 'src/ts/stores.svelte';
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { alertConfirm} from "src/ts/alert";
@@ -15,6 +14,8 @@
     import { exportAsDataset } from "src/ts/storage/exportAsDataset";
     import { loginToSionyw, testSionywLogin } from "src/ts/sionyw";
     import { cleanColdStorage } from "src/ts/process/coldstorage.svelte";
+    import BrowserStorageUsage from "./BrowserStorageUsage.svelte";
+
     let openIframe = $state(false)
     let openIframeURL = $state('')
     let popup:Window = null
@@ -133,6 +134,7 @@
 <Button onclick={exportAsDataset} className="mt-2">
     {language.exportAsDataset}
 </Button>
+<BrowserStorageUsage />
 <div class="bg-darkbg p-3 rounded-md mb-2 flex flex-col items-start mt-2">
     <div class="w-full">
         <h1 class="text-3xl font-black min-w-0">Risu Account{#if DBState.db.account}
