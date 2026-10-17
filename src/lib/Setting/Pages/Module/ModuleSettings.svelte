@@ -6,14 +6,16 @@
     import ModuleMenu from "src/lib/Setting/Pages/Module/ModuleMenu.svelte";
     import { exportModule, exportModuleLegacy, importModule, refreshModules, type RisuModule } from "src/ts/process/modules";
     import { SquarePen, TrashIcon, Globe, Share2Icon, PlusIcon, HardDriveUpload, Waypoints, UserIcon } from "@lucide/svelte";
+    import { onDestroy } from "svelte";
     import { v4 } from "uuid";
     import { tooltip } from "src/ts/gui/tooltip";
     import { alertConfirm, alertNormal, alertSelect } from "src/ts/alert";
+    import FileDropZone from "src/lib/Others/FileDropZone.svelte";
     import TextInput from "src/lib/UI/GUI/TextInput.svelte";
-    import { onDestroy } from "svelte";
     import { importMCPModule } from "src/ts/process/mcp/mcp";
     import { convertModuleToCharacter } from "src/ts/interchangeability";
     import { checkCharOrder } from "src/ts/globalApi.svelte";
+
     let tempModule:RisuModule = $state({
         name: '',
         description: '',
@@ -39,6 +41,8 @@
         refreshModules()
     })
 </script>
+
+<FileDropZone target="module">
 {#if mode === 0}
     <h2 class="mb-2 text-2xl font-bold mt-2">{language.modules}</h2>
 
@@ -191,3 +195,4 @@
         }}>{language.editModule}</Button>
     {/if}
 {/if}
+</FileDropZone>

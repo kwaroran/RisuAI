@@ -9,11 +9,7 @@
     import WelcomeRisu from './lib/Others/WelcomeRisu.svelte';
     import BookmarkList from './lib/Others/BookmarkList.svelte';
     import Settings from './lib/Setting/Settings.svelte';
-    import { showRealmInfoStore, importCharacterProcess } from './ts/characterCards';
-    import { importPreset, getDatabase, setDatabase } from './ts/storage/database.svelte';
-    import { readModule } from './ts/process/modules';
-    import { alertNormal } from './ts/alert';
-    import { language } from './lang';
+    import { showRealmInfoStore } from './ts/characterCards';
     import RealmFrame from './lib/UI/Realm/RealmFrame.svelte';
     import SavePopupIconComp from './lib/Others/SavePopupIcon.svelte';
     import Botpreset from './lib/Setting/botpreset.svelte';
@@ -22,7 +18,6 @@
     import MobileBody from './lib/Mobile/MobileBody.svelte';
     import MobileFooter from './lib/Mobile/MobileFooter.svelte';
     import CustomGUISettingMenu from './lib/Setting/Pages/CustomGUISettingMenu.svelte';
-    import { checkCharOrder } from './ts/globalApi.svelte';
     import { ArrowUpIcon, GlobeIcon, PlusIcon } from '@lucide/svelte';
     import { hypaV3ModalOpen, hypaV3ProgressStore } from "./ts/stores.svelte";
     import HypaV3Modal from './lib/Others/HypaV3Modal.svelte';
@@ -37,10 +32,9 @@
     import IrisModal from './lib/Others/IrisModal.svelte';
     import Legal from './lib/Others/Legal.svelte';
     import CustomSidebarConfig from './lib/Others/CustomSidebarConfig.svelte';
-    import { RISU_APP_INTERNAL_DRAG_TYPE, RISU_SIDEBAR_DRAG_TYPE } from './ts/dragTypes';
+    import FileDropZone from './lib/Others/FileDropZone.svelte';
 
 
-  
     let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
     let gridOpen = $state(false)
     let aprilFools = $state(new Date().getMonth() === 3 && new Date().getDate() === 1)
@@ -48,60 +42,11 @@
     let keepingSessionAlive = $state(false)
     let keepAliveAudio: HTMLAudioElement | null = null
 
-    const getMainDropEffect = (e:DragEvent): DataTransfer['dropEffect'] => {
-        const types = Array.from(e.dataTransfer?.types ?? [])
-        if(types.includes(RISU_SIDEBAR_DRAG_TYPE)){
-            return 'none'
-        }
-        if(types.includes(RISU_APP_INTERNAL_DRAG_TYPE)){
-            return 'none'
-        }
-        return types.includes('Files') ? 'copy' : 'none'
-    }
-
-    const markAppInternalDrag = (e:DragEvent) => {
-        e.dataTransfer?.setData(RISU_APP_INTERNAL_DRAG_TYPE, 'true')
-    }
-
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<main class="flex bg-bg w-full h-full max-w-100vw text-textcolor" ondragover={(e) => {
-    const dropEffect = getMainDropEffect(e)
-    e.preventDefault()
-    e.dataTransfer.dropEffect = dropEffect
-}} ondragstart={markAppInternalDrag} ondrop={async (e) => {
-    const types = Array.from(e.dataTransfer.types ?? [])
-    if (types.includes(RISU_APP_INTERNAL_DRAG_TYPE) || types.includes(RISU_SIDEBAR_DRAG_TYPE)) {
-        e.preventDefault()
-        return
-    }
-    const file = e.dataTransfer.files[0]
-    if (!file) {
-        e.preventDefault()
-        return
-    }
-    e.preventDefault()
-    const name = file.name.toLowerCase()
-
-    if (name.endsWith('.risup')) {
-        const data = new Uint8Array(await file.arrayBuffer())
-        await importPreset({ name: file.name, data })
-        alertNormal(language.successImport)
-    } else if (name.endsWith('.risum')) {
-        const data = new Uint8Array(await file.arrayBuffer())
-        const module = await readModule(Buffer.from(data))
-        DBState.db.modules.push(module)
-        alertNormal(language.successImport)
-    } else {
-        await importCharacterProcess({
-            name: file.name,
-            data: file
-        })
-        checkCharOrder()
-    }
-}} onclick={() => {
+<main class="flex bg-bg w-full h-full max-w-100vw text-textcolor" onclick={() => {
     if(keepingSessionAlive){
         return
     }
@@ -135,6 +80,7 @@
     }
 
 }}>
+<FileDropZone>
     {#if !(import.meta.env.VITE_RISU_LEGAL_CONFIGURED || globalThis.__RISU_LEGAL_CONFIGURED__)}
         <Legal />
     {:else if aprilFools}
@@ -295,4 +241,5 @@
     {#if customSideBarConfigDialogStore.open}
         <CustomSidebarConfig />
     {/if}
+</FileDropZone>
 </main>
