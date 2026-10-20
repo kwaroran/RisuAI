@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LLMFlags, LLMFormat, LLMProvider, LLMTokenizer } from 'src/ts/model/types'
+import { getModelInfo, getModelList } from 'src/ts/model/modellist'
 import { fetchNative } from 'src/ts/globalApi.svelte'
 import { callTool } from '../../mcp/mcp'
 import { requestClaude } from '../anthropic'
@@ -9,7 +10,10 @@ import { __testResponsesAPI, requestOpenAI, requestOpenAIResponseAPI } from './r
 const mocks = vi.hoisted(() => ({
     db: {
         OaiCompAPIKeys: {},
-        additionalParams: [],
+        additionalParams: [] as [string, string][],
+        applyAdditionalParamsToAll: false,
+        openrouterRequestModel: '',
+        openrouterKey: 'fixture-key',
         autofillRequestUrl: false,
         claude1HourCaching: false,
         claudeBatching: false,
@@ -95,22 +99,9 @@ vi.mock('src/ts/process/templates/chatTemplate', () => ({
     applyChatTemplate: vi.fn(),
 }))
 
-vi.mock('src/ts/model/modellist', () => ({
-    LLMFlags: {
-        DeveloperRole: 14,
-        OAICompletionTokens: 13,
-        deepSeekPrefix: 17,
-        deepSeekThinkingInput: 18,
-        deepSeekThinkingOutput: 19,
-        deepSeekThinkingToggle: 24,
-        adaptiveThinking: 27,
-    },
-    LLMFormat: {
-        Mistral: 4,
-        OpenAIResponseAPI: 18,
-    },
-    getFreeOpenRouterModels: vi.fn(),
-}))
+vi.mock('src/ts/stores.svelte', () => ({ DBState: { db: mocks.db } }))
+vi.mock('src/ts/plugins/plugins.svelte', () => ({ customProviderStore: {}, pluginV2: {} }))
+vi.mock('src/ts/plugins/apiV3/v3.svelte', () => ({ customV3ProviderMetaStore: [] }))
 
 vi.mock('src/ts/tokenizer', () => ({
     strongBan: vi.fn(),
@@ -192,6 +183,8 @@ describe('OpenAI Responses API helpers', () => {
         mocks.globalFetch.mockReset()
         mocks.db.OaiCompAPIKeys = {}
         mocks.db.additionalParams = []
+        mocks.db.applyAdditionalParamsToAll = false
+        mocks.db.openrouterRequestModel = ''
         mocks.db.jsonSchemaEnabled = false
         mocks.db.modelTools = []
         mocks.db.customModels = []
@@ -248,6 +241,112 @@ describe('OpenAI Responses API helpers', () => {
             { type: 'web_search_preview' },
         ])
         expect(sourceMessages[1]).toMatchObject({ role: 'user', content: 'Describe this.', multimodals: [{ type: 'image', base64: 'data:image/png;base64,abc' }] })
+    })
+
+    it('offers Flash first and M3 only while keeping saved legacy IDs resolvable', () => {
+        for(const recommendedOnly of [true, false]){
+            const models = getModelList({ recommendedOnly }).filter(model => model.provider === LLMProvider.MiniMax)
+            expect(models[0].id).toBe('MiniMax-M3.1-Flash')
+            expect(models.map(model => model.internalID)).toEqual(Array(4).fill(['MiniMax-M3.1-Flash', 'MiniMax-M3']).flat())
+        }
+        expect(getModelInfo('MiniMax-M2.7').internalID).toBe('MiniMax-M2.7')
+        expect(getModelInfo('minimax-m2.7-anthropic-cn').endpoint).toBe('https://api.minimaxi.com/anthropic')
+    })
+
+    it('serializes real MiniMax catalog requests across protocols, regions, and saved thinking modes', async () => {
+        mocks.db.OaiCompAPIKeys = { minimax: 'fixture-key' }
+        const endpoints = [
+            ['', 'https://api.minimax.io/v1/chat/completions'],
+            ['openai-cn', 'https://api.minimaxi.com/v1/chat/completions'],
+            ['anthropic-global', 'https://api.minimax.io/anthropic/v1/messages'],
+            ['anthropic-cn', 'https://api.minimaxi.com/anthropic/v1/messages'],
+        ]
+        for(const model of ['MiniMax-M3.1-Flash', 'MiniMax-M3', 'MiniMax-M2.7']){
+            for(const [suffix, endpoint] of endpoints){
+                const id = suffix ? `${model.toLowerCase()}-${suffix}` : model
+                const modelInfo = getModelInfo(id)
+                const anthropic = modelInfo.format === LLMFormat.Anthropic
+                for(const thinkingType of ['budget', 'off', 'adaptive']){
+                    mocks.db.thinkingType = thinkingType
+                    // Stop at the HTTP boundary without contacting a provider.
+                    mocks.fetchNative.mockResolvedValue(new Response('fixture boundary', { status: 400 }))
+                    const result = await (anthropic ? requestClaude : requestOpenAI)(baseArg({
+                        aiModel: id,
+                        modelInfo,
+                        useStreaming: true,
+                        formated: [{ role: 'user', content: 'Describe these.', multimodals: [
+                            { type: 'image', base64: 'data:image/png;base64,image' },
+                            { type: 'video', base64: 'data:video/mp4;base64,video' },
+                        ] }],
+                    }))
+                    expect(result.type).toBe('fail')
+                    const [url, request] = mocks.fetchNative.mock.calls.at(-1)!
+                    expect(url).toBe(model === 'MiniMax-M3.1-Flash' ? endpoint.replace('api.minimaxi.com', 'api.minimax.cn') : endpoint)
+                    expect(request.headers[anthropic ? 'x-api-key' : 'Authorization']).toBe(anthropic ? 'fixture-key' : 'Bearer fixture-key')
+                    expect(typeof request.body).toBe('string')
+                    const body = JSON.parse(request.body)
+                    expect(body.model).toBe(model)
+                    expect(body.stream).toBe(true)
+                    expect(body.service_tier).toBeUndefined()
+                    expect(body.reasoning_split).toBeUndefined()
+                    expect(body.reasoning_effort).toBeUndefined()
+                    expect(body.output_config).toBeUndefined()
+                    const expectedThinking = model === 'MiniMax-M3.1-Flash' ? { type: 'adaptive' }
+                        : model === 'MiniMax-M3' && thinkingType === 'adaptive' ? { type: 'adaptive' }
+                        : model === 'MiniMax-M3' && thinkingType === 'off' && !anthropic ? { type: 'disabled' }
+                        : undefined
+                    expect(body.thinking).toEqual(expectedThinking)
+                    expect(body.messages[0].content.map((part: any) => part.type)).toEqual(anthropic
+                        ? ['image', 'video', 'text'] : ['image_url', 'video_url', 'text'])
+                }
+            }
+        }
+    })
+
+    it('preserves explicit Flash effort parameters at the serialized request boundary', async () => {
+        mocks.db.applyAdditionalParamsToAll = true
+        for(const id of ['MiniMax-M3.1-Flash', 'minimax-m3.1-flash-anthropic-global']){
+            const modelInfo = getModelInfo(id)
+            const anthropic = modelInfo.format === LLMFormat.Anthropic
+            for(const effort of ['low', 'medium', 'high', 'xhigh', 'max']){
+                mocks.db.additionalParams = anthropic ? [['output_config.effort', effort]] : [['reasoning_effort', effort]]
+                mocks.fetchNative.mockResolvedValue(new Response('fixture boundary', { status: 400 }))
+                await (anthropic ? requestClaude : requestOpenAI)(baseArg({
+                    aiModel: id, modelInfo, useStreaming: true, formated: [{ role: 'user', content: 'Hello.' }],
+                }))
+                const body = JSON.parse(mocks.fetchNative.mock.calls.at(-1)![1].body)
+                expect(anthropic ? body.output_config.effort : body.reasoning_effort).toBe(effort)
+                expect(body.thinking).toEqual({ type: 'adaptive' })
+            }
+        }
+    })
+
+    it('preserves explicit custom model IDs and parameters in serialized requests', async () => {
+        const id = 'xcustom:::minimax-legacy'
+        mocks.db.customModels = [{ id, internalId: 'MiniMax-M2.7', name: 'Saved custom model',
+            format: LLMFormat.OpenAICompatible, flags: [], tokenizer: LLMTokenizer.Unknown,
+            params: 'reasoning_effort=high', url: 'https://custom.example/v1/chat/completions', key: 'fixture-key',
+        }] as any
+        mocks.fetchNative.mockResolvedValue(new Response('fixture boundary', { status: 400 }))
+        await requestOpenAI(baseArg({ aiModel: id, modelInfo: {
+            id, internalID: 'MiniMax-M2.7', name: 'Saved custom model', provider: LLMProvider.AsIs,
+            format: LLMFormat.OpenAICompatible, flags: [], parameters: [], tokenizer: LLMTokenizer.Unknown,
+        }, customURL: 'https://custom.example/v1/chat/completions', useStreaming: true, formated: [{ role: 'user', content: 'Hello.' }] }))
+        const body = JSON.parse(mocks.fetchNative.mock.calls.at(-1)![1].body)
+        expect(body.model).toBe('MiniMax-M2.7')
+        expect(body.reasoning_effort).toBe('high')
+        expect(body.thinking).toBeUndefined()
+    })
+
+    it('preserves saved gateway model IDs in serialized requests', async () => {
+        for(const id of ['minimax/minimax-m3.1-flash:free', 'minimax/minimax-m3', 'minimax/minimax-m2.7']){
+            mocks.db.openrouterRequestModel = id
+            mocks.fetchNative.mockResolvedValue(new Response('fixture boundary', { status: 400 }))
+            await requestOpenAI(baseArg({ aiModel: 'openrouter', modelInfo: getModelInfo('openrouter'), useStreaming: true, formated: [{ role: 'user', content: 'Hello.' }] }))
+            const [url, request] = mocks.fetchNative.mock.calls.at(-1)!
+            expect(url).toBe('https://openrouter.ai/api/v1/chat/completions')
+            expect(JSON.parse(request.body).model).toBe(id)
+        }
     })
 
     it('builds MiniMax-M3 image and video content parts for chat completions', async () => {

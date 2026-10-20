@@ -42,6 +42,11 @@ function makeDeepInfraModels(id:string[]):LLMModel[]{
 
 const miniMaxModelDefinitions = [
     {
+        id: 'MiniMax-M3.1-Flash',
+        name: 'MiniMax M3.1 Flash',
+        flags: [LLMFlags.hasImageInput, LLMFlags.hasVideoInput, LLMFlags.requiredAdaptiveThinking]
+    },
+    {
         id: 'MiniMax-M3',
         name: 'MiniMax M3',
         flags: [LLMFlags.hasImageInput, LLMFlags.hasVideoInput, LLMFlags.adaptiveThinking]
@@ -94,9 +99,11 @@ function makeMiniMaxModels(): LLMModel[] {
         ],
         parameters: ['temperature', 'top_p'],
         tokenizer: LLMTokenizer.Unknown,
-        endpoint: endpoint.endpoint,
+        endpoint: model.id === 'MiniMax-M3.1-Flash'
+            ? endpoint.endpoint.replace('api.minimaxi.com', 'api.minimax.cn')
+            : endpoint.endpoint,
         keyIdentifier: 'minimax',
-        recommended: true
+        recommended: model.id !== 'MiniMax-M2.7'
     })))
 }
 
@@ -875,7 +882,10 @@ export function getModelList<T extends boolean>(arg:{
     recommendedOnly?:boolean,
     groupedByProvider?:T
 } = {}): T extends true ? GetModelListGroup[] : LLMModel[]{
-    let models = LLMModels
+    // Keep legacy IDs resolvable for saved chats, without offering them for new selections.
+    let models = LLMModels.filter(model =>
+        model.provider !== LLMProvider.MiniMax || model.internalID !== 'MiniMax-M2.7'
+    )
     if(arg.recommendedOnly){
          models = models.filter(model => model.recommended)
     }

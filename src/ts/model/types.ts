@@ -28,7 +28,8 @@ export const LLMFlags = {
     deepSeekThinkingToggle: 24,
     noStructuredOutput: 25,
     geminiThinkingNoMinimal: 26,
-    adaptiveThinking: 27
+    adaptiveThinking: 27,
+    requiredAdaptiveThinking: 28
 } as const;
 export type LLMFlags = (typeof LLMFlags)[keyof typeof LLMFlags];
 

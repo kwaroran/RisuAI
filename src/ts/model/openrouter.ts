@@ -60,7 +60,12 @@ export async function getOpenRouterModels(): Promise<OpenRouterModelInfo[]> {
             headers,
         }).then((res) => res.json())
 
-        return aim.data.map((model: any) => {
+        return aim.data.filter((model: any) => {
+            // Filter only ordinary MiniMax text choices; saved request IDs remain unchanged.
+            return !model.id.startsWith('minimax/') ||
+                (model.architecture?.output_modalities && !model.architecture.output_modalities.includes('text')) ||
+                ['minimax/minimax-m3.1-flash:free', 'minimax/minimax-m3'].includes(model.id)
+        }).map((model: any) => {
             const price = ((Number(model.pricing.prompt) * 3) + Number(model.pricing.completion)) / 4
             const priceDisplay = price > 0 ? `$${(price * 1000).toFixed(5)}/1k` : 'Free'
             const legacyName = price > 0
