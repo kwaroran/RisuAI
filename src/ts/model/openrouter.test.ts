@@ -19,5 +19,6 @@ it('filters retired MiniMax text choices while preserving gateway metadata and n
         'minimax/minimax-m3.1-flash:free', 'minimax/minimax-m3', 'minimax/image-fixture', 'other/text-fixture',
     ])
     expect(models[0]).toMatchObject({ context_length: 123456, promptPrice1M: 0, completionPrice1M: 0 })
-    expect(models[1]).toMatchObject({ context_length: 123456, promptPrice1M: 1, completionPrice1M: 2, cacheReadPrice1M: 0.1 })
+    expect(models[1]).toMatchObject({ context_length: 123456, promptPrice1M: 1, completionPrice1M: 2 })
+    expect(models[1].cacheReadPrice1M).toBeCloseTo(0.1)
 })
