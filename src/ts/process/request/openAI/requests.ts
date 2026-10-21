@@ -553,8 +553,9 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         headers["Authorization"] = "Bearer " + db.OaiCompAPIKeys[arg.modelInfo.keyIdentifier]
     }
     if(aiModel === 'openrouter'){
-        headers["X-Title"] = 'RisuAI'
+        headers["X-OpenRouter-Title"] = 'Risuai'
         headers["HTTP-Referer"] = 'https://risuai.xyz'
+        headers["X-OpenRouter-Categories"] = 'roleplay,general-chat'
     }
     if(aiModel === 'nanogpt' && db.nanogptProvider){
         headers["X-Provider"] = db.nanogptProvider
