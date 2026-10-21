@@ -1007,86 +1007,11 @@ export function parseKeyValue(template:string){
     }
 }
 
-export type sidebarToggleGroup = {
-    key?:string,
-    value?:string,
-    type:'group',
-    children:sidebarToggle[]
-}
-
-export type sidebarToggleGroupEnd = {
-    key?:string,
-    value?:string,
-    type:'groupEnd',
-}
-
-export type sidebarToggle =
-    | sidebarToggleGroup
-    | sidebarToggleGroupEnd
-    | {
-        key?:string,
-        value?:string,
-        type:'caption',
-    } 
-    | {
-        key?:string,
-        value?:string,
-        type:'divider',
-    } 
-    | {
-        key:string,
-        value:string,
-        type:'select',
-        options:string[]
-    }
-    | {
-        key:string,
-        value:string,
-        type:'text'|'textarea'|undefined,
-        options?:string[]
-    }
-
-export function parseToggleSyntax(template:string){
-    try {
-        if(!template){
-            return []
-        }
-    
-        const keyValue:sidebarToggle[] = []
-    
-        const splited = template.split('\n')
-
-        for(const line of splited){
-            const [key, value, type, option] = line.split('=')
-            if(type === 'group' || type === 'groupEnd' || type === 'divider'){
-                keyValue.push({
-                    key,
-                    value,
-                    type,
-                    children: []
-                })
-            } else if(type === 'caption' && value){
-                keyValue.push({
-                    key,
-                    value,
-                    type
-                })
-            } else if((key && value)){
-                keyValue.push({
-                    key,
-                    value,
-                    type: type === 'select' || type === 'text' || type === 'textarea' ? type : undefined,
-                    options: option?.split(',') ?? []
-                })
-            }
-        }
-
-        return keyValue   
-    } catch (error) {
-        console.error(error)
-        return []
-    }
-}
+// Pure toggle-syntax helpers live in ./toggleSyntax (zero imports) so unit
+// tests can import them without dragging Svelte/store initialization into
+// Vitest workers. Re-exported here to keep existing import sites working.
+export { parseToggleSyntax, buildPromptInfoToggles } from "./toggleSyntax";
+export type { sidebarToggle, sidebarToggleGroup, sidebarToggleGroupEnd } from "./toggleSyntax";
 
 export const sortableOptions = {
 	delay: 300, // time in milliseconds to define when the sorting should start
