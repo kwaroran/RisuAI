@@ -85,10 +85,10 @@ export async function runScripted(code:string, arg:{
             let declareAPI:(name: string, func:Function) => void
 
             if(ScriptingEngineState.type === 'lua'){
-                console.log('Creating new Lua engine for mode:', mode)
+                console.log('Creating new Lua engine for mode:', mode) 
                 ScriptingEngineState.engine?.global.close()
                 ScriptingEngineState.code = code
-                ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true})
+                ScriptingEngineState.engine = await luaFactory.createEngine({injectObjects: true, enableProxy: false})
                 const luaEngine = ScriptingEngineState.engine
                 declareAPI = (name:string, func:Function) => {
                     luaEngine.global.set(name, func)
