@@ -251,23 +251,35 @@ export class NodeStorage{
                 }
             })).json()
 
-            if(data.status === 'unset'){
+            let status = data.status
+            if(status === 'unset'){
                 const input = await digestPassword(await alertInput(language.setNodePassword))
-                await fetch('/api/set_password',{
+                const s = await fetch('/api/set_password',{
                     method: "POST",
                     body:JSON.stringify({
-                        password: input 
+                        password: input
                     }),
                     headers: {
                         'content-type': 'application/json'
                     }
                 })
-                //setting the password doesn't register this device, so log in with it right away
-                await this.loginWithPassword(input)
-                this.authChecked = true
-                return await this.createAuth()
+                if(s.status >= 200 && s.status < 300){
+                    //setting the password doesn't register this device, so log in with it right away
+                    await this.loginWithPassword(input)
+                    this.authChecked = true
+                    return await this.createAuth()
+                }
+                const body = await s.text()
+                if(body !== 'already set'){
+                    const message = `Setting password failed (${s.status}): ${body}`
+                    alertError(message)
+                    await waitAlert()
+                    throw message
+                }
+                //another tab set the password first, so ask for it like on a new device
+                status = 'incorrect'
             }
-            else if(data.status === 'incorrect'){
+            if(status === 'incorrect'){
                 const input = await digestPassword(await alertInput(language.inputNodePassword))
                 await this.loginWithPassword(input)
                 this.authChecked = true
