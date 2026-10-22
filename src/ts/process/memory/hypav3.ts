@@ -12,6 +12,7 @@ import {
 } from "./hypamemoryv2";
 import { type DisplayMode as ModalDisplayMode } from "src/lib/Others/HypaV3Modal/types";
 import { parseChatML } from "src/ts/parser/chatML";
+import { replaceThoughtBlocks } from "src/ts/parser/thoughts";
 import {
     type Chat,
     type character,
@@ -1736,8 +1737,7 @@ export async function summarize(oaiMessages: OpenAIChat[], isResummarize: boolea
         }
 
         // Remove thoughts content for API
-        const thoughtsRegex = /<Thoughts>[\s\S]*?<\/Thoughts>/g;
-        const result = response.result.replace(thoughtsRegex, "").trim();
+        const result = replaceThoughtBlocks(response.result, () => "").trim();
 
         if (result.length === 0) {
             throw new Error("Empty summary after removing thoughts content");

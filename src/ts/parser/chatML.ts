@@ -1,4 +1,5 @@
 import { risuChatParser } from './parser.svelte'
+import { replaceThoughtBlocks } from './thoughts'
 
 export function parseChatML(data: string): OpenAIChat[] | null {
   const starter = '<|im_start|>'
@@ -45,8 +46,10 @@ export function parseChatML(data: string): OpenAIChat[] | null {
       }
 
       let thoughts: string[] = []
-      v = v.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (_, p1) => {
-        thoughts.push(p1)
+      v = replaceThoughtBlocks(v, (p1) => {
+        if(p1){
+          thoughts.push(p1)
+        }
         return ''
       })
 

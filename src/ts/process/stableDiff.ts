@@ -1,4 +1,5 @@
 import { get } from "svelte/store"
+import { replaceThoughtBlocks } from "../parser/thoughts"
 import { getDatabase, type character } from "../storage/database.svelte"
 import { requestChatData } from "./request/request"
 import { alertError } from "../alert"
@@ -52,7 +53,7 @@ export async function stableDiff(currentChar:character,prompt:string){
         return false
     }
 
-    const r = rq.result.replace(/<Thoughts>[\s\S]*?<\/Thoughts>/g, '').trim()
+    const r = replaceThoughtBlocks(rq.result, () => '').trim()
 
 
     const genPrompt = currentChar.newGenData.prompt.replaceAll('{{slot}}', r)

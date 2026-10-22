@@ -100,11 +100,10 @@ test.skip('parses ChatML without ending token', () => {
 })
 
 test('extracts thoughts', () => {
-  // FIXME: Empty thoughts leak <Thoughts> tag
   expect(parseChatML('<|im_start|>assistant<|im_sep|><Thoughts></Thoughts> OK')).toEqual([
     {
       role: 'assistant',
-      content: '<Thoughts></Thoughts> OK',
+      content: ' OK',
       thoughts: [],
     },
   ])
@@ -129,9 +128,7 @@ test('extracts thoughts', () => {
   )
 })
 
-// FIXME: /<Thoughts>(.+)<\/Thoughts>/gms
-//        => Matches with the whole bulk of <Thoughts>Thought 1</Thoughts> Middle <Thoughts>Thought 2</Thoughts>
-test.skip('extracts multiple thoughts', () => {
+test('extracts multiple thoughts', () => {
   const input = `<|im_start|>assistant<|im_sep|>Start <Thoughts>Thought 1</Thoughts> Middle <Thoughts>Thought 2</Thoughts> End<|im_end|>`
   const result = parseChatML(input)
 
@@ -140,6 +137,18 @@ test.skip('extracts multiple thoughts', () => {
     role: 'assistant',
     content: 'Start  Middle  End',
     thoughts: ['Thought 1', 'Thought 2'],
+  })
+})
+
+test('extracts nested thoughts as one block', () => {
+  const input = `<|im_start|>assistant<|im_sep|><Thoughts>outer<Thoughts>inner</Thoughts>tail</Thoughts> OK<|im_end|>`
+  const result = parseChatML(input)
+
+  expect(result).toHaveLength(1)
+  expect(result?.[0]).toEqual({
+    role: 'assistant',
+    content: ' OK',
+    thoughts: ['outer<Thoughts>inner</Thoughts>tail'],
   })
 })
 

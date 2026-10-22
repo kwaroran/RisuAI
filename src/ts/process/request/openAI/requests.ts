@@ -7,6 +7,7 @@ import { getFreeOpenRouterModels } from "src/ts/model/openrouter"
 import { addFetchLog, fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { isNodeServer, isTauri } from "src/ts/platform"
 import { simplifySchema } from "src/ts/util"
+import { replaceThoughtBlocks } from "../../../parser/thoughts"
 
 import { extractJSON, getOpenAIJSONSchema } from "../../templates/jsonSchema"
 import { applyChatTemplate } from "../../templates/chatTemplate"
@@ -1153,10 +1154,10 @@ function wrapToolStream(
 
             const extractThoughts = (text:string) => {
                 let reasoningContent = ''
-                const content = text.replace(/<Thoughts>\n?([\s\S]*?)\n?<\/Thoughts>\n*/g, (_, p1:string) => {
-                    reasoningContent += (reasoningContent ? '\n' : '') + p1
+                const content = replaceThoughtBlocks(text, (content) => {
+                    reasoningContent += (reasoningContent ? '\n' : '') + content.trim()
                     return ''
-                })
+                }, { stripTrailingNewlines: true })
                 return {
                     content,
                     reasoningContent

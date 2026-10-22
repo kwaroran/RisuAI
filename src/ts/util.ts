@@ -1,4 +1,5 @@
 import { get, writable, type Writable } from "svelte/store"
+import { replaceThoughtBlocks } from "./parser/thoughts"
 import type { Database, Message } from "./storage/database.svelte"
 import { getDatabase } from "./storage/database.svelte"
 import { DBState, selectedCharID } from "./stores.svelte"
@@ -1212,7 +1213,7 @@ Example: <img src="{{ele::{{chardisplayasset}}::0}}">
 
 export const jsonOutputTrimmer = (data:string) => {
     
-    data = data.replace(/<Thoughts>(.+?)<\/Thoughts>/gms, '').trim()
+    data = replaceThoughtBlocks(data, () => '').trim()
     if(data.startsWith('```json') && data.endsWith('```')){
         data = data.slice(7, -3).trim()
     }

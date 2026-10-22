@@ -6,6 +6,7 @@ import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
 import { alertError, alertToast } from "../alert";
 import { parseChatML } from "../parser/chatML";
+import { replaceThoughtBlocks } from "../parser/thoughts";
 import { loadLoreBookV3Prompt } from "./lorebook.svelte";
 import { findCharacterbyId, getAuthorNoteDefaultText, getPersonaPrompt, getUserName, isLastCharPunctuation, trimUntilPunctuation, parseToggleSyntax, prebuiltAssetCommand } from "../util";
 import { requestChatData } from "./request/request";
@@ -1000,12 +1001,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         }
         let thoughts:string[] = []
         const maxThoughtDepth = DBState.db.promptSettings?.maxThoughtTagDepth ?? -1
-        formatedChat = formatedChat.replace(/<Thoughts>(.+)<\/Thoughts>/gms, (match, p1) => {
-            if(maxThoughtDepth === -1 || (maxThoughtDepth - ms.length) <= index){
+        formatedChat = replaceThoughtBlocks(formatedChat, (p1) => {
+            if(p1 && (maxThoughtDepth === -1 || (maxThoughtDepth - ms.length) <= index)){
                 thoughts.push(p1)
             }
             return ''
-        })
+        }, { stripTrailingNewlines: true })
 
         const assetPromises:Promise<void>[] = []
         formatedChat = formatedChat.replace(/\{\{asset_?prompt::(.+?)\}\}/gmsiu, (match, p1) => {

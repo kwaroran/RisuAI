@@ -16,6 +16,7 @@ import { getModuleAssets, getModuleLorebooks, getModules } from '../process/modu
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/atom-one-dark.min.css'
 import { language } from 'src/lang';
+import { replaceThoughtBlocks } from './thoughts';
 import katex from 'katex'
 import { getModelInfo } from '../model/modellist';
 import { registerCBS, type matcherArg, type RegisterCallback } from '../cbs';
@@ -711,23 +712,9 @@ export interface simpleCharacterArgument{
 }
 
 function parseThoughtsAndTools(data:string){
-    let result = '', i = 0
-    while (i < data.length) {
-        if (data.slice(i, i + 10) === '<Thoughts>') {
-            let j = i + 10, depth = 1
-            while (j < data.length && depth > 0) {
-                if (data.slice(j, j + 10) === '<Thoughts>') depth++
-                if (data.slice(j, j + 11) === '</Thoughts>') depth--
-                j++
-            }
-            if (depth === 0) {
-                result += `<details><summary>${language.cot}</summary>${data.substring(i + 10, j - 1)}</details>`
-                i = j + 10
-                continue
-            }
-        }
-        result += data[i++]
-    }
+    const result = replaceThoughtBlocks(data, (content) => {
+        return `<details><summary>${language.cot}</summary>${content}</details>`
+    })
     return result.replace(/<tool_call>(.+?)<\/tool_call>/gms, (full, txt:string) => {
         return `<div class="x-risu-tool-call">🛠️ ${language.toolCalled.replace('{{tool}}',txt.split('\uf100')?.[1] ?? 'unknown')}</div>\n\n`
     })
