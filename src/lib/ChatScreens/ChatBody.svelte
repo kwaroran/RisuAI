@@ -1,3 +1,20 @@
+<script lang="ts" module>
+    // Last parsed HTML per message (keyed by character, chat room and message chatId). A ChatBody
+    // created for an already rendered message (remount on content change, edit, continue, reloadChat,
+    // reloadDisplay...) shows it until its own first parse resolves, instead of rendering empty: the
+    // collapsed message would break scroll anchoring and snap the chat to the bottom.
+    const renderedHtmlCache = new Map<string, string>()
+    const renderedHtmlCacheLimit = 100
+
+    function rememberRenderedHtml(key: string, html: string){
+        renderedHtmlCache.delete(key)
+        renderedHtmlCache.set(key, html)
+        if(renderedHtmlCache.size > renderedHtmlCacheLimit){
+            renderedHtmlCache.delete(renderedHtmlCache.keys().next().value)
+        }
+    }
+</script>
+
 <script lang="ts">
     import isEqual from "lodash/isEqual"
     import { DBState } from 'src/ts/stores.svelte'
@@ -8,6 +25,7 @@
     import { getModuleAssets } from "src/ts/process/modules";
     import { getCurrentCharacter } from "src/ts/storage/database.svelte";
     import { getFileSrc } from "src/ts/globalApi.svelte";
+    import { untrack } from "svelte";
 
     interface Props {
         character?: simpleCharacterArgument|string|null
@@ -24,6 +42,7 @@
         modelShortName: string
         renderRawStreaming?: boolean
         rawStreamingText?: string
+        renderCacheKey?: string
     }
 
     let {
@@ -40,13 +59,21 @@
         modelShortName = '',
         renderRawStreaming = false,
         rawStreamingText = '',
+        renderCacheKey = '',
     }: Props =  $props()
 
+    // Fixed for this instance: the parent's key follows "the idx-th message of the current chat", so a
+    // slow parse finishing after a chat switch or a deletion would otherwise store under another message.
+    const cacheKey = untrack(() => renderCacheKey)
     // svelte-ignore non_reactive_update
-    let lastParsed = ''
+    let lastParsed = (cacheKey && renderedHtmlCache.get(cacheKey)) || ''
+    // Showing HTML inherited from a previous instance; nothing parsed by this instance yet
+    let showingInherited = lastParsed !== ''
     let lastCharArg:string|simpleCharacterArgument = null
     let lastChatId = -10
     let lastRenderedRevision: number | null = null
+    // svelte-ignore non_reactive_update
+    let leavingRawStreaming = false
 
     function getCbsCondition(){
         try{
@@ -70,8 +97,9 @@
         // track 'translated' and 'retranslate' state
         translated;
         retranslate;
-        const preservePendingContent = lastRenderedRevision !== null && requestedRevision !== lastRenderedRevision
+        const preservePendingContent = showingInherited || (lastRenderedRevision !== null && requestedRevision !== lastRenderedRevision)
         let lastParsedQueue = ''
+        let keptPrevious = false
         let mode = 'notrim' as const
         try {
             if((!isEqual(lastCharArg, charArg)) || (chatID !== lastChatId)){
@@ -104,7 +132,10 @@
                     // State change of `translated` triggers markParsing again,
                     // causing redundant translation attempts
                     if (lastTranslated !== translateText) {
-                        return;
+                        // Keep what is already shown until then, instead of rendering an empty body
+                        keptPrevious = true
+                        lastParsedQueue = lastParsed
+                        return lastParsed;
                     }
                 } catch (error) {
                     console.error(error)
@@ -177,7 +208,14 @@
         finally{
             //since trimMarkdown is fast, we don't need to cache it
             lastParsed = lastParsedQueue
+            if(!keptPrevious){
+                showingInherited = false
+                if(cacheKey && lastParsedQueue){
+                    rememberRenderedHtml(cacheKey, lastParsedQueue)
+                }
+            }
             lastRenderedRevision = requestedRevision
+            leavingRawStreaming = false
         }
     }
 
@@ -262,6 +300,7 @@
 
     $effect(() => {
         if(shouldRenderRawStreaming){
+            leavingRawStreaming = true
             return
         }
         markParsingResult
@@ -274,7 +313,13 @@
     <span class="whitespace-pre-wrap">{rawStreamingText}</span>
 {:else}
     {#await markParsingResult}
-        {@html addMetadataToElement(trimMarkdown(lastParsed), modelShortName)}
+        {#if lastParsed === '' && leavingRawStreaming}
+            <!-- Leaving 'strong' raw streaming: nothing was parsed yet, keep the raw text so the
+                 message does not collapse to zero height (which snaps the chat scroll to the bottom) -->
+            <span class="whitespace-pre-wrap">{rawStreamingText}</span>
+        {:else}
+            {@html addMetadataToElement(trimMarkdown(lastParsed), modelShortName)}
+        {/if}
     {:then md}
         {@html addMetadataToElement(trimMarkdown(md), modelShortName)}
     {/await}

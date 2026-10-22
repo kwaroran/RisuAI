@@ -97,10 +97,16 @@
         isOptimizedStreamingMessage: boolean
         streamingOptimizationMode: StreamingDisplayOptimizationMode
         rawStreamingText: string
+        message?: string
     }){
         isOptimizedStreamingMessage = state.isOptimizedStreamingMessage
         streamingOptimizationMode = state.streamingOptimizationMode
         rawStreamingText = state.rawStreamingText
+        if(state.message !== undefined){
+            // Same outcome as the remount this replaces: an edit opened mid-stream is discarded
+            editMode = false
+            message = state.message
+        }
     }
 
     async function rm(e:MouseEvent, rec?:boolean){
@@ -268,6 +274,17 @@
     let blankMessage = $derived((message === '{{none}}' || message === '{{blank}}' || message === '') && idx === -1 || isComment)
     let displayMessage = $derived(isOptimizedStreamingMessage ? rawStreamingText : message)
     let renderRawStreaming = $derived(isOptimizedStreamingMessage && streamingOptimizationMode === 'strong')
+    // Key for ChatBody's rendered-HTML cache. Branched / copied chats keep the same message chatId,
+    // so the key also names the character and the chat room.
+    let renderCacheKey = $derived.by(() => {
+        if(idx < 0){
+            return ''
+        }
+        const char = DBState.db.characters?.[selIdState.selId]
+        const chat = char?.chats?.[char.chatPage]
+        const messageId = chat?.message?.[idx]?.chatId
+        return messageId ? `${char.chaId}:${chat.id}:${messageId}` : ''
+    })
 
     function updateDisplayedMessage(){
         if(renderRawStreaming){
@@ -566,7 +583,8 @@
                     bind:translating={translating}
                     bind:retranslate={retranslate}
                     {renderRawStreaming}
-                    {rawStreamingText} />
+                    {rawStreamingText}
+                    {renderCacheKey} />
             {/key}
         </span>
         {#if idx >= 0 && !editMode && !editTranslationMode && !isOptimizedStreamingMessage && partialEditEnabled && (DBState.db.enableBlockPartialEdit || DBState.db.enableDragPartialEdit)}

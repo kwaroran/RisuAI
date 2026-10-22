@@ -6,6 +6,7 @@
     import { createSimpleCharacter, DBState, selectedCharID, ReloadChatPointer } from 'src/ts/stores.svelte';
     import { chatFoldedStateMessageIndex } from 'src/ts/globalApi.svelte';
     import { get } from 'svelte/store';
+    import { doingChat } from 'src/ts/process/index.svelte';
     
     const getCurrentChatRoomId = () => {
         const charId = get(selectedCharID);
@@ -44,9 +45,16 @@
             isOptimizedStreamingMessage: boolean
             streamingOptimizationMode: StreamingDisplayOptimizationMode
             rawStreamingText: string
+            message?: string
         }) => void
     }
     let mountInstances: Map<number, ChatInstance> = new Map();
+    // The message being streamed. Its hash changes with its content (every chunk, or once at the end
+    // when streaming display optimization is on), but remounting it collapses its height until the
+    // new instance finishes parsing, which breaks scroll anchoring and snaps the view to the bottom.
+    // So a hash change of this message updates the mounted instance in place instead, until the
+    // generation (including post-processing) has finished.
+    let streamTarget: { roomId: string | null, index: number, hash: number, shapeKey: string } | null = null;
 
     //Non-cryptographic hash function to generate a unique hash for each message
     function hashCode(str:string):number {
@@ -82,6 +90,8 @@
         const activeStreamingIndex = performanceMode !== 'off' && currentChat?.isStreaming
             ? messages.length - 1
             : -1
+        const isStreaming = !!currentChat?.isStreaming
+        const roomId = currentChat?.id ?? null
 
         if(chatFoldedStateMessageIndex.index !== -1){
             loadStart = chatFoldedStateMessageIndex.index
@@ -97,10 +107,38 @@
             const reloadPointer = reloadPointerMap[i] ?? 0;
             const activeStreamingMessage = i === activeStreamingIndex && message.role === 'char';
             const hashMessageData = activeStreamingMessage ? '' : message.data;
-            let hashd = hashMessageData + (message.chatId ?? '') + i.toString() + messageLargePortrait.toString() + message.disabled?.toString() + reloadPointer.toString();
+            const shapeKey = (message.chatId ?? '') + i.toString() + messageLargePortrait.toString() + message.disabled?.toString() + reloadPointer.toString();
+            let hashd = hashMessageData + shapeKey;
             const currentHash = hashCode(hashd);
             currentHashes.add(currentHash);
-            if(!hashes.has(currentHash)){
+            let updatedInPlace = false;
+            if(!hashes.has(currentHash)
+                && streamTarget
+                && streamTarget.roomId === roomId
+                && streamTarget.index === i
+                && streamTarget.shapeKey === shapeKey
+                && hashes.has(streamTarget.hash)){
+                const inst = mountInstances.get(streamTarget.hash);
+                const element = chatBody.querySelector(`[x-hashed="${streamTarget.hash}"]`);
+                if(inst && element){
+                    mountInstances.delete(streamTarget.hash);
+                    hashes.delete(streamTarget.hash);
+                    mountInstances.set(currentHash, inst);
+                    element.setAttribute('x-hashed', currentHash.toString());
+                    streamTarget.hash = currentHash;
+                    inst.updateStreamingDisplay?.({
+                        isOptimizedStreamingMessage: activeStreamingMessage,
+                        streamingOptimizationMode: performanceMode,
+                        rawStreamingText: message.data,
+                        message: message.data,
+                    });
+                    updatedInPlace = true;
+                }
+            }
+            if(isStreaming && i === messages.length - 1){
+                streamTarget = { roomId, index: i, hash: currentHash, shapeKey };
+            }
+            if(!updatedInPlace && !hashes.has(currentHash)){
                 const b = document.createElement('div');
                 b.setAttribute('x-hashed', currentHash.toString());
                 b.classList.add('chat-message-container');
@@ -137,7 +175,7 @@
                     chatBody.prepend(b);
                 }
             }
-            else{
+            else if(!updatedInPlace){
                 mountInstances.get(currentHash)?.updateStreamingDisplay?.({
                     isOptimizedStreamingMessage: activeStreamingMessage,
                     streamingOptimizationMode: performanceMode,
@@ -163,7 +201,12 @@
         });
 
         hashes = currentHashes;
-        
+        // Keep it until the whole generation is done: output triggers, inlays and output
+        // listeners can still rewrite the message after streaming has ended.
+        if(!isStreaming && !get(doingChat)){
+            streamTarget = null;
+        }
+
     };
 
     onDestroy(() => {
@@ -200,14 +243,17 @@
     $effect(() => {
         console.log('Updating Chats');
         void $ReloadChatPointer; // Make $effect track ReloadChatPointer changes
-        const wasAtBottom = checkIfAtBottom();
-        updateChatBody()
-        
         const currentChatRoomId = getCurrentChatRoomId();
         const isSameChat = currentChatRoomId === previousChatRoomId;
-        
+        const messagesAdded = isSameChat && messages.length > previousLength;
+        // Read layout only when it is needed: a message re-rendered in this same update may still be
+        // empty (its {#await} renders a microtask later), and forcing a layout now collapses it,
+        // which snaps the chat scroll to the bottom.
+        const wasAtBottom = messagesAdded ? checkIfAtBottom() : true;
+        updateChatBody()
+
         // Only auto-scroll if it's the same chat and new messages were added
-        if(isSameChat && messages.length > previousLength){
+        if(messagesAdded){
             const lastMsg = messages[messages.length - 1];
             if(lastMsg && lastMsg.role === 'char' && DBState.db.autoScrollToNewMessage){
                 if(wasAtBottom || DBState.db.alwaysScrollToNewMessage){
