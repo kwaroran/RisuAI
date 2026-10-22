@@ -262,42 +262,49 @@ export class NodeStorage{
                         'content-type': 'application/json'
                     }
                 })
+                //setting the password doesn't register this device, so log in with it right away
+                await this.loginWithPassword(input)
+                this.authChecked = true
                 return await this.createAuth()
             }
             else if(data.status === 'incorrect'){
-                const keypair = await this.getKeyPair()
-                const publicKey = await crypto.subtle.exportKey('jwk', keypair.publicKey)
                 const input = await digestPassword(await alertInput(language.inputNodePassword))
-
-                const s = await fetch('/api/login',{
-                    method: "POST",
-                    body: JSON.stringify({
-                        password: input,
-                        publicKey: publicKey
-                    }),
-                    headers: {
-                        'content-type': 'application/json'
-                    }
-                })
-                if(s.status < 200 || s.status >= 300){
-                    let message = `Login failed (${s.status})`
-                    try {
-                        const body = await s.json()
-                        if(body?.error){
-                            message = body.error
-                        }
-                    } catch {}
-                    alertError(message)
-                    await waitAlert()
-                    throw message
-                }
+                await this.loginWithPassword(input)
                 this.authChecked = true
                 return await this.createAuth()
-            
+
             }
             else{
                 this.authChecked = true
             }
+        }
+    }
+
+    private async loginWithPassword(password:string){
+        const keypair = await this.getKeyPair()
+        const publicKey = await crypto.subtle.exportKey('jwk', keypair.publicKey)
+
+        const s = await fetch('/api/login',{
+            method: "POST",
+            body: JSON.stringify({
+                password: password,
+                publicKey: publicKey
+            }),
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+        if(s.status < 200 || s.status >= 300){
+            let message = `Login failed (${s.status})`
+            try {
+                const body = await s.json()
+                if(body?.error){
+                    message = body.error
+                }
+            } catch {}
+            alertError(message)
+            await waitAlert()
+            throw message
         }
     }
 
