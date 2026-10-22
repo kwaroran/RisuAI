@@ -245,7 +245,11 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                         }
                     }
                     else{
-                        data = risuChatParser(data.replace(reg, outScript), { chatID: chatID, cbsConditions })
+                        const replaced = data.replace(reg, outScript)
+                        //only re-run the CBS parser when the script actually changed the text
+                        if(replaced !== data){
+                            data = risuChatParser(replaced, { chatID: chatID, cbsConditions })
+                        }
                     }
                 }
                 else{
@@ -288,7 +292,11 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                 }
             }
             else{
-                data = risuChatParser(data.replace(reg, outScript), { chatID: chatID, cbsConditions })
+                const replaced = data.replace(reg, outScript)
+                //only re-run the CBS parser when the script actually changed the text
+                if(replaced !== data){
+                    data = risuChatParser(replaced, { chatID: chatID, cbsConditions })
+                }
             }
         }
     }
