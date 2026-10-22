@@ -1,7 +1,9 @@
 import fc from 'fast-check'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { getImageType } from 'src/ts/media'
 import type { InlayAsset } from '../inlays'
 import {
+    createInlayFromData,
     getInlayAsset,
     getInlayAssetBlob,
     listInlayAssets,
@@ -435,6 +437,93 @@ describe('writeInlayImage', () => {
                 })
             }),
         )
+    })
+})
+
+describe('createInlayFromData', () => {
+    // happy-dom does not load images, so onload/onerror never fire naturally
+    class FakeImage {
+        onload: (() => void) | null = null
+        onerror: (() => void) | null = null
+        width = 200
+        height = 100
+        #src = ''
+        get src() {
+            return this.#src
+        }
+        set src(value: string) {
+            this.#src = value
+            queueMicrotask(() => {
+                if (value.includes('bad-image')) this.onerror?.()
+                else this.onload?.()
+            })
+        }
+    }
+
+    const origCreateObjectURL = URL.createObjectURL
+    const origRevokeObjectURL = URL.revokeObjectURL
+
+    beforeEach(() => {
+        vi.stubGlobal('Image', FakeImage)
+        URL.createObjectURL = vi.fn(() => 'blob:fake-url')
+        URL.revokeObjectURL = vi.fn()
+    })
+
+    afterEach(() => {
+        vi.unstubAllGlobals()
+        URL.createObjectURL = origCreateObjectURL
+        URL.revokeObjectURL = origRevokeObjectURL
+    })
+
+    test('creates an image inlay from a data URI string', async () => {
+        const result = await createInlayFromData('data:image/png;base64,aGVsbG8=')
+
+        expect(result).toBe('test-uuid-1234')
+        const stored = store.get('test-uuid-1234') as InlayAsset
+        expect(stored).toMatchObject({
+            data: expect.any(Blob),
+            ext: 'png',
+            name: 'test-uuid-1234',
+            type: 'image',
+        })
+    })
+
+    test('creates an image inlay from raw bytes and revokes the object URL', async () => {
+        vi.mocked(getImageType).mockReturnValue('PNG')
+
+        const result = await createInlayFromData(new Uint8Array([0x89, 0x50]), 'gen.png')
+
+        expect(result).toBe('test-uuid-1234')
+        expect(URL.createObjectURL).toHaveBeenCalledOnce()
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:fake-url')
+        const stored = store.get('test-uuid-1234') as InlayAsset
+        expect(stored).toMatchObject({
+            name: 'gen.png',
+            type: 'image',
+        })
+    })
+
+    test('rejects and revokes the object URL when raw bytes cannot be decoded', async () => {
+        vi.mocked(getImageType).mockReturnValue('Unknown')
+        vi.mocked(URL.createObjectURL).mockReturnValue('blob:bad-image')
+
+        await expect(createInlayFromData(new Uint8Array([0x00, 0x01]))).rejects.toThrow(
+            /Failed to decode/,
+        )
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:bad-image')
+        expect(store.size).toBe(0)
+    })
+
+    test('rejects instead of hanging when the image cannot be decoded', async () => {
+        await expect(createInlayFromData('data:bad-image')).rejects.toThrow(/Failed to decode/)
+        expect(store.size).toBe(0)
+    })
+
+    test('rejects strings that are not data URIs', async () => {
+        await expect(createInlayFromData('https://example.com/x.png')).rejects.toThrow(
+            /must be an image data URI/,
+        )
+        expect(store.size).toBe(0)
     })
 })
 

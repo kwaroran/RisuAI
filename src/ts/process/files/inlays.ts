@@ -124,6 +124,40 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
     return `${imgid}`
 }
 
+export async function createInlayFromData(data: Uint8Array | string, name?: string) {
+    if(typeof data === 'string'){
+        //reject remote URLs so plugins can't bypass nativeFetch's URL restrictions
+        if(!data.startsWith('data:')){
+            throw new Error('String input must be an image data URI')
+        }
+        return await writeInlayImageFromSrc(data, name)
+    }
+
+    //mime is only a hint; undecodable bytes reject via onerror in writeInlayImageFromSrc
+    const imageType = getImageType(data)
+    const mimeType = imageType === 'Unknown' ? 'application/octet-stream' : `image/${imageType.toLowerCase()}`
+
+    const src = URL.createObjectURL(new Blob([asBuffer(data)], {type: mimeType}))
+    try {
+        return await writeInlayImageFromSrc(src, name)
+    } finally {
+        URL.revokeObjectURL(src)
+    }
+}
+
+function writeInlayImageFromSrc(src: string, name?: string): Promise<string> {
+    const imgObj = new Image()
+
+    return new Promise((resolve, reject) => {
+        //writeInlayImage only waits for onload; reject undecodable input via onerror
+        imgObj.onerror = () => {
+            reject(new Error('Failed to decode inlay image data'))
+        }
+        imgObj.src = src
+        writeInlayImage(imgObj, { name }).then(resolve, reject)
+    })
+}
+
 export type InlaySignature = {
     signatures: {
         type: 'function'|'text'
