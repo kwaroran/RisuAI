@@ -5,6 +5,8 @@ import { LLMFlags } from "src/ts/model/modellist"
 import { addFetchLog, fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { simplifySchema } from "src/ts/util"
 import { NANOGPT_RESPONSES_ENDPOINT, NANOGPT_SUBSCRIPTION_RESPONSES_ENDPOINT } from "src/ts/model/providers/nanogpt"
+import type { ResponseUsage } from "src/ts/usage/meter"
+import { fromResponsesUsage } from "src/ts/usage/normalize"
 
 import { extractJSON, getOpenAIJSONSchema } from "../../templates/jsonSchema"
 import { callTool, decodeToolCall, encodeToolCall } from "../../mcp/mcp"
@@ -537,6 +539,7 @@ async function requestHTTPResponsesAPI(requestURL:string, body:any, headers:Reco
     }
 
     const data = response.data as any
+    arg.usage?.add(fromResponsesUsage(data?.usage))
     if(data?.status === 'failed' || data?.error){
         return { type: 'fail', result: JSON.stringify(data.error ?? data) }
     }
@@ -578,7 +581,7 @@ async function requestHTTPResponsesAPI(requestURL:string, body:any, headers:Reco
     return { type: 'success', result }
 }
 
-function getResponsesTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Array, StreamResponseChunk>{
+function getResponsesTranStream(arg:RequestDataArgumentExtended, usage?:ResponseUsage):TransformStream<Uint8Array, StreamResponseChunk>{
     const db = getDatabase()
     const decoder = new TextDecoder()
     let buffer = ''
@@ -617,6 +620,8 @@ function getResponsesTranStream(arg:RequestDataArgumentExtended):TransformStream
 
     const applyEvent = (event:any) => {
         const type = event?.type
+        // response.completed, response.incomplete and response.failed carry the usage.
+        usage?.update(fromResponsesUsage(event?.response?.usage))
         if(type === 'response.output_text.delta' || type === 'response.refusal.delta'){
             text += event.delta ?? ''
         }
@@ -788,7 +793,7 @@ function wrapResponsesToolStream(stream:ReadableStream<StreamResponseChunk>, bod
                     status: resRec.status,
                 })
 
-                const transtream = getResponsesTranStream(arg)
+                const transtream = getResponsesTranStream(arg, arg.usage?.newResponse())
                 resRec.body.pipeTo(transtream.writable)
                 reader = transtream.readable.getReader()
                 lastValue = { "0": '' }
@@ -853,7 +858,7 @@ export async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):
             status: response.status,
         })
 
-        const transtream = getResponsesTranStream(arg)
+        const transtream = getResponsesTranStream(arg, arg.usage?.newResponse())
         response.body.pipeTo(transtream.writable)
         return {
             type: 'streaming',

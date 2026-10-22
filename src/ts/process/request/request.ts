@@ -16,6 +16,9 @@ import { getStopStrings, stringlizeAINChat, unstringlizeAIN, unstringlizeChat } 
 import { applyChatTemplate } from "../templates/chatTemplate";
 import { runTransformers } from "../transformers";
 import { runTrigger } from "../triggers";
+import type { UsageMeter } from "../../usage/meter";
+import { fromCohereMeta, fromOllamaResponse } from "../../usage/normalize";
+import { meterRequest } from "../../usage/recorder";
 import { requestClaude } from './anthropic';
 import { requestGoogleCloudVertex } from './google';
 import { requestOpenAI, requestOpenAILegacyInstruct, requestOpenAIResponseAPI } from "./openAI/requests";
@@ -63,6 +66,8 @@ export interface RequestDataArgumentExtended extends requestDataArgument{
     key?:string
     additionalOutput?:string
     saveSignatures?:boolean
+    /** Providers report the token usage the API sent back here. */
+    usage?:UsageMeter
 }
 
 export type requestDataResponse = {
@@ -477,11 +482,15 @@ export async function requestChatDataMain(arg:requestDataArgument, model:ModelMo
         targ.key = found?.key
     }
 
-    const format = targ.modelInfo.format
-
     targ.formated = reformater(targ.formated, targ.modelInfo)
+    targ.usage = meterRequest(targ)
 
-    switch(format){
+    const result = await requestByFormat(targ)
+    return targ.usage?.track(result) ?? result
+}
+
+async function requestByFormat(targ:RequestDataArgumentExtended):Promise<requestDataResponse> {
+    switch(targ.modelInfo.format){
         case LLMFormat.OpenAICompatible:
         case LLMFormat.Mistral:
         case LLMFormat.NanoGPT:
@@ -1193,6 +1202,7 @@ async function requestOllama(arg:RequestDataArgumentExtended):Promise<requestDat
     if(!arg.useStreaming){
         requestBody.stream = false
         const response: any = await ollama.chat(requestBody)
+        arg.usage?.add(fromOllamaResponse(response))
 
         const result = formatThinkingOutput(response.message?.thinking ?? '', response.message?.content ?? '')
         return {
@@ -1204,12 +1214,15 @@ async function requestOllama(arg:RequestDataArgumentExtended):Promise<requestDat
 
     requestBody.stream = true
     const response: any = await ollama.chat(requestBody)
+    const usage = arg.usage?.newResponse()
 
     const readableStream = new ReadableStream<StreamResponseChunk>({
         async start(controller){
             let content = ''
             let thinking = ''
             for await(const chunk of response){
+                // Only the last chunk has the token counts.
+                usage?.update(fromOllamaResponse(chunk))
                 thinking += chunk.message?.thinking ?? ''
                 content += chunk.message?.content ?? ''
                 controller.enqueue({
@@ -1341,6 +1354,7 @@ async function requestCohere(arg:RequestDataArgumentExtended):Promise<requestDat
         }
     }
 
+    arg.usage?.add(fromCohereMeta(res?.data?.meta))
     const result = res?.data?.text
     if(!result){
         return {

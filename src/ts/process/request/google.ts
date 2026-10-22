@@ -11,6 +11,8 @@ import { addFetchLog } from "src/ts/globalApi.svelte"
 import type { RequestDataArgumentExtended, requestDataResponse, StreamResponseChunk } from './request'
 import { applyAdditionalParameters, applyParameters, getAdditionalParameters, type LLMParameter } from './shared'
 import { bodyIntercepterStore } from "src/ts/stores.svelte"
+import type { ResponseUsage } from "src/ts/usage/meter"
+import { fromGeminiUsage } from "src/ts/usage/normalize"
 
 type GeminiFunctionCall = {
     id?: string;
@@ -669,7 +671,8 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
 
         const transtream = getTranStream({
             modelInfo: arg.modelInfo,
-            saveSignature: arg.saveSignatures ?? false
+            saveSignature: arg.saveSignatures ?? false,
+            usage: arg.usage?.newResponse()
         }) 
 
         f.body.pipeTo(transtream.writable)
@@ -703,7 +706,10 @@ async function requestGoogle(url:string, body:any, headers:{[key:string]:string}
     }
 
     let rDatas:{text: string, thought?: boolean}[] = [] 
+    const usage = arg.usage?.newResponse()
     const processDataItem = async (data:any):Promise<GeminiPart[]> => {
+        // A multipart response repeats the usage, with the last part having the total.
+        usage?.update(fromGeminiUsage(data?.usageMetadata))
         const parts = data?.candidates?.[0]?.content?.parts as GeminiPart[]
 
         if(parts){
@@ -975,10 +981,11 @@ function initStreamState(state?: {[key:string]:string}): {[key:string]:string} {
 
 function getTranStream(args:{
     modelInfo:LLMModel,
-    saveSignature:boolean
+    saveSignature:boolean,
+    usage?:ResponseUsage
 }):TransformStream<Uint8Array, StreamResponseChunk> {
     let buffer = '';
-    const { modelInfo, saveSignature } = args
+    const { modelInfo, saveSignature, usage } = args
     return new TransformStream<Uint8Array, StreamResponseChunk>({
         transform(chunk, control) {
             buffer += new TextDecoder().decode(chunk);
@@ -1050,6 +1057,8 @@ function getTranStream(args:{
 
                         if(jsonData.usageMetadata){
                             readed['__usageMetadata'] = JSON.stringify(jsonData.usageMetadata)
+                            // The whole buffer is read again on every chunk, so this replaces earlier counts.
+                            usage?.update(fromGeminiUsage(jsonData.usageMetadata))
                         }
                         if(jsonData.modelStatus){
                             readed['__modelStatus'] = JSON.stringify(jsonData.modelStatus)
@@ -1252,7 +1261,8 @@ function wrapToolStream(
 
                         const transtream = getTranStream({
                             modelInfo: arg.modelInfo,
-                            saveSignature: arg.saveSignatures ?? false
+                            saveSignature: arg.saveSignatures ?? false,
+                            usage: arg.usage?.newResponse()
                         })
                         resRec.body.pipeTo(transtream.writable)
 

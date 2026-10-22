@@ -11,6 +11,7 @@ import { v4 } from "uuid"
 import type { MultiModal } from "../index.svelte"
 import { extractJSON } from "../templates/jsonSchema"
 import { callTool, decodeToolCall, encodeToolCall } from "../mcp/mcp"
+import { fromAnthropicUsage } from "src/ts/usage/normalize"
 import type { RequestDataArgumentExtended, requestDataResponse, StreamResponseChunk } from './request'
 import { applyAdditionalParameters, applyParameters, getAdditionalParameters } from './shared'
 
@@ -510,6 +511,7 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
                 result: JSON.stringify(res.data.error)
             }
         }
+        arg.usage?.add(fromAnthropicUsage(res.data.usage))
         const contents = res?.data?.content
         if(!contents || contents.length === 0){
             return {
@@ -788,6 +790,7 @@ export async function requestClaude(arg:RequestDataArgumentExtended):Promise<req
                             const type = batchData?.result?.type
                             console.log('Claude batch result type:', type)
                             if(batchData?.result?.type === 'succeeded'){
+                                arg.usage?.add(fromAnthropicUsage(batchData.result.message.usage))
                                 const contents = batchData.result.message.content ?? []
                                 let resText = ''
                                 let thinking = false
@@ -925,6 +928,7 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
         }
         let breakError = ''
         let thinking = false
+        const usage = arg.usage?.newResponse()
 
         const stream = new ReadableStream<StreamResponseChunk>({
             async start(controller){
@@ -935,6 +939,15 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
                 const parseEvent = ((e:string) => {
                     try {               
                         const parsedData = JSON.parse(e)
+
+                        // message_start has the prompt, message_delta the running output count.
+                        // Events can be parsed twice, so usage is replaced, never added.
+                        if(parsedData?.type === 'message_start'){
+                            usage?.update({ ...fromAnthropicUsage(parsedData.message?.usage), output: undefined })
+                        }
+                        if(parsedData?.type === 'message_delta'){
+                            usage?.update(fromAnthropicUsage(parsedData.usage))
+                        }
 
                         if(parsedData?.type === 'content_block_delta'){
                             if(parsedData?.delta?.type === 'text' || parsedData.delta?.type === 'text_delta'){
@@ -1083,6 +1096,7 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
             failByServerError: stringlified?.toLocaleLowerCase()?.includes('overload')
         }
     }
+    arg.usage?.add(fromAnthropicUsage(res.data.usage))
     const contents = res?.data?.content
     if(!contents || contents.length === 0){
         return {

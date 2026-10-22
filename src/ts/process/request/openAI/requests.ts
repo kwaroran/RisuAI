@@ -7,6 +7,8 @@ import { getFreeOpenRouterModels } from "src/ts/model/openrouter"
 import { addFetchLog, fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { isNodeServer, isTauri } from "src/ts/platform"
 import { simplifySchema } from "src/ts/util"
+import type { ResponseUsage } from "src/ts/usage/meter"
+import { fromOpenAIUsage } from "src/ts/usage/normalize"
 
 import { extractJSON, getOpenAIJSONSchema } from "../../templates/jsonSchema"
 import { applyChatTemplate } from "../../templates/chatTemplate"
@@ -214,6 +216,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
     if(aiModel === 'openrouter' && db.openrouterRequestModel === 'risu/free'){
         openrouterRequestModel = await getFreeOpenRouterModels()
+        arg.usage?.setModel(openrouterRequestModel)
     }
 
     if(arg.modelInfo.flags.includes(LLMFlags.DeveloperRole)){
@@ -316,6 +319,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
         const dat = res.data as any
         if(res.ok){
+            arg.usage?.add(fromOpenAIUsage(dat?.usage))
             try {
                 const msg:OpenAIChatFull = (dat.choices[0].message)
                 return {
@@ -586,6 +590,9 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
     if(arg.useStreaming){
         body.stream = true
+        if(acceptsStreamOptions(replacerURL)){
+            body.stream_options ??= { include_usage: true }
+        }
         let urlHost = new URL(replacerURL).host
         if(urlHost.includes("localhost") || urlHost.includes("172.0.0.1") || urlHost.includes("0.0.0.0")){
             if(!isTauri && !isNodeServer){
@@ -639,7 +646,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             status: da.status,
         })
 
-        const transtream = getTranStream(arg)
+        const transtream = getTranStream(arg, arg.usage?.newResponse())
 
         da.body.pipeTo(transtream.writable)
 
@@ -729,6 +736,7 @@ export async function requestHTTPOpenAI(
     const dat = res.data as any
 
     if(res.ok){
+        arg.usage?.add(fromOpenAIUsage(dat?.usage))
         try {
             // Collect all tool_calls from all choices
             let allToolCalls: ToolCall[] = []
@@ -961,6 +969,7 @@ export async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtende
             result: (language.errors.httpError + `${JSON.stringify(response.data)}`)
         }
     }
+    arg.usage?.add(fromOpenAIUsage(response.data?.usage))
     const text:string = response.data.choices[0].text
     return {
         type: 'success',
@@ -969,7 +978,16 @@ export async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtende
     
 }
 
-function getTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Array, StreamResponseChunk> {
+/** Servers known to accept `stream_options`. Other OpenAI-compatible servers may reject unknown fields. */
+function acceptsStreamOptions(url:string):boolean {
+    try {
+        return ['api.openai.com', 'openrouter.ai', 'api.deepseek.com', 'ollama.com'].includes(new URL(url).hostname)
+    } catch {
+        return false
+    }
+}
+
+function getTranStream(arg:RequestDataArgumentExtended, usage?:ResponseUsage):TransformStream<Uint8Array, StreamResponseChunk> {
     let dataUint:Uint8Array|Buffer = new Uint8Array([])
     let reasoningContent = ""
     let reasoningFromStructured = false
@@ -1033,7 +1051,10 @@ function getTranStream(arg:RequestDataArgumentExtended):TransformStream<Uint8Arr
                                 }
                                 return
                             }
-                            const choices = JSON.parse(rawChunk).choices
+                            const parsed = JSON.parse(rawChunk)
+                            // The whole buffer is read again on every chunk, so this sees the same usage many times.
+                            usage?.update(fromOpenAIUsage(parsed.usage))
+                            const choices = parsed.choices
                             for(const choice of choices){
                                 const chunk = choice.delta.content ?? choice.text
                                 if(chunk){
@@ -1296,7 +1317,7 @@ function wrapToolStream(
                             return controller.close()
                         }
                         
-                        const transtream = getTranStream(arg)                    
+                        const transtream = getTranStream(arg, arg.usage?.newResponse())
                         resRec.body.pipeTo(transtream.writable)
                         
                         reader = transtream.readable.getReader()
