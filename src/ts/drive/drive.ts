@@ -144,7 +144,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
                 msg: `Uploading Backup... (${i} / ${assets.length})`
             })
             const key = asset.name
-            if(!key || !key.endsWith('.png')){
+            if(!key || asset.isDirectory){
                 continue
             }
             const formatedKey = newFormatKeys(key)
@@ -162,7 +162,7 @@ async function backupDrive(ACCESS_TOKEN:string) {
                 msg: `Uploading Backup... (${i} / ${keys.length})`
             })
             const key = keys[i]
-            if(!key.endsWith('.png')){
+            if(!key || !key.startsWith('assets/')){
                 continue
             }
             const formatedKey = newFormatKeys(key)
