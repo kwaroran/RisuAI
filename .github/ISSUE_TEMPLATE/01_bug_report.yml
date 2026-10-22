@@ -1,0 +1,120 @@
+name: Bug report
+description: Report a reproducible problem in Risuai
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem.
+        Please search existing issues before submitting.
+        You may write the report in any language.
+        Do not include API keys, access tokens, passwords, or private chat data.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Clearly describe what went wrong.
+      placeholder: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide the smallest sequence of steps that reproduces the problem.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Send ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Risuai version
+      description: You can find this in the application settings or release information.
+      placeholder: "Example: 2026.7.250"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - Web
+        - Windows
+        - macOS
+        - Linux
+        - Android
+        - iOS / iPadOS
+        - Docker / self-hosted
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Operating system and browser
+      description: Include the OS version and browser or desktop-app information.
+      placeholder: "Example: Windows 11 / Risuai desktop app"
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation method
+      options:
+        - risuai.net
+        - GitHub release
+        - Docker
+        - Locally built from source
+        - PocketRisu
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: API provider and model
+      description: Complete this when the problem is related to generation or API requests.
+      placeholder: "Example: OpenRouter / Claude Sonnet"
+  - type: textarea
+    id: extensions
+    attributes:
+      label: Plugins, scripts, and custom settings
+      description: List anything that could affect the behavior. Write "None" when not applicable.
+      placeholder: |
+        Plugins:
+        Regex scripts:
+        Custom request settings:
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error messages
+      description: Remove credentials and private information before submitting.
+      render: shell
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add screenshots, recordings, example character cards, or related issues here.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Submission checklist
+      options:
+        - label: I searched existing issues and could not find the same problem.
+          required: true
+        - label: I removed API keys, private data, and other sensitive information.
+          required: true
+        - label: I provided all available information needed to investigate this problem.
+          required: true
