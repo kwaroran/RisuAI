@@ -13,6 +13,7 @@ import { applyAdditionalParameters, applyParameters, getAdditionalParameters, is
 
 import type { OpenAIChatExtra, ResponseFunctionCallItem, ResponseInputItem, ResponseItem, ResponseOutputItem } from './types'
 import { getLocalNetworkRequestOptions, type LocalNetworkRequestOptions } from './shared'
+import { addPromptCacheBreakpoint, isGPT56Model, responsesCacheableContentTypes } from './promptCache'
 
 function responseTextContentToString(content:any):string{
     if(typeof content === 'string'){
@@ -79,6 +80,7 @@ async function buildResponseInputItems(arg:RequestDataArgumentExtended):Promise<
     const items:ResponseItem[] = []
     const developerRole = arg.modelInfo.flags.includes(LLMFlags.DeveloperRole)
     const db = getDatabase()
+    const supportsExplicitPromptCaching = isGPT56Model(getResponsesRequestModel(arg))
 
     for(const content of arg.formated as OpenAIChatExtra[]){
         switch(content.role){
@@ -152,6 +154,9 @@ async function buildResponseInputItems(arg:RequestDataArgumentExtended):Promise<
                 }
 
                 if(item.content.length > 0){
+                    if(content.cachePoint && supportsExplicitPromptCaching){
+                        item.content = addPromptCacheBreakpoint(item.content, responsesCacheableContentTypes)
+                    }
                     items.push(item)
                 }
                 break

@@ -242,6 +242,35 @@ describe('OpenAI Responses API helpers', () => {
         expect(sourceMessages[1]).toMatchObject({ role: 'user', content: 'Describe this.', multimodals: [{ type: 'image', base64: 'data:image/png;base64,abc' }] })
     })
 
+    it('converts GPT-5.6 cache points into Responses input block breakpoints', async () => {
+        const body = await __testResponsesAPI.buildResponsesBody(baseArg({
+            formated: [
+                { role: 'system', content: 'Stable instructions', cachePoint: true },
+                { role: 'user', content: 'Changing request' },
+            ],
+            modelInfo: {
+                ...baseArg().modelInfo,
+                id: 'gpt-5.6-response-api',
+                internalID: 'gpt-5.6',
+            },
+        }))
+
+        expect(body.input).toEqual([
+            {
+                role: 'developer',
+                content: [{
+                    type: 'input_text',
+                    text: 'Stable instructions',
+                    prompt_cache_breakpoint: { mode: 'explicit' },
+                }],
+            },
+            {
+                role: 'user',
+                content: [{ type: 'input_text', text: 'Changing request' }],
+            },
+        ])
+    })
+
     it('requests reasoning summaries for Responses reasoning models', async () => {
         const body = await __testResponsesAPI.buildResponsesBody(baseArg())
 
