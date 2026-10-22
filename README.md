@@ -57,9 +57,23 @@ You can get detailed information on https://github.com/kwaroran/Risuai/wiki (Wor
 
 You can also run Risuai using Docker. This method is particularly useful for web hosting.
 
+#### Using a pre-built image
+
 1. Run the Docker container:
    ```
    curl -L https://raw.githubusercontent.com/kwaroran/Risuai/refs/heads/main/docker-compose.yml | docker compose -f - up -d
    ```
+
+2. Access Risuai at `http://localhost:6001` in your web browser.
+
+#### Building from source
+Alternatively, you can build and use the Docker image yourself.
+
+1. Clone and build
+```sh
+git clone https://github.com/kwaroran/Risuai.git
+cd Risuai
+docker compose -f docker-compose.build.yml up --build -d
+```
 
 2. Access Risuai at `http://localhost:6001` in your web browser.
