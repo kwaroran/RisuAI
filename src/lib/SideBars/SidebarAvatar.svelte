@@ -1,9 +1,12 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { tooltipRight } from "src/ts/gui/tooltip";
+
+  type AvatarImageSource = string | Promise<string> | (() => string | Promise<string>);
 
   interface Props {
     rounded: boolean;
-    src: string|Promise<string>;
+    src: AvatarImageSource;
     name: string;
     size?: string;
     onClick?: any;
@@ -15,6 +18,9 @@
         currentTarget: EventTarget & HTMLDivElement;
     }) => any
     chaId?: string;
+    srcKey?: string;
+    onVisible?: () => void | Promise<void>;
+    onError?: () => void;
   }
 
   let {
@@ -28,12 +34,106 @@
     backgroundimg = '',
     children,
     oncontextmenu,
-    chaId
+    chaId,
+    srcKey,
+    onVisible,
+    onError
   }: Props = $props();
+
+  let avatarRoot: HTMLSpanElement;
+  let visible = $state(false);
+  let resolvedSrc: string | Promise<string> = $state('');
+  let loadedKey = '';
+  let handledVisibleKey: string | undefined;
+
+  $effect(() => {
+    if (!avatarRoot) {
+      return;
+    }
+
+    const isLazySource = untrack(() => typeof src === 'function');
+    if (!isLazySource) {
+      visible = true;
+      return;
+    }
+
+    if (visible) {
+      return;
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      visible = true;
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) {
+        visible = true;
+        observer.disconnect();
+      }
+    }, {
+      root: null,
+      rootMargin: '160px 0px',
+      threshold: 0,
+    });
+
+    observer.observe(avatarRoot);
+
+    return () => {
+      observer.disconnect();
+    };
+  });
+
+  $effect(() => {
+    if (!visible) {
+      return;
+    }
+
+    const key = srcKey ?? (typeof src === 'function' ? '' : String(src));
+    if (handledVisibleKey === key) {
+      return;
+    }
+
+    const onVisibleHandler = untrack(() => onVisible);
+    if (!onVisibleHandler) {
+      return;
+    }
+
+    handledVisibleKey = key;
+    void onVisibleHandler();
+  });
+
+  $effect(() => {
+    const key = srcKey ?? (typeof src === 'function' ? '' : String(src));
+
+    if (!src) {
+      resolvedSrc = '';
+      loadedKey = '';
+      return;
+    }
+
+    if (typeof src !== 'function') {
+      resolvedSrc = src;
+      loadedKey = key;
+      return;
+    }
+
+    if (!visible) {
+      return;
+    }
+
+    if (loadedKey === key && resolvedSrc) {
+      return;
+    }
+
+    resolvedSrc = src();
+    loadedKey = key;
+  });
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <span class="flex shrink-0 items-center justify-center avatar"
+      bind:this={avatarRoot}
       class:border = {bordered}
       class:border-selected={bordered}
       class:rounded-md={bordered}
@@ -88,7 +188,8 @@
         </div>
     {/await}
     {:else}
-      {#await src}
+      {#if resolvedSrc}
+      {#await resolvedSrc}
         <div
           class="bg-skin-border sidebar-avatar rounded-md bg-top"
           style:width={size + "px"}
@@ -97,8 +198,10 @@
           class:rounded-md={!rounded} class:rounded-full={rounded} 
 ></div>
       {:then img}
+        {#if img}
         <img
           src={img}
+          onerror={onError}
           class="bg-skin-border sidebar-avatar rounded-md object-cover object-top"
           style:width={size + "px"}
           style:height={size + "px"}
@@ -106,7 +209,25 @@
           class:rounded-md={!rounded} class:rounded-full={rounded} 
           alt="avatar"
         />
+        {:else}
+        <div
+          class="bg-skin-border sidebar-avatar rounded-md bg-top"
+          style:width={size + "px"}
+          style:height={size + "px"}
+          style:minWidth={size + "px"}
+          class:rounded-md={!rounded} class:rounded-full={rounded}
+        ></div>
+        {/if}
       {/await}
+      {:else}
+      <div
+        class="bg-skin-border sidebar-avatar rounded-md bg-top"
+        style:width={size + "px"}
+        style:height={size + "px"}
+        style:minWidth={size + "px"}
+        class:rounded-md={!rounded} class:rounded-full={rounded}
+      ></div>
+      {/if}
     {/if}
   {:else}
     <div
