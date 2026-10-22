@@ -238,6 +238,11 @@ interface OpenAIChat {
         name: string;
         arguments: string;
     };
+    /**
+     * Marks the end of a reusable prompt prefix, including this message.
+     * Providers that do not support explicit prompt caching may ignore it.
+     */
+    cachePoint?: boolean;
 }
 
 /**
