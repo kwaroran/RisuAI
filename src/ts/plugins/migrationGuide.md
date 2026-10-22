@@ -221,15 +221,15 @@ Access the main document through a secure wrapper:
 
 ```javascript
 // Get the root document (returns SafeDocument)
-const rootDoc = risuai.getRootDocument()
+const rootDoc = await risuai.getRootDocument()
 
 // Create elements
-const div = rootDoc.createElement('div')
-const anchor = rootDoc.createAnchorElement('https://example.com')
+const div = await rootDoc.createElement('div')
+const anchor = await rootDoc.createAnchorElement('https://example.com')
 
 // Query elements
-const element = rootDoc.querySelector('.some-class')
-const elements = rootDoc.querySelectorAll('div')
+const element = await rootDoc.querySelector('.some-class')
+const elements = await rootDoc.querySelectorAll('div')
 ```
 
 #### SafeElement API
@@ -239,33 +239,33 @@ The `SafeElement` class provides secure DOM manipulation with restricted access 
 ##### Element Manipulation
 ```javascript
 // Append/remove/replace children
-element.appendChild(childElement)
-element.removeChild(childElement)
-element.replaceChild(newChild, oldChild)
-element.replaceWith(newElement)
-element.prepend(childElement)
-element.remove()
+await element.appendChild(childElement)
+await element.removeChild(childElement)
+await element.replaceChild(newChild, oldChild)
+await element.replaceWith(newElement)
+await element.prepend(childElement)
+await element.remove()
 
 // Clone nodes
-const cloned = element.cloneNode(deep)
+const cloned = await element.cloneNode(deep)
 ```
 
 ##### Text Content
 ```javascript
 // Get text content
-const text = element.innerText()
-const content = element.textContent()
+const text = await element.innerText()
+const content = await element.textContent()
 
 // Set text content
-element.setInnerText('Hello World')
-element.setTextContent('Hello World')
+await element.setInnerText('Hello World')
+await element.setTextContent('Hello World')
 ```
 
 ##### Attributes (Restricted)
 ```javascript
 // Only 'x-' prefixed attributes allowed for security
-element.setAttribute('x-custom-id', 'value')
-const value = element.getAttribute('x-custom-id')
+await element.setAttribute('x-custom-id', 'value')
+const value = await element.getAttribute('x-custom-id')
 ```
 
 **Security Note:** Only attributes starting with `x-` can be get/set directly. Use dedicated methods for other attributes.
@@ -273,71 +273,71 @@ const value = element.getAttribute('x-custom-id')
 ##### Styling
 ```javascript
 // Style properties
-element.setStyle('color', 'red')
-const color = element.getStyle('color')
+await element.setStyle('color', 'red')
+const color = await element.getStyle('color')
 
 // Style attribute
-element.setStyleAttribute('color: red; font-size: 16px')
-const styleStr = element.getStyleAttribute()
+await element.setStyleAttribute('color: red; font-size: 16px')
+const styleStr = await element.getStyleAttribute()
 
 // CSS classes
-element.addClass('active')
-element.removeClass('inactive')
-element.setClassName('container active')
-const className = element.getClassName()
-const hasClass = element.hasClass('active')
+await element.addClass('active')
+await element.removeClass('inactive')
+await element.setClassName('container active')
+const className = await element.getClassName()
+const hasClass = await element.hasClass('active')
 ```
 
 ##### HTML Content (Sanitized)
 ```javascript
 // Get HTML
-const inner = element.getInnerHTML()
-const outer = element.getOuterHTML()
+const inner = await element.getInnerHTML()
+const outer = await element.getOuterHTML()
 
 // Set HTML (automatically sanitized with DOMPurify)
-element.setInnerHTML('<div>Safe HTML</div>')
-element.setOuterHTML('<span>Safe HTML</span>')
+await element.setInnerHTML('<div>Safe HTML</div>')
+await element.setOuterHTML('<span>Safe HTML</span>')
 
 //This won't work expected
-element.setInnerHTML('<script>alert("XSS")</script>') // script tag will be removed
+await element.setInnerHTML('<script>alert("XSS")</script>') // script tag will be removed
 ```
 
 ##### Traversal and Querying
 ```javascript
 // Navigation
-const children = element.getChildren()
-const parent = element.getParent()
+const children = await element.getChildren()
+const parent = await element.getParent()
 
 // Querying
-const matches = element.querySelectorAll('.child-class')
-const single = element.querySelector('#child-id')
-const byId = element.getElementById('some-id')
-const byClass = element.getElementsByClassName('some-class')
+const matches = await element.querySelectorAll('.child-class')
+const single = await element.querySelector('#child-id')
+const byId = await element.getElementById('some-id')
+const byClass = await element.getElementsByClassName('some-class')
 
 // Matching
-const matches = element.matches('.some-selector')
+const matches = await element.matches('.some-selector')
 ```
 
 ##### Dimensions and Position
 ```javascript
-const height = element.clientHeight()
-const width = element.clientWidth()
-const top = element.clientTop()
-const left = element.clientLeft()
+const height = await element.clientHeight()
+const width = await element.clientWidth()
+const top = await element.clientTop()
+const left = await element.clientLeft()
 
-const rects = element.getClientRects()
-const rect = element.getBoundingClientRect()
+const rects = await element.getClientRects()
+const rect = await element.getBoundingClientRect()
 ```
 
 ##### Node Information
 ```javascript
-const name = element.nodeName()
-const type = element.nodeType()
+const name = await element.nodeName()
+const type = await element.nodeType()
 ```
 
 ##### Focus
 ```javascript
-element.focus()
+await element.focus()
 ```
 
 ##### Event Listeners
@@ -351,7 +351,7 @@ const listenerId = await element.addEventListener('click', (event) => {
 }, options)
 
 // Remove event listener
-element.removeEventListener('click', listenerId, options)
+await element.removeEventListener('click', listenerId, options)
 ```
 
 **Allowed Events (unlimited):**
@@ -372,11 +372,11 @@ Extends `SafeElement` with document-specific methods:
 
 ```javascript
 // Create regular elements (restricted to whitelist)
-const div = safeDoc.createElement('div')
-const span = safeDoc.createElement('span')
+const div = await safeDoc.createElement('div')
+const span = await safeDoc.createElement('span')
 
 // Create anchor elements (with URL validation)
-const link = safeDoc.createAnchorElement('https://example.com')
+const link = await safeDoc.createAnchorElement('https://example.com')
 ```
 
 **Security Features:**
@@ -468,7 +468,7 @@ console.log(risuai.apiVersionCompatibleWith) // ["3.0"]
 
 ```javascript
 // Get legacy API keys (for debugging/compatibility checking)
-const oldKeys = risuai._getOldKeys()
+const oldKeys = await risuai._getOldKeys()
 ```
 
 **Note:** Methods prefixed with `_` are internal and subject to change without notice.
@@ -623,8 +623,8 @@ API v3.0 implements multiple security layers:
    const element = document.querySelector('.my-class')
 
    // New (v3.0)
-   const doc = risuai.getRootDocument()
-   const element = doc.querySelector('.my-class')
+   const doc = await risuai.getRootDocument()
+   const element = await doc.querySelector('.my-class')
    ```
 
 4. **Handle SafeElement instead of HTMLElement:**
@@ -687,16 +687,16 @@ API v3.0 implements multiple security layers:
     )
 
     // Access main document
-    const doc = risuai.getRootDocument()
+    const doc = await risuai.getRootDocument()
 
     // Monitor changes
-    const observer = risuai.createMutationObserver((mutations) => {
-      console.log(`Detected ${mutations.length} mutations`)
+    const observer = await risuai.createMutationObserver(async (mutations) => {
+      console.log(`Detected ${await mutations.length()} mutations`)
     })
 
-    const body = doc.querySelector('body')
+    const body = await doc.querySelector('body')
     if (body) {
-      observer.observe(body, { childList: true, subtree: true })
+      await observer.observe(body, { childList: true, subtree: true })
     }
 
     // Get/set data
@@ -734,7 +734,7 @@ This will make the software load the plugin in the highest supported api version
 
   if (apiVersion === '3.0') {
     // Use API v3.0 features
-    const doc = risuai.getRootDocument();
+    const doc = await risuai.getRootDocument();
     // ...
   } else if (apiVersion === '2.1') {
     // Use API v2.1 features
