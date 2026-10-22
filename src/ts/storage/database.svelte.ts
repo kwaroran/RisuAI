@@ -1447,6 +1447,7 @@ export interface character{
     ttsReadOnlyQuoted?:boolean
     replaceGlobalNote:string
     backgroundHTML?:string
+    sidePanelHTML?:string
     reloadKeys?:number
     backgroundCSS?:string
     license?:string
@@ -1549,6 +1550,7 @@ export interface groupChat{
     suggestMessages?:string[]
     orderByOrder?:boolean
     backgroundHTML?:string,
+    sidePanelHTML?:string,
     reloadKeys?:number
     backgroundCSS?:string
     oneAtTime?:boolean

@@ -228,7 +228,10 @@
 {/if}
 
 {#if submenu === 2 && (Array.isArray(currentModule.regex))}
+    <span class="text-textcolor">{language.backgroundHTML}</span>
     <TextAreaInput bind:value={currentModule.backgroundEmbedding} className="mt-2" placeholder={language.backgroundHTML} size="sm"/>
+    <span class="text-textcolor mt-4">{language.sidePanelEmbedding} <Help key="sidePanelEmbedding" /></span>
+    <TextAreaInput bind:value={currentModule.sidePanelEmbedding} className="mt-2" placeholder={language.sidePanelEmbedding} size="sm"/>
     <RegexList bind:value={currentModule.regex}/>
     <div class="text-textcolor2 mt-2 flex gap-2">
         <button class="font-medium cursor-pointer hover:text-green-500" onclick={() => {
