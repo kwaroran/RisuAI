@@ -1361,6 +1361,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
             messages: OpenAIChat[]
             staticModel?: string
             allowPlugins?: boolean
+            abortSignal?: AbortSignal
         }) => {
             return requestChatDataMain({
                 formated: options.messages,
@@ -1375,7 +1376,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                 // explicitly with `allowPlugins: true`, accepting responsibility
                 // for avoiding provider-to-provider call loops.
                 blockPlugins: !options.allowPlugins,
-            }, options.mode)
+            }, options.mode, options.abortSignal ?? null)
         },
         sendChat: async (message: string) => {
             const conf = await getPermission('sendChat');

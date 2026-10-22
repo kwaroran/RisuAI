@@ -2114,6 +2114,8 @@ interface RisuaiPluginAPI {
      *   the user's plugin-supplied main or auxiliary model (e.g. a TTS
      *   preprocessor rewriting text with the configured otherAx model).
      *   Loop avoidance becomes the opting-in plugin's responsibility.
+     * @param options.abortSignal - Optional AbortSignal. Aborting it cancels
+     *   the in-flight request, the same way the chat stop button does.
      * @returns The model's response, which may be a string or a stream depending on the mode
      */
     runLLMModel(options: {
@@ -2121,6 +2123,7 @@ interface RisuaiPluginAPI {
         staticModel?: string;
         mode: string;
         allowPlugins?: boolean;
+        abortSignal?: AbortSignal;
     }): Promise<any>;
 
     /**
