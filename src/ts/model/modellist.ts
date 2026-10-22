@@ -41,6 +41,25 @@ function makeDeepInfraModels(id:string[]):LLMModel[]{
     })
 }
 
+// SpicyAPI: OpenAI-compatible chat gateway, one API key for every model below.
+// internalID is the model id sent in the request; parameters list only the sampling fields the model accepts.
+function makeSpicyAPIModel(internalID:string, name:string, parameters:LLMModel['parameters'], tokenizer:LLMTokenizer = LLMTokenizer.Unknown):LLMModel{
+    return {
+        id: 'spicyapi_' + internalID,
+        name: name + ' (SpicyAPI)',
+        fullName: 'SpicyAPI ' + name,
+        internalID,
+        provider: LLMProvider.SpicyAPI,
+        format: LLMFormat.OpenAICompatible,
+        parameters,
+        flags: [LLMFlags.hasFullSystemPrompt, LLMFlags.hasStreaming],
+        tokenizer,
+        endpoint: 'https://api.spicyapi.ai/v1/chat/completions',
+        keyIdentifier: 'spicyapi',
+        recommended: true
+    }
+}
+
 export const LLMModels: LLMModel[] = [
     ...OpenAIModels,
     ...AnthropicModels,
@@ -533,6 +552,13 @@ export const LLMModels: LLMModel[] = [
         'google/gemma-2-27b-it',
         'google/gemma-2-9b-it'
     ]),
+    // SpicyAPI
+    makeSpicyAPIModel('deepseek/v4.1-flash/chat', 'DeepSeek V4.1 Flash', [], LLMTokenizer.DeepSeekV4),
+    makeSpicyAPIModel('deepseek/v4-pro/chat', 'DeepSeek V4 Pro', [], LLMTokenizer.DeepSeekV4),
+    makeSpicyAPIModel('moonshot/kimi-k3/chat', 'Kimi K3', []),
+    makeSpicyAPIModel('zai/glm-5.3/chat', 'GLM 5.3', ['temperature', 'top_p'], LLMTokenizer.GLM5),
+    makeSpicyAPIModel('google/gemini-3.7-flash/chat', 'Gemini 3.7 Flash', ['temperature', 'top_p']),
+    makeSpicyAPIModel('xai/grok-4.7/chat', 'Grok 4.7', ['temperature', 'top_p']),
     // NanoGPT — single provider entry; model list fetched on demand via getNanoGPTModels()
     {
         id: 'nanogpt',
