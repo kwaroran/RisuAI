@@ -1,6 +1,7 @@
 
 import type { SettingItem } from './types';
 import { isNodeServer, isTauri } from '../platform';
+import { MAX_API_REQUEST_TIMEOUT_SEC } from '../network/requestTimeout';
 
 export const advancedSettingsItems: SettingItem[] = [
     { type: 'header', id: 'adv.header', labelKey: 'advancedSettings', options: { level: 'h2' }, classes: '!mb-0' },
@@ -46,6 +47,10 @@ export const advancedSettingsItems: SettingItem[] = [
     {
         id: 'adv.retries', type: 'number', labelKey: 'requestretrys', bindKey: 'requestRetrys',
         helpKey: 'requestretrys', options: { min: 0, max: 20 }
+    },
+    {
+        id: 'adv.apiRequestTimeout', type: 'slider', fallbackLabel: 'API Request Timeout (sec)', bindKey: 'apiRequestTimeoutSec',
+        options: { min: 1, max: MAX_API_REQUEST_TIMEOUT_SEC }
     },
     {
         id: 'adv.genTime', type: 'number', labelKey: 'genTimes', bindKey: 'genTime',

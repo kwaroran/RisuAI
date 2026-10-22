@@ -20,6 +20,7 @@ import {
     DEFAULT_CHAT_LOAD_INITIAL_PAGES,
     normalizeChatLoadPages,
 } from '../chatLoadPages';
+import { normalizeApiRequestTimeoutSec } from '../network/requestTimeout';
 
 //APP_VERSION_POINT is to locate the app version in the database file for version bumping
 export let appVer = "2026.10.211" //<APP_VERSION_POINT>
@@ -201,6 +202,7 @@ export function setDatabase(data:Database){
     if(checkNullish(data.requestRetrys)){
         data.requestRetrys = 2
     }
+    data.apiRequestTimeoutSec = normalizeApiRequestTimeoutSec(data.apiRequestTimeoutSec)
     if(checkNullish(data.useSayNothing)){
         data.useSayNothing = true
     }
@@ -884,6 +886,7 @@ export interface Database{
         FontColorQuote2 : string
     }
     requestRetrys:number
+    apiRequestTimeoutSec:number
     localNetworkMode:boolean
     localNetworkTimeoutSec:number
     emotionPrompt2:string
