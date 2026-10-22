@@ -23,6 +23,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -33,21 +36,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-    
-      - name: Build Docker images
+      - name: Prepare image info
         shell: bash
         run: |
-          GITHUB_REPOSITORY_OWNER_SMALLCASE=$(echo $GITHUB_REPOSITORY_OWNER | tr '[:upper:]' '[:lower:]')
-          echo "GITHUB_REPOSITORY_OWNER_SMALLCASE=$GITHUB_REPOSITORY_OWNER_SMALLCASE" >> $GITHUB_ENV
-          
-          if [[ "${{ github.ref }}" =~ ^refs/tags/ ]]; then
-            docker buildx build --platform linux/amd64,linux/arm64 --label "org.opencontainers.image.ref.name=risuai" --label "org.opencontainers.image.version=${{ github.ref_name }}" -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:${{ github.ref_name }} -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:latest --push .
-          else
-            SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")
-            docker buildx build --platform linux/amd64,linux/arm64 --label "org.opencontainers.image.ref.name=risuai" --label "org.opencontainers.image.version=${{ github.sha }}" -t ghcr.io/$GITHUB_REPOSITORY_OWNER_SMALLCASE/risuai:$SHORT_SHA --push .
-          fi
+          OWNER_LC=$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          echo "OWNER_LC=$OWNER_LC" >> $GITHUB_ENV
+          echo "SHORT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ startsWith(github.ref, 'refs/tags/')
+              && format('ghcr.io/{0}/risuai:{1},ghcr.io/{0}/risuai:latest', env.OWNER_LC, github.ref_name)
+              || format('ghcr.io/{0}/risuai:{1}', env.OWNER_LC, env.SHORT_SHA) }}
+          labels: |
+            org.opencontainers.image.ref.name=risuai
+            org.opencontainers.image.version=${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || env.SHORT_SHA }}
