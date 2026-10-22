@@ -447,13 +447,20 @@ export type PluginV2ProviderOptions = {
     tokenizerFunc?: (content: string) => number[] | Promise<number[]>
 }
 
+export type PluginV2ProviderResult = {
+    success: boolean
+    content: string | ReadableStream<string>
+    // on a failed result, true tells requestChatData not to retry the request
+    noRetry?: boolean
+}
+
 export type EditFunction = (content: string) => string | null | undefined | Promise<string | null | undefined>
 type ReplacerFunction = (content: OpenAIChat[], type: string) => OpenAIChat[] | Promise<OpenAIChat[]>
 type ChatOutputListenerArg = { char: any, chat: any, characterIndex: number, chatIndex: number, messageIndex: number }
 type ChatOutputListener = (arg: ChatOutputListenerArg) => void | Promise<void>
 
 export const pluginV2 = {
-    providers: new Map<string, (arg: PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{ success: boolean, content: string | ReadableStream<string> }>>(),
+    providers: new Map<string, (arg: PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<PluginV2ProviderResult>>(),
     providerOptions: new Map<string, PluginV2ProviderOptions>(),
     editdisplay: new Set<EditFunction>(),
     editoutput: new Set<EditFunction>(),
@@ -515,7 +522,7 @@ export const getV2PluginAPIs = () => {
             db.characters[charid] = char
             setDatabaseLite(db)
         },
-        addProvider: (name: string, func: (arg: PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{ success: boolean, content: string }>, options?: PluginV2ProviderOptions) => {
+        addProvider: (name: string, func: (arg: PluginV2ProviderArgument, abortSignal?: AbortSignal) => Promise<{ success: boolean, content: string, noRetry?: boolean }>, options?: PluginV2ProviderOptions) => {
             let provs = get(customProviderStore)
             provs.push(name)
             pluginV2.providers.set(name, func)

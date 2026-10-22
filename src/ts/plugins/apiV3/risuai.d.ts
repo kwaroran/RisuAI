@@ -1183,6 +1183,12 @@ interface ProviderResponse {
     success: boolean;
     /** Generated content (string or stream) */
     content: string | ReadableStream<string>;
+    /**
+     * Set to `true` on a failed response (`success: false`) to stop Risuai from
+     * retrying the request, for errors a retry cannot fix (e.g. an invalid request).
+     * Defaults to `false`: failures are retried up to the user's request retry count.
+     */
+    noRetry?: boolean;
 }
 
 /**
