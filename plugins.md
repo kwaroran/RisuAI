@@ -1072,6 +1072,11 @@ await Risuai.addProvider(
 - `min_p`, `repetition_penalty`, `top_k`, `top_p`
 - `mode` — generation mode string
 
+**`ProviderResponse` fields:**
+- `success` — `false` reports a failure; `content` is then shown as the error message
+- `content` — generated text, or a `ReadableStream<string>` for streaming
+- `noRetry` — optional; set to `true` on a failure that a retry cannot fix (for example, the API rejected the request itself) so Risuai reports it once instead of retrying it up to the user's request retry count
+
 ### MCP Integration
 
 Register a custom [Model Context Protocol](https://modelcontextprotocol.io/) module to expose tools the AI can call:

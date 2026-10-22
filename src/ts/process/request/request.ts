@@ -3,7 +3,7 @@ import { language } from "../../../lang";
 import { fetchNative, globalFetch } from "../../globalApi.svelte";
 import { getModelInfo, LLMFlags, LLMFormat, type LLMModel } from "../../model/modellist";
 import { risuChatParser, risuEscape, risuUnescape } from "../../parser/parser.svelte";
-import { pluginProcess, pluginV2 } from "../../plugins/plugins.svelte";
+import { pluginProcess, pluginV2, type PluginV2ProviderResult } from "../../plugins/plugins.svelte";
 import { getCurrentCharacter, getCurrentChat, getDatabase, type character } from "../../storage/database.svelte";
 import { tokenizeNum } from "../../tokenizer";
 import { sleep } from "../../util";
@@ -880,7 +880,7 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
             }
         }
     
-        const d = v2Function ? (await v2Function(applyParameters({
+        const d: PluginV2ProviderResult = v2Function ? (await v2Function(applyParameters({
             prompt_chat: formated,
             mode: arg.mode,
             bias: [],
@@ -909,6 +909,7 @@ async function requestPlugin(arg:RequestDataArgumentExtended):Promise<requestDat
             return {
                 type: 'fail',
                 result: d.content instanceof ReadableStream ? await (new Response(d.content)).text() : d.content,
+                noRetry: d.noRetry === true,
                 model: responseModel
             }
         }
