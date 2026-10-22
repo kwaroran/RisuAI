@@ -5,6 +5,7 @@ import { LLMFlags } from "src/ts/model/modellist"
 import { addFetchLog, fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { simplifySchema } from "src/ts/util"
 import { NANOGPT_RESPONSES_ENDPOINT, NANOGPT_SUBSCRIPTION_RESPONSES_ENDPOINT } from "src/ts/model/providers/nanogpt"
+import { withOpenRouterAttributionHeaders } from "src/ts/network/openRouterHeaders"
 
 import { extractJSON, getOpenAIJSONSchema } from "../../templates/jsonSchema"
 import { callTool, decodeToolCall, encodeToolCall } from "../../mcp/mcp"
@@ -802,7 +803,7 @@ export async function requestOpenAIResponseAPI(arg:RequestDataArgumentExtended):
     const aiModel = arg.aiModel
     let body = await buildResponsesBody(arg)
     const { requestURL, risuIdentify } = getResponsesRequestURL(arg)
-    const headers = buildResponsesHeaders(arg, risuIdentify)
+    const headers = withOpenRouterAttributionHeaders(requestURL, buildResponsesHeaders(arg, risuIdentify))
 
     if(aiModel === 'reverse_proxy' || aiModel?.startsWith('xcustom:::')){
         body = applyAdditionalParameters(body, headers, getAdditionalParameters(aiModel))

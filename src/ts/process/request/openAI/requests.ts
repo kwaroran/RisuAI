@@ -7,6 +7,7 @@ import { getFreeOpenRouterModels } from "src/ts/model/openrouter"
 import { addFetchLog, fetchNative, globalFetch, textifyReadableStream } from "src/ts/globalApi.svelte"
 import { isNodeServer, isTauri } from "src/ts/platform"
 import { simplifySchema } from "src/ts/util"
+import { withOpenRouterAttributionHeaders } from "src/ts/network/openRouterHeaders"
 
 import { extractJSON, getOpenAIJSONSchema } from "../../templates/jsonSchema"
 import { applyChatTemplate } from "../../templates/chatTemplate"
@@ -281,6 +282,9 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
 
         const requestURL = arg.customURL ?? "https://api.mistral.ai/v1/chat/completions"
         const networkOptions = getLocalNetworkRequestOptions(requestURL, db, false)
+        const headers = withOpenRouterAttributionHeaders(requestURL, {
+            "Authorization": "Bearer " + (arg.key ?? db.mistralKey),
+        })
 
         const targs = {
             body: applyParameters({
@@ -291,9 +295,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
             }, ['temperature', 'presence_penalty', 'frequency_penalty', 'top_p'], {}, arg.mode, {
                 modelId: arg.modelInfo.id
             } ),
-            headers: {
-                "Authorization": "Bearer " + (arg.key ?? db.mistralKey),
-            },
+            headers,
             abortSignal: arg.abortSignal,
             chatId: arg.chatId,
             interceptor: 'mistral',
@@ -544,17 +546,13 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         body.service_tier = 'flex'
     }
 
-    let headers = {
+    let headers: Record<string, string> = {
         "Authorization": "Bearer " + (arg.key ?? (aiModel === 'nanogpt' ? db.nanogptKey : aiModel === 'reverse_proxy' ?  db.proxyKey : (aiModel === 'openrouter' ? db.openrouterKey : db.openAIKey))),
         "Content-Type": "application/json"
     }
 
     if(arg.modelInfo?.keyIdentifier){
         headers["Authorization"] = "Bearer " + db.OaiCompAPIKeys[arg.modelInfo.keyIdentifier]
-    }
-    if(aiModel === 'openrouter'){
-        headers["X-Title"] = 'RisuAI'
-        headers["HTTP-Referer"] = 'https://risuai.xyz'
     }
     if(aiModel === 'nanogpt' && db.nanogptProvider){
         headers["X-Provider"] = db.nanogptProvider
@@ -573,6 +571,7 @@ export async function requestOpenAI(arg:RequestDataArgumentExtended):Promise<req
         body.n = db.genTime
     }
     
+    headers = withOpenRouterAttributionHeaders(replacerURL, headers)
     body = applyAdditionalParameters(body, headers, getAdditionalParameters(aiModel))
 
     // Some aux flows are intentionally non-streaming (e.g. memory/translate).
@@ -941,14 +940,16 @@ export async function requestOpenAILegacyInstruct(arg:RequestDataArgumentExtende
         frequency_penalty: arg.frequencyPenalty || (db.frequencyPenalty / 100),
     }
 
-    let headers:any = {
+    const requestURL = arg.customURL ?? "https://api.openai.com/v1/completions"
+    let headers: Record<string, string> = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + (arg.key ?? db.openAIKey)
     }
 
+    headers = withOpenRouterAttributionHeaders(requestURL, headers)
     body = applyAdditionalParameters(body, headers, getAdditionalParameters(arg.aiModel))
 
-    const response = await globalFetch(arg.customURL ?? "https://api.openai.com/v1/completions", {
+    const response = await globalFetch(requestURL, {
         body: body,
         headers: headers,
         chatId: arg.chatId,

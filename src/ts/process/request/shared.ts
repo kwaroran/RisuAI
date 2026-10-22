@@ -1,4 +1,5 @@
 import { getDatabase } from 'src/ts/storage/database.svelte'
+import { applyOpenRouterHeaderOverride } from 'src/ts/network/openRouterHeaders'
 import { parseAdditionalParamJsonValue } from './additionalParams'
 
 export type LLMParameter =
@@ -91,7 +92,10 @@ export function applyAdditionalParameters<T extends Record<string, any>>(
 
         if (value === '{{none}}') {
             if (key.startsWith('header::')) {
-                delete headers[key.replace('header::', '')]
+                const headerName = key.replace('header::', '')
+                if(!applyOpenRouterHeaderOverride(headers, headerName)){
+                    delete headers[headerName]
+                }
             }
             else {
                 delete body[key]
@@ -100,7 +104,10 @@ export function applyAdditionalParameters<T extends Record<string, any>>(
         }
 
         if (key.startsWith('header::')) {
-            headers[key.replace('header::', '')] = value
+            const headerName = key.replace('header::', '')
+            if(!applyOpenRouterHeaderOverride(headers, headerName, value)){
+                headers[headerName] = value
+            }
             continue
         }
 
