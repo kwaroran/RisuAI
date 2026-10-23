@@ -375,9 +375,12 @@ export function setDatabase(data:Database){
     data.ainconfig ??= safeStructuredClone(defaultAIN)
     data.openrouterKey ??= ''
     data.openrouterRequestModel ??= 'openai/gpt-3.5-turbo'
+    data.openrouterRequestModelName ??= ''
+    data.openrouterInputMode ??= 'list'
     data.nanogptKey ??= ''
     data.nanogptRequestModel ??= ''
     data.nanogptRequestModelName ??= ''
+    data.nanogptInputMode ??= data.nanogptRequestModel && !data.nanogptRequestModelName ? 'manual' : 'list'
     data.nanogptProvider ??= ''
     data.nanogptSubscriptionState ??= ''
     data.nanogptUseSubscriptionEndpoint ??= false
@@ -949,11 +952,14 @@ export interface Database{
     ainconfig: AINsettings
     personaPrompt:string
     openrouterRequestModel:string
+    openrouterRequestModelName:string
+    openrouterInputMode:'list'|'manual'
     openrouterKey:string
     openrouterMiddleOut:boolean
     nanogptKey:string
     nanogptRequestModel:string
     nanogptRequestModelName:string
+    nanogptInputMode:'list'|'manual'
     nanogptProvider:string
     nanogptSubscriptionState:string
     nanogptUseSubscriptionEndpoint:boolean
@@ -1619,6 +1625,7 @@ export interface botPreset{
     bias: [string, number][]
     proxyRequestModel?:string
     openrouterRequestModel?:string
+    openrouterRequestModelName?:string
     proxyKey?:string
     ooba: OobaSettings
     ainconfig: AINsettings
@@ -2114,6 +2121,7 @@ export function saveCurrentPreset(){
         ainconfig: safeStructuredClone(db.ainconfig),
         proxyRequestModel: db.proxyRequestModel,
         openrouterRequestModel: db.openrouterRequestModel,
+        openrouterRequestModelName: db.openrouterRequestModelName,
         NAISettings: safeStructuredClone(db.NAIsettings),
         promptTemplate: normalizePromptTemplate(db.promptTemplate) ?? null,
         NAIadventure: db.NAIadventure ?? false,
@@ -2224,6 +2232,10 @@ export function setPreset(db:Database, newPres: botPreset){
     db.proxyKey = newPres.proxyKey ?? db.proxyKey
     db.ooba = safeStructuredClone(newPres.ooba ?? db.ooba)
     db.ainconfig = safeStructuredClone(newPres.ainconfig ?? db.ainconfig)
+    if (newPres.openrouterRequestModel !== undefined && newPres.openrouterRequestModel !== db.openrouterRequestModel) {
+        // Older presets have no display name; drop the stale one instead of showing it for another model
+        db.openrouterRequestModelName = newPres.openrouterRequestModelName ?? ''
+    }
     db.openrouterRequestModel = newPres.openrouterRequestModel ?? db.openrouterRequestModel
     db.proxyRequestModel = newPres.proxyRequestModel ?? db.proxyRequestModel
     db.NAIsettings = newPres.NAISettings ?? db.NAIsettings

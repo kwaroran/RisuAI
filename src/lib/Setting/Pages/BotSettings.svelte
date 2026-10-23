@@ -20,14 +20,9 @@
     import SelectInput from "src/lib/UI/GUI/SelectInput.svelte";
     import OptionInput from "src/lib/UI/GUI/OptionInput.svelte";
     import CheckInput from "src/lib/UI/GUI/CheckInput.svelte";
-    import SegmentedControl from "src/lib/UI/GUI/SegmentedControl.svelte";
-    import { getOpenRouterModels, toModelGridItem as orToGridItem } from "src/ts/model/openrouter";
-    import { getNanoGPTModels, getNanoGPTSubscriptionModels, toModelGridItem as ngToGridItem } from "src/ts/model/nanogpt";
-    import { getOllamaModels } from "src/ts/model/ollama";
-    import ModelGrid from "src/lib/UI/ModelGrid.svelte";
+    import ModelGridPicker from "src/lib/UI/ModelGridPicker.svelte";
     import NanoGPTDashboard from "src/lib/UI/NanoGPTDashboard.svelte";
     import NanoGPTProviderPicker from "src/lib/UI/NanoGPTProviderPicker.svelte";
-    import type { ModelGridPinnedItem } from "src/ts/model/modelGrid";
     import OobaSettings from "./OobaSettings.svelte";
     import Accordion from "src/lib/UI/Accordion.svelte";
     import OpenrouterSettings from "./OpenrouterSettings.svelte";
@@ -43,11 +38,6 @@
     import SeparateParametersSection from "./SeparateParametersSection.svelte";
     import AuxModelSelectors from './Model/AuxModelSelectors.svelte'
     
-    const openrouterPinnedItems: ModelGridPinnedItem[] = [
-        { id: 'risu/free',       displayName: 'Free Auto',       providerName: 'Risu'       },
-        { id: 'openrouter/auto', displayName: 'OpenRouter Auto', providerName: 'OpenRouter' },
-    ]
-
     // Reset model selection and display name when subscription mode toggles
     let _nanogptSubModeInitialized = false
     $effect(() => {
@@ -114,16 +104,6 @@
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0)
     let modelInfo = $derived(getModelInfo(DBState.db.aiModel))
     let subModelInfo = $derived(getModelInfo(DBState.db.subModel))
-    let nanogptInputMode = $state<'list' | 'manual'>(DBState.db.nanogptRequestModel && !DBState.db.nanogptRequestModelName ? 'manual' : 'list')
-    // svelte-ignore state_referenced_locally
-    let prevNanogptInputMode = nanogptInputMode;
-    $effect(() => {
-        if (nanogptInputMode !== prevNanogptInputMode) {
-            DBState.db.nanogptRequestModel = '';
-            DBState.db.nanogptRequestModelName = '';
-            prevNanogptInputMode = nanogptInputMode;
-        }
-    });
 
     $effect(() => {
         const resolved = resolveClaudeThinkingType(modelInfo.flags, DBState.db.thinkingType)
@@ -259,33 +239,7 @@
         {/if}
 
         {#if usesOllamaCloud}
-        <span class="text-textcolor mt-4">Ollama {language.model}</span>
-        <SegmentedControl
-            bind:value={DBState.db.ollamaInputMode}
-            options={[
-                { value: 'list', label: (language as any).nanoGPTSelectFromList || 'Select from List' },
-                { value: 'manual', label: (language as any).nanoGPTManualInput || 'Manual Input' }
-            ]}
-            size="md"
-        />
-
-        {#if DBState.db.ollamaInputMode === 'manual'}
-            <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaCloudModel} placeholder="Model" oninput={() => DBState.db.ollamaCloudModelName = ''} />
-        {:else}
-            {#await getOllamaModels(DBState.db.ollamaURL, 'cloud', DBState.db.ollamaApiKey)}
-                <ModelGrid bind:value={DBState.db.ollamaCloudModel} loading={true} />
-            {:then cloudModels}
-                <ModelGrid
-                    bind:value={DBState.db.ollamaCloudModel}
-                    items={cloudModels ?? []}
-                    selectedLabelOverride={DBState.db.ollamaCloudModel ? `Cloud / ${DBState.db.ollamaCloudModelName || DBState.db.ollamaCloudModel}` : undefined}
-                    onselect={(_id, name) => {
-                        DBState.db.ollamaModelSource = 'cloud'
-                        DBState.db.ollamaCloudModelName = name
-                    }}
-                />
-            {/await}
-        {/if}
+        <ModelGridPicker source="ollama-cloud" />
 
             <span class="text-textcolor mt-4">Ollama {language.apiKey}</span>
             <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.ollamaApiKey} />
@@ -354,49 +308,20 @@
             </div>
         {/if}
 
-        <span class="text-textcolor mt-4">NanoGPT {language.model}</span>
-        <SegmentedControl
-            bind:value={nanogptInputMode}
-            options={[
-                { value: 'list', label: (language as any).nanoGPTSelectFromList || 'Select from List' },
-                { value: 'manual', label: (language as any).nanoGPTManualInput || 'Manual Input' }
-            ]}
-            size="md"
-        />
-
-        {#if nanogptInputMode === 'manual'}
-            <TextInput marginBottom={false} size={"sm"} bind:value={DBState.db.nanogptRequestModel} placeholder={(language as any).nanoGPTManualModelSelect || "Manual Model Select"} oninput={() => DBState.db.nanogptRequestModelName = ''}/>
-        {:else}
-            {#await Promise.all([getNanoGPTModels(), getNanoGPTSubscriptionModels(DBState.db.nanogptKey)])}
-                <ModelGrid bind:value={DBState.db.nanogptRequestModel} loading={true} />
-            {:then [regular, sub]}
-                <ModelGrid
-                    bind:value={DBState.db.nanogptRequestModel}
-                    items={DBState.db.nanogptUseSubscriptionEndpoint ? (sub ?? []).map(ngToGridItem) : (regular ?? []).map(ngToGridItem)}
-                    showSubBadge={DBState.db.nanogptUseSubscriptionEndpoint}
-                    selectedLabelOverride={DBState.db.nanogptRequestModel && !DBState.db.nanogptRequestModelName ? DBState.db.nanogptRequestModel : undefined}
-                    onselect={(_id, name) => { DBState.db.nanogptRequestModelName = name }}
-                />
-                {#if !DBState.db.nanogptUseSubscriptionEndpoint}
-                    <NanoGPTProviderPicker
-                        apiKey={DBState.db.nanogptKey}
-                        modelId={DBState.db.nanogptRequestModel}
-                        bind:value={DBState.db.nanogptProvider}
-                    />
-                {/if}
-            {/await}
+        <ModelGridPicker source="nanogpt" />
+        {#if DBState.db.nanogptInputMode === 'list' && !DBState.db.nanogptUseSubscriptionEndpoint}
+            <NanoGPTProviderPicker
+                apiKey={DBState.db.nanogptKey}
+                modelId={DBState.db.nanogptRequestModel}
+                bind:value={DBState.db.nanogptProvider}
+            />
         {/if}
     {/if}
     {#if DBState.db.aiModel === 'openrouter' || DBState.db.subModel === 'openrouter'}
         <span class="text-textcolor mt-4">OpenRouter {language.apiKey}</span>
         <TextInput hideText={DBState.db.hideApiKey} marginBottom={false} size={"sm"} bind:value={DBState.db.openrouterKey} />
 
-        <span class="text-textcolor mt-4">OpenRouter {language.model}</span>
-        {#await getOpenRouterModels()}
-            <ModelGrid bind:value={DBState.db.openrouterRequestModel} pinnedItems={openrouterPinnedItems} loading={true} />
-        {:then m}
-            <ModelGrid bind:value={DBState.db.openrouterRequestModel} items={(m ?? []).map(orToGridItem)} pinnedItems={openrouterPinnedItems} />
-        {/await}
+        <ModelGridPicker source="openrouter" />
     {/if}
     {#if DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'reverse_proxy'}
         <span class="text-textcolor">{language.tokenizer}</span>

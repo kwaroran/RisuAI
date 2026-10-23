@@ -7,7 +7,7 @@ import {
     NANOGPT_SUBSCRIPTION_MODELS_ENDPOINT,
     NANOGPT_MODEL_PROVIDERS_ENDPOINT,
 } from "./providers/nanogpt"
-import type { ModelGridItem } from "./modelGrid"
+import { buildPriceRows, type ModelGridItem, type ModelGridSource } from "./modelGrid"
 
 export type NanoGPTModelInfo = {
     id: string
@@ -192,22 +192,6 @@ export async function getNanoGPTModels(): Promise<NanoGPTModelInfo[]> {
 }
 
 export function toModelGridItem(m: NanoGPTModelInfo): ModelGridItem {
-    const fmt = (p: number | undefined): string | null => {
-        if (p === undefined) return null
-        if (p === 0) return 'Free'
-        return `$${p.toFixed(2)}`
-    }
-
-    const prices: { label: string; value: string }[] = []
-    const pairs: [string, number | undefined][] = [
-        ['In',  m.promptPrice1M],
-        ['Out', m.completionPrice1M],
-    ]
-    for (const [label, p] of pairs) {
-        const v = fmt(p)
-        if (v !== null) prices.push({ label, value: v })
-    }
-
     return {
         id: m.id,
         displayName: m.name,
@@ -215,8 +199,30 @@ export function toModelGridItem(m: NanoGPTModelInfo): ModelGridItem {
         description: m.description,
         context_length: m.context_length,
         sortPrice: m.promptPrice1M ?? Infinity,
-        prices,
+        prices: buildPriceRows([
+            ['In',  m.promptPrice1M],
+            ['Out', m.completionPrice1M],
+        ]),
     }
+}
+
+export const nanoGPTModelSource: ModelGridSource = {
+    label: 'NanoGPT',
+    cacheKey: () => {
+        const db = getDatabase()
+        return `${db.nanogptKey}|${db.nanogptUseSubscriptionEndpoint}`
+    },
+    fetchItems: async () => {
+        const db = getDatabase()
+        const models = db.nanogptUseSubscriptionEndpoint
+            ? await getNanoGPTSubscriptionModels(db.nanogptKey)
+            : await getNanoGPTModels()
+        return models.map(toModelGridItem)
+    },
+    modelKey: 'nanogptRequestModel',
+    nameKey: 'nanogptRequestModelName',
+    inputModeKey: 'nanogptInputMode',
+    showSubBadge: () => getDatabase().nanogptUseSubscriptionEndpoint,
 }
 
 function parsePrice(raw: any): number | undefined {

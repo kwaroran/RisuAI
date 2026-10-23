@@ -9,25 +9,26 @@
         pinnedItems?: ModelGridPinnedItem[]
         loading?: boolean
         showSubBadge?: boolean
-        selectedLabelOverride?: string
+        /** Label shown when the value matches neither a pinned entry nor a loaded item */
+        fallbackLabel?: string
         onselect?: (id: string, displayName: string) => void
     }
 
-    let { value = $bindable(''), items = [], pinnedItems = [], loading = false, showSubBadge = false, selectedLabelOverride, onselect }: Props = $props()
+    let { value = $bindable(''), items = [], pinnedItems = [], loading = false, showSubBadge = false, fallbackLabel, onselect }: Props = $props()
 
     let searchQuery = $state('')
     let sortField = $state<'name' | 'price' | 'provider'>('price')
     let sortDir   = $state<'asc' | 'desc'>('asc')
 
     let sortFields = $derived([
-        { key: 'name'     as const, label: language.openRouterSortByName     },
-        { key: 'price'    as const, label: language.openRouterSortByPrice    },
-        { key: 'provider' as const, label: language.openRouterSortByProvider },
+        { key: 'name'     as const, label: language.modelGridSortByName     },
+        { key: 'price'    as const, label: language.modelGridSortByPrice    },
+        { key: 'provider' as const, label: language.modelGridSortByProvider },
     ])
 
     let sortDirs = $derived([
-        { key: 'asc'  as const, label: language.openRouterSortAsc  },
-        { key: 'desc' as const, label: language.openRouterSortDesc },
+        { key: 'asc'  as const, label: language.modelGridSortAsc  },
+        { key: 'desc' as const, label: language.modelGridSortDesc },
     ])
 
     let filteredItems = $derived.by(() => {
@@ -51,17 +52,10 @@
     })
 
     let selectedLabel = $derived.by(() => {
-        if (selectedLabelOverride) {
-            return showSubBadge ? `${selectedLabelOverride} [SUB]` : selectedLabelOverride
-        }
-        const pinned = pinnedItems.find(p => p.id === value)
-        if (pinned) return `${pinned.providerName} / ${pinned.displayName}`
-        const item = items.find(m => m.id === value)
-        if (item) {
-            const label = `${item.providerName} / ${item.displayName}`
-            return showSubBadge ? `${label} [SUB]` : label
-        }
-        return value || '–'
+        if (!value) return '–'
+        const match = pinnedItems.find(p => p.id === value) ?? items.find(m => m.id === value)
+        const label = match ? `${match.providerName} / ${match.displayName}` : (fallbackLabel || value)
+        return showSubBadge ? `${label} [SUB]` : label
     })
 
     function formatContext(length: number): string {
@@ -101,7 +95,7 @@
             </div>
         </div>
 
-        <TextInput bind:value={searchQuery} placeholder={language.openRouterSearchModel} size="sm" />
+        <TextInput bind:value={searchQuery} placeholder={language.modelGridSearch} size="sm" />
     {/if}
 
     <div class="h-80 overflow-y-auto rounded-lg border border-darkborderc bg-bgcolor">
@@ -114,7 +108,7 @@
                 <!-- Pinned special models: always visible, unaffected by search/sort -->
                 {#each pinnedItems as pinned}
                     <button
-                        onclick={() => { value = pinned.id }}
+                        onclick={() => { value = pinned.id; onselect?.(pinned.id, pinned.displayName) }}
                         class="flex cursor-pointer flex-col rounded-md border p-2.5 text-left transition-colors {value === pinned.id ? 'border-selected bg-selected' : 'border-darkborderc hover:bg-selected'}"
                     >
                         <span class="text-xs text-textcolor2">{pinned.providerName}</span>

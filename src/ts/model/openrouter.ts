@@ -1,5 +1,5 @@
 import { getDatabase } from "../storage/database.svelte"
-import type { ModelGridItem } from "./modelGrid"
+import { buildPriceRows, type ModelGridItem, type ModelGridSource } from "./modelGrid"
 
 /** Per-1M-token price entry. undefined means the field is not available for this model. */
 export type PriceEntry = number | undefined
@@ -106,25 +106,6 @@ export async function getOpenRouterModels(): Promise<OpenRouterModelInfo[]> {
 }
 
 export function toModelGridItem(m: OpenRouterModelInfo): ModelGridItem {
-    const fmt = (p: PriceEntry): string | null => {
-        if (p === undefined) return null
-        if (p === 0) return 'Free'
-        return `$${p.toFixed(2)}`
-    }
-
-    const prices: { label: string; value: string }[] = []
-    const pairs: [string, PriceEntry][] = [
-        ['In',        m.promptPrice1M],
-        ['Out',       m.completionPrice1M],
-        ['Cache In',  m.cacheReadPrice1M],
-        ['Cache Out', m.cacheWritePrice1M],
-        ['Reasoning', m.internalReasoningPrice1M],
-    ]
-    for (const [label, p] of pairs) {
-        const v = fmt(p)
-        if (v !== null) prices.push({ label, value: v })
-    }
-
     return {
         id: m.id,
         displayName: m.cleanName,
@@ -132,8 +113,27 @@ export function toModelGridItem(m: OpenRouterModelInfo): ModelGridItem {
         description: m.description,
         context_length: m.context_length,
         sortPrice: m.price,
-        prices,
+        prices: buildPriceRows([
+            ['In',        m.promptPrice1M],
+            ['Out',       m.completionPrice1M],
+            ['Cache In',  m.cacheReadPrice1M],
+            ['Cache Out', m.cacheWritePrice1M],
+            ['Reasoning', m.internalReasoningPrice1M],
+        ]),
     }
+}
+
+export const openRouterModelSource: ModelGridSource = {
+    label: 'OpenRouter',
+    cacheKey: () => getDatabase().openrouterKey,
+    fetchItems: async () => (await getOpenRouterModels()).map(toModelGridItem),
+    modelKey: 'openrouterRequestModel',
+    nameKey: 'openrouterRequestModelName',
+    inputModeKey: 'openrouterInputMode',
+    pinnedItems: [
+        { id: 'risu/free',       displayName: 'Free Auto',       providerName: 'Risu'       },
+        { id: 'openrouter/auto', displayName: 'OpenRouter Auto', providerName: 'OpenRouter' },
+    ],
 }
 
 export async function getFreeOpenRouterModels(){
