@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon, ArrowRightIcon, MoreVerticalIcon } from "@lucide/svelte";
+    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon, ArrowRightIcon, MoreVerticalIcon, HistoryIcon, ListOrderedIcon } from "@lucide/svelte";
     import Chat from "../ChatScreens/Chat.svelte";
     import { getCharImage } from "src/ts/characters";
     import { findCharacterbyId, getUserName, getUserIcon } from "src/ts/util";
@@ -26,6 +26,8 @@
         return map;
     });
 
+    let sortByMessageOrder = $state(true);
+
     const bookmarkedMessages = $derived.by(() => {
         if (!chara) return [];
 
@@ -46,6 +48,10 @@
                 return { ...message, speaker };
             })
             .filter(Boolean);
+
+        if (sortByMessageOrder) {
+            messages.sort((a, b) => a.originalIndex - b.originalIndex);
+        }
 
         return messages;
     });
@@ -159,7 +165,18 @@
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="text-xl font-bold">{language.bookmarks}</h2>
             <div class="ml-auto flex items-center gap-2">
-                <button 
+                <button
+                    class="text-textcolor2 hover:text-green-500"
+                    onclick={() => sortByMessageOrder = !sortByMessageOrder}
+                    title={sortByMessageOrder ? language.sortByAddedOrder : language.sortByMessageOrder}
+                >
+                    {#if sortByMessageOrder}
+                        <HistoryIcon size={20} />
+                    {:else}
+                        <ListOrderedIcon size={20} />
+                    {/if}
+                </button>
+                <button
                     class="text-textcolor2 hover:text-green-500" 
                     onclick={toggleExpandAll}
                     title={expandAll ? language.collapseAll : language.expandAll}
