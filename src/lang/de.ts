@@ -1001,6 +1001,7 @@ export const languageGerman = {
     "requestInfoInsideChat": "Anfrageinfo im Chat anzeigen",
     "inputTokens": "Eingabe-Tokens",
     "outputTokens": "Ausgabe-Tokens",
+    "tokenBreakdownOther": "Sonstiges",
     "tokenWarning": "Die Token-Berechnung kann ungenau sein. Es wird empfohlen, sie als Referenz zu verwenden.",
     "log": "Protokoll",
     "popularityLevelDesc": "Beliebtheit steigt mit Downloads usw. Zur Schätzung: 3,7 Beliebtheit entspricht etwa 1 Download.",

@@ -24,7 +24,7 @@
     import { ColorSchemeTypeStore } from "src/ts/gui/colorscheme";
     import Help from "./Help.svelte";
     import { getChatBranches } from "src/ts/gui/branches";
-    import { getCurrentCharacter } from "src/ts/storage/database.svelte";
+    import { getCurrentCharacter, type PromptTokenSource } from "src/ts/storage/database.svelte";
     import { translateStackTrace } from "../../ts/sourcemap";
     import { getDetailedOSLabel, getFallbackOSLabel, getRisuEnvironmentLabel } from "src/ts/platform";
     import versionData from "../../../version.json";
@@ -65,6 +65,22 @@
     let cardExportType2 = $state('')
     let cardLicense = $state('')
     let generationInfoMenuIndex = $state(0)
+    let tokenBreakdownOpen = $state(false)
+    const tokenBreakdownSources:PromptTokenSource[] = ['prompt', 'description', 'persona', 'lorebook', 'authorNote', 'memory', 'chat', 'postEverything', 'other']
+
+    function getTokenSourceLabel(source:PromptTokenSource){
+        switch(source){
+            case 'prompt': return language.prompt
+            case 'description': return language.formating.description
+            case 'persona': return language.formating.personaPrompt
+            case 'lorebook': return language.formating.lorebook
+            case 'authorNote': return language.formating.authorNote
+            case 'memory': return language.formating.memory
+            case 'chat': return language.Chat
+            case 'postEverything': return language.formating.postEverything
+            case 'other': return language.tokenBreakdownOther
+        }
+    }
     let branchHover:null|{
         x:number,
         y:number,
@@ -448,8 +464,23 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-y-2 gap-x-4 mt-4">
-                        <span class="text-blue-500">{language.inputTokens}</span>
+                        {#if $alertGenerationInfoStore.genInfo.tokenBreakdown}
+                            <button class="text-blue-500 flex items-center gap-1 text-left" aria-expanded={tokenBreakdownOpen} onclick={() => {tokenBreakdownOpen = !tokenBreakdownOpen}}>
+                                {language.inputTokens}
+                                <ChevronRightIcon size={16} class={"shrink-0 text-textcolor2 transition-transform " + (tokenBreakdownOpen ? "rotate-90" : "")} />
+                            </button>
+                        {:else}
+                            <span class="text-blue-500">{language.inputTokens}</span>
+                        {/if}
                         <span class="text-blue-500 justify-self-end">{$alertGenerationInfoStore.genInfo.inputTokens ?? '?'} {language.tokens}</span>
+                        {#if tokenBreakdownOpen && $alertGenerationInfoStore.genInfo.tokenBreakdown}
+                            {#each tokenBreakdownSources as source}
+                                {#if $alertGenerationInfoStore.genInfo.tokenBreakdown[source]}
+                                    <span class="pl-4 text-sm text-textcolor2">{getTokenSourceLabel(source)}</span>
+                                    <span class="text-sm text-textcolor2 justify-self-end">{$alertGenerationInfoStore.genInfo.tokenBreakdown[source]} {language.tokens}</span>
+                                {/if}
+                            {/each}
+                        {/if}
                         <span class="text-green-500">{language.outputTokens}</span>
                         <span class="text-green-500 justify-self-end">{$alertGenerationInfoStore.genInfo.outputTokens ?? '?'} {language.tokens}</span>
                         <span class="text-gray-400">{language.maxContextSize}</span>

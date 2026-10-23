@@ -1,8 +1,9 @@
 import { get, writable } from "svelte/store";
-import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat, type Message, type StreamingDisplayOptimizationMode } from "../storage/database.svelte";
+import { type character, type MessageGenerationInfo, type PromptTokenSource, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat, type Message, type StreamingDisplayOptimizationMode } from "../storage/database.svelte";
 import { DBState } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
+import { getPromptTokenBreakdown, matchSourcesAfterEdit } from "./tokenBreakdown";
 import { language } from "../../lang";
 import { alertError, alertToast } from "../alert";
 import { parseChatML } from "../parser/chatML";
@@ -496,6 +497,8 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     const lorepmt = await loadLoreBookV3Prompt()
+    // lorebook entries injected outside the lorebook block, so the token breakdown can still count them as lorebook
+    const lorebookChats = new WeakSet<OpenAIChat>()
 
     const positionRegex = /{{position::(.+?)}}/g
     const replaceposition = (text:string):{text:string, replaced:boolean} => {
@@ -543,10 +546,11 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     })
 
     for(const lorebook of descActives){
-        const c = {
+        const c:OpenAIChat = {
             role: lorebook.role,
             content: risuChatParser(resolvePosition(lorebook.prompt), {chara: currentChar})
         }
+        lorebookChats.add(c)
         if(lorebook.pos === 'before_desc'){
             beforeDescriptionPrompts.unshift(c)
             unformated.description.unshift(c)
@@ -583,10 +587,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         return v.pos === 'depth' && v.depth === 0 && v.role !== 'assistant'
     })
     for(const lorebook of postEverythingLorebooks){
-        unformated.postEverything.push({
+        const chat:OpenAIChat = {
             role: lorebook.role,
             content: risuChatParser(resolvePosition(lorebook.prompt), {chara: currentChar})
-        })
+        }
+        lorebookChats.add(chat)
+        unformated.postEverything.push(chat)
     }
 
     //Since assistant needs to be prefill, we need to add assistant lorebooks after user/system lorebooks
@@ -604,10 +610,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
     
     for(const lorebook of postEverythingAssistantLorebooks){
-        unformated.postEverything.push({
+        const chat:OpenAIChat = {
             role: lorebook.role,
             content: risuChatParser(resolvePosition(lorebook.prompt), {chara: currentChar})
-        })
+        }
+        lorebookChats.add(chat)
+        unformated.postEverything.push(chat)
     }
 
     //await tokenize currernt
@@ -662,10 +670,16 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     function getDescriptionPrompts(role?: 'user'|'bot'|'system'){
+        const beforePrompts = safeStructuredClone(beforeDescriptionPrompts)
+        const afterPrompts = safeStructuredClone(afterDescriptionPrompts)
+        // clones lose identity, so tag them again as lorebook for the token breakdown
+        for(const chat of [...beforePrompts, ...afterPrompts]){
+            lorebookChats.add(chat)
+        }
         const pmt = [
-            ...safeStructuredClone(beforeDescriptionPrompts),
+            ...beforePrompts,
             ...(baseDescriptionPrompt ? [safeStructuredClone(baseDescriptionPrompt)] : []),
-            ...safeStructuredClone(afterDescriptionPrompts)
+            ...afterPrompts
         ]
         if(baseDescriptionPrompt){
             applyPromptBlockRole([pmt[beforeDescriptionPrompts.length]], role)
@@ -1191,6 +1205,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
             content: risuChatParser(resolvePosition(depthPrompt.prompt), {chara: currentChar})
         }
         const depth = depthPrompt.pos === 'depth' ? (depthPrompt.depth) : (unformated.chats.length - depthPrompt.depth)
+        lorebookChats.add(chat)
         unformated.chats.splice(depth,0,chat)
     }
 
@@ -1232,27 +1247,53 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         })
     }
 
-    function pushPrompts(cha:OpenAIChat[]){
+    // parallel to formated: which prompt blocks each message was built from, for the token breakdown
+    let formatedSources:{source:PromptTokenSource, content:string}[][] = []
+    // the same chat object can be pushed more than once (e.g. lorebook in two template blocks), so every position shares one parts list
+    const sourcePartsByChat = new Map<OpenAIChat, {source:PromptTokenSource, content:string}[]>()
+    function pushFormated(chat:OpenAIChat, sourcePart:{source:PromptTokenSource, content:string}){
+        formated.push(chat)
+        if(!sourcePartsByChat.has(chat)){
+            sourcePartsByChat.set(chat, [sourcePart])
+        }
+        formatedSources.push(sourcePartsByChat.get(chat))
+    }
+
+    function pushPrompts(cha:OpenAIChat[], source:PromptTokenSource){
         for(const chat of cha){
             if(!chat.content.trim() && !(chat.multimodals && chat.multimodals.length > 0)){
                 continue
             }
+            let chatSource = source
+            if(lorebookChats.has(chat)){
+                chatSource = 'lorebook'
+            }
+            else if(chat.memo === 'supaMemory' || chat.memo === 'hypaMemory'){
+                chatSource = 'memory'
+            }
+            const sourcePart = {source: chatSource, content: chat.content}
             if(!(DBState.db.aiModel.startsWith('gpt') || DBState.db.aiModel.startsWith('claude') || DBState.db.aiModel === 'openrouter' || DBState.db.aiModel === 'reverse_proxy')){
-                formated.push(chat)
+                pushFormated(chat, sourcePart)
                 continue
             }
             if(chat.role === 'system'){
                 const endf = formated.at(-1)
                 if(endf && endf.role === 'system' && endf.memo === chat.memo && endf.name === chat.name){
                     formated[formated.length - 1].content += '\n\n' + chat.content
+                    // a chat pushed before may already hold merged blocks, so copy its parts instead of tagging it as one block
+                    const knownParts = sourcePartsByChat.get(chat)
+                    const mergedParts = formatedSources.at(-1)
+                    for(const part of knownParts ? knownParts.slice() : [sourcePart]){
+                        mergedParts.push(part)
+                    }
                 }
                 else{
-                    formated.push(chat)
+                    pushFormated(chat, sourcePart)
                 }
                 formated.at(-1).content += ''
             }
             else{
-                formated.push(chat)
+                pushFormated(chat, sourcePart)
             }
         }
     }
@@ -1286,7 +1327,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         }
                     }
 
-                    pushPrompts(pmt)
+                    pushPrompts(pmt, 'persona')
                     break
                 }
                 case 'description':{
@@ -1301,7 +1342,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         }
                     }
 
-                    pushPrompts(pmt)
+                    pushPrompts(pmt, 'description')
                     break
                 }
                 case 'authornote':{
@@ -1317,20 +1358,20 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         }
                     }
 
-                    pushPrompts(pmt)
+                    pushPrompts(pmt, 'authorNote')
                     break
                 }
                 case 'lorebook':{
-                    pushPrompts(unformated.lorebook)
+                    pushPrompts(unformated.lorebook, 'lorebook')
                     break
                 }
                 case 'postEverything':{
-                    pushPrompts(unformated.postEverything)
+                    pushPrompts(unformated.postEverything, 'postEverything')
                     if(usingPromptTemplate && DBState.db.promptSettings.postEndInnerFormat){
                         pushPrompts([{
                             role: 'system',
                             content: DBState.db.promptSettings.postEndInnerFormat
-                        }])
+                        }], 'postEverything')
                     }
                     break
                 }
@@ -1372,12 +1413,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         pushPromptInfoBody(prompt.role, prompt.content, promptBodyformatedForChatStore)
                     }
 
-                    pushPrompts([prompt])
+                    pushPrompts([prompt], 'prompt')
                     break
                 }
                 case 'chatML':{
                     let prompts = parseChatML(card.text)
-                    pushPrompts(prompts)
+                    pushPrompts(prompts, 'prompt')
                     break
                 }
                 case 'chat':{
@@ -1408,7 +1449,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                     if(usingPromptTemplate && DBState.db.promptSettings.sendChatAsSystem && (!card.chatAsOriginalOnSystem)){
                         chats = systemizeChat(chats)
                     }
-                    pushPrompts(chats)
+                    pushPrompts(chats, 'chat')
 
                     if(DBState.db.automaticCachePoint && !hasCachePoint){
                         let pointer = formated.length - 1
@@ -1439,7 +1480,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                         }
                     }
 
-                    pushPrompts(pmt)
+                    pushPrompts(pmt, 'memory')
                     break
                 }
                 case 'cache':{
@@ -1463,7 +1504,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     else{
         for(let i=0;i<formatOrder.length;i++){
             const cha = unformated[formatOrder[i]]
-            pushPrompts(cha)
+            pushPrompts(cha, formatOrderTokenSources[formatOrder[i]] ?? 'other')
         }
     }
 
@@ -1484,13 +1525,17 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     if(currentChar.depth_prompt && currentChar.depth_prompt.prompt && currentChar.depth_prompt.prompt.length > 0){
         //depth_prompt
         const depthPrompt = currentChar.depth_prompt
-        formated.splice(formated.length - depthPrompt.depth, 0, {
+        const depthChat:OpenAIChat = {
             role: 'system',
             content: risuChatParser(depthPrompt.prompt, {chara: currentChar})
-        })
+        }
+        formatedSources.splice(formated.length - depthPrompt.depth, 0, [{source: 'description', content: depthChat.content}])
+        formated.splice(formated.length - depthPrompt.depth, 0, depthChat)
     }
 
+    const formatedBeforeEdit = formated.map((v) => ({role: v.role, content: v.content}))
     formated = await runLuaEditTrigger(currentChar, 'editRequest', formated)
+    formatedSources = matchSourcesAfterEdit(formatedBeforeEdit, formatedSources, formated)
 
     if(DBState.db.promptInfoInsideChat && DBState.db.promptTextInfoInsideChat){
         promptBodyformatedForChatStore = await runLuaEditTrigger(currentChar, 'editRequest', promptBodyformatedForChatStore)
@@ -1499,9 +1544,12 @@ export async function sendChat(chatProcessIndex = -1,arg:{
 
     //token rechecking
     let inputTokens = 0
+    const chatTokenCounts:number[] = []
 
     for(const chat of formated){
-        inputTokens += await tokenizer.tokenizeChat(chat)
+        const chatTokens = await tokenizer.tokenizeChat(chat)
+        chatTokenCounts.push(chatTokens)
+        inputTokens += chatTokens
     }
 
     if(inputTokens > maxContextTokens){
@@ -1512,7 +1560,9 @@ export async function sendChat(chatProcessIndex = -1,arg:{
                 return false
             }
             if(formated[pointer].removable){
-                inputTokens -= await tokenizer.tokenizeChat(formated[pointer])
+                const removedTokens = await tokenizer.tokenizeChat(formated[pointer])
+                inputTokens -= removedTokens
+                chatTokenCounts[pointer] -= removedTokens
                 formated[pointer].content = ''
             }
             pointer++
@@ -1536,6 +1586,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
         inputTokens: inputTokens,
         outputTokens: outputTokens,
         maxContext: maxContextTokens,
+        tokenBreakdown: await getPromptTokenBreakdown(formatedSources, chatTokenCounts),
         stageTiming: {
             stage1: stageTimings.stage1Duration,
             stage2: stageTimings.stage2Duration,
@@ -2205,6 +2256,19 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     }
 
     return true
+}
+
+const formatOrderTokenSources:Record<string, PromptTokenSource> = {
+    main: 'prompt',
+    jailbreak: 'prompt',
+    globalNote: 'prompt',
+    chats: 'chat',
+    lastChat: 'chat',
+    lorebook: 'lorebook',
+    authorNote: 'authorNote',
+    description: 'description',
+    postEverything: 'postEverything',
+    personaPrompt: 'persona',
 }
 
 function systemizeChat(chat:OpenAIChat[]){

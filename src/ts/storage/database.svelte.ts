@@ -1910,6 +1910,7 @@ export interface MessageGenerationInfo{
     inputTokens?: number
     outputTokens?: number
     maxContext?: number
+    tokenBreakdown?: PromptTokenBreakdown
     stageTiming?: {
         stage1?: number
         stage2?: number
@@ -1917,6 +1918,11 @@ export interface MessageGenerationInfo{
         stage4?: number
     }
 }
+
+export type PromptTokenSource = 'prompt'|'description'|'persona'|'authorNote'|'lorebook'|'memory'|'chat'|'postEverything'|'other'
+
+// Input tokens per prompt block. Zero entries are omitted to keep chat saves small.
+export type PromptTokenBreakdown = Partial<Record<PromptTokenSource, number>>
 
 export interface MessagePresetInfo{
     promptName?: string,

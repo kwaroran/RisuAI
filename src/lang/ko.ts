@@ -1025,6 +1025,7 @@ export const languageKorean = {
     "requestInfoInsideChat": "채팅 내부에서 요청 정보 보이기",
     "inputTokens": "입력 토큰",
     "outputTokens": "출력 토큰",
+    "tokenBreakdownOther": "기타",
     "tokenWarning": "토큰 계산은 정확하지 않을 수 있습니다. 참고용으로만 사용해주세요.",
     "log": "로그",
     "popularityLevelDesc": "인기도는 이 캐릭터가 얼마나 인기 있는지를 나타냅니다. 여러가지 요소가 영향을 미칩니다.",
