@@ -113,6 +113,11 @@
         licensed = (DBState.db.characters[$selectedCharID].type === 'character') ? (DBState.db.characters[$selectedCharID] as character).license : ''
     });
     $effect.pre(() => {
+        if(licensed === 'private' && $CharConfigSubMenu !== 0 && $CharConfigSubMenu !== 6){
+            $CharConfigSubMenu = 0
+        }
+    });
+    $effect.pre(() => {
         if (DBState.db.characters[$selectedCharID].ttsMode === 'novelai' && (DBState.db.characters[$selectedCharID] as character).naittsConfig === undefined) {
             (DBState.db.characters[$selectedCharID] as character).naittsConfig = {
                 customvoice: false,
@@ -355,9 +360,6 @@
     {/if}
 {:else if licensed === 'private' && $CharConfigSubMenu !== 6}
     <span>You are not allowed</span>
-    {(() => {
-        $CharConfigSubMenu = 0
-    })()}
 {:else if $CharConfigSubMenu === 1}
     {#if !$MobileGUI}
         <h2 class="mb-2 text-2xl font-bold mt-2">{language.characterDisplay}</h2>
