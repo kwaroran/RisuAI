@@ -4,6 +4,7 @@ import { getDatabase, presetTemplate, type Database } from "./database.svelte";
 import localforage from "localforage";
 import { forageStorage } from "../globalApi.svelte";
 import { isNodeServer, isTauri } from "src/ts/platform"
+import type { SaveKVData, SaveKVSource } from "./saveKV"
 import {
     writeFile,
     BaseDirectory,
@@ -49,23 +50,6 @@ async function checkCompressionStreams(){
     }
 }
 
-export function encodeRisuSaveLegacy(data:any, compression:'noCompression'|'compression' = 'noCompression'){
-    let encoded:Uint8Array = packr.encode(data)
-    if(compression === 'compression'){
-        encoded = fflate.compressSync(encoded)
-        const result = new Uint8Array(encoded.length + magicCompressedHeader.length);
-        result.set(magicCompressedHeader, 0)
-        result.set(encoded, magicCompressedHeader.length)
-        return result
-    }
-    else{
-        const result = new Uint8Array(encoded.length + magicHeader.length);
-        result.set(magicHeader, 0)
-        result.set(encoded, magicHeader.length)
-        return result
-    }
-}
-
 export async function encodeRisuSaveCompressionStream(data:any) {
     await checkCompressionStreams()
     let encoded:Uint8Array = packr.encode(data)
@@ -88,6 +72,8 @@ export type toSaveType = {
     loadouts: boolean;
     plugins: boolean;
     pluginCustomStorage: boolean;
+    /** SaveKV namespaces to re-encode */
+    kv?: string[];
 }
 
 enum RisuSaveType {
@@ -103,7 +89,11 @@ enum RisuSaveType {
     PLUGINS = 9,
     LOADOUTS = 10,
     PLUGIN_STORAGE = 11,
+    /** SaveKV namespace (`kv:<namespace>`), see saveKV.ts */
+    KV = 12,
 }
+
+const KV_BLOCK_PREFIX = 'kv:'
 
 type EncodeBlockArg = {
     compression:boolean
@@ -125,16 +115,29 @@ export class RisuSaveEncoder {
 
     private blocks: { [key: string]: Uint8Array } = {};
     private compression: boolean = false;
+    private kv: SaveKVSource | null = null;
+    /** false: never write blocks to separate remote files (self-contained exports) */
+    private allowRemote: boolean;
+    /** false: do not write blocks to the local block cache (exports must not touch the live save's cache) */
+    private cacheBlocks: boolean;
+
+    constructor(options: { remote?: boolean, cache?: boolean } = {}){
+        this.allowRemote = options.remote ?? true;
+        this.cacheBlocks = options.cache ?? true;
+    }
 
     async init(data:Database,arg:{
         compression?: boolean,
-        skipRemoteSavingOnCharacters?: boolean
+        skipRemoteSavingOnCharacters?: boolean,
+        kv?: SaveKVSource | null
     } = {}){
         const {
             compression = false,
-            skipRemoteSavingOnCharacters = true
+            skipRemoteSavingOnCharacters = true,
+            kv = null
         } = arg;
         this.compression = compression;
+        this.kv = kv;
         let obj:Record<any,any> = {}
         let keys = Object.keys(data)
         for(const key of keys){
@@ -178,7 +181,7 @@ export class RisuSaveEncoder {
             type: RisuSaveType.PLUGIN_STORAGE,
             name: 'pluginStorage'
         });
-        for( const character of data.characters) {
+        for( const character of data.characters ?? []) {
             this.blocks[character.chaId] = await this.encodeBlock({
                 compression,
                 data: JSON.stringify(character),
@@ -188,6 +191,9 @@ export class RisuSaveEncoder {
             }, {
                 remote: 'prefer'
             });
+        }
+        for(const ns of kv?.namespaces() ?? []){
+            await this.encodeKVBlock(ns);
         }
         this.blocks['config'] = await this.encodeBlock({
             compression,
@@ -292,6 +298,10 @@ export class RisuSaveEncoder {
             });
         }
 
+        for(const ns of toSave.kv ?? []){
+            await this.encodeKVBlock(ns);
+        }
+
         obj["__directory"] = Object.keys(this.blocks).filter(key => key !== 'root');
         this.blocks['root'] = await this.encodeBlock({
             compression: this.compression,
@@ -325,17 +335,35 @@ export class RisuSaveEncoder {
         return arrayBuf;
     }
 
+    private async encodeKVBlock(ns: string){
+        const name = KV_BLOCK_PREFIX + ns
+        const content = this.kv ? this.kv.encodeNamespace(ns) : null
+        if(content === null){
+            delete this.blocks[name]
+            return
+        }
+        this.blocks[name] = await this.encodeBlock({
+            compression: this.compression,
+            data: content,
+            type: RisuSaveType.KV,
+            name
+        });
+    }
+
     async encodeBlock(arg:EncodeBlockArg, option:EncodeBlockOption = { remote: 'none' }){
         if(
-            option.remote === 'force' ||
+            this.allowRemote &&
             (
-                option.remote === 'prefer' &&
+                option.remote === 'force' ||
                 (
-                    isTauri ||
-                    isNodeServer
-                )
-            ) &&
-            !disableRemoteSaving()
+                    option.remote === 'prefer' &&
+                    (
+                        isTauri ||
+                        isNodeServer
+                    )
+                ) &&
+                !disableRemoteSaving()
+            )
         ){
             return await this.encodeRemoteBlock(arg);
         }
@@ -367,11 +395,13 @@ export class RisuSaveEncoder {
         buf.set(nameBuf, 3);
         buf.set(new Uint8Array(lengthBuf), 3 + nameBuf.length);
         buf.set(databuf, 7 + nameBuf.length);
-        await risuSaveCacheForage.setItem(`risuSaveBlock_${arg.name}`, {
-            type: arg.type,
-            data: arg.data,
-            name: arg.name,
-        });
+        if(this.cacheBlocks && cacheBlock){
+            await risuSaveCacheForage.setItem(`risuSaveBlock_${arg.name}`, {
+                type: arg.type,
+                data: arg.data,
+                name: arg.name,
+            });
+        }
         return buf;
     }
 
@@ -429,11 +459,12 @@ export class RisuSaveDecoder {
         compression: boolean;
         content: string;
     }[] = []
-    async decode(data: Uint8Array): Promise<Database> {
+    async decode(data: Uint8Array): Promise<DecodedRisuSave> {
         console.log('Decoding RisuSave data');
         let offset = magicRisuSaveHeader.length;
         //@ts-expect-error Database has required fields, but we initialize empty and populate incrementally during decode
         let db:Database = {}
+        const kv: SaveKVData = {}
         const loadedBlocks = new Set<string>();
         while (offset < data.length) {
             try {
@@ -551,6 +582,13 @@ export class RisuSaveDecoder {
                         db.pluginCustomStorage = JSON.parse(this.blocks[key].content);
                         break;
                     }
+                    case RisuSaveType.KV:{
+                        const name = this.blocks[key].name;
+                        if(name.startsWith(KV_BLOCK_PREFIX)){
+                            kv[name.slice(KV_BLOCK_PREFIX.length)] = JSON.parse(this.blocks[key].content);
+                        }
+                        break;
+                    }
                     case RisuSaveType.REMOTE:{
                         const remoteInfo:{
                             v:number
@@ -616,13 +654,37 @@ export class RisuSaveDecoder {
             db.botPresetsId = 0
         }
         console.log('Decoded RisuSave data', db);
-        return db;
+        return { database: db, kv };
     }
 }
 
-export async function decodeRisuSave(data:Uint8Array){
+export type DecodedRisuSave = {
+    database: Database
+    /** SaveKV namespaces stored in the save (empty for formats older than RisuSave blocks) */
+    kv: SaveKVData
+}
+
+/**
+ * Decodes any save format. Returns the database and the SaveKV data separately;
+ * the caller decides whether they become live (setDatabase + saveKV.load).
+ */
+export async function decodeRisuSave(data:Uint8Array): Promise<DecodedRisuSave>{
+    const header = checkHeader(data)
+    if(header === 'risusave'){
+        try {
+            const decoder = new RisuSaveDecoder();
+            return await decoder.decode(data);
+        } catch (error) {
+            //kept from the original decoder: a failed RisuSave decode still tries the legacy fallbacks
+            console.error('Error decoding RisuSave data:', error);
+            return { database: await decodeFallback(data), kv: {} }
+        }
+    }
+    return { database: await decodeLegacyRisuSave(data, header), kv: {} }
+}
+
+async function decodeLegacyRisuSave(data:Uint8Array, header:ReturnType<typeof checkHeader>){
     try {
-        const header = checkHeader(data)
         switch(header){
             case "compressed":
                 data = data.slice(magicCompressedHeader.length)
@@ -640,30 +702,48 @@ export async function decodeRisuSave(data:Uint8Array){
                 const buf = await new Response(cs.readable).arrayBuffer()
                 return unpackr.decode(new Uint8Array(buf))
             }
-            case "risusave":{
-                const decoder = new RisuSaveDecoder();
-                return await decoder.decode(data);
-            }
         }
         return unpackr.decode(data)
     }
     catch (error) {
         console.error('Error decoding RisuSave data:', error);
+        //data may already be sliced past the header here, as before
+        return await decodeFallback(data)
+    }
+}
+
+/** last-resort decoders for older/odd save formats */
+async function decodeFallback(data:Uint8Array){
+    try {
+        console.log('risudecode')
+        const risuSaveHeader = new Uint8Array(Buffer.from("\u0000\u0000RISU",'utf-8'))
+        const realData = data.subarray(risuSaveHeader.length)
+        const dec = unpackr.decode(realData)
+        return dec
+    } catch (error) {
+        const buf = Buffer.from(fflate.decompressSync(Buffer.from(data)))
         try {
-            console.log('risudecode')
-            const risuSaveHeader = new Uint8Array(Buffer.from("\u0000\u0000RISU",'utf-8'))
-            const realData = data.subarray(risuSaveHeader.length)
-            const dec = unpackr.decode(realData)
-            return dec   
+            return JSON.parse(buf.toString('utf-8'))
         } catch (error) {
-            const buf = Buffer.from(fflate.decompressSync(Buffer.from(data)))
-            try {
-                return JSON.parse(buf.toString('utf-8'))                            
-            } catch (error) {
-                return unpackr.decode(buf)
-            }
+            return unpackr.decode(buf)
         }
     }
+}
+
+/**
+ * Encodes a complete, self-contained save file in the RisuSave block format (backups, exports, migrations).
+ * Never writes remote block files or the local block cache.
+ */
+export async function encodeRisuSave(data:Database|Record<string, never>, arg:{
+    compression?: boolean,
+    kv?: SaveKVSource | null
+} = {}): Promise<Uint8Array>{
+    const encoder = new RisuSaveEncoder({ remote: false, cache: false });
+    await encoder.init(data as Database, {
+        compression: arg.compression ?? false,
+        kv: arg.kv ?? null
+    });
+    return new Uint8Array(encoder.encode());
 }
 
 function checkHeader(data: Uint8Array) {

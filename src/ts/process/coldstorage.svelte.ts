@@ -15,13 +15,16 @@ import { fetchProtectedResource } from "../sionyw"
 import { alertClear, alertConfirm, alertError, alertWait } from "../alert"
 import { language } from "src/lang"
 import type { Database, character } from "../storage/database.svelte"
-import { coldStorageHeader, getColdStorageAffectedCharacters, getColdStorageBackupName, isColdStorageBackupData, listColdDataKeysFromDb } from "./coldstorageData"
+import { coldStorageHeader, getColdStorageAffectedCharacters, getColdStorageBackupName, isValidColdStorageItem, listColdDataKeysFromDb, listPluginStorageColdKeys } from "./coldstorageData"
+import { PluginStorageStore } from "./pluginStorageStore"
 
 export {
     coldStorageHeader,
     getColdStorageBackupKey,
     getColdStorageBackupName,
     isColdStorageBackupData,
+    isValidColdStorageItem,
+    listPluginStorageColdKeys,
     replaceColdStoragePayloadResources,
     listColdDataKeysFromDb
 } from "./coldstorageData"
@@ -50,9 +53,15 @@ export async function getColdStorageItem(key:string, opts:{
         })
 
         if(d.status === 200){
-            const buf = await d.arrayBuffer()
-            const text = new TextDecoder().decode(await decompress(new Uint8Array(buf)))
-            return JSON.parse(text)
+            try {
+                const buf = await d.arrayBuffer()
+                const text = new TextDecoder().decode(await decompress(new Uint8Array(buf)))
+                return JSON.parse(text)
+            } catch (error) {
+                //same as the local backends: unreadable data reads as null instead of throwing
+                console.error('Failed to decode account cold storage item:', key, error)
+                return null
+            }
         }
         return await getColdStorageItem(key, {
             accountFallback: true
@@ -106,7 +115,8 @@ export async function getColdStorageItem(key:string, opts:{
 
 async function compressColdStorageValue(value:any):Promise<Uint8Array | null> {
     try {
-        const json = JSON.stringify(value)
+        //JSON.stringify(undefined) is undefined, which would be stored as an empty, unparseable payload
+        const json = JSON.stringify(value) ?? 'null'
         return await (new Promise<Uint8Array>((resolve, reject) => {
             fflateCompress(new TextEncoder().encode(json), (err, result) => {
                 if (err) {
@@ -148,8 +158,6 @@ export async function setAccountColdStorageItem(key:string, value:any):Promise<b
 }
 
 export async function setColdStorageItem(key:string, value:any):Promise<boolean> {
-    console.log("setting cold storage item", key, value)
-
     if(forageStorage.isAccount){
         return await setAccountColdStorageItem(key, value)
     }
@@ -242,7 +250,7 @@ export async function listColdStorageItems():Promise<{items:string[]}> {
 }
 
 export async function cleanColdStorage(){
-    const actualUsedKeys = await listColdDataKeys()
+    const actualUsedKeys = [...await listColdDataKeys(), ...pluginStorage.protectedIds()]
     const allKeys = (await listColdStorageItems()).items
     const unusedKeys = allKeys.filter(k => !actualUsedKeys.includes(k))
     console.log('Cleaning cold storage, actual used keys:', actualUsedKeys, 'all keys:', allKeys, 'unused keys:', unusedKeys)
@@ -261,7 +269,7 @@ export async function cleanColdStorage(){
     alertClear()
 }
 
-async function removeColdStorageItems(keys:string[]) {
+export async function removeColdStorageItems(keys:string[]) {
     
     if(forageStorage.isAccount){
         try {
@@ -311,8 +319,13 @@ async function removeColdStorageItems(keys:string[]) {
     }
 }
 
-export async function listColdDataKeys(db: Pick<Database, 'characters'> = DBState.db): Promise<string[]> {
-    return listColdDataKeysFromDb(db)
+export async function listColdDataKeys(db: Pick<Database, 'characters'|'pluginCustomStorage'> = DBState.db): Promise<string[]> {
+    const keys = new Set(listColdDataKeysFromDb(db))
+    //large plugin storage values are only listed inside the plugin storage index item
+    for(const key of await pluginStorage.referencedIds(db?.pluginCustomStorage)){
+        keys.add(key)
+    }
+    return Array.from(keys)
 }
 
 export type ColdStorageBackupPayload = {
@@ -322,25 +335,39 @@ export type ColdStorageBackupPayload = {
     encoded: Uint8Array
 }
 
-export async function collectColdStorageBackupPayloads(db: Pick<Database, 'characters'> = DBState.db): Promise<{
+export async function collectColdStorageBackupPayloads(db: Pick<Database, 'characters'|'pluginCustomStorage'> = DBState.db): Promise<{
     payloads: ColdStorageBackupPayload[]
     missingKeys: string[]
     invalidKeys: string[]
 }> {
+    if (db === DBState.db) {
+        //make sure the database pointer refers to an index containing the latest plugin storage changes
+        await pluginStorage.flush().catch((error) => {
+            console.error('Failed to save plugin storage before backup:', error)
+        })
+    }
     const coldKeys = await listColdDataKeys(db)
+    //legacy per-key plugin storage items may legitimately hold null/falsy values
+    const legacyPluginStorageKeys = new Set(listPluginStorageColdKeys(db))
+    const pluginStorageKeys = new Set([...legacyPluginStorageKeys, ...await pluginStorage.referencedIds(db?.pluginCustomStorage)])
     const payloads: ColdStorageBackupPayload[] = []
     const missingKeys: string[] = []
     const invalidKeys: string[] = []
 
     for (const key of coldKeys) {
         try {
-            const value = await getColdStorageItem(key)
-            if (!value) {
+            const isPluginStorage = pluginStorageKeys.has(key)
+            let value = await getColdStorageItem(key)
+
+            if (legacyPluginStorageKeys.has(key)) {
+                value ??= null
+            }
+            else if (value === null || value === undefined || (!isPluginStorage && !value)) {
                 missingKeys.push(key)
                 continue
             }
 
-            if (!isColdStorageBackupData(value)) {
+            if (!isValidColdStorageItem(value, isPluginStorage)) {
                 invalidKeys.push(key)
                 continue
             }
@@ -349,7 +376,7 @@ export async function collectColdStorageBackupPayloads(db: Pick<Database, 'chara
                 key,
                 backupName: getColdStorageBackupName(key),
                 value,
-                encoded: new TextEncoder().encode(JSON.stringify(value))
+                encoded: new TextEncoder().encode(JSON.stringify(value)),
             })
         } catch (error) {
             console.error(`Failed to read cold storage item ${key}:`, error)
@@ -526,7 +553,27 @@ async function makeColdDataForChat(i:number, j:number, coldTime:number): Promise
     return false
 }
 
+/**
+ * Migrates legacy plugin storage before plugins are loaded, so no plugin runs while its data is being moved.
+ * Only blocks when plugins are installed; otherwise the background load in makeColdData migrates it.
+ */
+export async function migratePluginStorage(onProgress:(message:string|null) => void){
+    if(!DBState.db?.plugins?.length || !pluginStorage.needsMigration()){
+        return
+    }
+    await pluginStorage.migrate(onProgress)
+}
+
 export async function makeColdData(){
+    let didChange = false
+
+    //pluginStorage is always coldstorage-backed, so load (and migrate) it even when the coldstorage setting is off
+    //(coldstorage defaults to off for users with plugins, who are exactly the ones with pluginStorage data)
+    //runs in the background: it may need a network round-trip (account) and must not block startup.
+    //plugin storage calls wait for it themselves.
+    pluginStorage.load().catch((error) => {
+        console.error('Failed to load plugin storage:', error)
+    })
 
     if(!DBState.db.coldstorage){
         return
@@ -535,7 +582,7 @@ export async function makeColdData(){
     const currentTime = Date.now()
     const coldTime = currentTime - 1000 * 60 * 60 * 24 * 10 //10 days before now
     const queue:(() => Promise<boolean>)[] = []
-    let didChange = false
+
     for(let i=0;i<DBState.db.characters.length;i++){
         queue.push(() => makeColdDataForCharacter(i, coldTime))
     }
@@ -611,4 +658,36 @@ export async function preLoadChat(characterIndex:number, chatIndex:number){
         }
     }
 
+}
+
+export const pluginStorage = new PluginStorageStore(
+    {
+        get: (id) => getColdStorageItem(id),
+        set: (id, value) => setColdStorageItem(id, value),
+        remove: (ids) => removeColdStorageItems(ids),
+        newId: () => crypto.randomUUID(),
+        now: () => Date.now(),
+    },
+    () => DBState.db?.pluginCustomStorage,
+    () => {
+        DBState.db.pluginCustomStorage ??= {}
+        return DBState.db.pluginCustomStorage
+    },
+    {
+        //loaded in the background, so no blocking progress alerts
+        onLegacyMigrated: () => {
+            requiresFullEncoderReload.state = true
+        },
+    }
+)
+
+if(typeof document !== 'undefined'){
+    //best effort: write pending plugin storage changes before the page may be closed
+    document.addEventListener('visibilitychange', () => {
+        if(document.visibilityState === 'hidden'){
+            pluginStorage.flush().catch((error) => {
+                console.error('Failed to save plugin storage:', error)
+            })
+        }
+    })
 }

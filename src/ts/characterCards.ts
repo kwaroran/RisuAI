@@ -19,6 +19,8 @@ import { exportModuleLegacy, readModule, type RisuModule } from "./process/modul
 import { readFile } from "@tauri-apps/plugin-fs"
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { AccountStorage } from "./storage/accountStorage"
+import { filterBlockedRealmCards, isRealmCreatorBlocked } from "./realmBlocking"
+import { normalizeOnboarding } from "./onboarding"
 
 
 const EXTERNAL_HUB_URL = 'https://sv.risuai.xyz';
@@ -388,17 +390,38 @@ export async function importCharacterProcess<T extends boolean = false>(f:{
     
 }
 
+async function fetchRealmInfo(realmPath: string): Promise<hubType> {
+    const res = await fetch(`${hubURL}/hub/info/${realmPath}`)
+    if(res.status !== 200){
+        throw new Error(await res.text())
+    }
+
+    return await res.json()
+}
+
+function canAccessRealmCreator(creator?: string): boolean {
+    if(isRealmCreatorBlocked(DBState.db.blockedRealmCreators ?? [], creator)){
+        alertNormal(language.realmCreatorBlocked)
+        return false
+    }
+
+    return true
+}
+
 export const getRealmInfo = async (realmPath:string) => {
     const url = new URL(location.href);
     url.searchParams.delete('realm');
     window.history.pushState(null, '', url.toString());
 
-    const res = await fetch(`${hubURL}/hub/info/${realmPath}`)
-    if(res.status !== 200){
-        alertError(await res.text())
-        return
+    try {
+        const realmInfo = await fetchRealmInfo(realmPath)
+        if(!canAccessRealmCreator(realmInfo.creator)){
+            return
+        }
+        showRealmInfoStore.set(realmInfo)
+    } catch (error) {
+        alertError(error)
     }
-    showRealmInfoStore.set(await res.json())
 }
 
 export const showRealmInfoStore:Writable<null|hubType> = writable(null)
@@ -716,6 +739,29 @@ export async function exportChar(charaID:number):Promise<string> {
     return ''
 }
 
+async function readCardExportImage(image?: string) {
+    if(image){
+        try{
+            const img = await readImage(image)
+            if(img?.length){
+                return img
+            }
+        } catch (e) {
+            console.warn('readCardExportImage: failed to read character image, falling back to none.webp', e)
+        }
+    }
+
+    const res = await fetch('/none.webp')
+    if(!res.ok){
+        throw new Error(`Failed to load fallback character image: ${res.status} ${res.statusText}`)
+    }
+    const fallbackImage = new Uint8Array(await res.arrayBuffer())
+    if(!fallbackImage.length){
+        throw new Error('Failed to load fallback character image: empty response')
+    }
+    return fallbackImage
+}
+
 
 async function importCharacterCardSpec<T extends boolean = false>(card:CharacterCardV2Risu|CharacterCardV3, img?:Uint8Array, mode:'hub'|'normal' = 'normal', assetDict:{[key:string]:string} = {}, overrideLorebook: loreBook[] = null, returnValue:T = false as T):Promise<T extends true ? character|false : boolean>{
     if(!card ||(card.spec !== 'chara_card_v2' && card.spec !== 'chara_card_v3' )){
@@ -1015,6 +1061,7 @@ async function importCharacterCardSpec<T extends boolean = false>(card:Character
         customModuleToggle: data?.extensions?.risuai?.toggles ?? {},
         moduleNamespace: data?.extensions?.risuai?.moduleNamespace,
         hideChatIcon: data?.extensions?.risuai?.hideChatIcon ?? false,
+        onboarding: normalizeOnboarding(data?.extensions?.risuai?.onboarding),
     }
 
     if(card.spec === 'chara_card_v3'){
@@ -1247,7 +1294,7 @@ export async function exportCharacterCard(char:character, type:'png'|'json'|'cha
     writer?:LocalWriter|VirtualWriter,
     spec?:'v2'|'v3'
 } = {}) {
-    let img = await readImage(char.image)
+    let img = await readCardExportImage(char.image)
     const spec:'v2'|'v3' = arg.spec ?? 'v2' //backward compatibility
     try{
         char.image = ''
@@ -1653,7 +1700,8 @@ export function createBaseV3(char:character){
                     prebuiltAssetStyle: char.prebuiltAssetStyle ?? '',
                     toggles: char.customModuleToggle ?? '',
                     moduleNamespace: char.moduleNamespace,
-                    hideChatIcon: char.hideChatIcon ?? false
+                    hideChatIcon: char.hideChatIcon ?? false,
+                    onboarding: char.onboarding
                 },
                 depth_prompt: char.depth_prompt
             },
@@ -1791,11 +1839,11 @@ export async function getRisuHub(arg:{
             return []
         }
         const jso = await da.json()
-        if(Array.isArray(jso)){
-            return jso
+        const cards:hubType[] = Array.isArray(jso) ? jso : jso.cards
+        if(!Array.isArray(jso)){
+            hubAdditionalHTML = jso.additionalHTML || hubAdditionalHTML
         }
-        hubAdditionalHTML = jso.additionalHTML || hubAdditionalHTML
-        return jso.cards
+        return filterBlockedRealmCards(cards, DBState.db.blockedRealmCreators ?? [])
     } catch (error) {
         return[]
     }
@@ -1803,8 +1851,23 @@ export async function getRisuHub(arg:{
 
 export async function downloadRisuHub(id:string, arg:{
     forceRedirect?: boolean
+    creator?: string
 } = {}) {
     try {
+        let creator = arg.creator
+        if(!creator){
+            try {
+                const realmInfo = await fetchRealmInfo(id)
+                creator = realmInfo.creator
+            } catch (error) {
+                alertError(error)
+                return
+            }
+        }
+        if(!canAccessRealmCreator(creator)){
+            return
+        }
+
         if(!arg.forceRedirect){
             if(!(await alertTOS())){
                 return

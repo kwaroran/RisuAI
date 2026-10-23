@@ -112,7 +112,7 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 
 DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
     if (['IMG', 'SOURCE', 'VIDEO', 'AUDIO', 'STYLE'].includes(node.nodeName) && data.attrName === 'src') {
-        if (data.attrValue.startsWith('blob:')) {
+        if (data.attrValue.startsWith('blob:') || data.attrValue.startsWith('asset:')) {
             data.forceKeepAttr = true;
         }
     }
@@ -778,10 +778,31 @@ export async function ParseMarkdown(
 
 const trimPurifyConfig = {
     ADD_TAGS: ["iframe", "style", "risu-style", "x-em", 'annotation', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt'],
-    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-ctrl" ,"risu-btn", 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
+    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "scrolling", "risu-btn", "risu-ctrl", 'risu-form', 'risu-trigger', 'risu-mark', 'risu-id', 'x-hl-lang', 'x-hl-text'],
 }
 
-export function trimMarkdown(data:string){
+// Onboarding HTML can bind clicks/inputs to chat variables, so it gets the
+// regular message config plus the two binding attributes. Messages never do.
+const onboardingPurifyConfig = {
+    ...trimPurifyConfig,
+    ADD_ATTR: [...trimPurifyConfig.ADD_ATTR, 'risu-change-var-name', 'risu-change-var-value'],
+}
+
+/**
+ * Renders a character's onboarding HTML: assets and CBS are resolved, then it
+ * goes through the same DOMPurify + <style> scoping as chat messages.
+ * Scoped styles are prefixed with `.chattext`, so the caller must render the
+ * result inside a `.chattext` element.
+ */
+export async function parseOnboardingHTML(data:string, char:character){
+    data = await parseAdditionalAssets(data ?? '', char, 'normal', { ch: -1 })
+    data = risuChatParser(data, { chara: char })
+    data = await parseInlayAssets(data)
+    data = encodeStyle(data)
+    return trimMarkdown(data, onboardingPurifyConfig)
+}
+
+export function trimMarkdown(data:string, purifyConfig:typeof trimPurifyConfig = trimPurifyConfig){
 
     if(!data){
         return ''
@@ -792,7 +813,7 @@ export function trimMarkdown(data:string){
     // risu-style is in ADD_TAGS, so cards, model output and user scripts can
     // author one directly. Only its position in the parsed tree is relied on.
     if(!data.includes('<risu-style')){
-        return DOMPurify.sanitize(data, trimPurifyConfig)
+        return DOMPurify.sanitize(data, purifyConfig)
     }
 
     // Decoded CSS must never be handed back to the HTML sanitizer as <style>
@@ -803,7 +824,7 @@ export function trimMarkdown(data:string){
     // RETURN_DOM hands back the sanitized <body>, typed as Node. It is null only
     // for empty input, which the guard above already excludes.
     const root = DOMPurify.sanitize(data, {
-        ...trimPurifyConfig,
+        ...purifyConfig,
         RETURN_DOM: true,
     }) as HTMLElement | null
     if(!root){

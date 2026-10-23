@@ -808,6 +808,7 @@ interface SafeElement {
      * - Keyboard: keydown, keyup, keypress
      *
      * listener function receives trimmed event object with common properties only.
+     * listeners receive events that reach the element via normal DOM propagation; for document-wide listening, use the SafeDocument from getRootDocument().
      * 
      * @example
      * ```typescript
@@ -827,9 +828,9 @@ interface SafeElement {
 
     /**
      * Removes an event listener using its ID
-     * @param type - Event type
+     * @param type - Event type (for compatibility; removal is resolved by ID)
      * @param id - Listener ID returned by addEventListener
-     * @param options - Event listener options
+     * @param options - Event listener options (for compatibility)
      */
     removeEventListener(
         type: string,
@@ -1139,6 +1140,8 @@ interface SafeLocalStorage {
     removeItem(key: string): Promise<void>;
     clear(): Promise<void>;
     key(index: number): Promise<string | null>;
+    /** Gets all keys (only keys stored through safeLocalStorage) */
+    keys(): Promise<string[]>;
     length(): Promise<number>;
 }
 
@@ -1361,6 +1364,46 @@ interface RisuaiPluginAPI {
      * @returns Chat object or null if not found
      */
     getChatFromIndex(characterIndex: number, chatIndex: number): Promise<any|null>;
+
+    /**
+     * Parses Risu CBS macros using the currently selected character and active chat.
+     * Set processRegex to also run the editprocess script pipeline after CBS parsing.
+     * The editprocess pipeline can invoke plugin script handlers and action scripts,
+     * which may modify the active chat.
+     * @param text - Text containing CBS macros
+     * @param options - Parser context options
+     * @returns Parsed text
+     *
+     * @example
+     * ```typescript
+     * const text = await risuai.parseRisuChat('Hello, {{user}}', {
+     *   role: 'user',
+     *   processRegex: true,
+     * });
+     * ```
+     */
+    parseRisuChat(text: string, options?: {
+        /** Existing message index used by chat-aware CBS macros. Defaults to -1. */
+        messageIndex?: number;
+        /** Message role used by role-aware CBS macros. */
+        role?: string;
+        /**
+         * Run the editprocess script pipeline after CBS parsing.
+         * This can invoke plugin handlers and action scripts that modify the active chat.
+         */
+        processRegex?: boolean;
+        /** Enable chat variable writes from CBS macros. */
+        runVar?: boolean;
+        /** Remove unresolved variable macros. */
+        rmVar?: boolean;
+        /** Use tokenizer-accurate parsing behavior where supported. */
+        tokenizeAccurate?: boolean;
+        /** Additional CBS condition flags. */
+        cbsConditions?: {
+            firstmsg?: boolean;
+            chatRole?: string;
+        };
+    }): Promise<string>;
     
 
     /**
@@ -1471,9 +1514,10 @@ interface RisuaiPluginAPI {
 
     /**
      * Sets the database (lightweight save)
-     * @param db - DatabaseSubset object to save
+     * The `plugins` property is ignored. Use setDatabase() to update plugins.
+     * @param db - DatabaseSubset object to save, excluding `plugins`
      */
-    setDatabaseLite(db: DatabaseSubset): Promise<void>;
+    setDatabaseLite(db: Omit<DatabaseSubset, 'plugins'>): Promise<void>;
 
     /**
      * Sets the database (full save with sync)

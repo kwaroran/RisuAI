@@ -116,7 +116,7 @@
                         unReroll: unReroll,
                         rerollIcon: 'dynamic',
                         character: simpleChar,
-                        largePortrait: message.role === 'user' ? (userIconPortrait ?? false) : ((currentCharacter as character).largePortrait ?? false),
+                        largePortrait: messageLargePortrait,
                         messageGenerationInfo: message.generationInfo,
                         role: message.role,
                         name: message.role === 'user' ? currentUsername : currentCharacter.name,

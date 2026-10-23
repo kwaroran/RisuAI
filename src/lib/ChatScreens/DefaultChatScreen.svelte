@@ -1,8 +1,8 @@
 <script lang="ts">
 
     import Suggestion from './Suggestion.svelte';
-    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon, ArrowDown, SparkleIcon } from "@lucide/svelte";
-    import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen, ScrollToMessageStore, additionalChatMenu, additionalFloatingActionButtons, easyPanelStore, chatPanelStore } from "../../ts/stores.svelte";
+    import { CameraIcon, DatabaseIcon, DicesIcon, GlobeIcon, ImagePlusIcon, LanguagesIcon, Laugh, MenuIcon, MicOffIcon, PackageIcon, Plus, RefreshCcwIcon, ReplyIcon, Send, StepForwardIcon, XIcon, BrainIcon, ArrowDown, SparkleIcon, CompassIcon, ChevronRightIcon } from "@lucide/svelte";
+    import { selectedCharID, PlaygroundStore, createSimpleCharacter, hypaV3ModalOpen, ScrollToMessageStore, additionalChatMenu, additionalFloatingActionButtons, easyPanelStore, chatPanelStore, onboardingModalStore } from "../../ts/stores.svelte";
     import { tick } from 'svelte';
     import Chat from "./Chat.svelte";
     import { type Message } from "../../ts/storage/database.svelte";
@@ -32,6 +32,7 @@
     import Button from '../UI/GUI/Button.svelte';
     import PluginDefinedIcon from '../Others/PluginDefinedIcon.svelte';
     import { getAdditionalChatLoadPages, getInitialChatLoadPages } from 'src/ts/chatLoadPages';
+    import { getActiveOnboarding, isOnboardingPending } from 'src/ts/onboarding';
 
     const loadPlaygroundMenu = () => import('../Playground/PlaygroundMenu.svelte').then(m => m.default);
     
@@ -313,7 +314,7 @@
                 continue:continued
             })
             if(previousLength < DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.length){
-                rerolls.push(safeStructuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message).slice(previousLength))
+                rerolls.push(safeStructuredClone(DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message.slice(previousLength)))
                 rerollid = rerolls.length - 1
             }
         } catch (error) {
@@ -795,6 +796,22 @@
                 </div>
             {/if}
 
+            {#if isOnboardingPending(currentCharacter, currentCharacter?.chats[currentCharacter.chatPage])}
+                <div class="mx-4 my-2 flex justify-center">
+                    <button
+                        class="w-full max-w-xl flex items-center gap-3 px-4 py-3 rounded-md border border-darkborderc bg-darkbg text-left text-textcolor hover:bg-selected transition-colors"
+                        onclick={() => { onboardingModalStore.open = true }}
+                    >
+                        <CompassIcon size={20} class="shrink-0 text-textcolor2" />
+                        <span class="flex flex-col min-w-0 flex-1">
+                            <span class="text-sm font-semibold">{language.onboardingAvailable}</span>
+                            <span class="text-xs text-textcolor2">{language.onboardingAvailableDesc}</span>
+                        </span>
+                        <ChevronRightIcon size={18} class="shrink-0 text-textcolor2" />
+                    </button>
+                </div>
+            {/if}
+
             {#if DBState.db.characters[$selectedCharID].chats[DBState.db.characters[$selectedCharID].chatPage].message?.[0]?.data?.startsWith(coldStorageHeader)  }
                 {#await preLoadChat($selectedCharID, DBState.db.characters[$selectedCharID].chatPage)}
                     <div class="w-full flex justify-center text-textcolor2 italic mb-12">
@@ -1035,6 +1052,16 @@
                         <span class="ml-2">{language.modules}</span>
                     </div>
 
+                    {#if getActiveOnboarding(currentCharacter)}
+                        <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={() => {
+                            onboardingModalStore.open = true
+                            openMenu = false
+                        }}>
+                            <CompassIcon />
+                            <span class="ml-2">{language.onboarding}</span>
+                        </div>
+                    {/if}
+
                     {#if DBState.db.sideMenuRerollButton}
                         <div class="flex items-center cursor-pointer hover:text-green-500 transition-colors" onclick={reroll}>
                             <RefreshCcwIcon />
@@ -1049,8 +1076,15 @@
     {/if}
 </div>
 
-{#if additionalFloatingActionButtons.length > 0}
+{#if additionalFloatingActionButtons.length > 0 || getActiveOnboarding(currentCharacter)?.floatingButton}
     <div class="fixed top-4 right-4 flex flex-col gap-3 z-50">
+        {#if getActiveOnboarding(currentCharacter)?.floatingButton}
+            <button class="bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-blue-600 transition-colors" title={language.onboarding} aria-label={language.onboarding} onclick={() => {
+                onboardingModalStore.open = true
+            }}>
+                <CompassIcon size={20} />
+            </button>
+        {/if}
         {#each additionalFloatingActionButtons as button}
             <button class="bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-blue-600 transition-colors" onclick={() => {
                 button.callback()

@@ -20,7 +20,8 @@ import { checkDriverInit } from "./drive/drive";
 import { characterURLImport } from "./characterCards";
 import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
 import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, encodeRisuSaveLegacy } from "./storage/risuSave";
+import { decodeRisuSave, encodeRisuSave } from "./storage/risuSave";
+import { saveKV } from "./storage/saveKV";
 import { updateAnimationSpeed } from "./gui/animation";
 import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
 import { autoServerBackup } from "./kei/backup";
@@ -31,7 +32,7 @@ import { updateLorebooks } from "./characters";
 import { initMobileGesture } from "./hotkey";
 import { moduleUpdate } from "./process/modules";
 import type { AccountStorage } from "./storage/accountStorage";
-import { makeColdData } from "./process/coldstorage.svelte";
+import { makeColdData, migratePluginStorage } from "./process/coldstorage.svelte";
 import { getRemoteSaveCleanupAction, getRemoteSavePayloadName } from "./storage/remoteSaveCleanup";
 import {
     forageStorage,
@@ -69,7 +70,7 @@ export async function loadData() {
                     await mkdir('assets', { baseDir: BaseDirectory.AppData })
                 }
                 if (!await exists('database/database.bin', { baseDir: BaseDirectory.AppData })) {
-                    await writeFile('database/database.bin', encodeRisuSaveLegacy({}), { baseDir: BaseDirectory.AppData });
+                    await writeFile('database/database.bin', await encodeRisuSave({}), { baseDir: BaseDirectory.AppData });
                 }
                 const appDataDirPath = await appDataDir();
                 try {
@@ -84,8 +85,7 @@ export async function loadData() {
                     LoadingStatusState.text = "Cleaning Unnecessary Files..."
                     getDbBackups() //this also cleans the backups
                     LoadingStatusState.text = "Decoding Save File..."
-                    const decoded = await decodeRisuSave(readed)
-                    setDatabase(decoded)
+                    await applyDecodedSave(readed)
                 } catch (error) {
                     LoadingStatusState.text = "Reading Backup Files..."
                     const backups = await getDbBackups()
@@ -101,9 +101,7 @@ export async function loadData() {
                                     throw new Error(`Failed to load backup ${backup}: ${backupResponse.status}`);
                                 }
                                 const backupData = new Uint8Array(await backupResponse.arrayBuffer());
-                                setDatabase(
-                                    await decodeRisuSave(backupData)
-                                )
+                                await applyDecodedSave(backupData)
                                 backupLoaded = true
                             } catch (error) {
                                 console.error(error)
@@ -126,13 +124,11 @@ export async function loadData() {
                 let gotStorage: Uint8Array = await forageStorage.getItem('database/database.bin') as unknown as Uint8Array
                 LoadingStatusState.text = "Decoding Local Save File..."
                 if (checkNullish(gotStorage)) {
-                    gotStorage = encodeRisuSaveLegacy({})
+                    gotStorage = await encodeRisuSave({})
                     await forageStorage.setItem('database/database.bin', gotStorage)
                 }
                 try {
-                    const decoded = await decodeRisuSave(gotStorage)
-                    console.log(decoded)
-                    setDatabase(decoded)
+                    await applyDecodedSave(gotStorage)
                 } catch (error) {
                     console.error(error)
                     const backups = await getDbBackups()
@@ -141,10 +137,10 @@ export async function loadData() {
                         try {
                             LoadingStatusState.text = `Reading Backup File ${backup}...`
                             const backupData: Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`) as unknown as Uint8Array
-                            setDatabase(
-                                await decodeRisuSave(backupData)
-                            )
+                            await applyDecodedSave(backupData)
                             backupLoaded = true
+                            // Backups are newest first; stop at the newest one that loads
+                            break
                         } catch (error) { }
                     }
                     if (!backupLoaded) {
@@ -158,13 +154,11 @@ export async function loadData() {
                         LoadingStatusState.text = `Loading Remote Save File ${(v * 100).toFixed(2)}%`
                     })
                     if (checkNullish(gotStorage)) {
-                        gotStorage = encodeRisuSaveLegacy({})
+                        gotStorage = await encodeRisuSave({})
                         await forageStorage.setItem('database/database.bin', gotStorage)
                     }
                     try {
-                        setDatabase(
-                            await decodeRisuSave(gotStorage)
-                        )
+                        await applyDecodedSave(gotStorage)
                     } catch (error) {
                         const backups = await getDbBackups()
                         let backupLoaded = false
@@ -172,10 +166,9 @@ export async function loadData() {
                             try {
                                 LoadingStatusState.text = `Reading Backup File ${backup}...`
                                 const backupData: Uint8Array = await forageStorage.getItem(`database/dbbackup-${backup}.bin`) as unknown as Uint8Array
-                                setDatabase(
-                                    await decodeRisuSave(backupData)
-                                )
+                                await applyDecodedSave(backupData)
                                 backupLoaded = true
+                                break
                             } catch (error) { }
                         }
                         if (!backupLoaded) {
@@ -203,6 +196,17 @@ export async function loadData() {
                 if (getDatabase().didFirstSetup) {
                     characterURLImport()
                 }
+            }
+            //plugins stay unloaded until their storage is migrated
+            LoadingStatusState.text = "Migrating Plugin Storage..."
+            try {
+                await migratePluginStorage((message) => {
+                    if (message) {
+                        LoadingStatusState.text = message
+                    }
+                })
+            } catch (error) {
+                console.error('Failed to migrate plugin storage:', error)
             }
             LoadingStatusState.text = "Loading Plugins..."
             try {
@@ -508,6 +512,15 @@ async function checkNewFormat(): Promise<void> {
 /**
  * Purges chunks of data that are not needed.
  */
+/**
+ * Decodes a save file and makes it live: the database and its SaveKV data together.
+ */
+async function applyDecodedSave(data: Uint8Array) {
+    const { database, kv } = await decodeRisuSave(data)
+    setDatabase(database)
+    saveKV.load(kv)
+}
+
 async function cleanChunks(options:{
     cleanColdStorage?: boolean
 } = {}) {
