@@ -251,53 +251,72 @@ export class NodeStorage{
                 }
             })).json()
 
-            if(data.status === 'unset'){
+            let status = data.status
+            if(status === 'unset'){
                 const input = await digestPassword(await alertInput(language.setNodePassword))
-                await fetch('/api/set_password',{
+                const s = await fetch('/api/set_password',{
                     method: "POST",
                     body:JSON.stringify({
-                        password: input 
+                        password: input
                     }),
                     headers: {
                         'content-type': 'application/json'
                     }
                 })
-                return await this.createAuth()
-            }
-            else if(data.status === 'incorrect'){
-                const keypair = await this.getKeyPair()
-                const publicKey = await crypto.subtle.exportKey('jwk', keypair.publicKey)
-                const input = await digestPassword(await alertInput(language.inputNodePassword))
-
-                const s = await fetch('/api/login',{
-                    method: "POST",
-                    body: JSON.stringify({
-                        password: input,
-                        publicKey: publicKey
-                    }),
-                    headers: {
-                        'content-type': 'application/json'
-                    }
-                })
-                if(s.status < 200 || s.status >= 300){
-                    let message = `Login failed (${s.status})`
-                    try {
-                        const body = await s.json()
-                        if(body?.error){
-                            message = body.error
-                        }
-                    } catch {}
+                if(s.status >= 200 && s.status < 300){
+                    //setting the password doesn't register this device, so log in with it right away
+                    await this.loginWithPassword(input)
+                    this.authChecked = true
+                    return await this.createAuth()
+                }
+                const body = await s.text()
+                if(body !== 'already set'){
+                    const message = `Setting password failed (${s.status}): ${body}`
                     alertError(message)
                     await waitAlert()
                     throw message
                 }
+                //another tab set the password first, so ask for it like on a new device
+                status = 'incorrect'
+            }
+            if(status === 'incorrect'){
+                const input = await digestPassword(await alertInput(language.inputNodePassword))
+                await this.loginWithPassword(input)
                 this.authChecked = true
                 return await this.createAuth()
-            
+
             }
             else{
                 this.authChecked = true
             }
+        }
+    }
+
+    private async loginWithPassword(password:string){
+        const keypair = await this.getKeyPair()
+        const publicKey = await crypto.subtle.exportKey('jwk', keypair.publicKey)
+
+        const s = await fetch('/api/login',{
+            method: "POST",
+            body: JSON.stringify({
+                password: password,
+                publicKey: publicKey
+            }),
+            headers: {
+                'content-type': 'application/json'
+            }
+        })
+        if(s.status < 200 || s.status >= 300){
+            let message = `Login failed (${s.status})`
+            try {
+                const body = await s.json()
+                if(body?.error){
+                    message = body.error
+                }
+            } catch {}
+            alertError(message)
+            await waitAlert()
+            throw message
         }
     }
 
