@@ -1459,6 +1459,7 @@ export const languageKorean = {
     "doNotInstall": "설치하지 않음",
     "continueAnyway": "무시하고 계속",
     "pluginNoRiskButAlert": "Risuai가 위험한 코드를 감지하지 못했지만, 신뢰할 수 없는 출처의 플러그인을 설치하면 보안 위험이 발생할 수 있습니다.",
+    "embeddingConsent": "플러그인 {}이(가) 임베딩/유사도 검색 기능을 사용하려고 합니다. 외부 API 호출이 발생할 수 있습니다. 허용하시겠습니까?",
     "pluginRisksInuserFriendly": {
         "eval": "문자열에서 코드 실행",
         "globalAccess": "글로벌 변수 접근",
@@ -1569,6 +1570,5 @@ export const languageKorean = {
     nanoGPTSelectFromList: "목록에서 선택",
     nanoGPTManualInput: "수동 입력",
     nanoGPTManualModelSelect: "수동 모델 선택",
-    embeddingConsent: "플러그인 {}이(가) 임베딩/유사도 검색 기능을 사용하려고 합니다. 외부 API 호출이 발생할 수 있습니다. 허용하시겠습니까?",
     localToggles: "로컬 토글",
 } satisfies DeepPartial<typeof import('./en').languageEnglish>
