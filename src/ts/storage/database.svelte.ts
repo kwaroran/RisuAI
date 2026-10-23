@@ -354,6 +354,7 @@ export function setDatabase(data:Database){
     data.autoSuggestPrompt ??= defaultAutoSuggestPrompt
     data.autoSuggestPrefix ??= ""
     data.OAIPrediction ??= ''
+    data.requestLocation ??= ''
     data.autoSuggestClean ??= true
     data.imageCompression ??= true
     data.enableBlockPartialEdit ??= false

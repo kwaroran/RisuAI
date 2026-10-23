@@ -20,28 +20,39 @@
     }: Props = $props();
 
     let containerRef: HTMLDivElement | undefined = $state();
+    let indicatorRef: HTMLDivElement | undefined = $state();
     let indicatorStyle = $state('');
+    let indicatorVisible = $state(false);
+    let snap = $state(false);
     let mounted = $state(false);
 
     // Compute the active index from the current value
     let activeIndex = $derived(options.findIndex(opt => opt.value === value));
 
-    function updateIndicator() {
-        if (!containerRef || activeIndex < 0) {
-            indicatorStyle = '';
-            return;
-        }
-        const buttons = containerRef.querySelectorAll<HTMLButtonElement>('[data-segment-btn]');
-        const activeBtn = buttons[activeIndex];
-        if (!activeBtn) {
-            indicatorStyle = '';
+    async function updateIndicator() {
+        const activeBtn = activeIndex >= 0
+            ? containerRef?.querySelectorAll<HTMLButtonElement>('[data-segment-btn]')[activeIndex]
+            : undefined;
+        if (!containerRef || !activeBtn) {
+            // Keep the last position so the indicator fades out in place
+            indicatorVisible = false;
             return;
         }
         const containerRect = containerRef.getBoundingClientRect();
         const btnRect = activeBtn.getBoundingClientRect();
         const x = btnRect.left - containerRect.left;
         const width = btnRect.width;
+        const wasHidden = !indicatorVisible;
+        // Coming from no selection: jump to the target and fade in instead of sliding
+        if (wasHidden) snap = true;
         indicatorStyle = `transform: translateX(${x}px); width: ${width}px;`;
+        indicatorVisible = true;
+        if (wasHidden) {
+            await tick();
+            // Flush styles so the snapped position is committed before transitions return
+            void indicatorRef?.offsetWidth;
+            snap = false;
+        }
     }
 
     // Re-calculate indicator when activeIndex changes or on mount
@@ -70,7 +81,10 @@
     <div
         class="segmented-indicator"
         class:no-transition={!mounted}
+        class:snap
+        class:indicator-hidden={!indicatorVisible}
         style={indicatorStyle}
+        bind:this={indicatorRef}
     ></div>
 
     {#each options as opt (opt.value)}
@@ -114,6 +128,14 @@
         transition: none !important;
     }
 
+    .segmented-indicator.snap {
+        transition: opacity 0.2s ease;
+    }
+
+    .segmented-indicator.indicator-hidden {
+        opacity: 0;
+    }
+
     .segmented-indicator {
         position: absolute;
         left: 0;
@@ -122,8 +144,9 @@
         border-radius: 0.375rem;
         background-color: var(--risu-theme-borderc);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: transform, width;
+                    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                    opacity 0.2s ease;
+        will-change: transform, width, opacity;
         pointer-events: none;
         z-index: 0;
     }
