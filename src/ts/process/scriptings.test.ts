@@ -52,12 +52,14 @@ vi.mock('./request/request', () => ({ requestChatData: vi.fn() }))
 vi.mock('./stableDiff', () => ({ generateAIImage: vi.fn() }))
 
 let runScripted: typeof import('./scriptings').runScripted
+let runLuaEditTrigger: typeof import('./scriptings').runLuaEditTrigger
 
 beforeAll(async () => {
   const jsonLua = await readFile(resolve(process.cwd(), 'public/lua/json.lua'), 'utf8')
   vi.stubGlobal('fetch', vi.fn(async () => new Response(jsonLua, { status: 200 })))
   const scriptings = await import('./scriptings')
   runScripted = scriptings.runScripted
+  runLuaEditTrigger = scriptings.runLuaEditTrigger
 })
 
 test('does not stop generation when setStateChanged is a no-op', async () => {
@@ -89,4 +91,15 @@ test('keeps explicit false as the generation stop signal', async () => {
 
   expect(result.res).toBe(false)
   expect(result.stopSending).toBe(true)
+})
+
+// the character's triggers are saved data: writing into them on every render marks the save changed
+test('runLuaEditTrigger leaves the character trigger objects untouched', async () => {
+  const trigger = { comment: '', type: 'manual', conditions: [], effect: [] }
+  const char = { type: 'character', lowLevelAccess: true, triggerscript: [trigger] }
+
+  const result = await runLuaEditTrigger(char as never, 'editdisplay', 'hello')
+
+  expect(result).toBe('hello')
+  expect(trigger).toEqual({ comment: '', type: 'manual', conditions: [], effect: [] })
 })
