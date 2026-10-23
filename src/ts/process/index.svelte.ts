@@ -1,6 +1,6 @@
 import { get, writable } from "svelte/store";
 import { type character, type MessageGenerationInfo, type Chat, type MessagePresetInfo, changeToPreset, setCurrentChat, type Message, type StreamingDisplayOptimizationMode } from "../storage/database.svelte";
-import { DBState } from '../stores.svelte';
+import { DBState, doingChat } from '../stores.svelte';
 import { CharEmotion, selectedCharID } from "../stores.svelte";
 import { ChatTokenizer, tokenize, tokenizeNum } from "../tokenizer";
 import { language } from "../../lang";
@@ -24,6 +24,7 @@ import { getGenerationModelString } from "./models/modelString";
 import { connectionOpen, peerRevertChat, peerSafeCheck, peerSync } from "../sync/multiuser";
 import { runInlayScreen } from "./inlayScreen";
 import { addRerolls } from "./prereroll";
+import { validateAndFixFmIndex } from "../characters";
 import { runImageEmbedding } from "./transformers";
 import { hanuraiMemory } from "./memory/hanuraiMemory";
 import { hypaMemoryV2 } from "./memory/hypav2";
@@ -89,7 +90,8 @@ export interface requestTokenPart{
     tokens:number
 }
 
-export const doingChat = writable(false)
+// doingChat lives in stores.svelte.ts; re-exported here so existing imports keep working
+export { doingChat }
 export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
 export let requestTokenParts:{[key:string]:requestTokenPart[]} = {}
@@ -342,6 +344,18 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     const tokenizer = new ChatTokenizer(chatAdditonalTokens, DBState.db.aiModel.startsWith('gpt') ? 'noName' : 'name')
     let currentChat = runCurrentChatFunction(nowChatroom.chats[selectedChat])
     nowChatroom.chats[selectedChat] = currentChat
+
+    // Validate fmIndex for non-group characters before sending.
+    // If fmIndex points to a non-existent alternate greeting, show a popup
+    // giving the user the option to fix it (use default firstMessage or empty message).
+    if (nowChatroom.type !== 'group') {
+        const fmValid = await validateAndFixFmIndex(selectedChar, selectedChat)
+        if (!fmValid) {
+            doingChat.set(false)
+            return false
+        }
+    }
+
     let maxContextTokens = DBState.db.maxContext
 
     chatProcessStage.set(1)
@@ -866,7 +880,7 @@ export async function sendChat(chatProcessIndex = -1,arg:{
     let ms:Message[] = makeMs(currentChat)
 
     if(nowChatroom.type !== 'group' && !msReseted){
-        const firstMsg = currentChat.fmIndex === -1 ? nowChatroom.firstMessage : nowChatroom.alternateGreetings[currentChat.fmIndex]
+        const firstMsg = currentChat.fmIndex === -1 ? nowChatroom.firstMessage : (nowChatroom.alternateGreetings?.[currentChat.fmIndex] ?? nowChatroom.firstMessage)
 
         const chat:OpenAIChat = {
             role: 'assistant',

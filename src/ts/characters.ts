@@ -10,7 +10,7 @@ import { AppendableBuffer, changeChatTo, checkCharOrder, downloadFile, getFileSr
 import { updateInlayScreen } from "./process/inlayScreen";
 import { parseMarkdownSafe } from "./parser/parser.svelte";
 import { translateHTML } from "./translator/translator";
-import { doingChat } from "./process/index.svelte";
+import { doingChat } from "./stores.svelte";
 import { importCharacter } from "./characterCards";
 import { PngChunk } from "./pngChunk";
 import { getColdStorageItem } from "./process/coldstorage.svelte";
@@ -415,7 +415,9 @@ export async function importChat(){
 
             DBState.db.characters[selectedID].chats.unshift(newChat)
             changeChatTo(0)
-            alertNormal(language.successImport)
+            if (await validateAndFixFmIndex(selectedID, 0)) {
+                alertNormal(language.successImport)
+            }
         }
         else if(dat.name.endsWith('json')){
             const json = JSON.parse(Buffer.from(dat.data).toString('utf-8'))
@@ -445,7 +447,10 @@ export async function importChat(){
                     chat.id = v4()
                 })
                 DBState.db.characters[selectedID].chats.unshift(...chats)
-                alertNormal(language.successImport)
+                changeChatTo(0)
+                if (await validateAndFixFmIndex(selectedID, 0)) {
+                    alertNormal(language.successImport)
+                }
                 return
             }
             if(json.type === 'risuAllChats' && json.ver === 1){
@@ -461,7 +466,10 @@ export async function importChat(){
                         v.fmIndex ??= -1
                         return v
                     })))
-                    alertNormal(language.successImport)
+                    changeChatTo(0)
+                    if (await validateAndFixFmIndex(selectedID, 0)) {
+                        alertNormal(language.successImport)
+                    }
                     return
                 } else {
                     alertError(language.errors.noData)
@@ -474,7 +482,10 @@ export async function importChat(){
                     das.fmIndex ??= -1
                     das.id = v4()
                     DBState.db.characters[selectedID].chats.unshift(das)
-                    alertNormal(language.successImport)
+                    changeChatTo(0)
+                    if (await validateAndFixFmIndex(selectedID, 0)) {
+                        alertNormal(language.successImport)
+                    }
                     return
                 }
                 else{
@@ -493,7 +504,10 @@ export async function importChat(){
             const json = JSON.parse(chat)
             if(json.message && json.note && json.name && json.localLore){
                 DBState.db.characters[selectedID].chats.unshift(json)
-                alertNormal(language.successImport)
+                changeChatTo(0)
+                if (await validateAndFixFmIndex(selectedID, 0)) {
+                    alertNormal(language.successImport)
+                }
             }
             else{
                 alertError(language.errors.noData)
@@ -895,4 +909,60 @@ export async function changeChar(index: number, arg:{
       updateInteraction: true,
     });
     selectedCharID.set(index);
+}
+
+/**
+ * Validates that the chat's fmIndex is within the character's alternateGreetings range.
+ * If the fmIndex points to a non-existent alternate greeting, shows a popup asking
+ * the user how to fix it.
+ * 
+ * Option A: Set fmIndex to -1 (default firstMessage)
+ * Option B: Find or create an empty string in alternateGreetings and use its index
+ * 
+ * @returns true if fmIndex is valid or was fixed; false if the user dismissed the popup
+ */
+export async function validateAndFixFmIndex(charIndex: number, chatIndex: number): Promise<boolean> {
+    const cha = DBState.db.characters[charIndex]
+    if (cha.type === 'group') {
+        return true
+    }
+    const chat = cha.chats[chatIndex]
+    const fmIndex = chat.fmIndex ?? -1
+
+    if (fmIndex === -1 || (cha.alternateGreetings && fmIndex >= 0 && Number.isInteger(fmIndex) && fmIndex < cha.alternateGreetings.length)) {
+        return true
+    }
+
+    const altCount = cha.alternateGreetings?.length ?? 0
+    const display = language.validateAndFixFmIndexDesc(fmIndex, altCount)
+
+    const choice = await alertSelect([
+        language.validateAndFixFmIndexUseDefault,
+        language.validateAndFixFmIndexUseEmpty,
+    ], display)
+
+    if (choice === '0') {
+        // Option A: use the default first message (character.firstMessage)
+        chat.fmIndex = -1
+        DBState.db.characters[charIndex].chats[chatIndex] = chat
+        return true
+    } else if (choice === '1') {
+        // Option B: find or create an empty first message
+        const emptyIndex = (cha.alternateGreetings ?? []).indexOf('')
+        if (emptyIndex !== -1) {
+            chat.fmIndex = emptyIndex
+        } else {
+            const confirmed = await alertConfirm(language.validateAndFixFmIndexEmptyConfirm)
+            if (!confirmed) {
+                return false
+            }
+            cha.alternateGreetings ??= []
+            cha.alternateGreetings.push('')
+            chat.fmIndex = cha.alternateGreetings.length - 1
+        }
+        DBState.db.characters[charIndex].chats[chatIndex] = chat
+        return true
+    }
+
+    return false
 }

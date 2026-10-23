@@ -1,7 +1,8 @@
 import { getDatabase, setDatabase } from 'src/ts/storage/database.svelte';
 import { DBState, selectedCharID } from 'src/ts/stores.svelte';
 import { get } from 'svelte/store';
-import { doingChat, sendChat } from '../index.svelte';
+import { sendChat } from '../index.svelte';
+import { doingChat } from '../../stores.svelte';
 import { downloadFile } from 'src/ts/globalApi.svelte';
 import { isTauri } from "src/ts/platform"
 import { HypaProcesser } from '../memory/hypamemory';

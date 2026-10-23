@@ -13,7 +13,8 @@
     import TextAreaInput from "../UI/GUI/TextAreaInput.svelte";
     import { HardDriveUploadIcon, PlusIcon, TrashIcon } from "@lucide/svelte";
     import { selectSingleFile } from "src/ts/util";
-    import { doingChat, previewFormated, previewBody, sendChat } from "src/ts/process/index.svelte";
+    import { previewFormated, previewBody, sendChat } from "src/ts/process/index.svelte";
+    import { doingChat } from "../../ts/stores.svelte";
     import SelectInput from "../UI/GUI/SelectInput.svelte";
     import { applyChatTemplate, chatTemplates } from "src/ts/process/templates/chatTemplate";
     import OptionInput from "../UI/GUI/OptionInput.svelte";

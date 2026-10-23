@@ -205,7 +205,7 @@ export function registerCBS(arg:CBSRegisterArg) {
                 }
                 pointer--
             }
-            return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
+            return chat.fmIndex === -1 ? selchar.firstMessage : (selchar.alternateGreetings?.[chat.fmIndex] ?? selchar.firstMessage)
         },
         alias: ['previouscharchat', 'lastcharmessage'],
         description: 'Returns the last message sent by the character in the current chat. Searches backwards from the current message position to find the most recent character message. If no character messages exist, returns the first message or selected alternate greeting.\n\nUsage:: {{previouscharchat}}',
@@ -226,7 +226,7 @@ export function registerCBS(arg:CBSRegisterArg) {
                     }
                     pointer--
                 }
-                return chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
+                return chat.fmIndex === -1 ? selchar.firstMessage : (selchar.alternateGreetings?.[chat.fmIndex] ?? selchar.firstMessage)
             }
             return ''
         },
@@ -1524,7 +1524,7 @@ export function registerCBS(arg:CBSRegisterArg) {
                 const chat = selchar.chats[selchar.chatPage]
                 return makeArray([{
                     role: 'char',
-                    data: chat.fmIndex === -1 ? selchar.firstMessage : selchar.alternateGreetings[chat.fmIndex]
+                    data: chat.fmIndex === -1 ? selchar.firstMessage : (selchar.alternateGreetings?.[chat.fmIndex] ?? selchar.firstMessage)
                 }].concat(chat.message).map((v) => {
                     v = safeStructuredClone(v)
                     v.data = risuChatParser(v.data, matcherArg)

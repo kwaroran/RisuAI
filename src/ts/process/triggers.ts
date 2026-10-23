@@ -2317,7 +2317,7 @@ export async function runTrigger(char:character,mode:triggerMode, arg:{
                     break
                 }
                 case 'v2GetFirstMessage':{
-                    setVar(risuChatParser(effect.outputVar, {chara:char}), chat.fmIndex === -1 ? char.firstMessage : char.alternateGreetings[chat.fmIndex])
+                    setVar(risuChatParser(effect.outputVar, {chara:char}), chat.fmIndex === -1 ? char.firstMessage : (char.alternateGreetings?.[chat.fmIndex] ?? char.firstMessage))
                     break
                 }
                 case 'v2GetAlertInput':{

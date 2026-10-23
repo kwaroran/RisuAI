@@ -1569,5 +1569,9 @@ export const languageKorean = {
     nanoGPTSelectFromList: "목록에서 선택",
     nanoGPTManualInput: "수동 입력",
     nanoGPTManualModelSelect: "수동 모델 선택",
+    validateAndFixFmIndexDesc: (fmIndex: number, altCount: number) => `이 채팅에 선택된 첫 메시지(인덱스 ${fmIndex})가 존재하지 않습니다.\n이 캐릭터는 ${altCount}개의 대체 첫 메시지를 가지고 있습니다.\n\n채팅이 기본 첫 메시지로 자동 전환되며,\n원하지 않는 결과일 수 있습니다.\n\n어떻게 수정하시겠습니까?`,
+    validateAndFixFmIndexUseDefault: "기본 첫 메시지 사용",
+    validateAndFixFmIndexUseEmpty: "비어 있는 첫 메시지 사용",
+    validateAndFixFmIndexEmptyConfirm: "캐릭터에 새로운 빈 첫 메시지가 추가됩니다. 봇을 내보낼 때 빈 첫 메시지가 포함되는 식으로 영구적인 영향을 줍니다. 계속하시겠습니까?",
     localToggles: "로컬 토글",
 } satisfies DeepPartial<typeof import('./en').languageEnglish>
