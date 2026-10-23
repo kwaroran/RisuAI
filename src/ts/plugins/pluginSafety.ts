@@ -50,8 +50,8 @@ export type PluginSafetyErrors = {
 }
 
 
-// Increment this version if the safety rules change to invalidate the cache
-const checkerVersion = 3;
+// Increment this version when safety rules or AST traversal change to invalidate the cache.
+const checkerVersion = 4;
 export async function checkCodeSafety(code: string): Promise<CheckResult> {
     const errors: PluginSafetyErrors[] = [];
 
