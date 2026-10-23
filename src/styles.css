@@ -458,6 +458,22 @@ body {
   @apply rounded-lg focus:outline-hidden max-w-80 w-full;
 }
 
+/* Hidden image placeholder (hideAllImages). The SVG has no size of its own,
+   so this gives it one, at zero specificity and only where the card set no
+   width/height attribute, so any size the card asks for still wins. */
+:where(img[data-risu-hidden-image]) {
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+:where(img[data-risu-hidden-image]:not([width])) {
+  width: 30rem;
+}
+
+:where(img[data-risu-hidden-image]:not([height])) {
+  height: auto;
+}
+
 .x-risu-risu-inlay-image video {
   @apply rounded-lg focus:outline-hidden max-w-80 w-full;
 }

@@ -20,6 +20,7 @@ import katex from 'katex'
 import { getModelInfo } from '../model/modellist';
 import { registerCBS, type matcherArg, type RegisterCallback } from '../cbs';
 import cssSelectorParser from 'postcss-selector-parser'
+import { applyHiddenImageTheme, hiddenImageSrc, hideCssImageUrls, hideStyleRuleImages, hideStyleSheetImages, isSpacerImage } from './hideImages'
 
 const markdownItOptions = {
     html: true,
@@ -50,18 +51,10 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
           return node.parentNode.removeChild(node);
        }
     }
+    if(DBState.db?.hideAllImages){
+        hideElementImages(node, data.tagName)
+    }
     if(data.tagName === 'img'){
-        // Hide external images when hideAllImages is enabled
-        if(DBState.db?.hideAllImages){
-            const src = node.getAttribute("src") || "";
-            // Replace with placeholder if it's an external/loaded image
-            if(src && !src.startsWith('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP')){
-                node.setAttribute("src", "/none.webp");
-                node.setAttribute("alt", "?");
-            }
-            return;
-        }
-        
         const loading = node.getAttribute("loading")
         if(!loading){
             node.setAttribute("loading","lazy")
@@ -73,18 +66,59 @@ DOMPurify.addHook("uponSanitizeElement", (node: HTMLElement, data) => {
     }
 });
 
-DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
-    switch(data.attrName){
-        case 'style':{
-            // Remove background-image URLs when hideAllImages is enabled
-            if(DBState.db?.hideAllImages && data.attrValue){
-                // Remove background-image property from inline styles
-                data.attrValue = data.attrValue.replace(/background(-image)?:\s*url\([^)]*\);?/gi, '')
-                // Also remove background property if it contains url()
-                data.attrValue = data.attrValue.replace(/background:\s*[^;]*url\([^)]*\)[^;]*;?/gi, '')
-            }
-            break
+/**
+ * Swaps image sources on an element for the hidden image placeholder. Runs
+ * before the element's attributes are sanitized, so attribute-level sources
+ * are left to hideAttributeImage.
+ */
+function hideElementImages(node:Element, tagName:string){
+    const isImageInput = tagName === 'input' && node.getAttribute('type')?.toLowerCase() === 'image'
+    if(tagName === 'img' || isImageInput){
+        if(!isSpacerImage(node.getAttribute('src') ?? '') || node.hasAttribute('srcset')){
+            node.setAttribute('src', hiddenImageSrc)
+            node.setAttribute('alt', '')
+            // picked up by styles.css for a default size
+            node.setAttribute('data-risu-hidden-image', '')
         }
+    }
+    else if(tagName === 'style'){
+        // Raw <style> blocks that skipped encodeStyle, e.g. <style type="text/css">
+        node.textContent = hideStyleSheetImages(node.textContent ?? '')
+    }
+}
+
+/** Returns true when the attribute was fully handled and needs no further processing. */
+function hideAttributeImage(node:Element, data:{attrName:string, attrValue:string, keepAttr:boolean}){
+    const tagName = node.nodeName.toLowerCase()
+    switch(data.attrName){
+        case 'style':
+            data.attrValue = hideCssImageUrls(data.attrValue)
+            return false
+        case 'srcset':
+        case 'imagesrcset':
+            // a srcset candidate always wins over the placeholder in src
+            data.keepAttr = false
+            return true
+        case 'poster':
+        case 'background':
+            data.attrValue = hiddenImageSrc
+            return true
+        case 'href':
+        case 'xlink:href':
+            if(tagName === 'image' || tagName === 'feimage'){
+                data.attrValue = hiddenImageSrc
+                return true
+            }
+            return false
+    }
+    return false
+}
+
+DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+    if(DBState.db?.hideAllImages && hideAttributeImage(node, data)){
+        return
+    }
+    switch(data.attrName){
         case 'class':{
             if(data.attrValue){
                 data.attrValue = data.attrValue.split(' ').map((v) => {
@@ -476,7 +510,7 @@ $effect.root(() => {
     })
 })
 
-const imageCBS = ['img', 'image', 'emotion', 'asset', 'bg', 'raw', 'path']
+const imageCBS = ['img', 'image', 'emotion', 'asset', 'bg', 'raw', 'path', 'source']
 const videoExtensions = ['mp4', 'webm', 'avi', 'm4p', 'm4v']
 
 async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|character, mode:'normal'|'back', arg:{ch:number}){
@@ -495,10 +529,21 @@ async function parseAdditionalAssets(data:string, char:simpleCharacterArgument|c
     data = await replaceAsync(data, assetRegex, async (full:string, type:string, name:string) => {
         name = name.toLocaleLowerCase()
 
-        // Skip image-related assets when hideAllImages is enabled
-        // raw and path are also included as they're used in CSS background-image
+        // Swap image-related assets for the hidden image placeholder when hideAllImages is enabled.
+        // raw, path and source are bare urls that end up in src attributes or CSS url()s
         if(DBState.db.hideAllImages && imageCBS.includes(type)){
-            return ''  // Hide the image asset
+            switch(type){
+                case 'raw':
+                case 'path':
+                case 'source':
+                    return hiddenImageSrc
+                case 'bg':
+                    return ''
+                case 'image':
+                    return `<div class="risu-inlay-image"><img src="${hiddenImageSrc}" alt="" style="${assetWidthString}"/></div>\n`
+                default:
+                    return `<img src="${hiddenImageSrc}" alt="" style="${assetWidthString} "/>`
+            }
         }
 
         if(type === 'emotion'){
@@ -682,7 +727,7 @@ async function parseInlayAssets(data:string){
                 case 'image':
                     // Hide inlay images when hideAllImages is enabled
                     if(DBState.db.hideAllImages){
-                        data = data.replace(inlay, '')
+                        data = data.replace(inlay, `${prefix}<img src="${hiddenImageSrc}" alt=""/>${postfix}`)
                         break
                     }
                     data = data.replace(inlay, `${prefix}<img src="${url}"/>${postfix}`)
@@ -813,7 +858,7 @@ export function trimMarkdown(data:string, purifyConfig:typeof trimPurifyConfig =
     // risu-style is in ADD_TAGS, so cards, model output and user scripts can
     // author one directly. Only its position in the parsed tree is relied on.
     if(!data.includes('<risu-style')){
-        return DOMPurify.sanitize(data, purifyConfig)
+        return applyHiddenImageTheme(DOMPurify.sanitize(data, purifyConfig), DBState.db?.colorScheme)
     }
 
     // Decoded CSS must never be handed back to the HTML sanitizer as <style>
@@ -848,7 +893,7 @@ export function trimMarkdown(data:string, purifyConfig:typeof trimPurifyConfig =
         el.replaceWith(style)
     }
 
-    return root.innerHTML
+    return applyHiddenImageTheme(root.innerHTML, DBState.db?.colorScheme)
 }
 
 const metaCodes = [
@@ -1007,6 +1052,9 @@ function decodeStyleContent(hexText:string):{css?:string, fallback?:string}{
         if(rules){
             for(let i=0;i<rules.length;i++){
                 rules[i] = decodeStyleRule(rules[i])
+                if(DBState.db?.hideAllImages){
+                    hideStyleRuleImages(rules[i])
+                }
             }
             ast.stylesheet.rules = rules
         }
