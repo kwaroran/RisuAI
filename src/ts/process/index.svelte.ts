@@ -90,6 +90,8 @@ export interface requestTokenPart{
     tokens:number
 }
 
+// doingChat lives in stores.svelte.ts; re-exported here so existing imports keep working
+export { doingChat }
 export const chatProcessStage = writable(0)
 export const abortChat = writable(false)
 export let requestTokenParts:{[key:string]:requestTokenPart[]} = {}
