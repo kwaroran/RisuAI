@@ -1001,6 +1001,7 @@ export const languageChinese = {
     "requestInfoInsideChat": "在聊天中显示请求数据",
     "inputTokens": "输入 Tokens",
     "outputTokens": "输出 Tokens",
+    "tokenBreakdownOther": "其他",
     "tokenWarning": "Token 计算可能不精确，仅作参考。",
     "log": "记录",
     "popularityLevelDesc": "人气会随着下载量等增加。3.7 人气约等于 1 次下载。",

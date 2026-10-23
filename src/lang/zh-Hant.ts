@@ -1158,6 +1158,7 @@ export const languageChineseTraditional = {
     "requestInfoInsideChat": "在對話中顯示請求資訊",
     "inputTokens": "輸入 Token",
     "outputTokens": "輸出 Token",
+    "tokenBreakdownOther": "其他",
     "tokenWarning": "Token 計算可能不準確，建議僅作為參考",
     "log": "記錄",
     "popularityLevelDesc": "人氣會隨下載次數等方式增加",

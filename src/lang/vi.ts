@@ -1001,6 +1001,7 @@ export const languageVietnamese = {
     "requestInfoInsideChat": "Hiển thị thông tin yêu cầu trong trò chuyện",
     "inputTokens": "Token đầu vào",
     "outputTokens": "Token đầu ra",
+    "tokenBreakdownOther": "Khác",
     "tokenWarning": "Tính toán token có thể không chính xác. Nên sử dụng nó để tham khảo.",
     "log": "Nhật ký",
     "popularityLevelDesc": "Mức độ phổ biến tăng theo số lượt tải xuống, v.v. để ước tính, mức độ phổ biến 3.7 là khoảng 1 lượt tải xuống.",

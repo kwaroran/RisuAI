@@ -1166,6 +1166,7 @@ export const languageEnglish = {
     requestInfoInsideChat: "Show Request Info Inside Chat",
     inputTokens: "Input Tokens",
     outputTokens: "Output Tokens",
+    tokenBreakdownOther: "Other",
     tokenWarning: "Token caculation can be inaccurate. It is recommended to use it as a reference.",
     log: "Log",
     popularityLevelDesc: "Popularity increases with downloads, etc. To estimate, 3.7 popularity is about 1 downloads.",

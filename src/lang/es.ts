@@ -1001,6 +1001,7 @@ export const languageSpanish = {
     "requestInfoInsideChat": "Mostrar Información de la Solicitud Dentro del Chat",
     "inputTokens": "Tokens de Entrada",
     "outputTokens": "Tokens de Salida",
+    "tokenBreakdownOther": "Otros",
     "tokenWarning": "El cálculo de tokens puede ser inexacto. se recomienda usarlo como referencia.",
     "log": "Registro",
     "popularityLevelDesc": "La popularidad aumenta con las descargas, etc. Para estimar, 3.7 de popularidad equivale a aproximadamente 1 descarga.",
