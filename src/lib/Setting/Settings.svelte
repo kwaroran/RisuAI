@@ -10,6 +10,7 @@
     import AdvancedSettings from "./Pages/AdvancedSettings.svelte";
     import { additionalSettingsMenu, easyPanelStore, MobileGUI, SettingsMenuIndex, settingsOpen } from "src/ts/stores.svelte";
     import { DBState } from "src/ts/stores.svelte";
+    import { TitlebarState } from "src/ts/gui/titlebar.svelte";
     import Communities from "./Pages/Communities.svelte";
     import GlobalLoreBookSettings from "./Pages/GlobalLoreBookSettings.svelte";
     import Lorepreset from "./lorepreset.svelte";
@@ -30,10 +31,13 @@
     }
 
 </script>
-<div class="h-full w-full flex justify-center rs-setting-cont" class:bg-bgcolor={$MobileGUI} class:setting-bg={!$MobileGUI}>
+<div class="h-full w-full flex justify-center relative rs-setting-cont" class:bg-bgcolor={$MobileGUI} class:setting-bg={!$MobileGUI}>
+    {#if TitlebarState.inset}
+        <div class="absolute top-0 inset-x-0 z-10 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+    {/if}
     <div class="h-full max-w-(--breakpoint-lg) w-full flex relative rs-setting-cont-2">
         {#if (window.innerWidth >= 700 && !$MobileGUI) || $SettingsMenuIndex === -1}
-            <div class="flex h-full flex-col p-4 pt-8 gap-2 overflow-y-auto relative rs-setting-cont-3 shrink-0"
+            <div class="flex h-full flex-col p-4 pt-[max(2rem,var(--risu-titlebar-height))] gap-2 overflow-y-auto relative rs-setting-cont-3 shrink-0"
                 class:w-full={window.innerWidth < 700 || $MobileGUI}
                 class:bg-darkbg={!$MobileGUI} class:bg-bgcolor={$MobileGUI}
             >
@@ -184,7 +188,7 @@
                     {/if}
                 {/if}
                 {#if window.innerWidth < 700 && !$MobileGUI}
-                    <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
+                    <button class="absolute top-[max(0.5rem,var(--risu-titlebar-height))] right-2 hover:text-green-500 text-textcolor" onclick={() => {
                         settingsOpen.set(false)
                     }}> <CircleXIcon size={DBState.db.settingsCloseButtonSize} /> </button>
                 {/if}
@@ -192,7 +196,7 @@
         {/if}
         {#if (window.innerWidth >= 700 && !$MobileGUI) || $SettingsMenuIndex !== -1}
             {#key $SettingsMenuIndex}
-                <div class="grow py-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative rs-setting-cont-4 min-w-0">
+                <div class="grow pt-[max(1.5rem,var(--risu-titlebar-height))] pb-6 px-4 bg-bgcolor flex flex-col text-textcolor overflow-y-auto relative rs-setting-cont-4 min-w-0">
                     {#if $SettingsMenuIndex === 0}
                         <UserSettings />
                     {:else if $SettingsMenuIndex === 1}
@@ -235,7 +239,7 @@
             </div>
             {/key}
             {#if !$MobileGUI}
-                <button class="absolute top-2 right-2 hover:text-green-500 text-textcolor" onclick={() => {
+                <button class="absolute top-[max(0.5rem,var(--risu-titlebar-height))] right-2 hover:text-green-500 text-textcolor" onclick={() => {
                     if(window.innerWidth >= 700){
                         settingsOpen.set(false)
                     }

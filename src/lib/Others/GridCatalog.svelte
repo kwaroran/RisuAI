@@ -6,6 +6,7 @@
     import BarIcon from "../SideBars/BarIcon.svelte";
     import { ArrowLeft, User, Users, SquareMousePointer, TrashIcon, Undo2Icon } from "@lucide/svelte";
     import { selectedCharID } from "../../ts/stores.svelte";
+    import { TitlebarState } from "src/ts/gui/titlebar.svelte";
     import TextInput from "../UI/GUI/TextInput.svelte";
     import Button from "../UI/GUI/Button.svelte";
     import { language } from "src/lang";
@@ -53,8 +54,11 @@
     }
 </script>
 
-<div class="h-full w-full flex justify-center">
-    <div class="h-full p-6 bg-darkbg max-w-full w-2xl flex flex-col overflow-y-auto">
+<div class="h-full w-full flex justify-center relative">
+    {#if TitlebarState.inset}
+        <div class="absolute top-0 inset-x-0 z-10 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+    {/if}
+    <div class="h-full p-6 pt-[max(1.5rem,var(--risu-titlebar-height))] bg-darkbg max-w-full w-2xl flex flex-col overflow-y-auto">
         <div class="mx-4 mb-6 flex flex-col">
             <div class="flex items-center gap-3 mb-2">
                 <button 

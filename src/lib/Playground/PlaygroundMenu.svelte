@@ -1,7 +1,7 @@
 <script lang="ts">
     import { ArrowLeft } from "@lucide/svelte";
     import { language } from "src/lang";
-    import { PlaygroundStore, SizeStore, selectedCharID } from "src/ts/stores.svelte";
+    import { MobileGUI, PlaygroundStore, SizeStore, selectedCharID } from "src/ts/stores.svelte";
     import PlaygroundEmbedding from "./PlaygroundEmbedding.svelte";
     import PlaygroundTokenizer from "./PlaygroundTokenizer.svelte";
     import PlaygroundJinja from "./PlaygroundJinja.svelte";
@@ -50,7 +50,7 @@
     }
 </script>
 
-<div class="h-full w-full flex flex-col overflow-y-auto items-center">
+<div class="h-full w-full flex flex-col overflow-y-auto items-center" style:padding-top={$MobileGUI ? undefined : 'var(--risu-titlebar-height)'}>
     {#if $PlaygroundStore === 1}
         <h2 class="text-4xl text-textcolor my-6 font-black relative">{language.playground.playground}</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 w-full max-w-4xl p-2">

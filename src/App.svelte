@@ -38,13 +38,19 @@
     import Legal from './lib/Others/Legal.svelte';
     import CustomSidebarConfig from './lib/Others/CustomSidebarConfig.svelte';
     import { RISU_APP_INTERNAL_DRAG_TYPE, RISU_SIDEBAR_DRAG_TYPE } from './ts/dragTypes';
+    import { TitlebarState } from './ts/gui/titlebar.svelte';
 
 
   
+    const legalConfigured = import.meta.env.VITE_RISU_LEGAL_CONFIGURED || globalThis.__RISU_LEGAL_CONFIGURED__
     let didFirstSetup: boolean  = $derived(DBState.db?.didFirstSetup)
     let gridOpen = $state(false)
     let aprilFools = $state(new Date().getMonth() === 3 && new Date().getDate() === 1)
     let aprilFoolsPage = $state(0)
+    // The sidebar + chat layout, Settings and the character grid make room for the macOS traffic lights themselves, other screens sit below a draggable band
+    let titlebarBand = $derived(TitlebarState.inset && !(
+        legalConfigured && !aprilFools && $loadedStore && !$CustomGUISettingMenuStore && didFirstSetup && ($settingsOpen || !$MobileGUI)
+    ))
     let keepingSessionAlive = $state(false)
     let keepAliveAudio: HTMLAudioElement | null = null
 
@@ -134,8 +140,11 @@
         }
     }
 
-}}>
-    {#if !(import.meta.env.VITE_RISU_LEGAL_CONFIGURED || globalThis.__RISU_LEGAL_CONFIGURED__)}
+}} style:padding-top={titlebarBand ? 'var(--risu-titlebar-height)' : undefined}>
+    {#if titlebarBand}
+        <div class="fixed top-0 inset-x-0 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+    {/if}
+    {#if !legalConfigured}
         <Legal />
     {:else if aprilFools}
 

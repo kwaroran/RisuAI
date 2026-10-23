@@ -2,7 +2,7 @@
     import { getCustomBackground, getEmotion } from "../../ts/util";
     
     import { DBState } from 'src/ts/stores.svelte';
-    import { CharEmotion, selectedCharID } from "../../ts/stores.svelte";
+    import { CharEmotion, MobileGUI, selectedCharID } from "../../ts/stores.svelte";
     import ResizeBox from './ResizeBox.svelte'
     import DefaultChatScreen from "./DefaultChatScreen.svelte";
     import defaultWallpaper from '../../etc/bg.jpg'
@@ -11,6 +11,7 @@
     import BackgroundDom from "./BackgroundDom.svelte";
     import SideBarArrow from "../UI/GUI/SideBarArrow.svelte";
     import ModuleChatMenu from "../Setting/Pages/Module/ModuleChatMenu.svelte";
+    import { TitlebarState } from "src/ts/gui/titlebar.svelte";
     let openChatList = $state(false)
     let openModuleList = $state(false)
 
@@ -34,6 +35,9 @@
 
 {#if DBState.db.theme === 'waifu'}
     <div class="grow h-full flex justify-center relative" style="{bgImg.length < 4 ? wallPaper : bgImg}">
+        {#if TitlebarState.inset && !$MobileGUI}
+            <div class="absolute top-0 inset-x-0 z-20 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+        {/if}
         <SideBarArrow />
         <BackgroundDom />
         {#if $selectedCharID >= 0}
@@ -49,6 +53,9 @@
     </div>
 {:else if DBState.db.theme === 'waifuMobile'}
     <div class="grow h-full relative" style={bgImg.length < 4 ? wallPaper : bgImg}>
+        {#if TitlebarState.inset && !$MobileGUI}
+            <div class="absolute top-0 inset-x-0 z-20 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+        {/if}
         <SideBarArrow />
         <BackgroundDom />
         <div class="w-full absolute z-10 bottom-0 left-0"
@@ -67,6 +74,9 @@
     </div>
 {:else}
     <div class="grow h-full min-w-0 relative justify-center flex">
+        {#if TitlebarState.inset && !$MobileGUI}
+            <div class="absolute top-0 inset-x-0 z-20 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+        {/if}
         <SideBarArrow />
         <BackgroundDom />
         <div style={bgImg} class="h-full w-full" class:max-w-6xl={DBState.db.classicMaxWidth}>

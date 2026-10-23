@@ -48,6 +48,7 @@
     import SideChatList from "./SideChatList.svelte";
     import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
+  import { TitlebarState } from "src/ts/gui/titlebar.svelte";
   import DevTool from "./DevTool.svelte";
     import QuickSettingsGui from "../Others/QuickSettingsGUI.svelte";
     import PluginDefinedIcon from "../Others/PluginDefinedIcon.svelte";
@@ -404,6 +405,9 @@
   class:hidden={hidden}
   class:flex={!hidden}
 >
+{#if TitlebarState.inset}
+  <div class="w-full shrink-0 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+{/if}
 <button
   class="flex items-center justify-center py-2 flex-col gap-1 w-full mt-4"
   class:text-textcolor2={!(
@@ -476,6 +480,9 @@
   class:hidden={hidden}
   class:flex={!hidden}
 >
+  {#if TitlebarState.inset}
+    <div class="w-full shrink-0 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+  {/if}
   {#if !DBState.db.hamburgerButtonBottom}
   <button
     class="flex h-8 min-h-8 w-14 min-w-14 cursor-pointer text-white mt-2 items-center justify-center rounded-md bg-textcolor2 transition-colors hover:bg-blue-500"
@@ -892,7 +899,8 @@
 </div>
 {/if}
 <div
-  class="setting-area h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg py-6 text-textcolor max-h-full"
+  class="setting-area h-full flex-col overflow-y-auto overflow-x-hidden bg-darkbg pb-6 text-textcolor max-h-full"
+  class:pt-6={!TitlebarState.inset}
   class:risu-sidebar={!$sideBarClosing}
   class:w-96={$sideBarSize === 0}
   class:w-110={$sideBarSize === 1}
@@ -926,6 +934,9 @@
   >
     <!-- <button class="border-none bg-transparent p-0 text-textcolor"><X /></button> -->
   </button>
+  {#if TitlebarState.inset}
+    <div class="w-full shrink-0 h-(--risu-titlebar-height)" data-tauri-drag-region></div>
+  {/if}
   {#if sideBarMode === 0}
     {#if $selectedCharID < 0 || $settingsOpen}
       <div>
@@ -951,7 +962,13 @@
         </div>
       </div>
     {:else}
-      <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative bottom-6 rounded-b-md flex">
+      <!-- The tabs hang from the top edge, but sit as a closed box below the macOS title bar band -->
+      <div class="w-full h-8 min-h-8 border-l border-b border-r border-selected relative rounded-b-md flex"
+        class:bottom-6={!TitlebarState.inset}
+        class:border-t={TitlebarState.inset}
+        class:rounded-t-md={TitlebarState.inset}
+        class:mb-6={TitlebarState.inset}
+      >
         <button onclick={() => {
           devTool = false
           botMakerMode.set(false)

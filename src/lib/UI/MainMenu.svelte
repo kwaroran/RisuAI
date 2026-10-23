@@ -1,7 +1,7 @@
 <script lang="ts">
     import { DBState } from 'src/ts/stores.svelte';
     import Hub from "./Realm/RealmMain.svelte";
-    import { OpenRealmStore, RealmInitialOpenChar } from "src/ts/stores.svelte";
+    import { MobileGUI, OpenRealmStore, RealmInitialOpenChar } from "src/ts/stores.svelte";
     import { ArrowLeft, ArrowRight, FolderCodeIcon, GlobeIcon, MailIcon, Send } from "@lucide/svelte";
     import { getVersionString, openURL } from "src/ts/globalApi.svelte";
     import { language } from "src/lang";
@@ -46,7 +46,7 @@
       }
     ];
 </script>
-<div class="h-full w-full flex flex-col overflow-y-auto items-center">
+<div class="h-full w-full flex flex-col overflow-y-auto items-center" style:padding-top={$MobileGUI ? undefined : 'var(--risu-titlebar-height)'}>
     {#if !$OpenRealmStore}
       <Title />
       <h3 class="text-textcolor2 mt-1">Version {getVersionString()}</h3>
