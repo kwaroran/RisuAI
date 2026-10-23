@@ -25,7 +25,6 @@
     Settings,
     ListIcon,
     LayoutGridIcon,
-    FolderIcon,
     FolderOpenIcon,
     HomeIcon,
     WrenchIcon,
@@ -41,10 +40,10 @@
     import isEqual from "lodash/isEqual";
     import SidebarAvatar from "./SidebarAvatar.svelte";
     import BaseRoundedButton from "../UI/BaseRoundedButton.svelte";
-    import { getCharacterIndexObject, selectSingleFile } from "src/ts/util";
+    import { getCharacterIndexObject } from "src/ts/util";
     import { v4 } from "uuid";
-    import { checkCharOrder, getFileSrc, saveAsset } from "src/ts/globalApi.svelte";
-    import { alertInput, alertSelect } from "src/ts/alert";
+    import { checkCharOrder } from "src/ts/globalApi.svelte";
+    import FolderSettings, { folderIcons } from "./FolderSettings.svelte";
     import SideChatList from "./SideChatList.svelte";
     import { ConnectionIsHost, ConnectionOpenStore, RoomIdStore } from "src/ts/sync/multiuser";
   import { sideBarSize } from "src/ts/gui/guisize";
@@ -66,10 +65,11 @@
   }
 
   type sortTypeNormal = { type:'normal',img: string, index: number, name:string }
-  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string, img?:string}
+  type sortType =  sortTypeNormal|{type:'folder',folder:sortTypeNormal[],id:string, name:string, color:string, img?:string, icon?:string}
   let charImages: sortType[] = $state([]);
   let IconRounded = $state(false)
   let openFolders:string[] = $state([])
+  let editingFolder:string|null = $state(null)
   let currentDrag: DragData | null = $state(null)
   interface Props {
     openGrid?: any;
@@ -118,6 +118,7 @@
           name: folder.name,
           color: folder.color,
           img: folder.imgFile,
+          icon: folder.icon,
         });
       }
     }
@@ -601,65 +602,9 @@
             {#key char.color}
             {#key char.name}
               <SidebarAvatar src="slot" size="56" rounded={IconRounded} bordered name={char.name} color={char.color} backgroundimg={char.img ? getCharImage(char.img, "plain") : ""}
-              oncontextmenu={async (e) => {
+              oncontextmenu={(e) => {
                 e.preventDefault()
-                const sel = parseInt(await alertSelect([language.renameFolder,language.changeFolderColor,language.changeFolderImage,language.cancel]))
-                if(sel === 0){
-                  const v = await alertInput(language.changeFolderName, [], char.name)
-                  const db = DBState.db
-                  if(v){
-                    const oder = db.characterOrder[ind]
-                    if(typeof(oder) === 'string'){
-                      return
-                    }
-                    oder.name = v
-                    db.characterOrder[ind] = oder
-                  }
-                }
-                else if(sel === 1){
-                  const colors = ["red","green","blue","yellow","indigo","purple","pink","default"]
-                  const sel = parseInt(await alertSelect(colors))
-                  const db = DBState.db
-                  const oder = db.characterOrder[ind]
-                  if(typeof(oder) === 'string'){
-                    return
-                  }
-                  oder.color = colors[sel].toLocaleLowerCase()
-                  db.characterOrder[ind] = oder
-                }
-                else if(sel === 2) {
-                  const sel = parseInt(await alertSelect(['Reset to Default Image', 'Select Image File']))
-                  const db = DBState.db
-                  const oder = db.characterOrder[ind]
-                  if(typeof(oder) === 'string'){
-                    return
-                  }
-
-                  switch (sel) {
-                    case 0:
-                      oder.imgFile = null
-                      oder.img = ''
-                      break;
-                  
-                    case 1:
-                      const folderImage = await selectSingleFile([
-                        'png',
-                        'jpg',
-                        'webp',
-                      ])
-
-                      if(!folderImage) {
-                        return
-                      }
-
-                      const folderImageData = await saveAsset(folderImage.data)
-
-                      oder.imgFile = folderImageData
-                      oder.img = await getFileSrc(folderImageData)
-                      db.characterOrder[ind] = oder
-                      break;
-                  }
-                }
+                editingFolder = char.id
               }}
               onClick={() => {
                 if(char.type !== 'folder'){
@@ -677,10 +622,11 @@
                   <div class="h-full w-full flex justify-center items-center">
                     <span class="hyphens-auto truncate font-bold">{char.name}</span>
                   </div>
-                {:else if openFolders.includes(char.id)}
+                {:else if openFolders.includes(char.id) && !char.icon}
                   <FolderOpenIcon />
                 {:else}
-                  <FolderIcon />
+                  {@const Icon = folderIcons[char.icon ?? 'folder'] ?? folderIcons.folder}
+                  <Icon />
                 {/if}
               </SidebarAvatar>
             {/key}
@@ -998,6 +944,10 @@
 
     </div>
 
+{/if}
+
+{#if editingFolder}
+  <FolderSettings id={editingFolder} onclose={() => editingFolder = null} />
 {/if}
 
 <style>

@@ -1,3 +1,17 @@
+<script module lang="ts">
+  const colorClasses: Record<string, string> = {
+    red: 'bg-red-700/50',
+    green: 'bg-green-700/50',
+    blue: 'bg-blue-700/50',
+    yellow: 'bg-yellow-700/50',
+    indigo: 'bg-indigo-700/50',
+    purple: 'bg-purple-700/50',
+    pink: 'bg-pink-700/50',
+  }
+  export const folderColors = [...Object.keys(colorClasses), 'default']
+  export const folderColorClass = (color: string) => colorClasses[color] ?? 'bg-darkbg/50'
+</script>
+
 <script lang="ts">
   import { tooltipRight } from "src/ts/gui/tooltip";
 
@@ -47,16 +61,7 @@
     {#if src === "slot"}
       {#await backgroundimg}
       <div
-        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center {
-          color === 'red' ? 'bg-red-700/50' :
-          color === 'yellow' ? 'bg-yellow-700/50' :
-          color === 'green' ? 'bg-green-700/50' :
-          color === 'blue' ? 'bg-blue-700/50' :
-          color === 'indigo' ? 'bg-indigo-700/50' :
-          color === 'purple' ? 'bg-purple-700/50' :
-          color === 'pink' ? 'bg-pink-700/50' :
-          'bg-darkbg/50'
-        }"
+        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center {folderColorClass(color)}"
         style:width={size + "px"}
         style:height={size + "px"}
         style:minWidth={size + "px"}
@@ -64,16 +69,7 @@
       ></div>
       {:then resolvedBgImg}
       <div
-        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center {
-          color === 'red' ? 'bg-red-700/50' :
-          color === 'yellow' ? 'bg-yellow-700/50' :
-          color === 'green' ? 'bg-green-700/50' :
-          color === 'blue' ? 'bg-blue-700/50' :
-          color === 'indigo' ? 'bg-indigo-700/50' :
-          color === 'purple' ? 'bg-purple-700/50' :
-          color === 'pink' ? 'bg-pink-700/50' :
-          'bg-darkbg/50'
-        }"
+        class="bg-skin-border sidebar-avatar rounded-md bg-top flex items-center justify-center {folderColorClass(color)}"
         style:width={size + "px"}
         style:height={size + "px"}
         style:minWidth={size + "px"}

@@ -1712,6 +1712,7 @@ export interface folder{
     id:string
     imgFile?:string
     img?:string
+    icon?:string
 }
 
 
