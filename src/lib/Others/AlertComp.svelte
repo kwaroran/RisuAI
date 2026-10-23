@@ -500,15 +500,21 @@
                 {#if generationInfoMenuIndex === 2}
                     {#await getFetchData($alertStore.msg) then data} 
                         {#if !data}
-                            <span class="text-gray-300 text-lg mt-2">{language.errors.requestLogRemoved}</span>
-                            <span class="text-gray-500">{language.errors.requestLogRemovedDesc}</span>
+                            <span class="text-textcolor text-lg mt-2">{language.errors.requestLogRemoved}</span>
+                            <span class="text-textcolor2">{language.errors.requestLogRemovedDesc}</span>
                         {:else}
-                            <h1 class="text-2xl font-bold my-4">URL</h1>
-                            <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{data.url}</code>
-                            <h1 class="text-2xl font-bold my-4">Request Body</h1>
-                            <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{beautifyJSON(data.body)}</code>
-                            <h1 class="text-2xl font-bold my-4">Response</h1>
-                            <code class="text-gray-300 border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{beautifyJSON(data.response)}</code>
+                            <h1 class="text-2xl font-bold my-4 text-textcolor">URL</h1>
+                            <code class="text-textcolor border border-darkborderc p-2 rounded-md whitespace-pre-wrap">{data.url}</code>
+                            
+                            <details class="my-4">
+                                <summary class="text-2xl font-bold text-textcolor cursor-pointer select-none">Request Body</summary>
+                                <code class="text-textcolor border border-darkborderc p-2 rounded-md whitespace-pre-wrap mt-2 block w-full">{beautifyJSON(data.body)}</code>
+                            </details>
+                            
+                            <details class="my-4">
+                                <summary class="text-2xl font-bold text-textcolor cursor-pointer select-none">Response</summary>
+                                <code class="text-textcolor border border-darkborderc p-2 rounded-md whitespace-pre-wrap mt-2 block w-full">{beautifyJSON(data.response)}</code>
+                            </details>
                         {/if}
                     {/await}
                 {/if}
