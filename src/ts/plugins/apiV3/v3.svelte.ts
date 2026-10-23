@@ -37,6 +37,7 @@ import {
     type AfterTTSResult,
     type TTSHookFn,
 } from "src/ts/process/ttsHooks";
+import { HypaProcesser, type HypaModel } from "src/ts/process/memory/hypamemory";
 import isEqual from "lodash/isEqual";
 
 /*
@@ -459,6 +460,23 @@ class SafeMutationRecord{
 
 type SafeMutationCallback = (mutations: SafeClassArray<SafeMutationRecord>) => void;
 
+class EmbeddingIndex {
+    #processer: HypaProcesser;
+    __classType = 'REMOTE_REQUIRED' as const;
+
+    constructor(processer: HypaProcesser) {
+        this.#processer = processer;
+    }
+
+    public async addText(texts: string[]) {
+        await this.#processer.addText(texts);
+    }
+
+    public async similaritySearchScored(query: string): Promise<[string, number][]> {
+        return await this.#processer.similaritySearchScored(query);
+    }
+}
+
 class SafeMutationObserver {
     #observer: MutationObserver;
     __classType = 'REMOTE_REQUIRED' as const;
@@ -623,6 +641,7 @@ const getPluginPermission = async (pluginName: string, scriptHash: string, permi
         : permissionDesc === 'replacer' ? language.replacerPermissionConsent.replace("{}", pluginName)
         : permissionDesc === 'provider' ? language.providerPermissionConsent.replace("{}", pluginName)
         : permissionDesc === 'sendChat' ? language.sendChatConsent.replace("{}", pluginName)
+        : permissionDesc === 'embedding' ? language.embeddingConsent.replace("{}", pluginName)
         : permissionDesc === 'inlay' ? language.inlayPermissionConsent.replace("{}", pluginName)
         : `Error`
     if(alertTitle === 'Error'){
@@ -1459,6 +1478,29 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                     channel: channelName
                 });
             }
+        },
+        similaritySearchScored: async (query: string, documents: string[], options?: {
+            model?: string,
+            customEmbeddingUrl?: string
+        }) => {
+            const conf = await getPermission('embedding', 'periodically');
+            if(!conf){
+                return [];
+            }
+            const processer = new HypaProcesser((options?.model || 'auto') as HypaModel | 'auto', options?.customEmbeddingUrl);
+            await processer.addText(documents);
+            return await processer.similaritySearchScored(query);
+        },
+        createEmbeddingIndex: async (options?: {
+            model?: string,
+            customEmbeddingUrl?: string
+        }) => {
+            const conf = await getPermission('embedding', 'periodically');
+            if(!conf){
+                return null;
+            }
+            const processer = new HypaProcesser((options?.model || 'auto') as HypaModel | 'auto', options?.customEmbeddingUrl);
+            return new EmbeddingIndex(processer);
         },
         saveSecretHeader: async (key: string, value: string|string[]) => {
             //TODO: Implement server-side secret storage with write-only access for plugins, to enhance security when handling sensitive information like API keys.

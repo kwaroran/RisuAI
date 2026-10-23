@@ -206,22 +206,22 @@ export class HypaProcesser{
 
     private similaritySearchVectorWithScore(
         query: VectorArray,
-      ): [string, number][] {
-          const memoryVectors = this.vectors
-          const sim = similarity
-          const searches = memoryVectors
-                .map((vector, index) => ({
-                    similarity: sim(query, vector.embedding),
-                    index,
-                }))
-                .sort((a, b) => (a.similarity > b.similarity ? -1 : 0))
-      
-          const result: [string, number][] = searches.map((search) => [
-              memoryVectors[search.index].content,
-              search.similarity,
-          ]);
-      
-          return result;
+    ): [string, number][] {
+        const memoryVectors = this.vectors
+        const sim = similarity
+        const searches = memoryVectors
+            .map((vector, index) => ({
+                similarity: sim(query, vector.embedding),
+                index,
+            }))
+            .sort((a, b) => b.similarity - a.similarity)
+
+        const result: [string, number][] = searches.map((search) => [
+            memoryVectors[search.index].content,
+            search.similarity,
+        ]);
+
+        return result;
     }
 
     similarityCheck(query1:number[],query2: number[]) {
