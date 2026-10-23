@@ -216,10 +216,20 @@ async function hypaMemoryV3MainExp(
     let startIdx = 0;
 
     if (data.summaries.length > 0) {
-        const lastSummary = data.summaries.at(-1);
-        const lastChatIndex = chats.findIndex(
-            (chat) => chat.memo === [...lastSummary.chatMemos].at(-1)
-        );
+        // Walk summaries backwards to find the latest summarized chat that still exists.
+        // The last memo of the last summary may be missing if the user deleted that chat
+        // while preserveOrphanedMemory is on; falling back to 0 would re-summarize everything.
+        let lastChatIndex = -1;
+
+        for (let i = data.summaries.length - 1; i >= 0 && lastChatIndex === -1; i--) {
+            for (const memo of [...data.summaries[i].chatMemos].reverse()) {
+                lastChatIndex = chats.findIndex((chat) => chat.memo === memo);
+
+                if (lastChatIndex !== -1) {
+                    break;
+                }
+            }
+        }
 
         if (lastChatIndex !== -1) {
             startIdx = lastChatIndex + 1;
@@ -995,10 +1005,20 @@ async function hypaMemoryV3Main(
     let startIdx = 0;
 
     if (data.summaries.length > 0) {
-        const lastSummary = data.summaries.at(-1);
-        const lastChatIndex = chats.findIndex(
-            (chat) => chat.memo === [...lastSummary.chatMemos].at(-1)
-        );
+        // Walk summaries backwards to find the latest summarized chat that still exists.
+        // The last memo of the last summary may be missing if the user deleted that chat
+        // while preserveOrphanedMemory is on; falling back to 0 would re-summarize everything.
+        let lastChatIndex = -1;
+
+        for (let i = data.summaries.length - 1; i >= 0 && lastChatIndex === -1; i--) {
+            for (const memo of [...data.summaries[i].chatMemos].reverse()) {
+                lastChatIndex = chats.findIndex((chat) => chat.memo === memo);
+
+                if (lastChatIndex !== -1) {
+                    break;
+                }
+            }
+        }
 
         if (lastChatIndex !== -1) {
             startIdx = lastChatIndex + 1;
