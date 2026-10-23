@@ -995,7 +995,7 @@ async function requestClaudeHTTP(replacerURL:string, headers:{[key:string]:strin
                         if(done){
                             break
                         }
-                        parserData += (decoder.decode(value))
+                        parserData += decoder.decode(value, { stream: true })
                         let parts = parserData.split('\n')
                         for(;i<parts.length-1;i++){
                             prevText = text
