@@ -233,7 +233,16 @@
 
 </script>
 
-{#if licensed !== 'private' && !$MobileGUI}
+{#if licensed === 'private' && !$MobileGUI}
+    <div class="flex mb-2" class:gap-2={iconButtonSize === 24} class:gap-1={iconButtonSize < 24}>
+        <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}}>
+            <UserIcon size={iconButtonSize} />
+        </button>
+        <button class={$CharConfigSubMenu === 6 ? 'text-textcolor' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 6}}>
+            <Share2Icon size={iconButtonSize} />
+        </button>
+    </div>
+{:else if !$MobileGUI}
     <div class="flex mb-2" class:gap-2={iconButtonSize === 24} class:gap-1={iconButtonSize < 24}>
         <button class={$CharConfigSubMenu === 0 ? 'text-textcolor ' : 'text-textcolor2'} onclick={() => {$CharConfigSubMenu = 0}}>
             <UserIcon size={iconButtonSize} />
@@ -344,7 +353,7 @@
             </div>
         {/if}
     {/if}
-{:else if licensed === 'private'}
+{:else if licensed === 'private' && $CharConfigSubMenu !== 6}
     <span>You are not allowed</span>
     {(() => {
         $CharConfigSubMenu = 0
@@ -722,30 +731,33 @@
     {/if}
 {:else if $CharConfigSubMenu === 6}
 
-    {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
-    && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
-    }
-        <Button size="lg" onclick={async () => {
-            if(await alertTOS()){
-                $ShowRealmFrameStore = 'character'
-            }
-        }} className="mt-2">
-            {#if DBState.db.characters[$selectedCharID].realmId}
-                {language.updateRealm}
-            {:else}
-                {language.shareCloud}
-            {/if}
-        </Button>
-    {/if}
-
-    {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
+    <!-- Edit-protected characters only get the remove button -->
+    {#if licensed !== 'private'}
+        {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
         && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
-        && DBState.db.characters[$selectedCharID].license !== 'CC BY-ND 4.0'
-        && DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-ND 4.0'
         }
-        <Button size="sm" onclick={async () => {
-            const res = await exportChar($selectedCharID)
-        }} className="mt-2">{language.exportCharacter}</Button>
+            <Button size="lg" onclick={async () => {
+                if(await alertTOS()){
+                    $ShowRealmFrameStore = 'character'
+                }
+            }} className="mt-2">
+                {#if DBState.db.characters[$selectedCharID].realmId}
+                    {language.updateRealm}
+                {:else}
+                    {language.shareCloud}
+                {/if}
+            </Button>
+        {/if}
+
+        {#if DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-SA 4.0'
+            && DBState.db.characters[$selectedCharID].license !== 'CC BY-SA 4.0'
+            && DBState.db.characters[$selectedCharID].license !== 'CC BY-ND 4.0'
+            && DBState.db.characters[$selectedCharID].license !== 'CC BY-NC-ND 4.0'
+            }
+            <Button size="sm" onclick={async () => {
+                const res = await exportChar($selectedCharID)
+            }} className="mt-2">{language.exportCharacter}</Button>
+        {/if}
     {/if}
 
     <Button onclick={async () => {
