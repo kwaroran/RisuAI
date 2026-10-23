@@ -755,6 +755,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                 return;
             }
             oldApis.addRisuReplacer(name, func as any);
+            addPluginUnloadCallback(plugin.name, () => oldApis.removeRisuReplacer(name, func as any));
         },
         removeRisuReplacer: oldApis.removeRisuReplacer,
         addRisuChatListener: async (mode:'output', func:Function) => {
