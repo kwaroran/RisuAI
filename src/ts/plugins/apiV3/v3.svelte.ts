@@ -755,6 +755,7 @@ const makeRisuaiAPIV3 = (iframe:HTMLIFrameElement,plugin:RisuPlugin) => {
                 return;
             }
             oldApis.addRisuReplacer(name, func as any);
+            addPluginUnloadCallback(plugin.name, () => oldApis.removeRisuReplacer(name, func as any));
         },
         removeRisuReplacer: oldApis.removeRisuReplacer,
         addRisuChatListener: async (mode:'output', func:Function) => {
@@ -1476,7 +1477,8 @@ type V3PluginInstance = {
 const v3PluginInstances: V3PluginInstance[] = [];
 
 export async function loadV3Plugins(plugins:RisuPlugin[]){
-    await Promise.all(v3PluginInstances.map(async (instance) => {
+    // iterate over a copy: unloadV3Plugin removes the instance from v3PluginInstances
+    await Promise.all([...v3PluginInstances].map(async (instance) => {
         await unloadV3Plugin(instance.name);
     }));
 
