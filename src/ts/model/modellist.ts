@@ -13,6 +13,7 @@ import {
 import { OpenAIModels } from './providers/openai'
 import { AnthropicModels } from './providers/anthropic'
 import { GoogleModels } from './providers/google'
+import { IonetModels } from './providers/ionet'
 import { fetchNative } from "../globalApi.svelte"
 import { DBState } from "../stores.svelte"
 import { customProviderStore, pluginV2 } from "../plugins/plugins.svelte"
@@ -44,6 +45,7 @@ function makeDeepInfraModels(id:string[]):LLMModel[]{
 export const LLMModels: LLMModel[] = [
     ...OpenAIModels,
     ...AnthropicModels,
+    ...IonetModels,
     // AWS Bedrock Claude models
     {
         name: "Claude 4.6 Opus v1",

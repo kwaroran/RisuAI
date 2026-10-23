@@ -196,6 +196,8 @@ export async function encode(data:string):Promise<(number[]|Uint32Array|Int32Arr
             result = await tokenizeWebTokenizers(data, 'GLM4');
         } else if(modelInfo.tokenizer === LLMTokenizer.GLM5){
             result = await tokenizeWebTokenizers(data, 'GLM5');
+        } else if(modelInfo.tokenizer === LLMTokenizer.Llama3){
+            result = await tokenizeWebTokenizers(data, 'llama3');
         } else if(modelInfo.tokenizer === LLMTokenizer.Cohere){
             result = await tokenizeWebTokenizers(data, 'cohere');
         } else {
