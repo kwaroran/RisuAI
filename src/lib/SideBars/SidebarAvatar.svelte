@@ -99,7 +99,8 @@
       {:then img}
         <img
           src={img}
-          class="bg-skin-border sidebar-avatar rounded-md object-cover object-top"
+          draggable="false"
+          class="bg-skin-border sidebar-avatar sidebar-avatar-image rounded-md object-cover object-top"
           style:width={size + "px"}
           style:height={size + "px"}
           style:minWidth={size + "px"}
@@ -118,3 +119,15 @@
 ></div>
   {/if}
 </span>
+
+<style>
+  @media (hover: none) and (pointer: coarse) {
+    .sidebar-avatar-image {
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+    }
+  }
+</style>

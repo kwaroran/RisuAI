@@ -52,6 +52,7 @@
     import QuickSettingsGui from "../Others/QuickSettingsGUI.svelte";
     import PluginDefinedIcon from "../Others/PluginDefinedIcon.svelte";
     import { RISU_SIDEBAR_DRAG_TYPE } from "src/ts/dragTypes";
+    import { sidebarTouchDrag } from "src/ts/gui/sidebarTouchDrag";
   let sideBarMode = $state(0);
   let editMode = $state(false);
   let menuMode = $state(0);
@@ -564,6 +565,7 @@
       <div class="group relative flex items-center px-2"
         role="listitem"
         draggable="true"
+        use:sidebarTouchDrag
         ondragstart={(e) => {avatarDragStart({index:ind}, e)}}
         ondragend={clearCurrentDrag}
         ondragover={avatarDragOver}
@@ -727,6 +729,7 @@
               <div class="group relative flex items-center px-2 z-10"
               role="listitem"
               draggable="true"
+              use:sidebarTouchDrag
               ondragstart={(e) => {if(char.type === 'folder'){avatarDragStart({index: ind, folder:char.id}, e)}}}
               ondragend={clearCurrentDrag}
               ondragover={avatarDragOver}

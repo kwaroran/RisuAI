@@ -3,7 +3,6 @@ import { Buffer as BufferPolyfill } from 'buffer'
 import { polyfill as dragPolyfill} from "mobile-drag-drop"
 import {scrollBehaviourDragImageTranslateOverride} from 'mobile-drag-drop/scroll-behaviour'
 import rfdc from 'rfdc'
-import { isIOS } from "./platform";
 /**
  * Polyfill for structuredClone.
  * Falls back to rfdc (Really Fast Deep Clone) if structuredClone throws an error.
@@ -20,19 +19,33 @@ export function safeStructuredClone<T>(data:T):T{
   }
 }
 
+function findDraggableTargetAtTouch(event: TouchEvent): HTMLElement | undefined {
+    const touch = event.changedTouches[0]
+    if(!touch){
+      return
+    }
+
+    let target: Element | null = document.elementFromPoint(touch.clientX, touch.clientY)
+    while(target){
+      if(target instanceof HTMLElement && (target.draggable || target.getAttribute('draggable') === 'true')){
+        return target
+      }
+      target = target.parentElement
+    }
+}
+
 try {
-    const testDom = document.createElement('div');
-    const supports  = ('draggable' in testDom) || ('ondragstart' in testDom && 'ondrop' in testDom);
-    testDom.remove()
-    
-    if((!supports) || isIOS()){
+    const applied = dragPolyfill({
+      // use this to make use of the scroll behaviour
+      dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
+      // Let touch users scroll normally unless they intentionally hold first.
+      holdToDrag: 350,
+      // Delayed touch events can lose their composed path in Chromium.
+      tryFindDraggableTarget: findDraggableTargetAtTouch,
+    });
+
+    if(applied){
       globalThis.polyfilledDragDrop = true
-      dragPolyfill({
-        // use this to make use of the scroll behaviour
-        dragImageTranslateOverride: scrollBehaviourDragImageTranslateOverride,
-        // holdToDrag: 400,
-        forceApply: true
-      });
     }
 } catch (error) {
     
