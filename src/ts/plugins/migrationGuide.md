@@ -391,26 +391,35 @@ Monitor DOM changes safely:
 
 ```javascript
 // Create mutation observer
-const observer = risuai.createMutationObserver((mutations) => {
-  mutations.forEach(mutation => {
-    console.log('Type:', mutation.type)
-    console.log('Target:', mutation.target)
-    console.log('Added nodes:', mutation.addedNodes)
-  })
+// The callback receives a SafeClassArray<SafeMutationRecord>
+const observer = await risuai.createMutationObserver(async (mutations) => {
+  const records = await risuai.unwarpSafeArray(mutations)
+  for (const mutation of records) {
+    // Records are RPC proxies: read them with async getter methods
+    console.log('Type:', await mutation.getType())
+    console.log('Target:', await mutation.getTarget())
+
+    const addedNodes = await risuai.unwarpSafeArray(await mutation.getAddedNodes())
+    const removedNodes = await risuai.unwarpSafeArray(await mutation.getRemovedNodes())
+    console.log('Added:', addedNodes.length, 'Removed:', removedNodes.length)
+  }
 })
 
 // Start observing
-observer.observe(element, {
+await observer.observe(element, {
   childList: true,
   subtree: true,
   attributes: true
 })
 ```
 
-**Mutation Record Properties:**
-- `type`: Type of mutation ('attributes', 'childList', etc.)
-- `target`: SafeElement that was modified
-- `addedNodes`: Array of added SafeElement nodes
+**Mutation Record Methods:**
+- `getType()`: Type of mutation ('attributes', 'childList', etc.)
+- `getTarget()`: SafeElement that was modified
+- `getAddedNodes()`: `SafeClassArray<SafeElement>` of added nodes
+- `getRemovedNodes()`: `SafeClassArray<SafeElement>` of removed nodes
+
+Note: `getAddedNodes()`/`getRemovedNodes()` contain HTML element nodes only; text nodes and SVG elements are excluded.
 
 #### UI Registration
 

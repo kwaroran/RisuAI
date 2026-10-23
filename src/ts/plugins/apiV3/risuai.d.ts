@@ -966,6 +966,8 @@ interface SafeMutationRecord {
     getTarget(): Promise<SafeElement>;
     /** Added nodes in mutation */
     getAddedNodes(): Promise<SafeClassArray<SafeElement>>;
+    /** Removed nodes in mutation */
+    getRemovedNodes(): Promise<SafeClassArray<SafeElement>>;
 }
 
 /**
