@@ -23,7 +23,7 @@ REM if not defined VITE_AD_CLIENT_MOBILE set "VITE_AD_CLIENT_MOBILE="
 REM if not defined VITE_AD_SLOT set "VITE_AD_SLOT="
 REM if not defined VITE_AD_SLOT_MOBILE set "VITE_AD_SLOT_MOBILE="
 
-call npm install -g pnpm@10.34.1
+call npm install -g pnpm@11.9.0
 call pnpm install
 call pnpm run build
 

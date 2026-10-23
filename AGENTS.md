@@ -86,7 +86,7 @@ risuai-newest/
 
 ### Prerequisites
 
-- Node.js 20.19+ or 22.12+ and pnpm
+- Node.js 22.13+ and pnpm
 - Rust and Cargo (for Tauri builds)
 
 ### Development
