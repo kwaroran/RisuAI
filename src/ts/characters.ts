@@ -8,6 +8,7 @@ import { getImageType } from "./media";
 import { DBState, MobileGUIStack, OpenRealmStore, selectedCharID } from "./stores.svelte";
 import { AppendableBuffer, changeChatTo, checkCharOrder, downloadFile, getFileSrc, requiresFullEncoderReload } from "./globalApi.svelte";
 import { updateInlayScreen } from "./process/inlayScreen";
+import { defaultMinimaxTTSConfig } from "./process/ttsMinimax";
 import { parseMarkdownSafe } from "./parser/parser.svelte";
 import { translateHTML } from "./translator/translator";
 import { doingChat } from "./process/index.svelte";
@@ -596,6 +597,9 @@ export function characterFormatUpdate(indexOrCharacter:number|character, arg:{
         cha.hfTTS ??= {
             model: '',
             language: 'en'
+        }
+        if (cha.ttsMode === 'minimax') {
+            cha.minimaxTTSConfig ??= defaultMinimaxTTSConfig()
         }
         cha.backgroundHTML ??= ''
         cha.backgroundCSS ??= ''

@@ -14,6 +14,11 @@ import {
     type AfterTTSContext,
     type AfterTTSResult,
 } from "./ttsHooks";
+import {
+    buildMinimaxTTSRequest,
+    decodeMinimaxTTSAudio,
+    minimaxTTSMimeType,
+} from "./ttsMinimax";
 
 let sourceNode:AudioBufferSourceNode = null
 
@@ -414,6 +419,39 @@ export async function sayTTS(character:character,text:string) {
                     const text = Buffer.from(textBuffer).toString('utf-8')
                     throw new Error(text);
                 }
+                break;
+            }
+            case 'minimax':{
+                if(text === ''){
+                    break;
+                }
+
+                const cfg = character.minimaxTTSConfig ?? {}
+                const apiKey = (db.minimaxTTSKey || '').trim()
+                if(apiKey === ''){
+                    throw new Error('MiniMax API key is not set')
+                }
+
+                const request = buildMinimaxTTSRequest(text, cfg)
+
+                // The endpoint answers with a JSON envelope, so the parsed
+                // response is used instead of rawResponse bytes here.
+                const response = await globalFetch(request.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                    },
+                    body: request.body,
+                })
+
+                if(!response.ok){
+                    const data = response.data
+                    throw new Error(typeof data === 'string' ? data : JSON.stringify(data))
+                }
+
+                const audio = decodeMinimaxTTSAudio(response.data)
+                await playAudio(audio, minimaxTTSMimeType(cfg.format), { ttsMode: character.ttsMode ?? '', characterId: character.chaId })
                 break;
             }
         }
