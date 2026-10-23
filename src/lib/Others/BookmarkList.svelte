@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon, ArrowRightIcon } from "@lucide/svelte";
+    import { XIcon, TrashIcon, PencilIcon, BookOpenCheckIcon, BookLockIcon, ArrowRightIcon, MoreVerticalIcon, HistoryIcon, ListOrderedIcon } from "@lucide/svelte";
     import Chat from "../ChatScreens/Chat.svelte";
     import { getCharImage } from "src/ts/characters";
     import { findCharacterbyId, getUserName, getUserIcon } from "src/ts/util";
@@ -26,6 +26,8 @@
         return map;
     });
 
+    let sortByMessageOrder = $state(true);
+
     const bookmarkedMessages = $derived.by(() => {
         if (!chara) return [];
 
@@ -47,23 +49,55 @@
             })
             .filter(Boolean);
 
+        if (sortByMessageOrder) {
+            messages.sort((a, b) => a.originalIndex - b.originalIndex);
+        }
+
         return messages;
     });
 
     let expandedBookmarks = $state(new Set<string>());
     let expandAll = $state(false);
+    let openMenuId = $state<string | null>(null);
 
     onMount(() => {
         const handleKeydown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                close();
+                if (openMenuId) {
+                    openMenuId = null;
+                } else {
+                    close();
+                }
             }
         };
+        const handleClick = () => openMenuId = null;
         window.addEventListener('keydown', handleKeydown);
+        window.addEventListener('click', handleClick);
         return () => {
             window.removeEventListener('keydown', handleKeydown);
+            window.removeEventListener('click', handleClick);
         };
     });
+
+    function getExcerpt(data: string) {
+        return data.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+    }
+
+    let menuStyle = $state('');
+
+    function toggleMenu(chatId: string, button: HTMLElement) {
+        if (openMenuId === chatId) {
+            openMenuId = null;
+            return;
+        }
+        // Fixed position so the menu is not clipped by the scrolling list
+        const rect = button.getBoundingClientRect();
+        const right = window.innerWidth - rect.right;
+        menuStyle = rect.bottom + 100 > window.innerHeight
+            ? `right: ${right}px; bottom: ${window.innerHeight - rect.top + 4}px;`
+            : `right: ${right}px; top: ${rect.bottom + 4}px;`;
+        openMenuId = chatId;
+    }
 
     function toggleExpand(chatId: string) {
         if (expandAll) {
@@ -127,11 +161,22 @@
         }
     }}
 >
-    <div class="bg-darkbg p-3 rounded-md flex flex-col max-w-4xl w-full max-h-[90%] overflow-y-auto">
+    <div class="bg-darkbg p-2 sm:p-3 rounded-md flex flex-col max-w-4xl w-full max-h-[90%] overflow-y-auto" onscroll={() => openMenuId = null}>
         <div class="flex items-center text-textcolor mb-4">
             <h2 class="text-xl font-bold">{language.bookmarks}</h2>
             <div class="ml-auto flex items-center gap-2">
-                <button 
+                <button
+                    class="text-textcolor2 hover:text-green-500"
+                    onclick={() => sortByMessageOrder = !sortByMessageOrder}
+                    title={sortByMessageOrder ? language.sortByAddedOrder : language.sortByMessageOrder}
+                >
+                    {#if sortByMessageOrder}
+                        <HistoryIcon size={20} />
+                    {:else}
+                        <ListOrderedIcon size={20} />
+                    {/if}
+                </button>
+                <button
                     class="text-textcolor2 hover:text-green-500" 
                     onclick={toggleExpandAll}
                     title={expandAll ? language.collapseAll : language.expandAll}
@@ -155,23 +200,34 @@
                 {#each bookmarkedMessages as msg (msg.chatId)}
                     <div class="border border-darkborderc rounded-lg">
                         <div 
-                            class="flex items-center p-3 cursor-pointer hover:bg-selected transition-colors"
+                            class="flex items-center px-2.5 py-2 sm:p-3 cursor-pointer hover:bg-selected transition-colors"
                             onclick={() => toggleExpand(msg.chatId)}
                             onkeydown={(e) => e.key === 'Enter' && toggleExpand(msg.chatId)}
                             role="button"
                             tabindex="0"
                         >
-                            <span class="grow text-left truncate">{chara.chats[chara.chatPage].bookmarkNames?.[msg.chatId] || msg.data.substring(0, 30) + '...'}</span>
-                            <div class="shrink-0 flex items-center gap-2 ml-2">
-                                <button class="text-textcolor2 hover:text-blue-500" title={language.goToChat} onclick={(e) => { e.stopPropagation(); goToChat(msg.originalIndex); }}>
+                            <div class="grow min-w-0 text-left line-clamp-2 wrap-break-word"><span class="mr-1.5 text-xs text-textcolor2 tabular-nums">#{msg.originalIndex}</span>{chara.chats[chara.chatPage].bookmarkNames?.[msg.chatId] || getExcerpt(msg.data)}</div>
+                            <div class="shrink-0 flex items-center gap-1 ml-2">
+                                <button class="p-1 text-textcolor2 hover:text-blue-500" title={language.goToChat} onclick={(e) => { e.stopPropagation(); goToChat(msg.originalIndex); }}>
                                     <ArrowRightIcon size={20} />
                                 </button>
-                                <button class="text-textcolor2 hover:text-green-500" onclick={(e) => { e.stopPropagation(); editName(msg.chatId); }}>
-                                    <PencilIcon size={16} />
-                                </button>
-                                <button class="text-textcolor2 hover:text-red-500" onclick={(e) => { e.stopPropagation(); removeBookmark(msg.chatId); }}>
-                                    <TrashIcon size={16} />
-                                </button>
+                                <div>
+                                    <button class="p-1 text-textcolor2 hover:text-textcolor" onclick={(e) => { e.stopPropagation(); toggleMenu(msg.chatId, e.currentTarget); }}>
+                                        <MoreVerticalIcon size={20} />
+                                    </button>
+                                    {#if openMenuId === msg.chatId}
+                                        <div class="fixed z-40 min-w-28 py-1 bg-darkbg border border-darkborderc rounded-md shadow-lg" style={menuStyle}>
+                                            <button class="w-full flex items-center gap-2 px-3 py-2 text-left text-textcolor hover:bg-selected" onclick={(e) => { e.stopPropagation(); openMenuId = null; editName(msg.chatId); }}>
+                                                <PencilIcon size={16} />
+                                                <span>{language.edit}</span>
+                                            </button>
+                                            <button class="w-full flex items-center gap-2 px-3 py-2 text-left text-draculared hover:bg-selected" onclick={(e) => { e.stopPropagation(); openMenuId = null; removeBookmark(msg.chatId); }}>
+                                                <TrashIcon size={16} />
+                                                <span>{language.remove}</span>
+                                            </button>
+                                        </div>
+                                    {/if}
+                                </div>
                             </div>
                         </div>
 

@@ -1437,6 +1437,8 @@ export const languageKorean = {
     "bookmarkAskNameOrCancel": "북마크 이름을 입력하세요. 입력하지 않으면 이름 변경이 취소됩니다.",
     "collapseAll": "모두 접기",
     "expandAll": "모두 펼치기",
+    "sortByMessageOrder": "메시지 순서로 정렬",
+    "sortByAddedOrder": "추가한 순서로 정렬",
     "hideErrorDetails": "오류 세부사항 숨기기",
     "showErrorDetails": "오류 세부사항 보이기",
     "dynamicOutput": "동적 출력",

@@ -1583,6 +1583,8 @@ export const languageEnglish = {
     bookmarkAskNameOrCancel: "Enter bookmark name. If not entered, rename will be canceled.",
     collapseAll: "Collapse All",
     expandAll: "Expand All",
+    sortByMessageOrder: "Sort by Message Order",
+    sortByAddedOrder: "Sort by Added Order",
     noRequestLogs: "No request logs available.",
     hideErrorDetails: "Hide Error Details",
     showErrorDetails: "Show Error Details",
