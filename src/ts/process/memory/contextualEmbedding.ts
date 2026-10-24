@@ -9,32 +9,59 @@ export interface ContextualEmbeddingProvider {
   getCacheKeySuffix(contextTexts?: string[]): string;
 }
 
+type VoyageContextModel = 'voyageContext3' | 'voyageContext4';
+
+interface VoyageContextModelConfig {
+  readonly apiModelId: string;
+  readonly displayName: string;
+  readonly cacheKeySuffix: string;
+  readonly outputDimension?: number;
+  readonly outputDtype?: 'float';
+}
+
+const VOYAGE_CONTEXT_MODELS: Record<VoyageContextModel, VoyageContextModelConfig> = {
+  voyageContext3: {
+    apiModelId: 'voyage-context-3',
+    displayName: 'Voyage Context 3',
+    cacheKeySuffix: 'voyageContext3'
+  },
+  voyageContext4: {
+    apiModelId: 'voyage-context-4',
+    displayName: 'Voyage Context 4',
+    cacheKeySuffix: 'voyageContext4|dim:2048',
+    outputDimension: 2048,
+    outputDtype: 'float'
+  }
+};
+
 export function isContextModel(model: string): boolean {
-  return model === 'voyageContext3';
+  return Object.prototype.hasOwnProperty.call(VOYAGE_CONTEXT_MODELS, model);
 }
 
 export function getContextProvider(model: string): ContextualEmbeddingProvider | null {
-  switch (model) {
-    case 'voyageContext3':
-      return new VoyageContext3Provider();
-    default:
-      return null;
+  if (!isContextModel(model)) {
+    return null;
   }
+
+  return new VoyageContextProvider(VOYAGE_CONTEXT_MODELS[model as VoyageContextModel]);
 }
 
 const VOYAGE_API_URL = "https://api.voyageai.com/v1/contextualizedembeddings";
-const VOYAGE_MODEL = "voyage-context-3";
 const MAX_CHUNKS_PER_REQUEST = 16000;
 const MAX_INPUTS_PER_REQUEST = 1000;
 
-class VoyageContext3Provider implements ContextualEmbeddingProvider {
-  readonly modelId = VOYAGE_MODEL;
+class VoyageContextProvider implements ContextualEmbeddingProvider {
+  readonly modelId: string;
+
+  constructor(private readonly config: VoyageContextModelConfig) {
+    this.modelId = config.apiModelId;
+  }
 
   private getApiKey(): string {
     const db = getDatabase();
     const apiKey = db.voyageApiKey?.trim();
     if (!apiKey) {
-      throw new Error('Voyage Context 3 requires a Voyage API Key');
+      throw new Error(`${this.config.displayName} requires a Voyage API Key`);
     }
     return apiKey;
   }
@@ -52,9 +79,10 @@ class VoyageContext3Provider implements ContextualEmbeddingProvider {
           "Content-Type": "application/json"
         },
         body: {
-          "model": VOYAGE_MODEL,
+          "model": this.config.apiModelId,
           "inputs": batch,
-          "input_type": "document"
+          "input_type": "document",
+          ...this.getOutputOptions()
         }
       });
 
@@ -84,8 +112,9 @@ class VoyageContext3Provider implements ContextualEmbeddingProvider {
       },
       body: {
         "inputs": queries.map(s => [s]),
-        "model": VOYAGE_MODEL,
-        "input_type": "query"
+        "model": this.config.apiModelId,
+        "input_type": "query",
+        ...this.getOutputOptions()
       }
     });
 
@@ -102,7 +131,14 @@ class VoyageContext3Provider implements ContextualEmbeddingProvider {
     const ctxPart = contextTexts && contextTexts.length > 1
       ? `|ctx:${contextHash(contextTexts)}`
       : '';
-    return `|voyageContext3${ctxPart}`;
+    return `|${this.config.cacheKeySuffix}${ctxPart}`;
+  }
+
+  private getOutputOptions(): { output_dimension?: number; output_dtype?: 'float' } {
+    return {
+      ...(this.config.outputDimension ? { output_dimension: this.config.outputDimension } : {}),
+      ...(this.config.outputDtype ? { output_dtype: this.config.outputDtype } : {})
+    };
   }
 
   private batchGroups(groups: string[][]): string[][][] {
