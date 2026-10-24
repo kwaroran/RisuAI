@@ -1832,7 +1832,7 @@ export async function fetchNative(url: string, arg: {
                 headers: JSON.stringify(headers),
                 body: realBody ? Buffer.from(realBody).toString('base64') : '',
                 method: arg.method,
-                timeout_secs: arg.requestTimeoutMs ? Math.max(1, Math.ceil(arg.requestTimeoutMs / 1000)) : undefined
+                timeoutSecs: arg.requestTimeoutMs ? Math.max(1, Math.ceil(arg.requestTimeoutMs / 1000)) : undefined
             }).then((res) => {
                 try {
                     const parsedRes = JSON.parse(res as string)
