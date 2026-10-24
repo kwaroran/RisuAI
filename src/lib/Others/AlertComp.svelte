@@ -409,7 +409,7 @@
                 </div>
             {:else if $alertStore.type === 'requestdata'}
                 {#if aiLawApplies()}
-                <div>
+                <div class="mb-2">
                     {language.generatedByAIDisclaimer}
                 </div>
                 {/if}
