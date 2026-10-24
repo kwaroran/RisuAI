@@ -28,6 +28,7 @@ export const languageEnglish = {
         networkFetchWeb:
             "This can be a CORS error. this only happens when using web version due to limitations of the browser. try using desktop local version, or other version of Risuai.",
         networkFetchPlain: "This can be a plain fetch error. try disabling force plain fetch option in settings.",
+        dynamicAssetsEmbedding: "Dynamic Assets uses the embedding model to find similar asset names, but the embedding request failed. Check the Embedding setting in Settings > Other Bots > Long Term Memory, or turn off Dynamic Assets.",
         requestLogRemoved: "This request log is removed.",
         requestLogRemovedDesc: "This request log removes when client is refreshed or reloaded.",
         coldStorageWriteFailed: "Cold storage write failed. Your chat data has been preserved.",

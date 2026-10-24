@@ -28,6 +28,7 @@ export const languageChineseTraditional = {
         "networkFetchWeb":
             "這可能是 CORS 錯誤。由於瀏覽器限制，此問題只會在網頁版發生。請嘗試使用桌面本機版或其他版本的 Risuai",
         "networkFetchPlain": "這可能是一般 Fetch 錯誤。請嘗試在設定中停用「強制一般 Fetch」",
+        "dynamicAssetsEmbedding": "動態資源需要使用嵌入模型來尋找相似的資源名稱，但嵌入請求失敗。請檢查 設定 > 其他 Bot > 長期記憶 中的嵌入設定，或停用動態資源。",
         "requestLogRemoved": "此請求記錄已被移除",
         "requestLogRemovedDesc": "重新整理或重新載入用戶端後，請求記錄會被移除",
         "coldStorageWriteFailed": "冷儲存寫入失敗。您的對話資料已被保留",

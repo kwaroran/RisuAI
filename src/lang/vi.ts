@@ -26,6 +26,7 @@ export const languageVietnamese = {
         "networkFetch": "This happens when the network is unstable or the server is down.",
         "networkFetchWeb": "This can be a CORS error. this only happens when using web version dude to limitations of the browser. try using desktop local version, or other version of Risuai.",
         "networkFetchPlain": "This can be a plain fetch error. try disabling force plain fetch option in settings.",
+        "dynamicAssetsEmbedding": "Tài sản động dùng mô hình embedding để tìm tên tài sản tương tự, nhưng yêu cầu embedding đã thất bại. Hãy kiểm tra cài đặt Embedding trong Cài đặt > Bot khác > Bộ nhớ dài hạn, hoặc tắt Tài sản động.",
         "requestLogRemoved": "This request log is removed.",
         "requestLogRemovedDesc": "This request log removes when client is refreshed or reloaded.",
         "vertexAuthError": "Thiếu thông tin xác thực Vertex AI.",

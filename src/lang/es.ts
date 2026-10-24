@@ -26,6 +26,7 @@ export const languageSpanish = {
         "networkFetch": "Esto ocurre cuando la red es inestable o el servidor está caído.",
         "networkFetchWeb": "Esto puede ser un error de CORS. Esto solo ocurre al usar la versión web debido a las limitaciones del navegador. Intenta usar la versión local de escritorio u otra versión de Risuai.",
         "networkFetchPlain": "Esto puede ser un error de fetch simple. Intenta desactivar la opción de forzar fetch simple en la configuración.",
+        "dynamicAssetsEmbedding": "Los Activos Dinámicos usan el modelo de embedding para encontrar nombres de activos similares, pero la solicitud de embedding falló. Revisa la opción Embedding en Configuración > Otros Bots > Memoria a Largo Plazo, o desactiva los Activos Dinámicos.",
         "requestLogRemoved": "Este registro de solicitud ha sido eliminado.",
         "requestLogRemovedDesc": "Este registro de solicitud se elimina cuando el cliente se actualiza o recarga.",
         "vertexAuthError": "Faltan los detalles de autenticación de Vertex AI.",
