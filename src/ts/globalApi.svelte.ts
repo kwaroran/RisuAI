@@ -1841,12 +1841,15 @@ export async function fetchNative(url: string, arg: {
         // The Rust request does not see AbortSignal, so stop it explicitly.
         // Listens on arg.signal because timeoutSignal.cleanup() unlinks requestSignal
         // from it once the Response is returned.
+        // Does not throw: the chat screen alerts anything fetchNative throws, and
+        // callers check their own signal after it returns.
+        let cancelled = false
         const cancelStreamedFetch = () => {
             if (!isTauri || resolved) {
                 return
             }
+            cancelled = true
             resolved = true
-            error = 'aborted'
             invoke('cancel_streamed_fetch', { id: fetchId }).catch(() => {})
         }
 
@@ -1863,6 +1866,9 @@ export async function fetchNative(url: string, arg: {
                 method: arg.method,
                 timeout_secs: arg.requestTimeoutMs ? Math.max(1, Math.ceil(arg.requestTimeoutMs / 1000)) : undefined
             }).then((res) => {
+                if (cancelled) {
+                    return
+                }
                 try {
                     const parsedRes = JSON.parse(res as string)
                     if (!parsedRes.success) {
