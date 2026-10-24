@@ -26,6 +26,7 @@ export const languageKorean = {
         "networkFetch": "네트워크가 불안정하거나 서버가 응답하지 않을 때 자주 발생합니다.",
         "networkFetchWeb": "이것은 CORS 오류일 수 있습니다. 이는 브라우저의 제한으로 인해 웹 버전을 사용할 때만 발생합니다. 데스크톱 로컬 버전이나 다른 버전의 Risuai를 사용해보세요.",
         "networkFetchPlain": "이것은 요청 오류일 수 있습니다. 설정에서 직접 요청 보내기 옵션을 비활성화해 보세요.",
+        "dynamicAssetsEmbedding": "다이나믹 에셋은 비슷한 에셋 이름을 찾을 때 임베딩 모델을 사용하는데, 임베딩 요청에 실패했습니다. 설정 > 기타 봇 > 장기기억의 임베딩 설정을 확인하거나 다이나믹 에셋을 꺼 주세요.",
         "requestLogRemoved": "요청 로그가 삭제되었습니다.",
         "requestLogRemovedDesc": "요청 로그는 앱이 재시작되거나 새로고침되면 삭제됩니다.",
         "vertexAuthError": "Vertex AI 인증 정보가 누락되었습니다.",

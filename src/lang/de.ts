@@ -26,6 +26,7 @@ export const languageGerman = {
         "networkFetch": "Dies passiert, wenn das Netzwerk instabil ist oder der Server ausgefallen ist.",
         "networkFetchWeb": "Dies kann ein CORS-Fehler sein. Dies geschieht nur bei Verwendung der Webversion aufgrund von Browserbeschränkungen. Versuchen Sie, die lokale Desktop-Version oder eine andere Version von Risuai zu verwenden.",
         "networkFetchPlain": "Dies kann ein einfacher Abruffehler sein. Versuchen Sie, die Option 'Erzwinge einfachen Abruf' in den Einstellungen zu deaktivieren.",
+        "dynamicAssetsEmbedding": "Dynamische Assets verwenden das Embedding-Modell, um ähnliche Asset-Namen zu finden, aber die Embedding-Anfrage ist fehlgeschlagen. Überprüfen Sie die Embedding-Einstellung unter Einstellungen > Hilfs-KIs > Langzeitgedächtnis oder deaktivieren Sie Dynamische Assets.",
         "requestLogRemoved": "Dieses Anfrage-Protokoll wurde entfernt.",
         "requestLogRemovedDesc": "Dieses Anfrage-Protokoll wird entfernt, wenn der Client aktualisiert oder neu geladen wird.",
         "vertexAuthError": "Vertex AI-Authentifizierungsdetails fehlen.",

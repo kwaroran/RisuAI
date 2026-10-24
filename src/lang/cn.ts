@@ -26,6 +26,7 @@ export const languageChinese = {
         "networkFetch": "这通常是由于网络连接不稳定或服务器故障引起的。",
         "networkFetchWeb": "这可能是由 CORS 错误引起的。这种情况只会在使用网页版时发生，因为浏览器存在一些限制。请尝试使用本地版或其他版本的叡苏。",
         "networkFetchPlain": "这可能是一次数据抓取（Fetch）错误。请尝试在设置中关闭强制抓取选项。",
+        "dynamicAssetsEmbedding": "动态资源需要使用嵌入模型来查找相似的资源名称，但嵌入请求失败。请检查 设置 > 其他机器人 > 长期记忆 中的嵌入设置，或关闭动态资源。",
         "requestLogRemoved": "该请求记录已被删除。",
         "requestLogRemovedDesc": "当客户端刷新或加载时，该请求记录会被删除。",
         "vertexAuthError": "Vertex AI 身份验证详情缺失。",

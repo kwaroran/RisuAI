@@ -358,7 +358,11 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         }
 
         const processer = new HypaProcesser()
-        await processer.addText(assetNames)
+        try {
+            await processer.addText(assetNames)
+        } catch (error) {
+            throw dynamicAssetsEmbeddingError(error)
+        }
         const matches = data.matchAll(assetRegex)
 
         for(const match of matches){
@@ -370,7 +374,12 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
                     data = data.replaceAll(match[0], `{{${type}::${bestMatchCache.get(cacheKey)}}}`)
                 }
                 else if(!assetNames.includes(assetName)){
-                    const searched = await processer.similaritySearch(assetName)
+                    let searched:string[]
+                    try {
+                        searched = await processer.similaritySearch(assetName)
+                    } catch (error) {
+                        throw dynamicAssetsEmbeddingError(error)
+                    }
                     const bestMatch = searched[0]
                     if(bestMatch){
                         data = data.replaceAll(match[0], `{{${type}::${bestMatch}}}`)
@@ -386,6 +395,15 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
     return {data, emoChanged}
 }
 
+// Dynamic Assets relies on the embedding model, so point users to its settings instead of a raw request error
+function dynamicAssetsEmbeddingError(error:unknown){
+    const detail = error instanceof Error ? error.message : String(error)
+    const wrapped = new Error(`${language.errors.dynamicAssetsEmbedding}\n\n${detail}`)
+    if(error instanceof Error){
+        wrapped.stack = error.stack
+    }
+    return wrapped
+}
 
 const rgx = /(?:{{|<)(.+?)(?:}}|>)/gm
 export const risuChatParser = risuChatParserOrg
