@@ -9,6 +9,7 @@
     import { language } from "src/lang";
     import SideChatList from "../SideBars/SideChatList.svelte";
     import DevTool from "../SideBars/DevTool.svelte";
+    import FileDropZone from "../Others/FileDropZone.svelte";
     import { isLite } from "src/ts/lite";
     
     import { DBState } from 'src/ts/stores.svelte';
@@ -45,11 +46,17 @@
             {/if}
         </div>
     {:else if $selectedCharID !== -1}
-        <ChatScreen />
+        <FileDropZone target="auto">
+            <ChatScreen />
+        </FileDropZone>
     {:else if $MobileGUIStack === 0}
-        <RealmMain />
+        <FileDropZone target="auto">
+            <RealmMain />
+        </FileDropZone>
     {:else if $MobileGUIStack === 1}
-        <MobileCharacters />
+        <FileDropZone target="auto">
+            <MobileCharacters />
+        </FileDropZone>
     {:else if $MobileGUIStack === 2}
         <Settings />
     {/if}
