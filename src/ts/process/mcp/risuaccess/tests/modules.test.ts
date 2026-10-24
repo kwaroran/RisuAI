@@ -85,9 +85,17 @@ test('lists installed modules with pagination', async () => {
   DBState.db.modules = modules
   DBState.db.enabledModules = [modules[0].id, modules[2].id]
 
-  expect(await instance.handle('risu-list-modules', { count: 3 })).toMatchSnapshot()
-  expect(await instance.handle('risu-list-modules', { count: 3, offset: 3 })).toMatchSnapshot()
-  expect(await instance.handle('risu-list-modules', { count: 3, offset: 10 })).toMatchSnapshot()
+  expect(await instance.handle('risu-list-modules', { count: 3 })).toEqual(makeToolResponse([
+    { id: '0', name: '0', description: '0Description', enabled: true },
+    { id: '1', name: '1', description: '1Description', enabled: false },
+    { id: '2', name: '2', description: '2Description', enabled: true },
+  ]))
+  expect(await instance.handle('risu-list-modules', { count: 3, offset: 3 })).toEqual(makeToolResponse([
+    { id: '3', name: '3', description: '3Description', enabled: false },
+    { id: '4', name: '4', description: '4Description', enabled: false },
+    { id: '5', name: '5', description: '5Description', enabled: false },
+  ]))
+  expect(await instance.handle('risu-list-modules', { count: 3, offset: 10 })).toEqual(makeToolResponse([]))
 
   DBState.db.modules = []
   DBState.db.enabledModules = []
@@ -148,9 +156,19 @@ test('lists lorebooks of a module with pagination', async () => {
   }
   DBState.db.modules = [module]
 
-  expect(await instance.handle('risu-list-module-lorebooks', { count: 3, id: 'A' })).toMatchSnapshot()
-  expect(await instance.handle('risu-list-module-lorebooks', { count: 3, offset: 3, id: 'A' })).toMatchSnapshot()
-  expect(await instance.handle('risu-list-module-lorebooks', { count: 3, offset: 10, id: 'A' })).toMatchSnapshot()
+  expect(await instance.handle('risu-list-module-lorebooks', { count: 3, id: 'A' })).toEqual(makeToolResponse([
+    { alwaysActive: false, keys: '0Key', name: '0' },
+    { alwaysActive: false, keys: '1Key', name: '1' },
+    { alwaysActive: false, keys: '2Key', name: '2' },
+  ]))
+  expect(await instance.handle('risu-list-module-lorebooks', { count: 3, offset: 3, id: 'A' })).toEqual(makeToolResponse([
+    { alwaysActive: false, keys: '3Key', name: '3' },
+    { alwaysActive: false, keys: '4Key', name: '4' },
+    { alwaysActive: false, keys: '5Key', name: '5' },
+  ]))
+  expect(await instance.handle('risu-list-module-lorebooks', { count: 3, offset: 10, id: 'A' })).toEqual(
+    makeToolResponse([])
+  )
 
   module.lorebook = []
 
@@ -168,7 +186,10 @@ test('retrieves fields of a lorebook', async () => {
   }
   DBState.db.modules = [module]
 
-  expect(await instance.handle('risu-get-module-lorebook', { id: 'A', names: ['0', '2', '99'] })).toMatchSnapshot()
+  expect(await instance.handle('risu-get-module-lorebook', { id: 'A', names: ['0', '2', '99'] })).toEqual(makeToolResponse([
+    { alwaysActive: false, content: '0Content', keys: '0Key', name: '0' },
+    { alwaysActive: false, content: '2Content', keys: '2Key', name: '2' },
+  ]))
 })
 
 test('lists all regex scripts of a module', async () => {
@@ -182,7 +203,18 @@ test('lists all regex scripts of a module', async () => {
   }
   DBState.db.modules = [module]
 
-  expect(await instance.handle('risu-get-module-regex-scripts', { id: 'A' })).toMatchSnapshot()
+  expect(await instance.handle('risu-get-module-regex-scripts', { id: 'A' })).toEqual(makeToolResponse(
+    Array(10)
+      .fill(0)
+      .map((_, i) => ({
+        comment: String(i),
+        in: `${i}In`,
+        out: `${i}Out`,
+        type: 'editdisplay',
+        flag: '',
+        ableFlag: true,
+      }))
+  ))
 
   module.regex = []
 
