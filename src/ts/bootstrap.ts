@@ -32,7 +32,7 @@ import { updateLorebooks } from "./characters";
 import { initMobileGesture } from "./hotkey";
 import { moduleUpdate } from "./process/modules";
 import type { AccountStorage } from "./storage/accountStorage";
-import { makeColdData } from "./process/coldstorage.svelte";
+import { makeColdData, migratePluginStorage } from "./process/coldstorage.svelte";
 import { getRemoteSaveCleanupAction, getRemoteSavePayloadName } from "./storage/remoteSaveCleanup";
 import {
     forageStorage,
@@ -196,6 +196,17 @@ export async function loadData() {
                 if (getDatabase().didFirstSetup) {
                     characterURLImport()
                 }
+            }
+            //plugins stay unloaded until their storage is migrated
+            LoadingStatusState.text = "Migrating Plugin Storage..."
+            try {
+                await migratePluginStorage((message) => {
+                    if (message) {
+                        LoadingStatusState.text = message
+                    }
+                })
+            } catch (error) {
+                console.error('Failed to migrate plugin storage:', error)
             }
             LoadingStatusState.text = "Loading Plugins..."
             try {
