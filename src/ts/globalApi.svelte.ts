@@ -1825,7 +1825,24 @@ export async function fetchNative(url: string, arg: {
         while (!streamedFetchListening) {
             await sleep(100)
         }
+
+        // The Rust request does not see AbortSignal, so stop it explicitly.
+        // Listens on arg.signal because timeoutSignal.cleanup() unlinks requestSignal
+        // from it once the Response is returned.
+        const cancelStreamedFetch = () => {
+            if (!isTauri || resolved) {
+                return
+            }
+            resolved = true
+            error = 'aborted'
+            invoke('cancel_streamed_fetch', { id: fetchId }).catch(() => {})
+        }
+
         if (isTauri) {
+            if (requestSignal && requestSignal.aborted) {
+                throw new Error('aborted')
+            }
+            arg.signal?.addEventListener('abort', cancelStreamedFetch, { once: true })
             invoke('streamed_fetch', {
                 id: fetchId,
                 url: url,
@@ -1869,24 +1886,31 @@ export async function fetchNative(url: string, arg: {
 
         const tauriReadableStream = new ReadableStream<Uint8Array>({
             async start(controller) {
-                while (!resolved || nativeFetchData[fetchId].length > 0) {
-                    if (nativeFetchData[fetchId].length > 0) {
-                        const data = nativeFetchData[fetchId].shift()
-                        if (data.type === 'chunk') {
-                            const chunk = Buffer.from(data.body, 'base64')
-                            controller.enqueue(chunk as unknown as Uint8Array)
+                try {
+                    while (!resolved || nativeFetchData[fetchId].length > 0) {
+                        if (nativeFetchData[fetchId].length > 0) {
+                            const data = nativeFetchData[fetchId].shift()
+                            if (data.type === 'chunk') {
+                                const chunk = Buffer.from(data.body, 'base64')
+                                controller.enqueue(chunk as unknown as Uint8Array)
+                            }
+                            if (data.type === 'headers') {
+                                resHeaders = data.body
+                                status = data.status
+                            }
+                            if (data.type === 'end') {
+                                resolved = true
+                            }
                         }
-                        if (data.type === 'headers') {
-                            resHeaders = data.body
-                            status = data.status
-                        }
-                        if (data.type === 'end') {
-                            resolved = true
-                        }
+                        await sleep(10)
                     }
-                    await sleep(10)
+                    controller.close()
+                } finally {
+                    arg.signal?.removeEventListener('abort', cancelStreamedFetch)
                 }
-                controller.close()
+            },
+            cancel() {
+                cancelStreamedFetch()
             }
         })
 

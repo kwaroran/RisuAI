@@ -26,7 +26,8 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Write;
 use std::{path::Path, time::Duration};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, LazyLock, Mutex};
+use futures::future::{AbortHandle, Abortable};
 use tauri::path::BaseDirectory;
 use tauri::{Listener, Manager};
 use tauri::{AppHandle, Emitter};
@@ -429,8 +430,49 @@ fn run_py_server(handle: tauri::AppHandle, py_path: String) {
     return;
 }
 
+// Abort handles of in-flight streamed_fetch calls, keyed by fetch id
+static STREAMED_FETCH_ABORTS: LazyLock<Mutex<HashMap<String, AbortHandle>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+
 #[tauri::command]
 async fn streamed_fetch(
+    id: String,
+    url: String,
+    headers: String,
+    body: String,
+    app: AppHandle,
+    method: String,
+    timeout_secs: Option<u64>,
+) -> String {
+    let (abort_handle, abort_registration) = AbortHandle::new_pair();
+    STREAMED_FETCH_ABORTS
+        .lock()
+        .unwrap()
+        .insert(id.clone(), abort_handle);
+
+    // Dropping the inner future on abort also closes the upstream connection
+    let result = Abortable::new(
+        streamed_fetch_inner(id.clone(), url, headers, body, app, method, timeout_secs),
+        abort_registration,
+    )
+    .await;
+
+    STREAMED_FETCH_ABORTS.lock().unwrap().remove(&id);
+
+    match result {
+        Ok(res) => res,
+        Err(_) => r#"{"success":false,"body":"aborted"}"#.to_string(),
+    }
+}
+
+#[tauri::command]
+fn cancel_streamed_fetch(id: String) {
+    if let Some(handle) = STREAMED_FETCH_ABORTS.lock().unwrap().remove(&id) {
+        handle.abort();
+    }
+}
+
+async fn streamed_fetch_inner(
     id: String,
     url: String,
     headers: String,
@@ -597,6 +639,7 @@ fn main() {
             run_py_server,
             install_py_dependencies,
             streamed_fetch,
+            cancel_streamed_fetch,
             oauth_login
         ])
         .run(tauri::generate_context!())
