@@ -1,55 +1,37 @@
-import {
-    writeFile,
-    BaseDirectory,
-    readFile,
-    exists,
-    mkdir,
-    readDir,
-    remove
-} from "@tauri-apps/plugin-fs"
-import { changeFullscreen, checkNullish, sleep } from "./util"
-import { convertFileSrc, invoke } from "@tauri-apps/api/core"
-import { v4 as uuidv4, v4 } from 'uuid';
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { listen } from '@tauri-apps/api/event';
 import { appDataDir, join } from "@tauri-apps/api/path";
-import { get } from "svelte/store";
-import { open } from '@tauri-apps/plugin-shell'
-import streamSaver from 'streamsaver';
-import { setDatabase, type Database, defaultSdDataFunc, getDatabase, appVer, getCurrentCharacter, type character, type groupChat, appSubVer } from "./storage/database.svelte";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { checkRisuUpdate } from "./update";
-import { MobileGUI, botMakerMode, selectedCharID, loadedStore, DBState, LoadingStatusState, selIdState, ReloadGUIPointer, bodyIntercepterStore } from "./stores.svelte";
-import { loadPlugins } from "./plugins/plugins.svelte";
-import { alertConfirm, alertError, alertMd, alertNormal, alertNormalWait, alertSelect, alertTOS, waitAlert } from "./alert";
-import { checkDriverInit, syncDrive } from "./drive/drive";
-import { hasher } from "./parser/parser.svelte";
-import { characterURLImport, hubURL } from "./characterCards";
-import { defaultJailbreak, defaultMainPrompt, oldJailbreak, oldMainPrompt } from "./storage/defaultPrompts";
-import { loadRisuAccountData } from "./drive/accounter";
-import { decodeRisuSave, RisuSaveEncoder, type toSaveType } from "./storage/risuSave";
-import { saveKV } from "./storage/saveKV";
-import { AutoStorage } from "./storage/autoStorage";
-import { updateAnimationSpeed } from "./gui/animation";
-import { updateColorScheme, updateTextThemeAndCSS } from "./gui/colorscheme";
-import { autoServerBackup, saveDbKei } from "./kei/backup";
 import { save } from "@tauri-apps/plugin-dialog";
-import { listen } from '@tauri-apps/api/event'
-import { language } from "src/lang";
-import { startObserveDom } from "./observer.svelte";
-import { updateGuisize } from "./gui/guisize";
-import { updateLorebooks } from "./characters";
-import { initMobileGesture } from "./hotkey";
+import {
+    BaseDirectory,
+    readDir,
+    readFile,
+    remove,
+    writeFile
+} from "@tauri-apps/plugin-fs";
 import { fetch as TauriHTTPFetch } from '@tauri-apps/plugin-http';
-import { moduleUpdate } from "./process/modules";
-import type { AccountStorage } from "./storage/accountStorage";
-import { getColdStorageItem, makeColdData } from "./process/coldstorage.svelte";
-import { isTauri, isNodeServer } from "./platform";
+import { open } from '@tauri-apps/plugin-shell';
+import streamSaver from 'streamsaver';
+import { language } from 'src/lang';
+import { v4 as uuidv4 } from 'uuid';
+import { alertError, alertNormal, alertNormalWait, alertSelect } from "./alert";
+import { hubURL } from "./characterCards";
+import { syncDrive } from "./drive/drive";
+import { saveDbKei } from "./kei/backup";
 import { isLocalNetworkUrl } from "./network/localNetwork";
 import { decodeProxyJobWsChunk, formatProxyStreamErrorMessage, parseProxyJobWsEvent } from "./network/proxyJobWs";
+import { hasher } from "./parser/parser.svelte";
+import { isNodeServer, isTauri } from "./platform";
+import { getColdStorageItem } from "./process/coldstorage.svelte";
+import { AutoStorage } from "./storage/autoStorage";
+import { appSubVer, appVer, getCurrentCharacter, getDatabase, setDatabase, type Database, type character, type groupChat } from "./storage/database.svelte";
 import { getNodeServerProxyAuth } from "./storage/nodeStorage";
+import { RisuSaveEncoder, decodeRisuSave, type toSaveType } from "./storage/risuSave";
+import { saveKV } from './storage/saveKV';
+import { DBState, ReloadGUIPointer, bodyIntercepterStore, selIdState, selectedCharID } from "./stores.svelte";
+import { sleep } from './util';
 
 export const forageStorage = new AutoStorage()
-
-const appWindow = isTauri ? getCurrentWebviewWindow() : null
 
 interface fetchLog {
     body: string
@@ -294,7 +276,7 @@ export async function saveDb() {
     let changed = false
     syncDrive()
     let gotChannel = false
-    const sessionID = v4()
+    const sessionID = uuidv4()
     let channel: BroadcastChannel
     if (window.BroadcastChannel) {
         channel = new BroadcastChannel('risu-db')
@@ -1189,22 +1171,6 @@ export function openURL(url: string) {
 }
 
 /**
- * Converts FormData to a URL-encoded string.
- * 
- * @param {FormData} formData - The FormData to convert.
- * @returns {string} The URL-encoded string.
- */
-function formDataToString(formData: FormData): string {
-    const params: string[] = [];
-
-    for (const [name, value] of formData.entries()) {
-        params.push(`${encodeURIComponent(name)}=${encodeURIComponent(value.toString())}`);
-    }
-
-    return params.join('&');
-}
-
-/**
  * A writer class for Tauri environment.
  */
 export class TauriWriter {
@@ -1997,18 +1963,6 @@ export function toggleFullscreen() {
     fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen({
         navigationUI: "hide"
     })
-}
-
-/**
- * Removes non-Latin characters from a string, replaces multiple spaces with a single space, and trims the string.
- * 
- * @param {string} data - The input string to be processed.
- * @returns {string} The processed string with non-Latin characters removed, multiple spaces replaced by a single space, and trimmed.
- */
-export function trimNonLatin(data: string) {
-    return data.replace(/[^\x00-\x7F]/g, "")
-        .replace(/ +/g, ' ')
-        .trim()
 }
 
 /**
