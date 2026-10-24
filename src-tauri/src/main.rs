@@ -430,6 +430,25 @@ fn run_py_server(handle: tauri::AppHandle, py_path: String) {
     return;
 }
 
+// How long streamed_fetch waits for the next data when no total timeout is given
+const STREAMED_FETCH_IDLE_TIMEOUT_SECS: u64 = 600;
+
+async fn with_idle_timeout<F: std::future::Future>(
+    idle_timeout: Option<Duration>,
+    future: F,
+) -> Result<F::Output, String> {
+    match idle_timeout {
+        Some(duration) => tokio::time::timeout(duration, future).await.map_err(|_| {
+            json!({
+                "success": false,
+                "body": format!("No data received for {} seconds", duration.as_secs())
+            })
+            .to_string()
+        }),
+        None => Ok(future.await),
+    }
+}
+
 // Abort handles of in-flight streamed_fetch calls, keyed by fetch id
 static STREAMED_FETCH_ABORTS: LazyLock<Mutex<HashMap<String, AbortHandle>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -514,7 +533,6 @@ async fn streamed_fetch_inner(
     }
 
     let client = reqwest::Client::new();
-    let timeout_secs = timeout_secs.unwrap_or(240);
     let builder: reqwest::RequestBuilder;
     if method == "POST" {
 
@@ -523,14 +541,12 @@ async fn streamed_fetch_inner(
         builder = client
         .post(&url)
         .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs))
         .body(body_decoded)
     }
     else if method == "GET" {
         builder = client
         .get(&url)
-        .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs));
+        .headers(headers);
     }
     else if method == "PUT" {
 
@@ -539,7 +555,6 @@ async fn streamed_fetch_inner(
         builder = client
         .put(&url)
         .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs))
         .body(body_decoded)
     }
     else if method == "DELETE" {
@@ -549,18 +564,23 @@ async fn streamed_fetch_inner(
         builder = client
         .delete(&url)
         .headers(headers)
-        .timeout(Duration::from_secs(timeout_secs))
         .body(body_decoded)
     }
     else {
         return format!(r#"{{"success":false, body:"Invalid method"}}"#);
     }
 
+    // Local Network Timeout is a total limit, as on the Node server. Otherwise only
+    // give up when no data arrives for a while, so long generations are not cut off.
+    let (builder, idle_timeout) = match timeout_secs {
+        Some(secs) => (builder.timeout(Duration::from_secs(secs)), None),
+        None => (builder, Some(Duration::from_secs(STREAMED_FETCH_IDLE_TIMEOUT_SECS))),
+    };
 
-
-    let response = builder
-        .send()
-        .await;
+    let response = match with_idle_timeout(idle_timeout, builder.send()).await {
+        Ok(response) => response,
+        Err(e) => return e,
+    };
 
     match response {
         Ok(mut resp) => {
@@ -577,7 +597,10 @@ async fn streamed_fetch_inner(
             )
             .unwrap();
             loop {
-                let byt = resp.chunk().await;
+                let byt = match with_idle_timeout(idle_timeout, resp.chunk()).await {
+                    Ok(byt) => byt,
+                    Err(e) => return e,
+                };
                 match byt {
                     Ok(chunk) => {
                         if chunk.is_none() {
