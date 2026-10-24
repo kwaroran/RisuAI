@@ -140,11 +140,11 @@ export async function runScripted(code:string, arg:{
                 }
                 alertNormal(value)
             })
-            declareAPI('alertInput', (id:string, value:string) => {
+            declareAPI('alertInput', (id:string, value:string, defaultValue?:string) => {
                 if(!ScriptingSafeIds.has(id)){
                     return
                 }
-                return alertInput(value)
+                return alertInput(value, undefined, defaultValue)
             })
             declareAPI('alertSelect', (id:string, value:string[]) => {
                 if(!ScriptingSafeIds.has(id)){
