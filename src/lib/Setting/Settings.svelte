@@ -227,7 +227,7 @@
                         <PromptSettings onGoBack={() => {
                             $SettingsMenuIndex = 1
                         }}/>
-                    {:else if $SettingsMenuIndex === 15 && window.innerWidth >= 768}
+                    {:else if $SettingsMenuIndex === 15}
                         <HotkeySettings/>
                     {:else if $SettingsMenuIndex === 77}
                         <ThanksPage/>
