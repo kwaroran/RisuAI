@@ -78,7 +78,6 @@
     "peerjs": "^1.5.5",
     "png-chunk-text": "^1.0.0",
     "postcss-selector-parser": "^7.1.1",
-    "pyodide": "^0.27.7",
     "rfdc": "^1.4.1",
     "sortablejs": "^1.15.6",
     "streamsaver": "^2.0.6",
