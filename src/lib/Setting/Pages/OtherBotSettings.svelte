@@ -21,6 +21,7 @@
     import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "@lucide/svelte";
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
+    import HypaV3EmbeddingRegexList from "src/lib/SideBars/Scripts/HypaV3EmbeddingRegexList.svelte";
 
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0);
 
@@ -1193,6 +1194,11 @@
                 <span class="text-textcolor">{language.reSummarizationPrompt} <Help key="reSummarizationPrompt"/></span>
                 <div class="mb-4">
                     <TextAreaInput size="sm" placeholder={language.hypaV3Settings.supaMemoryPromptPlaceHolder} bind:value={settings.reSummarizationPrompt} />
+                </div>
+                <div class="mb-4">
+                    <Accordion styled name={language.regexScript} help="hypaV3EmbeddingRegex">
+                        <HypaV3EmbeddingRegexList bind:value={settings.embeddingRegex} />
+                    </Accordion>
                 </div>
                 {#await getMaxMemoryRatio() then maxMemoryRatio}
                 <span class="text-textcolor">{language.hypaV3Settings.maxMemoryTokensRatioLabel}</span>
