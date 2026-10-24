@@ -90,3 +90,88 @@ test('keeps explicit false as the generation stop signal', async () => {
   expect(result.res).toBe(false)
   expect(result.stopSending).toBe(true)
 })
+
+test.each(['editDisplay', 'editInput', 'editOutput', 'editRequest'])('skips %s without listeners after initializing the script once', async (mode) => {
+  const getVar = vi.fn(() => 'initialized')
+  const code = `
+    getChatVar('', 'initialization')
+    json.decode = function() error('Unexpected listener dispatch') end
+    json.encode = function() error('Unexpected listener dispatch') end
+  `
+  const data = mode === 'editRequest' ? [{ content: 'hello', role: 'user' as const }] : 'hello'
+
+  for (let index = 0; index < 2; index++) {
+    const result = await runScripted(code, {
+      char: {} as never,
+      chat: { message: [] } as never,
+      data,
+      getVar,
+      meta: {},
+      mode,
+    })
+
+    expect(result.res).toBe(data)
+    expect(result.stopSending).toBe(false)
+  }
+  expect(getVar).toHaveBeenCalledExactlyOnceWith('initialization')
+})
+
+test.each(['editDisplay', 'editInput', 'editOutput', 'editRequest'])('executes registered %s listeners', async (mode) => {
+  const result = await runScripted(`
+    local event = '${mode}'
+    listenEdit(event, function(id, value, meta)
+      return value .. meta.suffix
+    end)
+  `, {
+    char: {} as never,
+    chat: { message: [] } as never,
+    data: 'hello',
+    meta: { suffix: ' world' },
+    mode,
+  })
+
+  expect(result.res).toBe('hello world')
+})
+
+test('clears listener registration when script replacement recreates the engine', async () => {
+  const options = {
+    char: {} as never,
+    chat: { message: [] } as never,
+    data: 'original',
+    mode: 'editDisplay',
+  }
+  const registered = await runScripted(`
+    listenEdit('editDisplay', function() return 'edited' end)
+  `, options)
+  expect(registered.res).toBe('edited')
+
+  const unregistered = await runScripted(`
+    json.decode = function() error('Stale listener registration') end
+  `, options)
+  expect(unregistered.res).toBe('original')
+})
+
+test('tracks a listener registered after initialization', async () => {
+  let register: () => void = () => { throw new Error('Missing registration callback') }
+  const code = `
+    getChatVar('', function()
+      listenEdit('editDisplay', function(id, value) return value .. ' edited' end)
+    end)
+  `
+  const options = {
+    char: {} as never,
+    chat: { message: [] } as never,
+    data: 'original',
+    getVar: vi.fn((callback: unknown) => {
+      register = callback as () => void
+      return ''
+    }),
+    mode: 'editDisplay',
+  }
+
+  const before = await runScripted(code, options)
+  expect(before.res).toBe('original')
+  register()
+  const after = await runScripted(code, options)
+  expect(after.res).toBe('original edited')
+})
