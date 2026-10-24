@@ -1336,6 +1336,13 @@ export class VirtualWriter {
 let fetchIndex = 0
 
 /**
+ * Per page load prefix for Tauri streamed fetch ids, so a request left running
+ * by a previous page load does not share an id with a new one.
+ * @type {string}
+ */
+const streamedFetchSessionId = Math.random().toString(36).slice(2, 10)
+
+/**
  * Stores native fetch data.
  * @type {{ [key: string]: StreamedFetchChunk[] }}
  */
@@ -1422,7 +1429,9 @@ if (isTauri) {
         } catch (error) {
             console.error(error)
         }
-    }).then((v) => {
+    }).then(async (v) => {
+        // Must finish before new requests start, or it would cancel them too
+        await invoke('cancel_all_streamed_fetch').catch(() => {})
         streamedFetchListening = true
     })
 }
@@ -1818,6 +1827,9 @@ export async function fetchNative(url: string, arg: {
             fetchIndex = 0
         }
         let fetchId = fetchIndex.toString().padStart(5, '0')
+        if (isTauri) {
+            fetchId = `${streamedFetchSessionId}-${fetchId}`
+        }
         nativeFetchData[fetchId] = []
         let resolved = false
 
@@ -1825,7 +1837,27 @@ export async function fetchNative(url: string, arg: {
         while (!streamedFetchListening) {
             await sleep(100)
         }
+
+        // The Rust request does not see AbortSignal, so stop it explicitly.
+        // Listens on arg.signal because timeoutSignal.cleanup() unlinks requestSignal
+        // from it once the Response is returned.
+        // Cancelling does not throw: the chat screen alerts anything fetchNative throws,
+        // and the chat request code checks its own signal after this returns.
+        let cancelled = false
+        const cancelStreamedFetch = () => {
+            if (!isTauri || resolved) {
+                return
+            }
+            cancelled = true
+            resolved = true
+            invoke('cancel_streamed_fetch', { id: fetchId }).catch(() => {})
+        }
+
         if (isTauri) {
+            if (requestSignal && requestSignal.aborted) {
+                throw new Error('aborted')
+            }
+            arg.signal?.addEventListener('abort', cancelStreamedFetch, { once: true })
             invoke('streamed_fetch', {
                 id: fetchId,
                 url: url,
@@ -1834,6 +1866,9 @@ export async function fetchNative(url: string, arg: {
                 method: arg.method,
                 timeout_secs: arg.requestTimeoutMs ? Math.max(1, Math.ceil(arg.requestTimeoutMs / 1000)) : undefined
             }).then((res) => {
+                if (cancelled) {
+                    return
+                }
                 try {
                     const parsedRes = JSON.parse(res as string)
                     if (!parsedRes.success) {
@@ -1869,24 +1904,31 @@ export async function fetchNative(url: string, arg: {
 
         const tauriReadableStream = new ReadableStream<Uint8Array>({
             async start(controller) {
-                while (!resolved || nativeFetchData[fetchId].length > 0) {
-                    if (nativeFetchData[fetchId].length > 0) {
-                        const data = nativeFetchData[fetchId].shift()
-                        if (data.type === 'chunk') {
-                            const chunk = Buffer.from(data.body, 'base64')
-                            controller.enqueue(chunk as unknown as Uint8Array)
+                try {
+                    while (!resolved || nativeFetchData[fetchId].length > 0) {
+                        if (nativeFetchData[fetchId].length > 0) {
+                            const data = nativeFetchData[fetchId].shift()
+                            if (data.type === 'chunk') {
+                                const chunk = Buffer.from(data.body, 'base64')
+                                controller.enqueue(chunk as unknown as Uint8Array)
+                            }
+                            if (data.type === 'headers') {
+                                resHeaders = data.body
+                                status = data.status
+                            }
+                            if (data.type === 'end') {
+                                resolved = true
+                            }
                         }
-                        if (data.type === 'headers') {
-                            resHeaders = data.body
-                            status = data.status
-                        }
-                        if (data.type === 'end') {
-                            resolved = true
-                        }
+                        await sleep(10)
                     }
-                    await sleep(10)
+                    controller.close()
+                } finally {
+                    arg.signal?.removeEventListener('abort', cancelStreamedFetch)
                 }
-                controller.close()
+            },
+            cancel() {
+                cancelStreamedFetch()
             }
         })
 
