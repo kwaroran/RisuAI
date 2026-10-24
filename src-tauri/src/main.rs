@@ -472,6 +472,15 @@ fn cancel_streamed_fetch(id: String) {
     }
 }
 
+// Called when the webview (re)loads: requests from a previous page load
+// have nobody left to read or cancel them
+#[tauri::command]
+fn cancel_all_streamed_fetch() {
+    for (_, handle) in STREAMED_FETCH_ABORTS.lock().unwrap().drain() {
+        handle.abort();
+    }
+}
+
 async fn streamed_fetch_inner(
     id: String,
     url: String,
@@ -640,6 +649,7 @@ fn main() {
             install_py_dependencies,
             streamed_fetch,
             cancel_streamed_fetch,
+            cancel_all_streamed_fetch,
             oauth_login
         ])
         .run(tauri::generate_context!())

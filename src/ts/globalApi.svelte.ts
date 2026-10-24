@@ -1336,6 +1336,13 @@ export class VirtualWriter {
 let fetchIndex = 0
 
 /**
+ * Per page load prefix for Tauri streamed fetch ids, so a request left running
+ * by a previous page load never shares an id with a new one.
+ * @type {string}
+ */
+const streamedFetchSessionId = Math.random().toString(36).slice(2, 10)
+
+/**
  * Stores native fetch data.
  * @type {{ [key: string]: StreamedFetchChunk[] }}
  */
@@ -1422,7 +1429,9 @@ if (isTauri) {
         } catch (error) {
             console.error(error)
         }
-    }).then((v) => {
+    }).then(async (v) => {
+        // Must finish before new requests start, or it would cancel them too
+        await invoke('cancel_all_streamed_fetch').catch(() => {})
         streamedFetchListening = true
     })
 }
@@ -1818,6 +1827,9 @@ export async function fetchNative(url: string, arg: {
             fetchIndex = 0
         }
         let fetchId = fetchIndex.toString().padStart(5, '0')
+        if (isTauri) {
+            fetchId = `${streamedFetchSessionId}-${fetchId}`
+        }
         nativeFetchData[fetchId] = []
         let resolved = false
 
