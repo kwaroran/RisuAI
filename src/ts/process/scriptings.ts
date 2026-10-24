@@ -389,7 +389,7 @@ export async function runScripted(code:string, arg:{
                 }
             })
 
-            declareAPI('generateImage', async (id:string, value:string, negValue:string = '', options?:ImageGenerationOptions) => {
+            declareAPI('generateImage', async (id: string, value: string, negValue: string = '', options?: ImageGenerationOptions & { name?: string }) => {
                 if(!ScriptingLowLevelIds.has(id)){
                     return
                 }
@@ -402,9 +402,12 @@ export async function runScripted(code:string, arg:{
                 if(!gen){
                     return 'Error: Image generation failed'
                 }
+
                 const imgHTML = new Image()
                 imgHTML.src = gen
-                const inlay = await writeInlayImage(imgHTML)
+
+                const name = typeof options?.name === 'string' && options.name ? options.name : undefined
+                const inlay = await writeInlayImage(imgHTML, { name })
                 return `{{inlay::${inlay}}}`
             })
 
