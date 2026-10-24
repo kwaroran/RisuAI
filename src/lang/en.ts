@@ -1758,6 +1758,8 @@ export const languageEnglish = {
     skipSavingAssetsOnWebSync: "Skip Saving Assets on Web Sync",
     applyAdditionalParamsToAll: "Apply Additional Parameters to All Models",
     localToggles: "Local Toggles",
+    comfyWorkflow: "Workflow (API)",
+    comfyWorkflowInvalidJson: "Invalid workflow file. It must be a valid JSON.",
 } satisfies I18nTranslation;
 
 type I18nTranslationFunction = (...args: any[]) => string;

@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "@lucide/svelte";
     import Check from "src/lib/UI/GUI/CheckInput.svelte";
     import { language } from "src/lang";
     import Help from "src/lib/Others/Help.svelte";
@@ -18,11 +19,25 @@
     import { untrack } from "svelte";
     import { tokenizePreset } from "src/ts/process/prompt";
     import { getCharToken } from "src/ts/tokenizer";
-    import { PlusIcon, PencilIcon, TrashIcon, DownloadIcon, HardDriveUploadIcon } from "@lucide/svelte";
     import { alertError, alertInput, alertConfirm, alertNormal } from "src/ts/alert";
     import { createHypaV3Preset } from "src/ts/process/memory/hypav3";
 
     let submenu = $state(DBState.db.useLegacyGUI ? -1 : 0);
+
+    async function importComfyWorkflow() {
+        const file = await selectSingleFile(['json'])
+        if (!file) {
+            return
+        }
+        const text = new TextDecoder().decode(file.data)
+        try {
+            JSON.parse(text)
+        } catch {
+            alertError(language.comfyWorkflowInvalidJson)
+            return
+        }
+        DBState.db.comfyConfig.workflow = text
+    }
 
     // HypaV3
     $effect(() => {
@@ -692,8 +707,11 @@
             <span class="text-textcolor mt-2">ComfyUI {language.providerURL}</span>
             <TextInput size="sm" marginBottom placeholder="http://127.0.0.1:8188" bind:value={DBState.db.comfyUiUrl}/>
 
-            <span class="text-textcolor">Workflow <Help key="comfyWorkflow" /></span>
-            <TextInput size="sm" marginBottom bind:value={DBState.db.comfyConfig.workflow}/>
+            <span class="text-textcolor">{language.comfyWorkflow} <Help key="comfyWorkflow" /></span>
+            <TextAreaInput size="sm" fullwidth height="32" bind:value={DBState.db.comfyConfig.workflow}/>
+            <div class="mt-2 mb-4 flex items-center">
+                <button class="text-textcolor2 hover:text-green-500 cursor-pointer" onclick={importComfyWorkflow}><HardDriveUploadIcon size={24}/></button>
+            </div>
 
             <span class="text-textcolor">Timeout (sec)</span>
             <NumberInput size="sm" marginBottom bind:value={DBState.db.comfyConfig.timeout} min={1} max={120} />
