@@ -106,6 +106,8 @@ export class PluginStorageStore {
     private flushing: Promise<void> | null = null
     private tokenSeq = 0
     private options: PluginStorageOptions
+    /** progress handler of a running migrate() call, used instead of options.onProgress */
+    private progressOverride: ((message: string | null) => void) | null = null
 
     constructor(
         private backend: PluginStorageBackend,
@@ -139,6 +141,29 @@ export class PluginStorageStore {
             this.loading = null
         })
         await this.loading
+    }
+
+    /** Whether the database still holds legacy values (inline / `_coldplugin`) that the next load migrates. */
+    needsMigration(): boolean {
+        const storage = this.getStorage()
+        if (!storage) {
+            return false
+        }
+        if (Object.keys(storage).some((key) => hasInline(storage, key))) {
+            return true
+        }
+        const legacyMap = storage[PLUGIN_STORAGE_LEGACY_MAP_KEY]
+        return !!legacyMap && typeof legacyMap === 'object' && Object.values(legacyMap).some((id) => typeof id === 'string')
+    }
+
+    /** Loads the store now, reporting migration progress to the given handler instead of options.onProgress. */
+    async migrate(onProgress: (message: string | null) => void): Promise<void> {
+        this.progressOverride = onProgress
+        try {
+            await this.load()
+        } finally {
+            this.progressOverride = null
+        }
     }
 
     private async doLoad() {
@@ -210,9 +235,10 @@ export class PluginStorageStore {
         let changed = false
         const total = inlineKeys.length + legacyEntries.length
         let done = 0
+        const report = this.progressOverride ?? this.options.onProgress
         const progress = () => {
             done++
-            this.options.onProgress?.(`Migrating plugin storage... ${total - done} items left`)
+            report?.(`Migrating plugin storage... ${total - done} items left`)
         }
 
         try {
@@ -284,7 +310,7 @@ export class PluginStorageStore {
                 changed = true
             }
         } finally {
-            this.options.onProgress?.(null)
+            report?.(null)
         }
 
         return changed

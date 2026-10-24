@@ -553,6 +553,17 @@ async function makeColdDataForChat(i:number, j:number, coldTime:number): Promise
     return false
 }
 
+/**
+ * Migrates legacy plugin storage before plugins are loaded, so no plugin runs while its data is being moved.
+ * Only blocks when plugins are installed; otherwise the background load in makeColdData migrates it.
+ */
+export async function migratePluginStorage(onProgress:(message:string|null) => void){
+    if(!DBState.db?.plugins?.length || !pluginStorage.needsMigration()){
+        return
+    }
+    await pluginStorage.migrate(onProgress)
+}
+
 export async function makeColdData(){
     let didChange = false
 
