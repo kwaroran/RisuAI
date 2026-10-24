@@ -23,7 +23,7 @@ use oauth2::{
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use serde_json::json;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::io::Write;
 use std::{path::Path, time::Duration};
 use std::sync::{Arc, LazyLock, Mutex};
@@ -453,6 +453,13 @@ async fn with_idle_timeout<F: std::future::Future>(
 static STREAMED_FETCH_ABORTS: LazyLock<Mutex<HashMap<String, AbortHandle>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
+// Recently started fetch ids. When a page reloads mid-stream, Tauri's IPC script
+// resends the still pending invoke over postMessage, which would start the same
+// request a second time and orphan the first one.
+static STREAMED_FETCH_SEEN_IDS: LazyLock<Mutex<VecDeque<String>>> =
+    LazyLock::new(|| Mutex::new(VecDeque::new()));
+const STREAMED_FETCH_SEEN_IDS_LIMIT: usize = 1000;
+
 #[tauri::command]
 async fn streamed_fetch(
     id: String,
@@ -463,6 +470,17 @@ async fn streamed_fetch(
     method: String,
     timeout_secs: Option<u64>,
 ) -> String {
+    {
+        let mut seen = STREAMED_FETCH_SEEN_IDS.lock().unwrap();
+        if seen.contains(&id) {
+            return r#"{"success":false,"body":"duplicate streamed_fetch id"}"#.to_string();
+        }
+        if seen.len() >= STREAMED_FETCH_SEEN_IDS_LIMIT {
+            seen.pop_front();
+        }
+        seen.push_back(id.clone());
+    }
+
     let (abort_handle, abort_registration) = AbortHandle::new_pair();
     STREAMED_FETCH_ABORTS
         .lock()
