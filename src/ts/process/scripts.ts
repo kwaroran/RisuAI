@@ -138,7 +138,7 @@ export async function processScriptFull(char:character|groupChat|simpleCharacter
         return {data: cached, emoChanged: false}
     }
     
-    if(scripts.length === 0){
+    if(scripts.length === 0 && !db.dynamicAssets){
         cacheScript(hash, data)
         return {data, emoChanged}
     }
