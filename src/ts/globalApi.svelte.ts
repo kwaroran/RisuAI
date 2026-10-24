@@ -1337,7 +1337,7 @@ let fetchIndex = 0
 
 /**
  * Per page load prefix for Tauri streamed fetch ids, so a request left running
- * by a previous page load never shares an id with a new one.
+ * by a previous page load does not share an id with a new one.
  * @type {string}
  */
 const streamedFetchSessionId = Math.random().toString(36).slice(2, 10)
@@ -1841,8 +1841,8 @@ export async function fetchNative(url: string, arg: {
         // The Rust request does not see AbortSignal, so stop it explicitly.
         // Listens on arg.signal because timeoutSignal.cleanup() unlinks requestSignal
         // from it once the Response is returned.
-        // Does not throw: the chat screen alerts anything fetchNative throws, and
-        // callers check their own signal after it returns.
+        // Cancelling does not throw: the chat screen alerts anything fetchNative throws,
+        // and the chat request code checks its own signal after this returns.
         let cancelled = false
         const cancelStreamedFetch = () => {
             if (!isTauri || resolved) {
