@@ -37,7 +37,7 @@ export async function postInlayAsset(img:{
     data:Uint8Array
 }){
 
-    const extention = img.name.split('.').at(-1)
+    const extention = img.name.split('.').at(-1)?.toLowerCase()
     const imgObj = new Image()
 
     if(inlayImageExts.includes(extention)){
