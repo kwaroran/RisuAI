@@ -5,6 +5,7 @@
   import { language } from 'src/lang'
   import { alertConfirm } from 'src/ts/alert'
   import { getInlayAssetBlob, listInlayAssets, removeInlayAsset, type InlayAsset } from 'src/ts/process/files/inlays'
+  import { DBState } from 'src/ts/stores.svelte'
   import Button from '../UI/GUI/Button.svelte'
   import CheckInput from '../UI/GUI/CheckInput.svelte'
 
@@ -177,6 +178,12 @@
             <span class="px-2 py-1 text-xs rounded bg-darkbutton text-textcolor2">
               {asset.type}
             </span>
+            <span class="ml-auto text-xs text-textcolor2">
+              {#if asset.width && asset.height}
+                <span>{asset.width}x{asset.height} • </span>
+              {/if}
+              <span>{getAssetSize(asset)}</span>
+            </span>
           </div>
           <div class="mb-3">
             {#if asset.type === 'image'}
@@ -204,7 +211,7 @@
             {/if}
           </div>
 
-          <div class="flex justify-between items-start mb-2">
+          <div class="flex justify-between items-start mb-1">
             <div class="flex-1 min-w-0">
               <p class="text-textcolor font-medium truncate" title={asset.name}>{asset.name}</p>
               {#if asset.name !== id}
@@ -212,12 +219,8 @@
               {/if}
             </div>
           </div>
-
           <div class="text-textcolor2 text-sm mb-3">
-            {#if asset.width && asset.height}
-              <span>{asset.width}x{asset.height} • </span>
-            {/if}
-            <span>{getAssetSize(asset)}</span>
+            <span>{asset.created ? new Date(asset.created).toLocaleString(DBState.db.language) : '(unknown date)'}</span>
           </div>
 
           <Button onclick={() => deleteAsset(id, asset.name)} styled="danger" size="sm">Delete</Button>

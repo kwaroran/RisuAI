@@ -6,6 +6,8 @@ import { getModelInfo, LLMFlags, LLMFormat } from "src/ts/model/modellist";
 import { asBuffer } from "../../util";
 
 export type InlayAsset = {
+    /** Creation timestamp */
+    created?: number
     data: string | Blob
     /** File extension */
     ext: string
@@ -32,45 +34,48 @@ const inlayStorage = localforage.createInstance({
     storeName: 'inlay'
 })
 
-export async function postInlayAsset(img:{
+export async function postInlayAsset(img: {
     name:string,
     data:Uint8Array
-}){
+}) {
+    const extension = img.name.split('.').at(-1)
 
-    const extention = img.name.split('.').at(-1)
-    const imgObj = new Image()
-
-    if(inlayImageExts.includes(extention)){
-        imgObj.src = URL.createObjectURL(new Blob([asBuffer(img.data)], {type: `image/${extention}`}))
+    if(inlayImageExts.includes(extension)){
+        const imgObj = new Image()
+        imgObj.src = URL.createObjectURL(new Blob([asBuffer(img.data)], {type: `image/${extension}`}))
 
         return await writeInlayImage(imgObj, {
             name: img.name,
-            ext: extention
+            ext: extension
         })
     }
 
-    if(inlayAudioExts.includes(extention)){
-        const audioBlob = new Blob([asBuffer(img.data)], {type: `audio/${extention}`})
+    const now = Date.now()
+
+    if(inlayAudioExts.includes(extension)){
+        const audioBlob = new Blob([asBuffer(img.data)], {type: `audio/${extension}`})
         const imgid = v4()
 
         await inlayStorage.setItem(imgid, {
+            created: now,
             name: img.name,
             data: audioBlob,
-            ext: extention,
+            ext: extension,
             type: 'audio'
         })
 
         return `${imgid}`
     }
 
-    if(inlayVideoExts.includes(extention)){
-        const videoBlob = new Blob([asBuffer(img.data)], {type: `video/${extention}`})
+    if(inlayVideoExts.includes(extension)){
+        const videoBlob = new Blob([asBuffer(img.data)], {type: `video/${extension}`})
         const imgid = v4()
 
         await inlayStorage.setItem(imgid, {
+            created: now,
             name: img.name,
             data: videoBlob,
-            ext: extention,
+            ext: extension,
             type: 'video'
         })
 
@@ -81,9 +86,9 @@ export async function postInlayAsset(img:{
 }
 
 export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string, ext?:string, id?:string} = {}) {
-
     let drawHeight = 0
     let drawWidth = 0
+
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     await new Promise((resolve) => {
@@ -91,7 +96,7 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
             drawHeight = imgObj.height
             drawWidth = imgObj.width
 
-            //resize image to fit inlay, if total pixels exceed 1024*1024
+            // resize image to fit inlay, if total pixels exceed 1024*1024
             const maxPixels = 1024 * 1024
             const currentPixels = drawHeight * drawWidth
             
@@ -109,10 +114,11 @@ export async function writeInlayImage(imgObj:HTMLImageElement, arg:{name?:string
     })
     const imageBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
-
+    const now = Date.now()
     const imgid = arg.id ?? v4()
 
     await inlayStorage.setItem(imgid, {
+        created: now,
         name: arg.name ?? imgid,
         data: imageBlob,
         ext: 'png',
