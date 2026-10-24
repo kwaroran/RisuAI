@@ -65,6 +65,18 @@ export function isIOS(): boolean {
     return isAppleMobile || isIpadOS
 }
 
+export function isMacOS(): boolean {
+    if (isTauri) {
+        try {
+            return tauriOs.type().toLowerCase() === "macos"
+        } catch {
+            return getBrowserOSName() === "macOS"
+        }
+    }
+
+    return getBrowserOSName() === "macOS"
+}
+
 function getBrowserOSName(): string {
     const uaPlatform = browserNavigator.userAgentData?.platform
     if (uaPlatform) {

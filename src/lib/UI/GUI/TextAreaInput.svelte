@@ -68,9 +68,13 @@
                 onchange(e)
             }}
             onkeydown={async (e) => {
+                const hotkeyModifierOptions = {
+                    useLegacyMacOSCtrlHotkeys: DBState.db.useLegacyMacOSCtrlHotkeys ?? false
+                }
+
                 if(
-                    (e.ctrlKey || e.shiftKey || e.altKey)    
-                    && hotkeyMatches(DBState.db.hotkeys.find(hk => hk.action === 'popupEditor'), e)
+                    hasAnyHotkeyModifier(e, hotkeyModifierOptions)
+                    && hotkeyMatches(DBState.db.hotkeys.find(hk => hk.action === 'popupEditor'), e, hotkeyModifierOptions)
                 ){
                     e.preventDefault()
                     popUpEditorStore.value = value
@@ -144,6 +148,7 @@
   import { DBState, disableHighlight, popUpEditorStore } from 'src/ts/stores.svelte';
   import { isMobile } from 'src/ts/platform'
     import { hotkeyMatches } from 'src/ts/hotkey';
+    import { hasAnyHotkeyModifier } from 'src/ts/hotkeyModifiers';
     interface Props {
         size?: 'xs'|'sm'|'md'|'lg'|'xl'|'default';
         autocomplete?: 'on'|'off';
